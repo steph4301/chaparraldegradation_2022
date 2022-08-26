@@ -54,11 +54,11 @@ output:
 
 ```{r install packages, message=FALSE}
 
-# install.packages(c("ggplot2", "ggpubr", "tidyverse", "broom", "AICcmodavg", "tidyverse", "janitor"))
+install.packages(c("ggplot2", "ggpubr", "tidyverse", "broom", "AICcmodavg", "tidyverse", "janitor"))
 
 # install An Bui's California color pallets
-# install.packages("devtools")
-# devtools::install_github("an-bui/calecopal")
+install.packages("devtools")
+devtools::install_github("an-bui/calecopal")
 ```
 
 # Install your Libraries
@@ -68,17 +68,17 @@ output:
 ```{r install libraries, include=FALSE}}
 
 library(tidyverse) # includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
-# library(ggplot2) # data visualization
-# library(readr)
-# library(dplyr)
+library(ggplot2) # data visualization
+library(readr)
+library(dplyr)
 
-# library(ggpubr) # customize ggplot2 for publication
-# library(broom)
-#library(AICcmodavg)
-#library(vegan)
-#library(readxl) # for .xls and .xlsx sheets
-#library(janitor)
-#library(calecopal) 
+library(ggpubr) # customize ggplot2 for publication
+library(broom)
+library(AICcmodavg)
+library(vegan)
+library(readxl) # for .xls and .xlsx sheets
+library(janitor)
+library(calecopal) 
 
 ```
 
@@ -97,7 +97,7 @@ library(tidyverse) # includes ggplot2, dplyr, tidyr, readr, purr, tibble, string
 abrich_full <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/GitHub/https:/github.com/steph4301/chaparraldegradation_2022.git/deg_abrich.csv", header = TRUE, na.strings=c("","NA"))
 
 # percent cover
-abcover_full <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/GitHub/https:/github.com/steph4301/chaparraldegradation_2022.git/deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA"))
+abcover_full <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA"))
 
 # abcoverspp <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_percentcover_byspecies.csv")
 # abcoverdist <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_percentcover_bydistance.csv") # this file is here just in case I need it.
@@ -503,14 +503,27 @@ abcover_full_v_omitground <- filter(abcover_full_v, status !="ground")
 head(abcover_full_v_omitground)
 ```
 
-Second, I need to make a list of the unique species at each site_rep_dist.
+Now, I need to calculate % cover of native and non-native cover by site_rep_dist.
 ```{r unique species by site_rep_dist, inclue = TRUE}
-abcover_byspecies <- abcover_full_v_omitground %>% 
-  group_by(standtype, site, rep, site_rep, species) %>% 
+abcover_bystatus <- abcover_full_v_omitground %>% 
+  group_by(standtype, site, rep, site_rep, status) %>% 
   filter(!is.na(species)) %>% # omit blank cells in species 
-  dplyr::summarize(count_per_dist = n_distinct(site_rep_dist))
-head(abcover_byspecies)
+  dplyr::summarize(count_per_dist = n_distinct(site_rep_dist), percentcover = n_distinct(site_rep_dist)/41)
+view(abcover_bystatus)
 ```
+
+... and then calculate means and SD by status (native, non-native) by stand type. 
+```{r calculating percent cover mean and SD by status by stand, include=TRUE}
+
+abcover_bystatus_meanSD <- abcover_bystatus %>%
+  group_by(standtype, status) %>%
+  summarise_at(vars(percentcover), funs(mean,sd)) 
+ 
+print(abcover_bystatus_meanSD)
+```
+
+
+
 ```{r}
 abcover_byspecies %>% 
   group_by(standtype, site, rep, species) %>% 
