@@ -60,16 +60,19 @@ install.packages(c("ggplot2", "ggpubr", "tidyverse", "broom", "AICcmodavg", "tid
 
 install.packages("multcompView")
 
-# install An Bui's California color pallets
+# install An Bui California color pallets
 install.packages("devtools")
 devtools::install_github("an-bui/calecopal")
 ```
+```{r An Bui California color names}
+
+```
+
 
 # Install your Libraries
 
 + You'll need to do this every time you restart R.  
-
-```{r install libraries, include=FALSE}}
+```{r install libraries, message=FALSE}
 
 library(tidyverse) # includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
 library(ggplot2) # data visualization
@@ -94,7 +97,7 @@ library(multcompView)
 
 + You can preview, name, and Import files from the Files tab
 
-```{r upload all csv files, include = FALSE}}
+```{r upload all csv files, include = FALSE}
 
 # ABOVE GROUND 
 # overall species richness, native richness
@@ -183,15 +186,8 @@ Your type of data determines how you can shape your story
 ### Basics of Tidyverse functions
 
 #### 1. Pipe operator `%>` : chains function together
-
-```{r pipe operator}
-# using pipe operator
-"hello" %>% rep(times = 4)
-
-# without pipe operator
-rep("hello", times = 4)
-```
-
++ "hello" %>% rep(times = 4) <-- using pipe operator
++ rep("hello", times = 4) <-- without pipe operator
 
 #### 2. Tibble : type of dataframe suited for tidyverse
 
@@ -269,14 +265,14 @@ class(abrich) # now a tibble
 
 ```
 ... and create a new column for SITE_REP.
-```{r create site_rep column}
+```{r abrich create site_rep column}
 abrich$site_rep<- paste(abrich$site, abrich$rep, sep="_") # combine site and rep to one column
 head(abrich) # look at new column site_rep, last column
 ```
 
 Second, I need to calculate the **number of unique species** from each sampling location (belt and point).
 
-```{r ab total unique species, include=TRUE}
+```{r abrich total unique species, include=TRUE}
 
 abrich_totalrich <- abrich %>% # call tibble
   filter(site_rep != "Intact4_4") %>% #omit Intact 4 from data
@@ -288,21 +284,20 @@ abrich_totalrich <- abrich %>% # call tibble
 print(abrich_totalrich)
 ```
 + I can also calculate the **mean** and **standard errors** of the total species richness from each sampling location (belt and point).
-```{r calculating total species richness mean and SD}
+```{r abrich calculating total species richness mean and SD}
 
 abrich_totalrich_meanSD <- abrich_totalrich %>%
   group_by(standtype) %>%
   summarise_at(vars(total_species_richness), funs(mean,sd)) 
  
 print(abrich_totalrich_meanSD)
-
 ```
 
 Third, I need to calculate the average and SE of the unique species from each sampling location (belt and point)
 
 + ANOVA - to compare means of groups
 
-```{r anova, include=TRUE}
+```{r abrich anova, include=TRUE}
 abrich_totalrich_anova <- aov(total_species_richness ~ standtype, data = abrich_totalrich) #ANOVA comparing total species richness per standtype
 summary.aov(abrich_totalrich_anova) #show ANOVA output
 
@@ -314,18 +309,13 @@ summary.aov(abrich_totalrich_anova) #show ANOVA output
 
 + Tukey test post-hoc to find differences
 
-```{r tukey posthoc, include=TRUE}
+```{r abrich tukey posthoc, include=TRUE}
 abrich_totalrich_tukey <- TukeyHSD(abrich_totalrich_anova, conf.level=.95) 
 print(abrich_totalrich_tukey)
 ```
 Fourth, and **finally**, plot **TOTAL SPECIES RICHNESS**!
 
-+ color pallet <3
-```{r An Bui's California colors}
-names(cal_palettes)
-```
-
-```{r color pallet for abrich_totalrich}
+```{r brich_totalrich color pallet}
 cal_palette(name = "chaparral2", n = 3, type = "continuous")
 #Intact, Matrix, Degraded
 # values = c('#D98A63', '#9FC2B0', '#A7C2CD')
@@ -412,7 +402,7 @@ print(abrich_natrich_tukey)
 Fourth, and **finally**, plot **NATIVE SPECIES RICHNESS**!
 
 + color pallet <3
-```{r An Bui's California colors}
+```{r An Bui CA colors}
 names(cal_palettes)
 ```
 
@@ -521,11 +511,42 @@ view(abcover_bystatus) # prints to new tab
 ... and then calculate means and SD by status (native, non-native) by stand type. 
 ```{r calculating percent cover mean and SD by status by stand, include=TRUE}
 abcover_bystatus_meanSD <- abcover_bystatus %>%
-  group_by(standtype, status) %>%
-  summarise_at(vars(percentcover), funs(mean,sd)) 
- 
-print(abcover_bystatus_meanSD)
+  group_by(standtype, status) %>% 
+  summarise_at(vars(percentcover), funs(mean,sd)) %>% 
+  print(abcover_bystatus_meanSD)
+
+abcover_bystatus_aov <- abcover_bystatus_meanSD %>% 
+  filter(status =="nonnative") %>% 
+  aov(mean ~ status, data = abcover_bystatus_meanSD) 
+
+  group_by(standtype = "intact", status) %>% # INTACT
+#  group_by(standtype = "matrix", status) %>% # MATRIX
+#  group_by(standtype = "degraded", status) %>% # DEGRADED
+  summarise_at(vars(percentcover), funs(mean,sd)) %>% 
+  print(abcover_bystatus_meanSD)
+
+
+
+  
+  abcover_bystatus %>%
+#  group_by(standtype = "intact", status) %>% # INTACT
+#  group_by(standtype = "matrix", status) %>% # MATRIX
+#  group_by(standtype = "degraded", status) %>% # DEGRADED
+  aov(percentcover ~ status, data = abcover_bystatus) 
+  
+
+abcover_bystatus_aov <-aov(percentcover ~ status, data = abcover_bystatus) 
+print(abcover_bystatus_aov)
 ```
+
+
+```{r}
+abcover_bystatus_aov <- aov(
+  percentcover ~ status, data = abcover_bystatus) 
+
+summary.aov(abcover_bystatus_aov) #show ANOVA output for status at INTACT stand
+```
+
 ... and, finally, calculate significant differences.
 + ANOVA - to compare means of groups 
 ```{r create a new column just in case, include=FALSE}
@@ -581,7 +602,7 @@ abcover_bystatus_anova <- abcover_bystatus %>%
 # print(abcover_bystatus_anova) # recalls formula, Sum of Squares, Deg. of Freedom, Residuals
 ```
 + Tukey test post-hoc to find differences
-```{r abcover_bystatus tukey posthoc, include=TRUE}
+```{r abcoverbystatus tukey posthoc1, include=TRUE}
 abcover_bystatus_tukey <- TukeyHSD(abcover_bystatus_anova, conf.level=.95) 
 print(abcover_bystatus_tukey)
 
@@ -638,7 +659,7 @@ abcover_bylf_aov <- aov(percentcover ~ lifeform + standtype, data = abcover_bylf
 summary.aov(abcover_bylf_aov) #show ANOVA output for status at INTACT stand
 ```
 + Tukey test post-hoc to find differences
-```{r abcover_bystatus tukey posthoc, include=TRUE}
+```{r abcoverbystatus tukey posthoc, include=TRUE}
 abcover_bylf_tukey <- TukeyHSD(abcover_bylf_aov, conf.level=.95) 
 print(abcover_bylf_tukey)
 
@@ -727,7 +748,7 @@ summary.aov(abrich_totalrich_anova) #show ANOVA output
 
 + Tukey test post-hoc to find differences
 
-```{r tukey posthoc, include=TRUE}
+```{r tukey posthoc2, include=TRUE}
 abrich_totalrich_tukey <- TukeyHSD(abrich_totalrich_anova, conf.level=.95) 
 print(abrich_totalrich_tukey)
 # nothing is significant
@@ -738,8 +759,9 @@ print(abrich_totalrich_tukey)
 Fourth, and **finally**, plot **TOTAL SPECIES RICHNESS**!
 
 + color pallet <3
-```{r An Bui's California colors}
+```{r anbui colors, echo=FALSE}
 names(cal_palettes)
+
 ```
 
 ```{r color pallet for abrich_totalrich}
