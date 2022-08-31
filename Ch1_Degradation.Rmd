@@ -58,6 +58,8 @@ output:
 
 install.packages(c("ggplot2", "ggpubr", "tidyverse", "broom", "AICcmodavg", "tidyverse", "janitor"))
 
+install.packages("multcompView")
+
 # install An Bui's California color pallets
 install.packages("devtools")
 devtools::install_github("an-bui/calecopal")
@@ -81,7 +83,7 @@ library(vegan)
 library(readxl) # for .xls and .xlsx sheets
 library(janitor)
 library(calecopal) 
-
+library(multcompView)
 ```
 
 # Upload your csv files
@@ -526,9 +528,7 @@ print(abcover_bystatus_meanSD)
 ```
 ... and, finally, calculate significant differences.
 + ANOVA - to compare means of groups 
-
 ```{r create a new column just in case, include=FALSE}
-
 abcover_bystatus$stand_status <- paste(abcover_bystatus$standtype, abcover_bystatus$status, sep="_") # combine stand and status label to one column
 view(abcover_bystatus)
 ```
@@ -539,7 +539,16 @@ abcover_bystatus_nat <- abcover_bystatus %>%
 abcover_bystatus_non <- abcover_bystatus %>%
   filter(status == "nonnative") # filter for non-native species
 ```
-```{r aov, include=TRUE}
+
+```{r aov then tu, include=TRUE}
+
+
+abcover_bystatus_nat_tukey <- TukeyHSD(abcover_bystatus_nat_aov <- aov(percentcover ~ status, data = abcover_bystatus_nat))
+
+
+aov(percentcover ~ status, data = abcover_bystatus_mat) 
+summary.aov(abcover_bystatus_mat_aov) #show ANOVA output for status at INTACT stand
+
 
 ```
 
@@ -604,6 +613,46 @@ abcover_byspecies %>%
   filter(!is.na(species)) %>% # omit blank cells in species 
   dplyr::summarize(count_per_dist = n_distinct(site_rep_dist))
 ```
+
+## THIS IS SO MESSY
+Now, I need to calculate % cover of native and non-native cover by site_rep_dist.
+```{r percent cover of lifeform by site_rep, inclue = TRUE}
+abcover_bylf <- abcover_full_v_omitground %>% 
+  group_by(standtype, site, rep, site_rep, lifeform) %>% 
+  filter(!is.na(species)) %>% # omit blank cells in species 
+  dplyr::summarize(count_per_dist = n_distinct(site_rep_dist), percentcover = n_distinct(site_rep_dist)/41)
+# print(abcover_bystatus) # prints all rows of table
+# head (abcover_bystatus) # prints first 6 rows of table
+head(abcover_bylf) # prints to new tab
+```
+.. and then calculate means and SD by status (native, non-native) by stand type. 
+```{r calculating percent cover mean and SD by lifeform by stand, include=TRUE}
+abcover_bylf_meanSD <- abcover_bylf %>%
+  group_by(standtype, lifeform) %>%
+  summarise_at(vars(percentcover), funs(mean,sd)) 
+ 
+print(abcover_bylf_meanSD)
+```
+```{r}
+abcover_bylf_aov <- aov(percentcover ~ lifeform + standtype, data = abcover_bylf) 
+summary.aov(abcover_bylf_aov) #show ANOVA output for status at INTACT stand
+```
++ Tukey test post-hoc to find differences
+```{r abcover_bystatus tukey posthoc, include=TRUE}
+abcover_bylf_tukey <- TukeyHSD(abcover_bylf_aov, conf.level=.95) 
+print(abcover_bylf_tukey)
+
+```
+
+
+## 5. Shrub cover 
+
+### With my shrub percent cover data, I specifically want to look at:
+  + 1. Shrub percent cover by stand
+  + 2. Percent cover by status by lifeform (fern, herb, shrub, grass) by stand
+
+
+
 
 
 ```{r abcover select native and nonnative status, include=TRUE}
