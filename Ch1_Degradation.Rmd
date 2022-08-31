@@ -43,7 +43,9 @@ output:
 
 # opts_chunk = to add gray code chunks
 
-
+# view - prints to a new tab
+# print - prints all rows in document
+# head - prints first 6 rows in document
 ```
 
 # Install your Packages
@@ -509,20 +511,92 @@ abcover_bystatus <- abcover_full_v_omitground %>%
   group_by(standtype, site, rep, site_rep, status) %>% 
   filter(!is.na(species)) %>% # omit blank cells in species 
   dplyr::summarize(count_per_dist = n_distinct(site_rep_dist), percentcover = n_distinct(site_rep_dist)/41)
-view(abcover_bystatus)
+# print(abcover_bystatus) # prints all rows of table
+# head (abcover_bystatus) # prints first 6 rows of table
+view(abcover_bystatus) # prints to new tab
 ```
 
 ... and then calculate means and SD by status (native, non-native) by stand type. 
 ```{r calculating percent cover mean and SD by status by stand, include=TRUE}
-
 abcover_bystatus_meanSD <- abcover_bystatus %>%
   group_by(standtype, status) %>%
   summarise_at(vars(percentcover), funs(mean,sd)) 
  
 print(abcover_bystatus_meanSD)
 ```
+... and, finally, calculate significant differences.
++ ANOVA - to compare means of groups 
+
+```{r create a new column just in case, include=FALSE}
+
+abcover_bystatus$stand_status <- paste(abcover_bystatus$standtype, abcover_bystatus$status, sep="_") # combine stand and status label to one column
+view(abcover_bystatus)
+```
+1) standtypes by their native or nonnative species
+```{r filter by status, include=TRUE}
+abcover_bystatus_nat <- abcover_bystatus %>%
+  filter(status == "native") # filter for native species
+abcover_bystatus_non <- abcover_bystatus %>%
+  filter(status == "nonnative") # filter for non-native species
+```
+```{r aov, include=TRUE}
+
+```
 
 
+2) native and nonnative status by standtypes
+```{r filter by standtype, include=TRUE}
+abcover_bystatus_int <- abcover_bystatus %>%
+  filter(standtype == "intact") # filter for intact stand
+abcover_bystatus_mat <- abcover_bystatus %>%
+  filter(standtype == "matrix") # filter for matrix stand
+abcover_bystatus_deg <- abcover_bystatus %>%
+  filter(standtype == "degraded") # filter for degraded stand
+```
+
+```{r filter by standtype, include=TRUE}
+
+```
+
+
+```{r}
+abcover_bystatus_mat_aov <- aov(percentcover ~ status, data = abcover_bystatus_mat) 
+summary.aov(abcover_bystatus_mat_aov) #show ANOVA output for status at INTACT stand
+
+
+abcover_bystatus_anova <- abcover_bystatus %>% 
+  dplyr::filter(standtype == "intact") %>% 
+  aov(percentcover ~ status, data = abcover_bystatus) %>% 
+  summary.aov(abcover_bystatus_anova)
+
+# print(abcover_bystatus_anova) # recalls formula, Sum of Squares, Deg. of Freedom, Residuals
+```
++ Tukey test post-hoc to find differences
+```{r abcover_bystatus tukey posthoc, include=TRUE}
+abcover_bystatus_tukey <- TukeyHSD(abcover_bystatus_anova, conf.level=.95) 
+print(abcover_bystatus_tukey)
+
+```
+
+The last step is to plot the data. 
+```{r plotting percent coverby status by standtype, include=TRUE}
+#  column plot
+
+abcover_bystatus_plot <- ggplot(abcover_bystatus_meanSD, aes(x = standtype, y = mean, fill = status)) +
+  geom_col(position = "dodge", width = 0.8) +
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2,
+                 position=position_dodge(.9)) +
+               labs(title = "Percent Cover", x = "Stand Type", y = "Average Percent Cover (%)") + # title, axes titles
+ # scale_fill_manual(values = c('#D3E3CA', '#92A587', '#2F3525'), # manual colors
+   scale_fill_manual(values = cal_palette('chaparral2')) +  # continuous colors
+  #                  limits = c("intact", "matrix", "degraded"), # "limits" reorders the x-axis
+  #                  labels = c("Intact", "Matrix", "Degraded")) + # "labels" changes the name
+                    theme_bw() +
+  scale_x_discrete(limits=c("intact", "matrix", "degraded"),
+                                         labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded"))
+
+print(abcover_bystatus_plot)  
+```
 
 ```{r}
 abcover_byspecies %>% 
