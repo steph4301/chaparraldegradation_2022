@@ -54,14 +54,15 @@ output:
 
 + Install packages in the Console. 
 
-```{r install packages, message=FALSE}
-
-install.packages(c("ggplot2", "ggpubr", "tidyverse", "broom", "AICcmodavg", "tidyverse", "janitor"))
-
+```{r install packages, include=FALSE}
+install.packages("ggplot2")
+install.packages("ggpubr")
+install.packages("tidyverse")
+install.packages("broom")
+install.packages("AICcmodavg")
+install.packages("janitor")
 install.packages("multcompView")
-
-# install An Bui California color pallets
-install.packages("devtools")
+install.packages("devtools") # install An Bui California color pallets
 devtools::install_github("an-bui/calecopal")
 ```
 ```{r An Bui California color names}
@@ -582,7 +583,7 @@ summary.aov(abcover_bystatus_mat_aov) #show ANOVA output for status at INTACT st
 
 
 2) native and nonnative status by standtypes
-```{r filter by standtype, include=TRUE}
+```{r abcover filter by standtype, include=TRUE}
 abcover_bystatus_int <- abcover_bystatus %>%
   filter(standtype == "intact") # filter for intact stand
 abcover_bystatus_mat <- abcover_bystatus %>%
