@@ -1,14 +1,20 @@
 ---
-title: "Chapter 1: Degradation"
+title: 'Chapter 1: Degradation'
 author: "Stephanie Ma Lucero"
 date: "`r Sys.Date()`"
-output: 
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: '1'
   html_document:
-    toc: true
+    toc: yes
     toc_depth: 1
-    toc_float: true
+    toc_float: yes
 ---
 
+```{r include=FALSE}
+knitr::opts_chunk$set(message = FALSE)
+```
 
 ```{r formatting, echo=FALSE}
 
@@ -54,14 +60,14 @@ output:
 
 + Install packages in the Console. 
 
-```{r install packages, include=FALSE}
-install.packages("ggplot2")
-install.packages("ggpubr")
+```{r install packages}
+# install.packages("ggplot2")
+# install.packages("ggpubr")
 install.packages("tidyverse")
-install.packages("broom")
-install.packages("AICcmodavg")
-install.packages("janitor")
-install.packages("multcompView")
+#install.packages("broom")
+#install.packages("AICcmodavg")
+#install.packages("janitor")
+#install.packages("multcompView")
 install.packages("devtools") # install An Bui California color pallets
 devtools::install_github("an-bui/calecopal")
 ```
