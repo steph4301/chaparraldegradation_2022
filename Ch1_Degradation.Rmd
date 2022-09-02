@@ -2,18 +2,13 @@
 title: 'Chapter 1: Degradation'
 author: "Stephanie Ma Lucero"
 date: "`r Sys.Date()`"
-output:
-  pdf_document:
-    toc: yes
-    toc_depth: '1'
+output: 
   html_document:
-    toc: yes
-    toc_depth: 1
-    toc_float: yes
+    toc: TRUE
 ---
 
-```{r include=FALSE}
-knitr::opts_chunk$set(message = FALSE)
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r formatting, echo=FALSE}
@@ -97,15 +92,10 @@ library(multcompView)
 ```
 
 # Upload your csv files
-
-+ Save them to your GitHub folder
-
++ Save them to your GitHub folder 
 + Use snake_case = no capitals or spaces
-
 + You can preview, name, and Import files from the Files tab
-
-```{r upload all csv files, include = FALSE}
-
+```{r upload all csv files, echo=FALSE, eval=F}
 # ABOVE GROUND 
 # overall species richness, native richness
 abrich_full <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_abrich.csv", header = TRUE, na.strings=c("","NA"))
@@ -993,7 +983,7 @@ ggplot(abrich_totalrich_meanSD, aes(x = standtype, y = mean, fill = standtype)) 
   scale_color_manual(values = c('#999999','#E69F00', '#E69F00'))
 ```
 
-```{r from Austen}
+```{r from Austen, eval=FALSE, include=FALSE, echo=FALSE}
 
 
 
