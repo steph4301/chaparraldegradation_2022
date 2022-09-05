@@ -5,13 +5,16 @@ date: "`r Sys.Date()`"
 output: 
   html_document:
     toc: TRUE
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r formatting, echo=FALSE}
+```{r formatting, include=FALSE}
 
 # file:///Users/work/Downloads/rmarkdown%20(1).pdf
 
@@ -51,9 +54,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Install your Packages
 
-+ You only need to do this once. 
+-   You only need to do this once.
+-   Install packages in the Console.
 
-+ Install packages in the Console. 
 ```{r install packages}
 # install.packages("ggplot2")
 # install.packages("ggpubr")
@@ -65,22 +68,19 @@ knitr::opts_chunk$set(echo = TRUE)
 #install.packages("multcompView")
 #install.packages("devtools") # install An Bui California color pallets
 #devtools::install_github("an-bui/calecopal")
-```
-```{r An Bui California color names}
 # names(cal_palettes)
 ```
 
-
 # Install your Libraries
 
-+ You'll need to do this every time you restart R.  
+-   You'll need to do this every time you restart R.\
+
 ```{r install libraries, message=FALSE}
 
 library(tidyverse) # includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
 library(ggplot2) # data visualization
 library(readr)
 library(dplyr)
-
 library(ggpubr) # customize ggplot2 for publication
 library(broom)
 library(AICcmodavg)
@@ -92,9 +92,11 @@ library(multcompView)
 ```
 
 # Upload your csv files
-+ Save them to your GitHub folder 
-+ Use snake_case = no capitals or spaces
-+ You can preview, name, and Import files from the Files tab
+
+-   Save them to your GitHub folder
+-   Use snake_case = no capitals or spaces
+-   You can preview, name, and Import files from the Files tab
+
 ```{r upload all csv files, echo=FALSE, eval=F}
 # ABOVE GROUND 
 # overall species richness, native richness
@@ -103,21 +105,20 @@ abrich_full <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chapar
 # percent cover
 abcover_full <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA"))
 
-# abcoverspp <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_percentcover_byspecies.csv")
-# abcoverdist <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_percentcover_bydistance.csv") # this file is here just in case I need it.
+# abcoverspp_full <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_percentcover_byspecies.csv", header = TRUE, na.strings=c("","NA"))
 
 # native shrub density 
-shrubdensitylife_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_beltdensity_bylifestage.csv") #StandType, Site, rep, ScientificName, dead, immature, mature, resprout, seedling.
+shrubdensitylife_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_bylifestage.csv") #StandType, Site, rep, ScientificName, dead, immature, mature, resprout, seedling.
 
-shrubdensityspp_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_beltdensity_byspecies.csv")
-shrubdensityalive_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_beltdensity_seperatealive.csv")
+shrubdensityspp_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_byspecies.csv")
+# shrubdensityalive_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_beltdensity_seperatealive.csv")
 
 # stand height 
-standheight_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_maxheight.csv")
+standheight_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_maxheight.csv")
 
 # BELOW GROUND #
 # overall species richness, native richness, germination
-seedbank <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/GitHub/https:/github.com/steph4301/chaparraldegradation_2022.git/deg_seedbank.csv")
+#seedbank <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/GitHub/https:/github.com/steph4301/chaparraldegradation_2022.git/deg_seedbank.csv")
 
 
 # STAND COMPARISON #
@@ -131,25 +132,27 @@ seedbank <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/GitHub/ht
 
 ## Remember to keep your data **tidy**
 
-Tidy data follows three principles: 
- 
-1. Each **variable** has its own column 
- 
-2. Each **observation** has its own row 
- 
-3. Each **value** has its own cell 
+Tidy data follows three principles:
 
-Some other random tidy principles include:
-- **efficient code**: using one concise function in the place of many
-- using **snake case**: file names and column headers in lowercase and with underscores instead of spaces
-- use of the **pipe** operator
+1.  Each **variable** has its own column
+2.  Each **observation** has its own row
+3.  Each **value** has its own cell
 
-The ` %>% ` symbol is known as a pipe operator and essentially allows you to run multiple commands at one time that all act on the same object (a dataset, a matrix, a vector of values, whatever). You can create this symbol with the shortcut **command + shift + m**. 
+Some other random tidy principles include: - **efficient code**: using
+one concise function in the place of many - using **snake case**: file
+names and column headers in lowercase and with underscores instead of
+spaces - use of the **pipe** operator
 
-The '|' symbol will create an AND function
-survey %>% # call tibble
-  filter((sex == "male" & height > 70) | (sex == "female" & height < 55)) %>% # filter picks out rows/observations ## we're selecting observations that are men > 70 in tall AND women < 55 in tall
-  select(sex, height, fastest) # selects picks out columns/variables
+The `%>%` symbol is known as a pipe operator and essentially allows you
+to run multiple commands at one time that all act on the same object (a
+dataset, a matrix, a vector of values, whatever). You can create this
+symbol with the shortcut **command + shift + m**.
+
+The '\|' symbol will create an AND function survey %\>% \# call tibble
+filter((sex == "male" & height \> 70) \| (sex == "female" & height \<
+55)) %\>% \# filter picks out rows/observations \## we're selecting
+observations that are men \> 70 in tall AND women \< 55 in tall
+select(sex, height, fastest) \# selects picks out columns/variables
 
 ### Types of data
 
@@ -157,99 +160,105 @@ Your type of data determines how you can shape your story
 
 #### Main groups
 
-+ **Numerical** --> numbers (woot!)
-
-+ **Categorical** --> characteristics, like words.
-
-
+-   **Numerical** --\> numbers (woot!)
+-   **Categorical** --\> characteristics, like words.
 
 #### Subgroups
 
-+ **Continuous** --> numbers can take on **any** value (e.g., height, weight, temperature)
-  
+-   **Continuous** --\> numbers can take on **any** value (e.g., height,
+    weight, temperature)
+-   **Discrete** --\> numbers or words can only be **certain** values
+    (e.g., days of the week, \# of kids in a class, pet type)
 
-+ **Discrete** --> numbers or words can only be **certain** values (e.g., days of the week, # of kids in a class, pet type)
-  
-  
-  
 #### Sub-subgroup of discrete
 
-+ **Nominal** --> discrete units **with no order** (e.g., languages, countries, ICUN status)
-  
-  
-+ **Ordinal** --> discrete unites **with order** (e.g., months of year, levels of education, TA reviews)
-  
-
+-   **Nominal** --\> discrete units **with no order** (e.g., languages,
+    countries, ICUN status)
+-   **Ordinal** --\> discrete unites **with order** (e.g., months of
+    year, levels of education, TA reviews)
 
 ### Basics of Tidyverse functions
 
 #### 1. Pipe operator `%>` : chains function together
-+ "hello" %>% rep(times = 4) <-- using pipe operator
-+ rep("hello", times = 4) <-- without pipe operator
+
+-   "hello" %\>% rep(times = 4) \<-- using pipe operator
+-   rep("hello", times = 4) \<-- without pipe operator
 
 #### 2. Tibble : type of dataframe suited for tidyverse
 
-Check dataframe:
-+ class(df)
+Check dataframe: + class(df)
 
-Convert dataframe to tibble:
-+ df <- as_tibble(df)
-+ class(df)
-
+Convert dataframe to tibble: + df \<- as_tibble(df) + class(df)
 
 #### 3. dplyr package : tool for data manipulation
 
-+ a. `filter()` and `select()` for sub-setting
+-   
 
-+ b. `mutate()` for transforming variables
+    a.  `filter()` and `select()` for sub-setting
 
-+ c. `group_by()` and `summarise()` for numerical summaries
+-   
 
-+ d. `fivenum()` for all 5 summaries 
+    b.  `mutate()` for transforming variables
 
-+ e. omit variable from data 
-  filter(site_rep != "Intact4_4") %>% #omit Intact 4 from data
-+ f. omit NAs from a column 
-  filter(!is.na(species)) %>% # omit blank cells in species 
-  
-  
+-   
+
+    c.  `group_by()` and `summarise()` for numerical summaries
+
+-   
+
+    d.  `fivenum()` for all 5 summaries
+
+-   
+
+    e.  omit variable from data filter(site_rep != "Intact4_4") %\>%
+        #omit Intact 4 from data
+
+-   
+
+    f.  omit NAs from a column filter(!is.na(species)) %\>% \# omit
+        blank cells in species
+
 # **LET'S DO THIS! :D**
 
-
-
-
-# ABOVE GROUND 
+# ABOVE GROUND
 
 Let's look at the dataset: abrich
 
 What are the questions I'm asking?
 
-Hypothesis 1. Above ground chaparral communities are not significantly different between stands with increasing amounts of degradation.
+Hypothesis 1. Above ground chaparral communities are not significantly
+different between stands with increasing amounts of degradation.
 
-+ 1a.	Stands with greater degradation have significantly lower **overall species richness** above ground
+-   1a. Stands with greater degradation have significantly lower
+    **overall species richness** above ground
 
-+ 1b. Create an **NMDS** of of species between stands.
+-   1b. Create an **NMDS** of of species between stands.
 
-+ 1c. Stands with greater degradation have significantly lower **native species richness** above ground
+-   1c. Stands with greater degradation have significantly lower
+    **native species richness** above ground
 
-+ 1d. Stands with greater degradation have significantly less **shrub cover**
+-   1d. Stands with greater degradation have significantly less **shrub
+    cover**
 
-+ 1e. Stands with greater degradation have significantly lower **shrub density**
+-   1e. Stands with greater degradation have significantly lower **shrub
+    density**
 
-+ 1f.	Stands with greater degradation have significantly shorter **canopy height** 
+-   1f. Stands with greater degradation have significantly shorter
+    **canopy height**
 
-My prediction: Degraded above ground is not the same as Intact above ground. Matrix above ground falls somewhere in between.
-
+My prediction: Degraded above ground is not the same as Intact above
+ground. Matrix above ground falls somewhere in between.
 
 ## 1. Overall speices richness
 
-With my abrich data, I specifically want to look at:
-  + 1. my data in a useful format
-  + 2. the number of unique species from each sampling location (belt and point)
-  + 3. the average and SE of unique species at each samling location
-  + 4. if the number of unique species at each samling location are different by standtype
+With my abrich data, I specifically want to look at: + 1. my data in a
+useful format + 2. the number of unique species from each sampling
+location (belt and point) + 3. the average and SE of unique species at
+each samling location + 4. if the number of unique species at each
+samling location are different by standtype
 
 First, I need to organize the data...
+
 ```{r ab total species richness}
 
 dim(abrich_full)
@@ -266,41 +275,84 @@ class(abrich) # now a tibble
 # [1] "tbl_df"     "tbl"        "data.frame"
 
 ```
+
 ... and create a new column for SITE_REP.
+
 ```{r abrich create site_rep column}
 abrich$site_rep<- paste(abrich$site, abrich$rep, sep="_") # combine site and rep to one column
+abrich$sqrt <- paste(abrich$site, abrich$rep, sep="_")
 head(abrich) # look at new column site_rep, last column
 ```
 
-Second, I need to calculate the **number of unique species** from each sampling location (belt and point).
+Second, I need to calculate the **number of unique species** from each
+sampling location (belt and point).
 
 ```{r abrich total unique species, include=TRUE}
 
 abrich_totalrich <- abrich %>% # call tibble
   filter(site_rep != "Intact4_4") %>% #omit Intact 4 from data
   filter(!is.na(species)) %>% # omit blank cells in species 
-  group_by(standtype, site_rep) %>% # group by stand type (column 1) and site_rep (column 2)
-   select(species) %>%  # selects picks out columns/variables
-   dplyr::summarize(total_species_richness = n_distinct(species)) # summarize the number of unique speices per site and rep 
+  group_by(standtype, site, site_rep) %>% # group by stand type (column 1) and site_rep (column 2)
+  select(species) %>%  # selects picks out columns/variables
+  dplyr::summarize(total_species_richness = n_distinct(species)
+                    
+                    
+                    
+               #     sqrt_trans = (max(abrich_totalrich$total_species_richness)-total_species_richness)/(sqrt(n_distinct(species))) # summarize the number of unique speices per site and rep 
 
-print(abrich_totalrich)
+# max(abrich_totalrich$total_species_richness)
+# [1] 26
+
+# print(abrich_totalrich)
 ```
-+ I can also calculate the **mean** and **standard errors** of the total species richness from each sampling location (belt and point).
+
+```{r abrich_totalrich test for normality}
+abrich_totalrich_norm <- ggplot(abrich_totalrich) + geom_histogram(aes(x = total_species_richness))
+abrich_totalrich_norm
+
+#rank based - quisqual wallis
+#beta ray distribution - good for % cover distribution
+```
+
+```{r abrich total rich transform with taking square root}
+# Reflect Data and use the appropriate transformation for right skew. Reflect every data point by subtracting it from the 
+# maximum value. Add 1 to every data point to avoid having one or multiple 0 in your data.
+
+
+```
+
+```{r abrich total rich testing for outliers}
+ggplot(abrich_totalrich) + # no outliers in this dataset
+  aes(x = "", y = total_species_richness) +
+  geom_boxplot(fill = "#0c4c8a") +
+  theme_minimal()
+```
+
+```{r abrich kruskal.test}
+abrich_kw <- kruskal.test(total_species_richness ~ standtype, data = abrich_totalrich) 
+abrich_kw
+
+```
+
+-   I can also calculate the **mean** and **standard errors** of the
+    total species richness from each sampling location (belt and point).
+
 ```{r abrich calculating total species richness mean and SD}
 
 abrich_totalrich_meanSD <- abrich_totalrich %>%
-  group_by(standtype) %>%
+  group_by(standtype, site) %>%
   summarise_at(vars(total_species_richness), funs(mean,sd)) 
  
 print(abrich_totalrich_meanSD)
 ```
 
-Third, I need to calculate the average and SE of the unique species from each sampling location (belt and point)
+Third, I need to calculate the average and SE of the unique species from
+each sampling location (belt and point)
 
-+ ANOVA - to compare means of groups
+-   ANOVA - to compare means of groups
 
 ```{r abrich anova, include=TRUE}
-abrich_totalrich_anova <- aov(total_species_richness ~ standtype, data = abrich_totalrich) #ANOVA comparing total species richness per standtype
+abrich_totalrich_anova <- aov(total_species_richness ~ site, data = abrich_totalrich) #ANOVA comparing total species richness per standtype
 summary.aov(abrich_totalrich_anova) #show ANOVA output
 
 1-pf(22.01/21.11, 2, 13) # calculate p-value
@@ -309,37 +361,46 @@ summary.aov(abrich_totalrich_anova) #show ANOVA output
 #print(abrich_totalrich_anova) # recalls formula, Sum of Squares, Deg. of Freedom, Residuals
 ```
 
-+ Tukey test post-hoc to find differences
+-   Tukey test post-hoc to find differences
 
 ```{r abrich tukey posthoc, include=TRUE}
 abrich_totalrich_tukey <- TukeyHSD(abrich_totalrich_anova, conf.level=.95) 
 print(abrich_totalrich_tukey)
 ```
+
 Fourth, and **finally**, plot **TOTAL SPECIES RICHNESS**!
 
 ```{r abrich_totalrich color pallet}
-cal_palette(name = "chaparral2", n = 3, type = "continuous")
+# cal_palette(name = "chaparral2", n = 3, type = "continuous") # by standtype
 #Intact, Matrix, Degraded
 # values = c('#D98A63', '#9FC2B0', '#A7C2CD')
+
+cal_palette(name = "chaparral1", n = 7, type = "continuous") # by site
+
+
 ```
 
-+ column graph
+-   column graph
+
 ```{r abrich column total species richness, include = TRUE}
 
 #  column plot
-abrich_totalrich_plot <- ggplot(abrich_totalrich_meanSD, aes(x = standtype, y = mean, fill = standtype)) +
+abrich_totalrich_plot <- ggplot(abrich_totalrich_meanSD, aes(x = site, y = mean, fill = site)) +
   geom_col(position = "dodge", width = 0.8) +
   geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2,
                  position=position_dodge(.9)) +
-  labs(title = "Species Richness", x = "Stand Type", y = "Average Species Richness") +
-  scale_fill_manual(values = c('#D3E3CA', '#92A587', '#2F3525')) + # manual colors
-#   scale_fill_manual(values = cal_palette('chaparral3')) + # continuous colors
+  labs(title = "Species Richness", x = "Site", y = "Average Species Richness") +
+#  scale_fill_manual(values = c('#D3E3CA', '#92A587', '#2F3525')) + # manual colors
+#   scale_fill_manual(values = cal_palette('chaparral1')) + # continuous colors
+    scale_fill_manual(values = c('#D3E3CA', '#92A587', '#2F3525', '#9F7E75', '#B9B994', '#F19B34', '#7D5F5D')) + # manual colors
                        theme_bw()
+
 abrich_totalrich_plot + scale_x_discrete(limits=c("intact", "matrix", "degraded"),
                                          labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded"))
 ```
 
-+ line graph
+-   line graph
+
 ```{r abrich line graph abrich total species richness, include=TRUE}
 #  line plot
 ggplot(abrich_totalrich_meanSD, aes(x = standtype, y = mean, fill = standtype)) +
@@ -352,15 +413,27 @@ ggplot(abrich_totalrich_meanSD, aes(x = standtype, y = mean, fill = standtype)) 
   scale_color_manual(values = c('#999999','#E69F00', '#E69F00'))
 ```
 
-
 ## 2. Overall native speices richness
 
 ### With my abrich data, I specifically want to look at:
-  + 1. the number of unique native species from each sampling location (belt and point)
-  + 2. the average and SE of unique native species at each sampling location
-  + 3. if the number of unique native species at each sampling location are different by standtype
 
-First, I need to filter for only native species. 
+-   
+
+    1.  the number of unique native species from each sampling location
+        (belt and point)
+
+-   
+
+    2.  the average and SE of unique native species at each sampling
+        location
+
+-   
+
+    3.  if the number of unique native species at each sampling location
+        are different by standtype
+
+First, I need to filter for only native species.
+
 ```{r abrichnat native species richness, message=FALSE}
 abrich_natrich <- abrich %>% # call tibble
   filter(site_rep != "Intact4_4") %>% # omit data from Intact 4
@@ -372,7 +445,10 @@ abrich_natrich <- abrich %>% # call tibble
 
 print(abrich_natrich)
 ```
-Second, calculate the average and SE of unique native species at each sampling location.
+
+Second, calculate the average and SE of unique native species at each
+sampling location.
+
 ```{r abrichnatcalculating native species richness mean and SD, message=FALSE}
 
 abrich_natrich_meanSD <- abrich_natrich %>%
@@ -383,9 +459,10 @@ print(abrich_natrich_meanSD)
 
 ```
 
-Third, calculate if the number of unique native species at each sampling location are significantly different by standtype.
+Third, calculate if the number of unique native species at each sampling
+location are significantly different by standtype.
 
-+ ANOVA - to compare means of groups
+-   ANOVA - to compare means of groups
 
 ```{r abrich_natrich anova, include=TRUE}
 
@@ -395,12 +472,14 @@ summary.aov(abrich_natrich_anova) #show ANOVA output
 # print(abrich_natrich_anova) # recalls formula, Sum of Squares, Deg. of Freedom, Residuals
 ```
 
-+ Tukey test post-hoc to find differences
+-   Tukey test post-hoc to find differences
+
 ```{r abrich_natrich tukey posthoc, include=TRUE}
 abrich_natrich_tukey <- TukeyHSD(abrich_natrich_anova, conf.level=.95) 
 print(abrich_natrich_tukey)
 
 ```
+
 Fourth, and **finally**, plot **NATIVE SPECIES RICHNESS**!
 
 ```{r abrich_natrich color pallet}
@@ -409,7 +488,8 @@ cal_palette(name = "chaparral2", n = 3, type = "continuous")
 # values = c('#D98A63', '#9FC2B0', '#A7C2CD')
 ```
 
-+ column graph
+-   column graph
+
 ```{r abrich_natrich column native species richnes , include = TRUE}
 
 #  column plot
@@ -427,7 +507,8 @@ abrich_natrich_plot + scale_x_discrete(limits=c("intact", "matrix", "degraded"),
                                          labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded"))
 ```
 
-+ line graph
+-   line graph
+
 ```{r abrich_natrich line graph abrich total species richness, include=TRUE}
 #  line plot
 ggplot(abrich_natrich_meanSD, aes(x = standtype, y = mean, fill = standtype)) +
@@ -440,24 +521,32 @@ ggplot(abrich_natrich_meanSD, aes(x = standtype, y = mean, fill = standtype)) +
   scale_color_manual(values = c('#999999','#E69F00', '#E69F00'))
 ```
 
-
-## 3. Percent cover 
+## 3. Percent cover
 
 ### With my percent cover data, I specifically want to look at:
-  + 1. Percent cover by status (native, nonnative) by stand
-  + 2. Percent cover by status by lifeform (fern, herb, shrub, grass) by stand
-  
-To calculate percent cover by status (native, nonnative) by stand I will: 
-  + 3. Calculate the average and SE of native and nonnative percent cover at each stand
-  + 4. calculate if native and nonnative cover is different between stands (ANOVA, tukey)
-  + 5. Graph the results
 
-To calculate percent cover by status (native, nonnative) by lifeform (herb, shrub, grass, fern) by stand I will: 
-  + 6. Calculate the average and SE of native and nonnative percent cover at each stand
-  + 7. calculate if native and nonnative cover is different between stands (ANOVA, tukey)
-  + 8. Graph the results
+-   
+
+    1.  Percent cover by status (native, nonnative) by stand
+
+-   
+
+    2.  Percent cover by status by lifeform (fern, herb, shrub, grass)
+        by stand
+
+To calculate percent cover by status (native, nonnative) by stand I
+will: + 3. Calculate the average and SE of native and nonnative percent
+cover at each stand + 4. calculate if native and nonnative cover is
+different between stands (ANOVA, tukey) + 5. Graph the results
+
+To calculate percent cover by status (native, nonnative) by lifeform
+(herb, shrub, grass, fern) by stand I will: + 6. Calculate the average
+and SE of native and nonnative percent cover at each stand + 7.
+calculate if native and nonnative cover is different between stands
+(ANOVA, tukey) + 8. Graph the results
 
 First, I need to organize the data...
+
 ```{r ab percent cover by status, include = TRUE}
 
 dim(abcover_full)
@@ -473,14 +562,18 @@ class(abcover_full) # now a tibble
 # [1] "tbl_df"     "tbl"        "data.frame"
 
 ```
+
 ... including reordering the classes...
+
 ```{r ab percent cover reorder classes to Intact Matrix Degraded}
 abcover_full_v <- abcover_full %>%
   mutate(standtype = fct_relevel(standtype, 
             "intact", "matrix", "degraded"))
 ```
 
-... and creating new columns for SITE_REP and SITE_REP_DISTANCE and STAND_STATUS
+... and creating new columns for SITE_REP and SITE_REP_DISTANCE and
+STAND_STATUS
+
 ```{r ab percent cover create site_rep column and site_rep_dist column}
 abcover_full_v$site_rep <- paste(abcover_full_v$site, abcover_full_v$rep, sep="_") # combine site and rep to one column
 
@@ -490,13 +583,18 @@ abcover_full_v$stand_status <- paste(abcover_full_v$standtype, abcover_bystatus$
 
 head(abcover_full_v) # look at new columns
 ```
+
 ... and omit "ground" as a status.
+
 ```{r ab percent cover filter for native and non-native only}
 abcover_full_v_omitground <- filter(abcover_full_v, status !="ground")
 head(abcover_full_v_omitground)
 ```
 
-Now, I need to identify the unique species at each site_rep_dist to get rid of duplicate species recordings. (e.g., Present at one distance = 1/41 to get percent cover)
+Now, I need to identify the unique species at each site_rep_dist to get
+rid of duplicate species recordings. (e.g., Present at one distance =
+1/41 to get percent cover)
+
 ```{r ab percent cover unique species by site_rep_dist, inclue = TRUE}
 abcover_bystatus <- abcover_full_v_omitground %>% 
   group_by(standtype, site, rep, site_rep, status) %>% 
@@ -510,7 +608,9 @@ head(abcover_bystatus) # prints to new tab
 # abcover_bystatus is organized by native and nonnative status, it does NOT include lifeform or species
 ```
 
-... and then calculate means and SD by status (native, non-native) by stand type. 
+... and then calculate means and SD by status (native, non-native) by
+stand type.
+
 ```{r ab percent cover calculating percent cover mean and SD by status by stand, include=TRUE}
 abcover_bystatus_meanSD <- abcover_bystatus %>%
 #  group_by(standtype = "intact", status) %>% 
@@ -553,12 +653,15 @@ abcover_bystatus_aov <- aov(
 summary.aov(abcover_bystatus_aov) #show ANOVA output for status at INTACT stand
 ```
 
-... and, finally, calculate significant differences.
-+ ANOVA - to compare means of groups 
+... and, finally, calculate significant differences. + ANOVA - to
+compare means of groups
+
 ```{r create a new column just in case, include=FALSE}
 
 ```
-1) standtypes by their native or nonnative species
+
+1)  standtypes by their native or nonnative species
+
 ```{r filter by status, include=TRUE}
 abcover_bystatus_nat <- abcover_bystatus %>%
   filter(status == "native") # filter for native species
@@ -578,8 +681,8 @@ summary.aov(abcover_bystatus_mat_aov) #show ANOVA output for status at INTACT st
 
 ```
 
+2)  native and nonnative status by standtypes
 
-2) native and nonnative status by standtypes
 ```{r abcover filter by standtype, include=TRUE}
 abcover_bystatus_int <- abcover_bystatus %>%
   filter(standtype == "intact") # filter for intact stand
@@ -593,7 +696,6 @@ abcover_bystatus_deg <- abcover_bystatus %>%
 
 ```
 
-
 ```{r}
 abcover_bystatus_mat_aov <- aov(percentcover ~ status, data = abcover_bystatus_mat) 
 summary.aov(abcover_bystatus_mat_aov) #show ANOVA output for status at INTACT stand
@@ -606,14 +708,17 @@ abcover_bystatus_anova <- abcover_bystatus %>%
 
 # print(abcover_bystatus_anova) # recalls formula, Sum of Squares, Deg. of Freedom, Residuals
 ```
-+ Tukey test post-hoc to find differences
+
+-   Tukey test post-hoc to find differences
+
 ```{r abcoverbystatus tukey posthoc1, include=TRUE}
 abcover_bystatus_tukey <- TukeyHSD(abcover_bystatus_anova, conf.level=.95) 
 print(abcover_bystatus_tukey)
 
 ```
 
-The last step is to plot the data. 
+The last step is to plot the data.
+
 ```{r plotting percent coverby status by standtype, include=TRUE}
 #  column plot
 
@@ -640,11 +745,11 @@ abcover_byspecies %>%
   dplyr::summarize(count_per_dist = n_distinct(site_rep_dist))
 ```
 
-
-
 ## 4. By Lifeform
 
-First, I need to count unique occurances of each native and non-native lifeform at each site_rep_dist so I can calculate % cover.
+First, I need to count unique occurances of each native and non-native
+lifeform at each site_rep_dist so I can calculate % cover.
+
 ```{r percent cover of lifeform by status by site_rep, inclue = TRUE}
 abcover_bylf_bystatus <- abcover_full_v_omitground %>% 
   group_by(standtype, site, rep, site_rep, lifeform, status) %>% 
@@ -655,7 +760,10 @@ abcover_bylf_bystatus <- abcover_full_v_omitground %>%
 # head (abcover_bystatus) # prints first 6 rows of table
 head(abcover_bylf_bystatus) # prints to new tab
 ```
-Second I need to calculate means and SD by lifeform by status (native, non-native) by stand type. 
+
+Second I need to calculate means and SD by lifeform by status (native,
+non-native) by stand type.
+
 ```{r abcover by lf by status percent cover mean and SD, include=TRUE}
 
 abcover_bylf_bystatus_meanSD <- abcover_bylf_bystatus %>%
@@ -667,6 +775,7 @@ abcover_bylf_bystatus_meanSD <- abcover_bylf_bystatus %>%
  
 head(abcover_bylf_bystatus_meanSD)
 ```
+
 ```{r plot abcover_bylf_bystatus_meanSD, include = TRUE}
 
 
@@ -705,12 +814,12 @@ abcover_bylf_bystatus_meanSD_int_tukey <- TukeyHSD(abcover_shrub_aov, conf.level
 print(abcover_bylf_bystatus_meanSD_int_tukey)
 ```
 
-
-## 5. Stand height 
+## 5. Stand height
 
 ### With my stand height data, I specifically want to look at:
-  + average height of shrubs by stand type
-  + heterogeneity of stand height by standtype (chi-squared test)
+
+-   average height of shrubs by stand type
+-   heterogeneity of stand height by standtype (chi-squared test)
 
 ```{r shrub height clean data}
 #includes species, but not lifeform
@@ -728,7 +837,9 @@ class(standheight_full) # now a tibble
 # [1] "tbl_df"     "tbl"        "data.frame"
 
 ```
+
 Omit NAs and Reorder standtypes: Inact, Matrix, Degraded
+
 ```{r stand height reorder classes to Intact Matrix Degraded}
 standheight_full_crop <- standheight_full[1:654, 1:6]
 
@@ -738,11 +849,13 @@ standheight_full_v <- standheight_full_crop %>%
 ```
 
 Creating new columns for SITE_REP and SITE_REP_DISTANCE and STAND_STATUS
+
 ```{r stand height create site_rep column and site_rep_dist column}
 standheight_full_v$site_rep <- paste(standheight_full_v$site, standheight_full_v$Transect_rep, sep="_") # combine site and rep to one column
 
 head(standheight_full_v) # look at new columns
 ```
+
 ```{r stand height mean SD at level of site_rep, include=TRUE}
 standheight <- standheight_full_v %>% 
   filter(site_rep != "Intact4_4")  #omit Intact 4 from data# rename dataframe
@@ -753,6 +866,7 @@ standheight_siterep_meanSD <- standheight %>%
   rename (mean_height_cm = mean) %>% 
   print(standheight_siterep_meanSD)
 ```
+
 ```{r stand height mean SD, aov, tukey at level of site rep to calculate at level of standtype, include=TRUE}
 standheight_siterep_standtype_meanSD <- standheight_siterep_meanSD %>%
   group_by(standtype) %>%
@@ -765,6 +879,7 @@ summary.aov(standheight_siterep_standtype_aov)
 standheight_siterep_standtype_tukey <- TukeyHSD(standheight_siterep_standtype_aov, conf.level=.95) 
 print(standheight_siterep_standtype_tukey)
 ```
+
 ```{r stand height check mean and sd, include=FALSE}
 # Create a vector. 
 intact <- c(153.94872, 89.36585, 215.07317, 195.68293)
@@ -795,7 +910,10 @@ standheight_siterep_standtype_meanSD_plot <- ggplot(standheight_siterep_standtyp
 
 standheight_siterep_standtype_meanSD_plot
 ```
+
 ## 6. SHRUB DENSITY
+
+Density of alive individuals
 
 ```{r shrub density clean data, include=FALSE}
 dim(shrubdensitylife_full)
@@ -809,12 +927,14 @@ shrubdensitylife_full <- shrubdensitylife_full %>%
 class(shrubdensitylife_full) # now a tibble
 # [1] "tbl_df"     "tbl"        "data.frame"
 
-shrubdensitylife_transposded <- gather(shrubdensitylife_full, "status", "count", 5:9) 
-head(shrubdensitylife_transposded)
+shrubdensitylife_transposed <- gather(shrubdensitylife_full, "status", "count", 5:9) 
+view(shrubdensitylife_transposed)
 ```
+
 ... and create a new column for SITE_REP.
+
 ```{r shrub density site_rep column}
-shrubdensity <- shrubdensitylife_transposded
+shrubdensity <- shrubdensitylife_transposed
 
 shrubdensity$site_rep <- paste(shrubdensity$Site, shrubdensity$rep, sep="_") # combine site and rep to one column
 
@@ -822,8 +942,8 @@ head(shrubdensity) # look at new column site_rep, last column
 ```
 
 Second, sum the number of alive shrubs per site_rep
-```{r shrub density by site_rep, include=TRUE}
 
+```{r shrub density by site_rep, include=TRUE}
 shrubdensity_sum_all <- shrubdensity %>% # call tibble
   filter(site_rep != "Intact4_4") %>% #omit Intact 4 from data
   group_by(StandType, site_rep, status) %>% 
@@ -839,6 +959,7 @@ shrubdensity_sum_age <- shrubdensity %>% # call tibble
   print(shrubdensity_sum_age)
 
 ```
+
 ```{r shrub density mean SD, aov, tukey at level of site rep to calculate at level of standtype, include=TRUE}
 shrubdensity_siterep_all_meanSD <- 
 
@@ -857,10 +978,7 @@ standheight_siterep_standtype_tukey <- TukeyHSD(standheight_siterep_standtype_ao
 print(standheight_siterep_standtype_tukey)
 ```
 
-
-
-#################
-
+################# 
 
 ```{r abcover select native and nonnative status, include=TRUE}
 
@@ -903,8 +1021,9 @@ abrich_natrich <- abrich %>% # call tibble
 print(abrich_natrich)
 ```
 
+Second, I need to caluclate the mean and SD of native and non-native
+cover at each site by site_rep.
 
-Second, I need to caluclate the mean and SD of native and non-native cover at each site by site_rep.
 ```{r calculating percent cover mean and SD of native and nonnative}
 
 abcoverstat_meanSD <- abcoverstatlf %>%
@@ -915,9 +1034,10 @@ print(abrich_totalrich_meanSD)
 
 ```
 
-Third, I need to calculate the average and SE of the unique species from each sampling location (belt and point)
+Third, I need to calculate the average and SE of the unique species from
+each sampling location (belt and point)
 
-+ ANOVA - to compare means of groups
+-   ANOVA - to compare means of groups
 
 ```{r anova, include=TRUE}
 abrich_totalrich_anova <- aov(total_species_richness ~ standtype, data = abrich_totalrich) #ANOVA comparing total species richness per standtype
@@ -932,7 +1052,7 @@ summary.aov(abrich_totalrich_anova) #show ANOVA output
 #print(abrich_totalrich_anova) # recalls formula, Sum of Squares, Deg. of Freedom, Residuals
 ```
 
-+ Tukey test post-hoc to find differences
+-   Tukey test post-hoc to find differences
 
 ```{r tukey posthoc2, include=TRUE}
 abrich_totalrich_tukey <- TukeyHSD(abrich_totalrich_anova, conf.level=.95) 
@@ -942,9 +1062,11 @@ print(abrich_totalrich_tukey)
 # matrix-degraded = 0.59
 # matrix-intact = 0.88
 ```
+
 Fourth, and **finally**, plot **TOTAL SPECIES RICHNESS**!
 
-+ color pallet <3
+-   color pallet \<3
+
 ```{r anbui colors, echo=FALSE}
 names(cal_palettes)
 
@@ -956,7 +1078,8 @@ cal_palette(name = "chaparral2", n = 3, type = "continuous")
 # values = c('#D98A63', '#9FC2B0', '#A7C2CD')
 ```
 
-+ column graph
+-   column graph
+
 ```{r column total species richnes , include = TRUE}
 
 #  column plot
@@ -970,7 +1093,8 @@ ggplot(abrich_totalrich_meanSD, aes(x = standtype, y = mean, fill = standtype)) 
                        theme_bw()
 ```
 
-+ line graph
+-   line graph
+
 ```{r line graph abrich total species richness, include=TRUE}
 #  line plot
 ggplot(abrich_totalrich_meanSD, aes(x = standtype, y = mean, fill = standtype)) +
@@ -1048,9 +1172,8 @@ ggplot(native.treatment, aes(x = site, y = native_species_richness, fill = treat
 
 ```
 
-
-
 ## SEEEDBANK - LOOKING AT THE STRUCTURE OF YOUR DATA
+
 ```{r seedbank, data structure, basic visualization}
 
 ####### LOOKING AT THE STRUCTURE OF YOUR DATA #############
@@ -1094,7 +1217,9 @@ plot(data=seedbank, bill_length_mm ~ bill_depth_mm)
 boxplot(data=seedbank, totalcount ~ treatment)
 
 ```
+
 ## SEEDBANK - PLOTTING DATA
+
 ```{r}
 # A ggplot needs to know: (1) what data you are using (2) what data to plot, x, y… (3) what type of graph (geom) to make
 
@@ -1118,9 +1243,6 @@ ggplot(data=seedbank, aes(x=site, y=totalcount, fill=site))+
   theme_bw()
 
 ```
-
-
-
 
 ```{r seedbank - native species list}
 # from Joanna
@@ -1194,5 +1316,3 @@ speciesnames <-summarize(group_by(belt, species))
 #Mean=mean(Sepal.Length(),
 #SD=sd(Sepal.Length())
 ```
-
-
