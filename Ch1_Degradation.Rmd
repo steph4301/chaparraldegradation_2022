@@ -260,7 +260,6 @@ samling location are different by standtype
 First, I need to organize the data...
 
 ```{r ab total species richness}
-
 dim(abrich_full)
 abrich <- abrich_full[1:3170, 1:12]
 dim(abrich)
@@ -294,64 +293,79 @@ abrich_totalrich <- abrich %>% # call tibble
   filter(!is.na(species)) %>% # omit blank cells in species 
   group_by(standtype, site, site_rep) %>% # group by stand type (column 1) and site_rep (column 2)
   select(species) %>%  # selects picks out columns/variables
-  dplyr::summarize(total_species_richness = n_distinct(species)
-                    
-                    
-                    
-               #     sqrt_trans = (max(abrich_totalrich$total_species_richness)-total_species_richness)/(sqrt(n_distinct(species))) # summarize the number of unique speices per site and rep 
+  dplyr::summarize(total_species_richness = n_distinct(species))
 
-# max(abrich_totalrich$total_species_richness)
-# [1] 26
+# to change sqrt_transform from <chr> to <num>
+abrich_totalrich$total_species_richness <- as.numeric(abrich_totalrich$total_species_richness)
 
-# print(abrich_totalrich)
+print(abrich_totalrich)
 ```
-
+Testing the dataset abrich_totalrich for normality.
 ```{r abrich_totalrich test for normality}
 abrich_totalrich_norm <- ggplot(abrich_totalrich) + geom_histogram(aes(x = total_species_richness))
 abrich_totalrich_norm
-
-#rank based - quisqual wallis
-#beta ray distribution - good for % cover distribution
 ```
+Total Species Richness of the above ground communities is not normally distributed. 
 
-```{r abrich total rich transform with taking square root}
-# Reflect Data and use the appropriate transformation for right skew. Reflect every data point by subtracting it from the 
-# maximum value. Add 1 to every data point to avoid having one or multiple 0 in your data.
+So, let's try transforming the dataset abrich_totalrich to see if it will make the data "normal".
+```{r abrich_total rich transforming the data}
+#adding new column with transformed data: transforming data by reflective square root ([sqrt(max-value))
+abrich_totalrich$sqrt_transform <- paste(
+  (sqrt(max(abrich_totalrich$total_species_richness)-abrich_totalrich$total_species_richness))+1)
 
+# to change sqrt_transform from <chr> to <num>
+abrich_totalrich$sqrt_transform <- as.numeric(abrich_totalrich$sqrt_transform)
 
+#plot transformed total species richness data
+abrich_totalrich_sqrttransform <- ggplot(abrich_totalrich) + geom_histogram(aes(x = sqrt_transform))
+abrich_totalrich_sqrttransform
 ```
+Transforming the data doesn't make the data normal.
 
+If there are no outliers in the dataset, we can use the Kruskal Wallis rank test to determine significance of abrich_totalrich (Total Species Richness aboveground).
+
+Testing for outliers.
 ```{r abrich total rich testing for outliers}
 ggplot(abrich_totalrich) + # no outliers in this dataset
-  aes(x = "", y = total_species_richness) +
-  geom_boxplot(fill = "#0c4c8a") +
-  theme_minimal()
+  aes(x = "All data points", y = total_species_richness) +
+  geom_boxplot(fill = "#0c4c8a",
+               outlier.shape = 9) + #shape 9 = diamond with intersecting lines
+  theme_bw()
 ```
 
+Since abrich_totalrich is not normally distributed and there are no outliers, let's use the rank-based Kruskal Wallis test to determine significance of above ground Total Species Richness.
 ```{r abrich kruskal.test}
-abrich_kw <- kruskal.test(total_species_richness ~ standtype, data = abrich_totalrich) 
-abrich_kw
+#rank based - Kurskal-Wallis
+# Josie Lesage also suggests using the beta ray distribution - good for % cover distribution
 
+abrich_totalrich_kw <- kruskal.test(total_species_richness ~ standtype, data = abrich_totalrich) 
+abrich_totalrich_kw
+# Kruskal-Wallis chi-squared = 4.1256, df = 2, p-value = 0.1271
 ```
 
--   I can also calculate the **mean** and **standard errors** of the
-    total species richness from each sampling location (belt and point).
+Now let's calculate the **mean** and **standard errors** of the
+    total species richness from each sampling location by STANDTYPE (belt and point).
+```{r abrich calculating total species richness mean and SD by stand}
 
-```{r abrich calculating total species richness mean and SD}
-
-abrich_totalrich_meanSD <- abrich_totalrich %>%
-  group_by(standtype, site) %>%
+abrich_totalrich_standemeanSD <- abrich_totalrich %>%
+  group_by(standtype) %>% # to graph by standtype
   summarise_at(vars(total_species_richness), funs(mean,sd)) 
  
-print(abrich_totalrich_meanSD)
+print(abrich_totalrich_standemeanSD)
 ```
+We can also calculate the mean and SE of abrich_totalrich by SITE. 
+```{r abrich calculating total species richness mean and SD by site}
 
-Third, I need to calculate the average and SE of the unique species from
-each sampling location (belt and point)
+abrich_totalrich_sitemeanSD <- abrich_totalrich %>%
+  group_by(standtype, site) %>% # to graph all 7 sites
+  summarise_at(vars(total_species_richness), funs(mean,sd)) 
 
--   ANOVA - to compare means of groups
+print(abrich_totalrich_sitemeanSD)
+```
+```{r if abrich_totalrich is normal run anova, include=FALSE, echo=FALSE}
 
-```{r abrich anova, include=TRUE}
+# data is not normally distributed so run KW instead of ANOVA for statistical differences.
+
 abrich_totalrich_anova <- aov(total_species_richness ~ site, data = abrich_totalrich) #ANOVA comparing total species richness per standtype
 summary.aov(abrich_totalrich_anova) #show ANOVA output
 
@@ -361,15 +375,15 @@ summary.aov(abrich_totalrich_anova) #show ANOVA output
 #print(abrich_totalrich_anova) # recalls formula, Sum of Squares, Deg. of Freedom, Residuals
 ```
 
--   Tukey test post-hoc to find differences
+```{r if abrich_totalrich is normal run tukey posthoc, include=FALSE, echo=FALSE}
 
-```{r abrich tukey posthoc, include=TRUE}
+# data is not normally distributed - not sure of which post-hoc test to run following the KW test.
+
 abrich_totalrich_tukey <- TukeyHSD(abrich_totalrich_anova, conf.level=.95) 
 print(abrich_totalrich_tukey)
 ```
 
-Fourth, and **finally**, plot **TOTAL SPECIES RICHNESS**!
-
+And **finally**, plot **TOTAL SPECIES RICHNESS**!
 ```{r abrich_totalrich color pallet}
 # cal_palette(name = "chaparral2", n = 3, type = "continuous") # by standtype
 #Intact, Matrix, Degraded
@@ -380,12 +394,11 @@ cal_palette(name = "chaparral1", n = 7, type = "continuous") # by site
 
 ```
 
--   column graph
-
+-   column graph by standtype.
 ```{r abrich column total species richness, include = TRUE}
 
 #  column plot
-abrich_totalrich_plot <- ggplot(abrich_totalrich_meanSD, aes(x = site, y = mean, fill = site)) +
+abrich_totalrich_plot <- ggplot(abrich_totalrich_standemeanSD, aes(x = standtype, y = mean, fill = standtype)) +
   geom_col(position = "dodge", width = 0.8) +
   geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2,
                  position=position_dodge(.9)) +
@@ -398,12 +411,26 @@ abrich_totalrich_plot <- ggplot(abrich_totalrich_meanSD, aes(x = site, y = mean,
 abrich_totalrich_plot + scale_x_discrete(limits=c("intact", "matrix", "degraded"),
                                          labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded"))
 ```
+-   column graph by site
+```{r abrich column total species richness, include = TRUE}
 
--   line graph
+#  column plot
+abrich_totalrich_plot <- ggplot(abrich_totalrich_sitemeanSD, aes(x = standtype, y = mean, fill = site)) +
+  geom_col(position = "dodge", width = 0.8) +
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2,
+                 position=position_dodge(.9)) +
+  labs(title = "Species Richness", x = "Site", y = "Average Species Richness") +
+#  scale_fill_manual(values = c('#D3E3CA', '#92A587', '#2F3525')) + # manual colors
+#   scale_fill_manual(values = cal_palette('chaparral1')) + # continuous colors
+    scale_fill_manual(values = c('#D3E3CA', '#92A587', '#2F3525', '#9F7E75', '#B9B994', '#F19B34', '#7D5F5D')) + # manual colors
+                       theme_bw()
 
-```{r abrich line graph abrich total species richness, include=TRUE}
+abrich_totalrich_plot + scale_x_discrete(limits=c("intact", "matrix", "degraded"),
+                                         labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded"))
+```
+```{r abrich line graph abrich total species richness, include=FALSE, echo=FALSE}
 #  line plot
-ggplot(abrich_totalrich_meanSD, aes(x = standtype, y = mean, fill = standtype)) +
+abrich_totalrich_line <- ggplot(abrich_totalrich_standmeanSD, aes(x = standtype, y = mean, fill = standtype)) +
   geom_line() +
   geom_point() +
   geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2,
@@ -411,7 +438,17 @@ ggplot(abrich_totalrich_meanSD, aes(x = standtype, y = mean, fill = standtype)) 
   labs(title="Total Species Richness", x = "Stand Type", y = "Average Species Richness") +
   theme_classic() +
   scale_color_manual(values = c('#999999','#E69F00', '#E69F00'))
+
+abrich_totalrich_line
 ```
+
+
+
+
+
+
+
+# START HERE --> I NEED TO CHECK FOR NORMALITY!!!!!
 
 ## 2. Overall native speices richness
 
@@ -521,18 +558,17 @@ ggplot(abrich_natrich_meanSD, aes(x = standtype, y = mean, fill = standtype)) +
   scale_color_manual(values = c('#999999','#E69F00', '#E69F00'))
 ```
 
+
+
+
 ## 3. Percent cover
 
 ### With my percent cover data, I specifically want to look at:
 
--   
-
-    1.  Percent cover by status (native, nonnative) by stand
-
--   
-
-    2.  Percent cover by status by lifeform (fern, herb, shrub, grass)
-        by stand
+    1.  Percent cover of Native by standtype
+    2. Percent cover of Non-native by standtype
+    3.  Percent cover of Native speceis by lifeform (fern, herb, shrub, grass)
+        by standtype
 
 To calculate percent cover by status (native, nonnative) by stand I
 will: + 3. Calculate the average and SE of native and nonnative percent
@@ -545,8 +581,7 @@ and SE of native and nonnative percent cover at each stand + 7.
 calculate if native and nonnative cover is different between stands
 (ANOVA, tukey) + 8. Graph the results
 
-First, I need to organize the data...
-
+First, I need to organize the percent cover data by converting the dataframe into a tibble.
 ```{r ab percent cover by status, include = TRUE}
 
 dim(abcover_full)
@@ -562,30 +597,29 @@ class(abcover_full) # now a tibble
 # [1] "tbl_df"     "tbl"        "data.frame"
 
 ```
-
-... including reordering the classes...
-
+Then I need to organize the percent cover data by reordering the classes: I, M, D.
 ```{r ab percent cover reorder classes to Intact Matrix Degraded}
 abcover_full_v <- abcover_full %>%
   mutate(standtype = fct_relevel(standtype, 
             "intact", "matrix", "degraded"))
 ```
 
-... and creating new columns for SITE_REP and SITE_REP_DISTANCE and
-STAND_STATUS
-
+And then I need to create new columns for SITE_REP, SITE_REP_DISTANCE, and STAND_STATUS for the percent cover data. 
 ```{r ab percent cover create site_rep column and site_rep_dist column}
-abcover_full_v$site_rep <- paste(abcover_full_v$site, abcover_full_v$rep, sep="_") # combine site and rep to one column
 
-abcover_full_v$site_rep_dist <- paste(abcover_full_v$site_rep, abcover_full_v$distance, sep="_") # combine site and rep to one column
+# combine site and rep to one column
+abcover_full_v$site_rep <- paste(abcover_full_v$site, abcover_full_v$rep, sep="_") 
 
-abcover_full_v$stand_status <- paste(abcover_full_v$standtype, abcover_bystatus$status, sep="_") # combine stand and status label to one column
+# combine site_rep and distance to one column
+abcover_full_v$site_rep_dist <- paste(abcover_full_v$site_rep, abcover_full_v$distance, sep="_") 
+
+# combine standtype and native/nonnative status to one column
+abcover_full_v$stand_status <- paste(abcover_full_v$standtype, abcover_full_v$status, sep="_") 
 
 head(abcover_full_v) # look at new columns
 ```
 
-... and omit "ground" as a status.
-
+I'll omit "ground" as a status since I'm interested in Native and Non-native species 
 ```{r ab percent cover filter for native and non-native only}
 abcover_full_v_omitground <- filter(abcover_full_v, status !="ground")
 head(abcover_full_v_omitground)
@@ -593,9 +627,9 @@ head(abcover_full_v_omitground)
 
 Now, I need to identify the unique species at each site_rep_dist to get
 rid of duplicate species recordings. (e.g., Present at one distance =
-1/41 to get percent cover)
-
-```{r ab percent cover unique species by site_rep_dist, inclue = TRUE}
+1/41 to get percent cover) and I can 
+(1) Group by status (Native or Nonnative)
+```{r ab percent cover by status, inclue = TRUE}
 abcover_bystatus <- abcover_full_v_omitground %>% 
   group_by(standtype, site, rep, site_rep, status) %>% 
   filter(site_rep != "Intact4_4") %>% #omit Intact 4 from data
@@ -607,8 +641,42 @@ head(abcover_bystatus) # prints to new tab
 
 # abcover_bystatus is organized by native and nonnative status, it does NOT include lifeform or species
 ```
+(2) Group by species (unique speices at each site_rep)
+```{r ab percent cover unby species, inclue = TRUE}
+abcover_byspecies <- abcover_full_v_omitground %>% 
+  group_by(standtype, site, site_rep, species, status, lifeform, lifecycle) %>% 
+  filter(site_rep != "Intact4_4") %>% #omit Intact 4 from data
+  filter(!is.na(species)) %>% # omit blank cells in species 
+  dplyr::summarize(count_per_dist = n_distinct(site_rep_dist), percentcover = n_distinct(site_rep_dist)/41)
 
-... and then calculate means and SD by status (native, non-native) by
+head(abcover_byspecies) # prints to new tab
+```
+
+Now - to test for normality.
++ Is the percent cover data normally distributed by native/nonnative STATUS?
+```{r abcover test for normality by status}
+abcover_bystatus_norm <- ggplot(abcover_bystatus) + geom_histogram(aes(x = percentcover))
+abcover_bystatus_norm
+```
+
++ Is the percent cover data normally distributed by native/nonnative SPECIES?
+```{r abcover test for normality}
+abcover_byspecies_norm <- ggplot(abcover_byspecies) + geom_histogram(aes(x = percentcover))
+abcover_byspecies_norm
+```
+Looks like it's not so - KW test it is!
++ KW rank test - native/nonnative status by standtype
+```{r ab percent cover by status kruskal.test}
+
+abcover_bystatus_kw <- kruskal.test(percentcover ~ standtype, data = abcover_bystatus) 
+abcover_bystatus_kw
+# Kruskal-Wallis chi-squared = 0.40368, df = 2, p-value = 0.8172
+```
++ Do I want to run stats on any other comparison?
+
+NMDS __HERE 
+
+... and calculate means and SD by status (native, non-native) by
 stand type.
 
 ```{r ab percent cover calculating percent cover mean and SD by status by stand, include=TRUE}
@@ -619,11 +687,9 @@ abcover_bystatus_meanSD <- abcover_bystatus %>%
   print(abcover_bystatus_meanSD)
 ```
 
-```{r ab percent cover aov by native status}
+```{r ab percent cover aov by native status, include=FALSE, echo=FALSE}
 
-### THIS IS NOT DONE YET
-
-
+### THESE DATA ARE NOT NORMALLY DISTRIBUTED!!! RUN A KW INSTAED OF AN ANOVA
 
 abcover_bystatus_aov <- abcover_bystatus_meanSD %>% 
   filter(status =="nonnative") %>% 
@@ -635,9 +701,6 @@ abcover_bystatus_aov <- abcover_bystatus_meanSD %>%
   summarise_at(vars(percentcover), funs(mean,sd)) %>% 
   print(abcover_bystatus_meanSD)
 
-
-
-  
   abcover_bystatus %>%
 #  group_by(standtype = "intact", status) %>% # INTACT
 #  group_by(standtype = "matrix", status) %>% # MATRIX
@@ -655,10 +718,6 @@ summary.aov(abcover_bystatus_aov) #show ANOVA output for status at INTACT stand
 
 ... and, finally, calculate significant differences. + ANOVA - to
 compare means of groups
-
-```{r create a new column just in case, include=FALSE}
-
-```
 
 1)  standtypes by their native or nonnative species
 
@@ -977,6 +1036,40 @@ summary.aov(standheight_siterep_standtype_aov)
 standheight_siterep_standtype_tukey <- TukeyHSD(standheight_siterep_standtype_aov, conf.level=.95) 
 print(standheight_siterep_standtype_tukey)
 ```
+
+## Shannon diversity
+```{r}
+total_species_richness_diversity <- diversity(abrich_totalrich$total_species_richness)
+total_species_richness_diversity
+```
+```{r shannon diversity plot}
+shandiv_df <- total_species_richness_diversity %>% 
+  enframe() %>% 
+  full_join(., standtype, by = c("name" = "site")) %>% 
+  group_by(landtype) %>% 
+  summarize(mean = mean(value))
+
+shandiv_plot <- ggplot(shandiv_df, aes(x = landtype, y = mean, fill = landtype)) +
+  geom_col()
+shandiv_plot
+```
+
+
+## NMDS 
+
+```{r}
+abrich_totalrich_NMDSprep <- abrich_totalrich %>% 
+  select("standtype", "total_species_richness") 
+  
+  
+abrich_totalrich_NMDS <- metaMDS(abrich_totalrich)
+
+bird_NMDS
+
+stressplot(bird_NMDS)
+```
+
+
 
 ################# 
 
