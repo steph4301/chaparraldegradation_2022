@@ -1,0 +1,400 @@
+---
+title: "Ch1_Degradation_seedbankNMDS"
+author: "Stephanie Ma Lucero"
+date: "2023-03-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r install libraries, message=FALSE}
+
+library(tidyverse) # includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
+library(ggplot2) # data visualization
+library(readr)
+library(dplyr)
+library(ggpubr) # customize ggplot2 for publication
+library(broom)
+library(AICcmodavg)
+library(vegan)
+library(readxl) # for .xls and .xlsx sheets
+library(janitor)
+library(calecopal) 
+library(multcompView)
+library(plotly)
+```
+
+```{r load deg_seedbank csv}
+# 
+seedbank_load_raw <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_seedbank_20230308.csv", header = TRUE, na.strings=c("","NA"))
+head(seedbank_load_raw)
+str(seedbank_load_raw)
+
+seedbank_load <- seedbank_load %>% 
+  select(c("stand", "site", "soilcore", "depthname", "treatment", "species", "lifeform", "status", "lifecycle", "family", "totalcount"))
+  
+seedbank_load$totalcount <- as.numeric(seedbank_load$totalcount)
+str(seedbank_load)
+
+# load without unknowns and NAs
+seedbank_load %>%
+  filter(!str_detect(species, "unk")) 
+
+# rename treatments to be all lowercase 
+seedbank_load <- seedbank_load %>% 
+  mutate(treatment = recode(treatment,
+                            Oven = 'oven',
+                            Ovenchar = 'ovenchar',
+                            Char = 'char',
+                            Control = 'control'))
+view(seedbank_load)
+```
+
+(1) Organize the seed bank data by converting the df into a tibble.
+```{r preparing deg_seedbank, include = TRUE}
+
+dim(seedbank_load)
+# [1] 2117   19
+head(seedbank_load)
+tail(seedbank_load)
+
+# convert dataframe to tibble
+seedbank_load <- as_tibble(seedbank_load) 
+
+class(seedbank_load) # now a tibble
+```
+
+(2) Organize the seedbank data by reordering the classes: Intact, Matrix, Degraded.
+```{r deg_seedbank reorder classes to Intact Enh Degraded}
+seedbank_load_v <- seedbank_load %>%
+  mutate(stand = fct_relevel(stand, 
+            "intact", "enhanced", "degraded"))
+```
+
+(3) Create new columns for SITE_CORE, SITE_CORE_DEPTH, SITE_CORE_DEPTH_TREATMENT, SITE_TREATMENT, SITE_DEPTH for seed bank data. 
+```{r deg_seedbank germination - rename columns}
+
+# combine SITE and CORE to one column
+seedbank_load_v$stand_core <- paste(seedbank_load_v$site, seedbank_load_v$soilcore, sep="_") 
+
+# combine SITE_CORE and DEPT to one column
+seedbank_load_v$stand_core_depth <- paste(seedbank_load_v$stand_core, seedbank_load_v$depthname, sep="_") 
+
+# combine SITE_CORE_DEPTH and TREATMENT to one column
+seedbank_load_v$stand_core_depth_treat <- paste(seedbank_load_v$stand_core_depth, seedbank_load_v$treatment, sep="_") 
+```
+
+(4) Omit "pre-treatment" as a treatment since I'm only interested in Control, Char, Oven, and CharOven treatments
+```{r seedbank filter for treatments only}
+
+seedbank_load_v_omitpretreatment <- seedbank_load_v %>% 
+  filter(!str_detect(treatment, "pretreat")) 
+head(seedbank_load_v_omitpretreatment)
+
+```
+
+(5.1) sum of germinates at each stand_core (e.g., present in one core = sum (char, control, oven, charoven)
+```{r seedbank sum germinants by site_core, inclue = TRUE}
+seedbank_bysitecore <- seedbank_load_v_omitpretreatment %>% 
+  group_by(stand_core, species) %>% # by stand_core
+  #group_by(stand_core_depth, species) %>% # by stand_core_depth - DOES NOT CONSIDER TREATMENT
+  #group_by(stand_core_detph_treat, species) %>% # by stand_core_depth_treat
+  filter(!is.na(species)) %>% # omit blank cells in species 
+  dplyr::summarize(totalgerm = sum(totalcount)) 
+
+head(seedbank_bysitecore) 
+```
+
+(6) Prepare data for an NMDS
+```{r transpose seedbank data by stand_core, include=TRUE}
+
+seedbank_bysitecore_nmdsprep <- seedbank_bysitecore %>% 
+ tidyr::spread(stand_core, totalgerm) %>% # transpose data so columns are stand_core_depth
+  #tidyr::spread(stand_core_depth, totalgerm) %>% # transpose data so columns are stand_core_depth
+  # tidyr::spread(stand_core_depth_treat, totalgerm) %>% # transpose data so columns are stand_core_depth_treat
+  replace(is.na(.), 0) # replace NA with zeros
+
+head(seedbank_bysitecore_nmdsprep)
+
+seedbank_bysitecore_nmdsprep_num <- seedbank_bysitecore_nmdsprep %>% 
+  # use the ungroup() function to take out grouping
+  ungroup() %>% 
+  select(!c(species)) %>% 
+  replace(is.na(.), 0)
+         
+head(seedbank_bysitecore_nmdsprep_num) # only numbers
+write.csv(seedbank_bysitecore_nmdsprep_num, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/seedbank_NMDS_202303.csv")
+```
+
+(7) NMDS 
+```{r FROM KIT - nmds by species percent cover using code from KIT}
+# USE THIS ONE!
+
+str(seedbank_bysitecore_nmdsprep_num)
+# stand_core_depth -->  tibble [89 × 52]
+
+# stress test, will run 20 times
+seedbank_bysitecore_nmds <- metaMDS(seedbank_bysitecore_nmdsprep_num, distance = "raup")
+# stress tests are really low ==> I may have insufficient data. :/
+
+# stress test, will run 20 times
+#seedbank_bysitecore_nmds <- metaMDS(seedbank_bysitecore_nmdsprep_num,
+#                                    autotransform = F)
+# stress tests are really low ==> I may have insufficient data. :/
+
+stressplot(seedbank_bysitecore_nmds)
+plot(seedbank_bysitecore_nmds)
+
+#basic normal plot
+ordiplot(seedbank_bysitecore_nmds) # without point labels
+ordiplot(seedbank_bysitecore_nmds, type = "t") # with point labels
+
+#ggvegan to make a quick nice plot
+autoplot(seedbank_bysitecore_nmds) # NMDS1 x NMDS2, Key = "Score": sites, species
+# sites == total germ per species
+# species == stand_core
+
+
+#this makes a dataframe that gives a lot of control graphically 
+seedbank_bysitecore_nmds_fort <- fortify(seedbank_bysitecore_nmds)
+
+# vectors AND measurments
+seedbank_bysitecore_nmds_fortplot <- ggplot() + 
+  geom_point(data = subset(seedbank_bysitecore_nmds_fort, Score == 'sites'),
+             mapping = aes(x = NMDS1, y = NMDS2),
+             color = 'black',
+             alpha = 0.5) +
+  geom_segment(data = subset(seedbank_bysitecore_nmds_fort, Score == 'species'),
+               mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
+               arrow = arrow(length = unit(0.015, "npc"),
+                             type = 'closed'),
+               color = 'darkgrey',
+               linewidth = 0.8) +
+  geom_text(data = subset(seedbank_bysitecore_nmds_fort, Score == 'species'),
+            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1))+
+  geom_abline(intercept = 0,slope = 0,linetype = "dashed", linewidth = 0.8,colour = "gray")+
+  geom_vline(aes(xintercept = 0), linetype = "dashed", linewidth = 0.8, colour = "gray")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"))
+
+#only vectors shown
+seedbank_bysitecore_nmds_fortplot1 <- ggplot() + 
+  geom_point(data = subset(seedbank_bysitecore_nmds_fort, Score == 'sites'),
+             mapping = aes(x = NMDS1, y = NMDS2),
+             color = 'black',
+             alpha = 0) +
+  geom_segment(data = subset(seedbank_bysitecore_nmds_fort, Score == 'species'),
+               mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
+               arrow = arrow(length = unit(0.015, "npc"),
+                             type = 'closed'),
+               color = 'darkgrey',
+               linewidth = 0.8) +
+  geom_text(data = subset(seedbank_bysitecore_nmds_fort, Score == 'species'),
+            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1))+
+  geom_abline(intercept = 0,slope = 0,linetype = "dashed", linewidth = 0.8,colour = "gray")+
+  geom_vline(aes(xintercept = 0), linetype = "dashed", size = 0.8, colour = "gray")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"))
+
+#only measurements shown
+seedbank_bysitecore_nmds_fortplot2 <- ggplot() + 
+  geom_point(data = subset(seedbank_bysitecore_nmds_fort, Score == 'sites'),
+             mapping = aes(x = NMDS1, y = NMDS2),
+             color = 'black',
+             alpha = 0.5) +
+  geom_segment(data = subset(seedbank_bysitecore_nmds_fort, Score == 'species'),
+               mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
+               arrow = arrow(length = unit(0.015, "npc"),
+                             type = 'closed'),
+               color = 'darkgrey',
+               size = 0.8,
+               alpha = 0) +
+  geom_text(data = subset(seedbank_bysitecore_nmds_fort, Score == 'species'),
+            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1),
+            alpha = 0)+
+  geom_abline(intercept = 0,slope = 0,linetype = "dashed", size = 0.8,colour = "gray")+
+  geom_vline(aes(xintercept = 0), linetype = "dashed", size = 0.8, colour = "gray")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"))
+
+#interactive plots that I like
+ggplotly(seedbank_bysitecore_nmds_fortplot)
+
+#show both plots 
+hi <- ggarrange(seedbank_bysitecore_nmds_fortplot1, seedbank_bysitecore_nmds_fortplot2, ncol = 1)
+hi
+
+
+ordiplot(seedbank_bysitecore_nmds,type="n")
+orditorp(seedbank_bysitecore_nmds,display="species",col="red",air=0.01)
+orditorp(seedbank_bysitecore_nmds,display="sites",cex=1.25,air=0.01)
+
+str(seedbank_bysitecore_nmdsprep_num)
+#tibble [90 × 27] (S3: tbl_df/tbl/data.frame)
+treat=c(rep("treatment1",7),rep("treatment2",7), rep("treatment3",7)) 
+ordiplot(abcover_byspecies_NMDS,type="n")
+ordihull(abcover_byspecies_NMDS,groups=treat,draw="polygon",col="grey90",
+         label=FALSE)
+orditorp(abcover_byspecies_NMDS,display="species",col="red",air=0.01)
+orditorp(abcover_byspecies_NMDS,display="sites",col=c(rep("green",50),rep("blue",50),re("orange",25)),
+         air=0.01,cex=1.25)
+
+
+```
+
+
+
+(8) sum of germinates by species (e.g., present in one core = sum (char, control, oven, charoven)
+```{r seedbank sum germinants by spp, inclue = TRUE}
+seedbank_byspp <- seedbank_load_v_omitpretreatment %>% 
+  group_by(species, stand_core) %>% 
+  filter(!is.na(stand_core)) %>% # omit blank cells in species 
+  dplyr::summarize(totalgerm = sum(totalcount)) %>% 
+   replace(is.na(.), 0)
+
+head(seedbank_byspp) 
+```
+
+(9) Prepare data for an NMDS
+```{r transpose seedbank data by spp, include=TRUE}
+
+seedbank_byspp_nmdsprep <- seedbank_byspp %>% 
+  tidyr::spread(species, totalgerm) %>% # transpose data so columns are stand_core
+  replace(is.na(.), 0) # replace NA with zeros
+view(seedbank_byspp_nmdsprep)
+
+seedbank_byspp_nmdsprep_num <- seedbank_byspp_nmdsprep %>% 
+  # use the ungroup() function to take out grouping
+  ungroup() %>% 
+  select(!c(stand_core))
+         
+view(seedbank_byspp_nmdsprep_num) # only numbers
+write.csv(seedbank_byspp_nmdsprep_num, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/seedbank_NMDS_byspp_202303.csv")
+```
+
+(10) NMDS 
+```{r FROM KIT - nmds by species - use this code from KIT}
+# USE THIS ONE!
+
+str(seedbank_byspp_nmdsprep_num)
+#tibble [27 × 90] (S3: tbl_df/tbl/data.frame)
+
+# stress test, will run 20 times
+seedbank_byspp_nmds <- metaMDS(seedbank_byspp_nmdsprep_num, distance = "raup")
+# some data have empty spp
+
+# stress test, will run 20 times
+seedbank_byspp_nmds <- metaMDS(seedbank_byspp_nmdsprep_num, autotransform = F)
+# stress tests are really low ==> I may have insufficient data. :/
+
+stressplot(seedbank_byspp_nmds)
+plot(seedbank_byspp_nmds)
+
+#basic normal plot
+ordiplot(seedbank_byspp_nmds) # without point labels
+ordiplot(seedbank_byspp_nmds, type = "t") # with point labels
+
+#ggvegan to make a quick nice plot
+autoplot(seedbank_byspp_nmds) # NMDS1 x NMDS2, Key = "Score": sites, species
+# sites == total germ per species
+# species == stand_core
+
+
+#this makes a dataframe that gives a lot of control graphically 
+seedbank_byspp_nmds_fort <- fortify(seedbank_byspp_nmds)
+
+seedbank_byspp_nmds_fortplot <- ggplot() + 
+  geom_point(data = subset(seedbank_byspp_nmds_fort, Score == 'sites'),
+             mapping = aes(x = NMDS1, y = NMDS2),
+             color = 'black',
+             alpha = 0.5) +
+  geom_segment(data = subset(seedbank_byspp_nmds_fort, Score == 'species'),
+               mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
+               arrow = arrow(length = unit(0.015, "npc"),
+                             type = 'closed'),
+               color = 'darkgrey',
+               linewidth = 0.8) +
+  geom_text(data = subset(seedbank_byspp_nmds_fort, Score == 'species'),
+            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1))+
+  geom_abline(intercept = 0,slope = 0,linetype = "dashed", linewidth = 0.8,colour = "gray")+
+  geom_vline(aes(xintercept = 0), linetype = "dashed", linewidth = 0.8, colour = "gray")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"))
+
+#only vectors shown
+seedbank_byspp_nmds_fortplot1 <- ggplot() + 
+  geom_point(data = subset(seedbank_byspp_nmds_fort, Score == 'sites'),
+             mapping = aes(x = NMDS1, y = NMDS2),
+             color = 'black',
+             alpha = 0) +
+  geom_segment(data = subset(seedbank_byspp_nmds_fort, Score == 'species'),
+               mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
+               arrow = arrow(length = unit(0.015, "npc"),
+                             type = 'closed'),
+               color = 'darkgrey',
+               linewidth = 0.8) +
+  geom_text(data = subset(seedbank_byspp_nmds_fort, Score == 'species'),
+            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1))+
+  geom_abline(intercept = 0,slope = 0,linetype = "dashed", linewidth = 0.8,colour = "gray")+
+  geom_vline(aes(xintercept = 0), linetype = "dashed", size = 0.8, colour = "gray")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"))
+
+#only measurements shown
+seedbank_byspp_nmds_fortplot2 <- ggplot() + 
+  geom_point(data = subset(seedbank_byspp_nmds_fort, Score == 'sites'),
+             mapping = aes(x = NMDS1, y = NMDS2),
+             color = 'black',
+             alpha = 0.5) +
+  geom_segment(data = subset(seedbank_byspp_nmds_fort, Score == 'species'),
+               mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
+               arrow = arrow(length = unit(0.015, "npc"),
+                             type = 'closed'),
+               color = 'darkgrey',
+               size = 0.8,
+               alpha = 0) +
+  geom_text(data = subset(seedbank_byspp_nmds_fort, Score == 'species'),
+            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1),
+            alpha = 0)+
+  geom_abline(intercept = 0,slope = 0,linetype = "dashed", size = 0.8,colour = "gray")+
+  geom_vline(aes(xintercept = 0), linetype = "dashed", size = 0.8, colour = "gray")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"))
+
+#interactive plots that I like
+ggplotly(seedbank_byspp_nmds_fortplot)
+
+#show both plots 
+hi3 <- ggarrange(seedbank_byspp_nmds_fortplot1, seedbank_byspp_nmds_fortplot2, ncol = 1)
+hi3
+
+
+ordiplot(seedbank_byspp_nmds,type="n")
+orditorp(seedbank_byspp_nmds,display="species",col="red",air=0.01)
+orditorp(seedbank_byspp_nmds,display="sites",cex=1.25,air=0.01)
+
+str(seedbank_byspp_nmdsprep_num)
+#tibble [27 × 90] (S3: tbl_df/tbl/data.frame)
+# I don't think I can make this becuase my soil cores are diff number for each stand.
+treat=c(rep("treatment1",7),rep("treatment2",7), rep("treatment3",7)) 
+ordiplot(seedbank_byspp_nmds,type="n")
+ordihull(seedbank_byspp_nmds,groups=treat,draw="polygon",col="grey90",
+         label=FALSE)
+orditorp(seedbank_byspp_nmds,display="species",col="red",air=0.01)
+orditorp(seedbank_byspp_nmds,display="sites",col=c(rep("green",7),rep("blue",7),rep("orange",7)),
+         air=0.01,cex=1.25)
+
+
+```
+
+
+
+
