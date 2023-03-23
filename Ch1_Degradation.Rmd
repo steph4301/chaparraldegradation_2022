@@ -78,9 +78,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r install libraries, message=FALSE}
 
 library(tidyverse) # includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
-library(ggplot2) # data visualization
-library(readr)
-library(dplyr)
+# library(ggplot2) # data visualization
+# library(readr)
+# library(dplyr)
 library(ggpubr) # customize ggplot2 for publication
 library(broom)
 library(AICcmodavg)
@@ -89,6 +89,7 @@ library(readxl) # for .xls and .xlsx sheets
 library(janitor)
 library(calecopal) 
 library(multcompView)
+
 ```
 
 # Upload your csv files
@@ -267,8 +268,7 @@ head(abrich)
 tail(abrich)
 
 # convert dataframe to tibble
-abrich <- abrich %>% 
-  as_tibble(abrich) 
+abrich <- as_tibble(abrich) 
 
 class(abrich) # now a tibble
 # [1] "tbl_df"     "tbl"        "data.frame"
@@ -279,8 +279,8 @@ class(abrich) # now a tibble
 
 ```{r abrich create site_rep column}
 abrich$site_rep<- paste(abrich$site, abrich$rep, sep="_") # combine site and rep to one column
-abrich$sqrt <- paste(abrich$site, abrich$rep, sep="_")
-head(abrich) # look at new column site_rep, last column
+# abrich$sqrt <- paste(abrich$site, abrich$rep, sep="_")
+print(abrich) # look at new column site_rep, last column
 ```
 
 Second, I need to calculate the **number of unique species** from each
@@ -586,12 +586,12 @@ First, I need to organize the percent cover data by converting the dataframe int
 
 dim(abcover_full)
 # [1] 113   6
+str(abcover_full)
 head(abcover_full)
 tail(abcover_full)
 
 # convert dataframe to tibble
-abcover_full <- abcover_full %>% 
-  as_tibble(abcover_full) 
+abcover_full <- as_tibble(abcover_full) 
 
 class(abcover_full) # now a tibble
 # [1] "tbl_df"     "tbl"        "data.frame"
@@ -637,19 +637,30 @@ abcover_bystatus <- abcover_full_v_omitground %>%
   dplyr::summarize(count_per_dist = n_distinct(site_rep_dist), percentcover = n_distinct(site_rep_dist)/41)
 # print(abcover_bystatus) # prints all rows of table
 # head (abcover_bystatus) # prints first 6 rows of table
-head(abcover_bystatus) # prints to new tab
+view(abcover_bystatus) # prints to new tab
 
 # abcover_bystatus is organized by native and nonnative status, it does NOT include lifeform or species
 ```
-(2) Group by species (unique speices at each site_rep)
+
+(2) Group by species (unique species at each site_rep)
 ```{r ab percent cover unby species, inclue = TRUE}
 abcover_byspecies <- abcover_full_v_omitground %>% 
-  group_by(standtype, site, site_rep, species, status, lifeform, lifecycle) %>% 
+  group_by(species, site_rep, standtype, site, rep, status, lifeform, lifecycle) %>% 
   filter(site_rep != "Intact4_4") %>% #omit Intact 4 from data
   filter(!is.na(species)) %>% # omit blank cells in species 
-  dplyr::summarize(count_per_dist = n_distinct(site_rep_dist), percentcover = n_distinct(site_rep_dist)/41)
+  dplyr::summarize(count_per_transect = n_distinct(site_rep_dist), percentcover = n_distinct(site_rep_dist)/41)
 
 head(abcover_byspecies) # prints to new tab
+write.csv(abcover_byspecies, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/abcover_byspecies.csv")
+
+abcover_byspecies %>%
+  group_by(species, standtype) %>%
+#  group_by(standtype = "intact", lifeform, status) %>%
+#  group_by(standtype = "matrix", lifeform, status) %>%
+# group_by(standtype = "degraded", lifeform, status) %>%
+  summarise_at(vars(percentcover), funs(mean,sd)) 
+
+
 ```
 
 Now - to test for normality.
@@ -675,6 +686,12 @@ abcover_bystatus_kw
 + Do I want to run stats on any other comparison?
 
 NMDS __HERE 
+```{r}
+
+```
+
+
+
 
 ... and calculate means and SD by status (native, non-native) by
 stand type.
@@ -809,19 +826,112 @@ abcover_byspecies %>%
 First, I need to count unique occurances of each native and non-native
 lifeform at each site_rep_dist so I can calculate % cover.
 
+- Percent cover by lifeform 
+-- life form not split by native or non-native status.
+
+```{r percent cover of lifeform by site_rep, include=TRUE}
+abcover_bylf1 <- abcover_full_v_omitground %>% 
+  group_by(standtype, lifeform, site, rep, site_rep) %>% #select only these columns 
+   filter(site_rep != "Intact4_4") %>% #omit Intact 4 from data
+ dplyr::summarize(count_per_transect = n_distinct(site_rep_dist), percentcover = n_distinct(site_rep_dist)/41)
+
+view(abcover_bylf1)
+
+write.csv(abcover_bylf1, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/abcover_bylifeform_percentcover.csv", header = TRUE, na.strings=c("","NA"))
+
+abcover_bylf1_meanSD <- abcover_bylf1 %>%
+  group_by(standtype, lifeform) %>%
+#  group_by(standtype = "intact", lifeform, status) %>%
+#  group_by(standtype = "matrix", lifeform, status) %>%
+# group_by(standtype = "degraded", lifeform, status) %>%
+  summarise_at(vars(percentcover), funs(mean,sd)) 
+ 
+view(abcover_bylf1_meanSD)
+
+#  column plot
+abcover_bylf1_meanSD_plot <- ggplot(abcover_bylf1_meanSD, aes(x = standtype, y = mean, fill = lifeform )) +
+ # facet_wrap(~ lifeform) +
+  geom_col(position = "dodge", width = 0.8) +
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2,
+                 position=position_dodge(.9)) +
+  labs(title = "Percent Cover by lifeform", x = "Treatment", y = "Average Percent Cover (%)") +
+  scale_fill_manual(values = c('#9ACD32', '#DAA520', '#BA55D3', "#228B22")) + # manual colors
+  # scale_fill_manual(values = c('#D3E3CA', '#92A587', '#2F3525', "green")) + # manual colors
+#   scale_fill_manual(values = cal_palette('chaparral3')) + # continuous colors
+                       theme_bw()
+abcover_bylf1_meanSD_plot + scale_x_discrete(limits=c("intact", "matrix", "degraded"),
+                                         labels=c("intact" = "Intact stand", "matrix" = "Matrix stand", "degraded" = "Degraded stand"))
+
+```
+
+- Percent cover by lifeform by native/nonnative status
+
 ```{r percent cover of lifeform by status by site_rep, inclue = TRUE}
 abcover_bylf_bystatus <- abcover_full_v_omitground %>% 
-  group_by(standtype, site, rep, site_rep, lifeform, status) %>% 
+  group_by(standtype, lifeform, status, site, rep, site_rep) %>% 
   filter(site_rep != "Intact4_4") %>% #omit Intact 4 from data
   filter(!is.na(species)) %>% # omit blank cells in species 
-  dplyr::summarize(count_per_dist = n_distinct(site_rep_dist), percentcover = n_distinct(site_rep_dist)/41)
+  dplyr::summarize(count_per_transect = n_distinct(site_rep_dist), percentcover = n_distinct(site_rep_dist)/41)
 # print(abcover_bystatus) # prints all rows of table
 # head (abcover_bystatus) # prints first 6 rows of table
-head(abcover_bylf_bystatus) # prints to new tab
+view(abcover_bylf_bystatus) # prints to new tab
+
+write.csv(abcover_bylf_bystatus, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA"))
+
+
 ```
 
 Second I need to calculate means and SD by lifeform by status (native,
 non-native) by stand type.
+
+```{r abcover by lifeform cover mean and SD, include=TRUE}
+abcover_bylf_bystatus_meanSD <- abcover_bylf_bystatus %>%
+  group_by(standtype, lifeform, status) %>%
+#  group_by(standtype = "intact", lifeform, status) %>%
+#  group_by(standtype = "matrix", lifeform, status) %>%
+# group_by(standtype = "degraded", lifeform, status) %>%
+  summarise_at(vars(percentcover), funs(mean,sd))
+
+abcover_bylf_bystatus_meanSD$status_lifeform <- paste(abcover_bylf_bystatus_meanSD$status, abcover_bylf_bystatus_meanSD$lifeform, sep="_") # combine site and rep to one column
+
+ 
+view(abcover_bylf_bystatus_meanSD)
+```
+
+```{r plot abcover_bylf_meanSD, include = TRUE}
+
+
+#  column plot, bar graph
+abcover_bylf_bystatus_meanSD_plot <- ggplot(abcover_bylf_bystatus_meanSD, aes(x = standtype, y = mean, fill = status_lifeform )) +
+ # facet_wrap(~ lifeform) +
+  geom_col(position = "dodge", width = 0.8) +
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2,
+                 position=position_dodge(.9)) +
+  labs(title = "Percent Cover by status and lifeform", x = "Treatment", y = "Average Percent Cover (%)") +
+  scale_fill_manual(values = c("#9ACD32", "#228B22", "orchid4", "darkolivegreen", "goldenrod", "goldenrod4")) + # manual colors
+  # scale_fill_manual(values = c('#D3E3CA', '#92A587', '#2F3525', "green")) + # manual colors
+#   scale_fill_manual(values = cal_palette('chaparral3')) + # continuous colors
+                       theme_bw()
+
+abcover_bylf_bystatus_meanSD_plot + scale_x_discrete(limits=c("intact", "matrix", "degraded"),
+                                         labels=c("intact" = "Intact stand", "matrix" = "Matrix stand", "degraded" = "Degraded stand"))
+
+
+
+
+#  column plot, 2 x 2 by lifeform
+abcover_bylf_bystatus_meanSD_plot_wrap <- ggplot(abcover_bylf_bystatus_meanSD, aes(x = standtype, y = mean, fill = status )) +
+  facet_wrap(~ lifeform) +
+  geom_col(position = "dodge", width = 0.8) +
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2,
+                 position=position_dodge(.9)) +
+  labs(title = "Percent Cover by lifeform", x = "Stand Type", y = "Average Percent Cover") +
+  scale_fill_manual(values = c('#D3E3CA', '#92A587', '#2F3525')) + # manual colors
+#   scale_fill_manual(values = cal_palette('chaparral3')) + # continuous colors
+                       theme_bw()
+abcover_bylf_bystatus_meanSD_plot_wrap + scale_x_discrete(limits=c("intact", "matrix", "degraded"),
+                                         labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded"))
+```
 
 ```{r abcover by lf by status percent cover mean and SD, include=TRUE}
 
@@ -1058,8 +1168,22 @@ shandiv_plot
 ## NMDS 
 
 ```{r}
-abrich_totalrich_NMDSprep <- abrich_totalrich %>% 
-  select("standtype", "total_species_richness") 
+abcover_byspecies_tidy <- abrover_byspecies %>% 
+  pivot_longer( # transposes data (e.g., date and observations and replicates your repeating data (e.g., species observed)
+    names_to = "", # creates a new column named "date_alive" with column dates as values
+    values_to = "num_alive", # creates a new column with observation values paired with date values
+    cols = c("Acmispon glaber": "Stipa lepida")) # tells R that we want to do this for every column between the 7/28/18 column and the 10/21/18 column. The ":" means "from here to here"
+
+#
+
+
+  dplyr::spread( # transposes data (e.g., date and observations and replicates your repeating data (e.g., species observed)
+    names_to = "species", # creates a new column named "date_alive" with column dates as values
+    values_to = "num_alive", # creates a new column with observation values paired with date values
+    cols = c("7/28/18": "10/21/18") # tells R that we want to do this for every column between the 7/28/18 column and the 10/21/18 column. The ":" means "from here to here"
+
+abcover_byspecies_nmdsprep <- abcover_byspecies %>% 
+  dplyr::spread(species, percentcover)
   
   
 abrich_totalrich_NMDS <- metaMDS(abrich_totalrich)
@@ -1067,6 +1191,10 @@ abrich_totalrich_NMDS <- metaMDS(abrich_totalrich)
 bird_NMDS
 
 stressplot(bird_NMDS)
+
+
+
+
 ```
 
 
