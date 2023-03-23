@@ -90,6 +90,8 @@ str(mite.hel) # 70 obs by 35 variables
 nmds1 <- metaMDS(mite.hel, 
                  autotransform = F) 
 
+stressplot(nmds1)
+plot(nmds1)
 ```
 
 1. Load data for NMDS by site_rep
