@@ -76,7 +76,9 @@ class(seedbank_load) # now a tibble
 ```{r reorder stand classes}
 seedbank_load_v <- seedbank_load %>%
   mutate(stand = fct_relevel(stand, 
-            "intact", "enhanced", "degraded"))
+            "intact", "enhanced", "degraded")) %>% 
+  mutate(treatment = fct_relevel(treatment, 
+                                 "control", "charate", "oven", "ovenchar"))
 ```
 
 (3) Create new columns for SITE_CORE, SITE_CORE_DEPTH, SITE_CORE_DEPTH_TREATMENT, SITE_TREATMENT, SITE_DEPTH for seed bank data. 
@@ -99,8 +101,9 @@ seedbank_load_v_omitpretreatment <- seedbank_load_v %>%
   filter(!str_detect(treatment, "pretreat")) 
 head(seedbank_load_v_omitpretreatment)
 
-unique(seedbank_load_v_omitpretreatment$treatment) # list unique treatments
-unique(seedbank_load_v_omitpretreatment$status) # list unique treatments
+unique(seedbank_load_v_omitpretreatment$treatment) # list unique treatments --> charate, control, oven, ovenchar
+unique(seedbank_load_v_omitpretreatment$status) # list unique treatments --> native, nonnative
+unique(seedbank_load_v_omitpretreatment$species) # list unique species --> 55 species
 ```
 
 (5.1) sum of germinates at each stand_core (e.g., present in one core = sum (char, control, oven, charoven)
@@ -122,7 +125,7 @@ view(seedbank_bysitecore) # df before transpose - use for ellipses
 ```
 
 (6) Prepare data for an NMDS
-```{r transpose for nmds, include=TRUE}
+```{r transpose data by species for nmds, include=TRUE}
 
 # species in columns down
 # observations or sites in rows across
@@ -135,15 +138,23 @@ seedbank_bysitecore_nmdsprep <- seedbank_bysitecore %>%
 
 view(seedbank_bysitecore_nmdsprep)
 ```
-```{r}
+
+```{r replace NAs with zeros}
+
+# You don't need to run this right now
 seedbank_bysitecore_nmdsprep_num <- seedbank_bysitecore_nmdsprep %>% 
   # use the ungroup() function to take out grouping
   ungroup() %>% 
   select(!c(stand_core, stand, site)) %>% 
   replace(is.na(.), 0)
-         
-head(seedbank_bysitecore_nmdsprep_num) # only numbers
+
+view(seedbank_bysitecore_nmdsprep_num) # only numbers
+```
+
+```{r write nmds matrix to csv}
+
 write.csv(seedbank_bysitecore_nmdsprep_num, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/seedbank_NMDS_202303.csv")
+
 ```
 
 (7) NMDS 
