@@ -24,6 +24,9 @@ library(janitor)
 library(calecopal) 
 library(multcompView)
 library(plotly)
+
+# dune data: https://www.rpubs.com/RGrieger/545184
+
 ```
 
 ```{r load deg_seedbank csv}
@@ -32,13 +35,13 @@ seedbank_load_raw <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/
 head(seedbank_load_raw)
 str(seedbank_load_raw)
 
-seedbank_load <- seedbank_load %>% 
+seedbank_load <- seedbank_load_raw %>% 
   select(c("stand", "site", "soilcore", "depthname", "treatment", "species", "lifeform", "status", "lifecycle", "family", "totalcount"))
   
 seedbank_load$totalcount <- as.numeric(seedbank_load$totalcount)
 str(seedbank_load)
 
-# load without unknowns and NAs
+# load without unknowns and NAs <-- how do I omit UNKNOWNs?
 seedbank_load %>%
   filter(!str_detect(species, "unk")) 
 
@@ -48,12 +51,15 @@ seedbank_load <- seedbank_load %>%
                             Oven = 'oven',
                             Ovenchar = 'ovenchar',
                             Char = 'char',
-                            Control = 'control'))
-view(seedbank_load)
+                            Control = 'control', 
+                            Native = 'native')
+                            )
+         
+print(seedbank_load)
 ```
 
 (1) Organize the seed bank data by converting the df into a tibble.
-```{r preparing deg_seedbank, include = TRUE}
+```{r preparing df, include = TRUE}
 
 dim(seedbank_load)
 # [1] 2117   19
@@ -67,14 +73,14 @@ class(seedbank_load) # now a tibble
 ```
 
 (2) Organize the seedbank data by reordering the classes: Intact, Matrix, Degraded.
-```{r deg_seedbank reorder classes to Intact Enh Degraded}
+```{r reorder stand classes}
 seedbank_load_v <- seedbank_load %>%
   mutate(stand = fct_relevel(stand, 
             "intact", "enhanced", "degraded"))
 ```
 
 (3) Create new columns for SITE_CORE, SITE_CORE_DEPTH, SITE_CORE_DEPTH_TREATMENT, SITE_TREATMENT, SITE_DEPTH for seed bank data. 
-```{r deg_seedbank germination - rename columns}
+```{r combine columns}
 
 # combine SITE and CORE to one column
 seedbank_load_v$stand_core <- paste(seedbank_load_v$site, seedbank_load_v$soilcore, sep="_") 
@@ -87,41 +93,53 @@ seedbank_load_v$stand_core_depth_treat <- paste(seedbank_load_v$stand_core_depth
 ```
 
 (4) Omit "pre-treatment" as a treatment since I'm only interested in Control, Char, Oven, and CharOven treatments
-```{r seedbank filter for treatments only}
+```{r omit pretreatment data}
 
 seedbank_load_v_omitpretreatment <- seedbank_load_v %>% 
   filter(!str_detect(treatment, "pretreat")) 
 head(seedbank_load_v_omitpretreatment)
 
+unique(seedbank_load_v_omitpretreatment$treatment) # list unique treatments
+unique(seedbank_load_v_omitpretreatment$status) # list unique treatments
 ```
 
 (5.1) sum of germinates at each stand_core (e.g., present in one core = sum (char, control, oven, charoven)
-```{r seedbank sum germinants by site_core, inclue = TRUE}
+```{r organize data for nmds, inclue = TRUE}
+
+# species in columns
+# sites or observations in rows
+
+# this is the df you'll call to set GROUPS: seedbank_bysitecore
 seedbank_bysitecore <- seedbank_load_v_omitpretreatment %>% 
-  group_by(stand_core, species) %>% # by stand_core
+  group_by(stand, site, stand_core, species) %>% # by stand_core and species 
+  # This will give a data point for every species based on germination numbers per species
   #group_by(stand_core_depth, species) %>% # by stand_core_depth - DOES NOT CONSIDER TREATMENT
   #group_by(stand_core_detph_treat, species) %>% # by stand_core_depth_treat
   filter(!is.na(species)) %>% # omit blank cells in species 
   dplyr::summarize(totalgerm = sum(totalcount)) 
 
-head(seedbank_bysitecore) 
+view(seedbank_bysitecore) # df before transpose - use for ellipses
 ```
 
 (6) Prepare data for an NMDS
-```{r transpose seedbank data by stand_core, include=TRUE}
+```{r transpose for nmds, include=TRUE}
+
+# species in columns down
+# observations or sites in rows across
 
 seedbank_bysitecore_nmdsprep <- seedbank_bysitecore %>% 
- tidyr::spread(stand_core, totalgerm) %>% # transpose data so columns are stand_core_depth
+ tidyr::spread(species, totalgerm) %>% # transpose data so columns are stand_core_depth
   #tidyr::spread(stand_core_depth, totalgerm) %>% # transpose data so columns are stand_core_depth
   # tidyr::spread(stand_core_depth_treat, totalgerm) %>% # transpose data so columns are stand_core_depth_treat
-  replace(is.na(.), 0) # replace NA with zeros
+  replace(is.na(.), 0) # replace NA with zeros --> isn't compatible with character columns
 
-head(seedbank_bysitecore_nmdsprep)
-
+view(seedbank_bysitecore_nmdsprep)
+```
+```{r}
 seedbank_bysitecore_nmdsprep_num <- seedbank_bysitecore_nmdsprep %>% 
   # use the ungroup() function to take out grouping
   ungroup() %>% 
-  select(!c(species)) %>% 
+  select(!c(stand_core, stand, site)) %>% 
   replace(is.na(.), 0)
          
 head(seedbank_bysitecore_nmdsprep_num) # only numbers
@@ -129,10 +147,10 @@ write.csv(seedbank_bysitecore_nmdsprep_num, "~/Dropbox/GRADSCHOOL/Dissertation/R
 ```
 
 (7) NMDS 
-```{r FROM KIT - nmds by species percent cover using code from KIT}
+```{r stress tests}
 # USE THIS ONE!
 
-str(seedbank_bysitecore_nmdsprep_num)
+# str(seedbank_bysitecore_nmdsprep_num)
 # stand_core_depth -->  tibble [89 × 52]
 
 # stress test, will run 20 times
@@ -140,11 +158,21 @@ seedbank_bysitecore_nmds <- metaMDS(seedbank_bysitecore_nmdsprep_num, distance =
 # stress tests are really low ==> I may have insufficient data. :/
 
 # stress test, will run 20 times
-#seedbank_bysitecore_nmds <- metaMDS(seedbank_bysitecore_nmdsprep_num,
-#                                    autotransform = F)
+seedbank_bysitecore_nmds <- metaMDS(seedbank_bysitecore_nmdsprep_num, autotransform = F)
+```
+```{r scores nmds}
+scores(seedbank_bysitecore_nmds)
+scores(seedbank_bysitecore_nmds) %>% 
+  
+  
+  ggplot(aes(x=NMDS1, y=NMDS2, color = stand_core, shape = stand_core)) +
+geom_point(size = 3, alpha = 0.8) +
+  stat_ellipse()
+  
 # stress tests are really low ==> I may have insufficient data. :/
 
 stressplot(seedbank_bysitecore_nmds)
+
 plot(seedbank_bysitecore_nmds)
 
 #basic normal plot
@@ -199,6 +227,7 @@ seedbank_bysitecore_nmds_fortplot1 <- ggplot() +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         axis.line = element_line(colour = "black"))
+seedbank_bysitecore_nmds_fortplot1
 
 #only measurements shown
 seedbank_bysitecore_nmds_fortplot2 <- ggplot() + 
@@ -229,6 +258,22 @@ ggplotly(seedbank_bysitecore_nmds_fortplot)
 hi <- ggarrange(seedbank_bysitecore_nmds_fortplot1, seedbank_bysitecore_nmds_fortplot2, ncol = 1)
 hi
 
+```
+
+```{r NMDS ellipses}
+
+# from https://www.rpubs.com/RGrieger/545184 - dune data - adding ellipses
+data(dune)
+data("dune.env")
+view(dune)
+view(dune.env)
+
+plot(seedbank_bysitecore_nmds, type = "n")
+
+#adding ellipses
+ordiplot(seedbank_bysitecore_nmds, type = "n", main = "ellipses")
+orditorp(seedbank_bysitecore_nmds, display = "sites", labels = T, pch = c(16, 8, 12) [as.numeric(seedbank_bysitecore$stand)], col = c("green", "blue", "orange") [as.numeric(seedbank_bysitecore$stand)], cex = 1)
+ordiellipse(seedbank_bysitecore_nmds, groups = seedbank_bysitecore$stand, draw = "polygon", lty = 1, col = "grey90")
 
 ordiplot(seedbank_bysitecore_nmds,type="n")
 orditorp(seedbank_bysitecore_nmds,display="species",col="red",air=0.01)
@@ -251,11 +296,14 @@ orditorp(abcover_byspecies_NMDS,display="sites",col=c(rep("green",50),rep("blue"
 
 (8) sum of germinates by species (e.g., present in one core = sum (char, control, oven, charoven)
 ```{r seedbank sum germinants by spp, inclue = TRUE}
+
+
 seedbank_byspp <- seedbank_load_v_omitpretreatment %>% 
-  group_by(species, stand_core) %>% 
-  filter(!is.na(stand_core)) %>% # omit blank cells in species 
-  dplyr::summarize(totalgerm = sum(totalcount)) %>% 
-   replace(is.na(.), 0)
+  group_by(species, stand_core) %>% # by stand_core
+  #group_by(stand_core_depth, species) %>% # by stand_core_depth - DOES NOT CONSIDER TREATMENT
+  #group_by(stand_core_detph_treat, species) %>% # by stand_core_depth_treat
+  filter(!is.na(species)) %>% # omit blank cells in species 
+  dplyr::summarize(totalgerm = sum(totalcount)) 
 
 head(seedbank_byspp) 
 ```
@@ -266,7 +314,7 @@ head(seedbank_byspp)
 seedbank_byspp_nmdsprep <- seedbank_byspp %>% 
   tidyr::spread(species, totalgerm) %>% # transpose data so columns are stand_core
   replace(is.na(.), 0) # replace NA with zeros
-view(seedbank_byspp_nmdsprep)
+head(seedbank_byspp_nmdsprep)
 
 seedbank_byspp_nmdsprep_num <- seedbank_byspp_nmdsprep %>% 
   # use the ungroup() function to take out grouping
@@ -326,6 +374,7 @@ seedbank_byspp_nmds_fortplot <- ggplot() +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         axis.line = element_line(colour = "black"))
+seedbank_byspp_nmds_fort
 
 #only vectors shown
 seedbank_byspp_nmds_fortplot1 <- ggplot() + 
@@ -346,6 +395,7 @@ seedbank_byspp_nmds_fortplot1 <- ggplot() +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         axis.line = element_line(colour = "black"))
+seedbank_byspp_nmds_fortplot1
 
 #only measurements shown
 seedbank_byspp_nmds_fortplot2 <- ggplot() + 
@@ -368,6 +418,7 @@ seedbank_byspp_nmds_fortplot2 <- ggplot() +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         axis.line = element_line(colour = "black"))
+seedbank_byspp_nmds_fortplot2
 
 #interactive plots that I like
 ggplotly(seedbank_byspp_nmds_fortplot)
