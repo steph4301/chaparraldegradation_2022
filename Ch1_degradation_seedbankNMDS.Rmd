@@ -53,9 +53,16 @@ seedbank_load <- seedbank_load %>%
                             Char = 'char',
                             Control = 'control', 
                             Native = 'native')
-                            )
+                            ) 
+  
          
 print(seedbank_load)
+unique(seedbank_load$stand)
+unique(seedbank_load$site)
+unique(seedbank_load$soilcore)
+unique(seedbank_load$depthname)
+unique(seedbank_load$treatment)
+unique(seedbank_load$species)
 ```
 
 (1) Organize the seed bank data by converting the df into a tibble.
@@ -101,9 +108,11 @@ seedbank_load_v_omitpretreatment <- seedbank_load_v %>%
   filter(!str_detect(treatment, "pretreat")) 
 head(seedbank_load_v_omitpretreatment)
 
-unique(seedbank_load_v_omitpretreatment$treatment) # list unique treatments --> charate, control, oven, ovenchar
+unique(seedbank_load_v_omitpretreatment$treatment) # list unique treatments --> ordered: control, charate, oven, ovenchar
 unique(seedbank_load_v_omitpretreatment$status) # list unique treatments --> native, nonnative
-unique(seedbank_load_v_omitpretreatment$species) # list unique species --> 55 species
+unique(seedbank_load_v_omitpretreatment$species) # list unique species --> 42 species
+unique(seedbank_load_v_omitpretreatment$stand_core) # unique stand_core --> 26 = 7 + 10 + 9
+
 ```
 
 (5.1) sum of germinates at each stand_core (e.g., present in one core = sum (char, control, oven, charoven)
