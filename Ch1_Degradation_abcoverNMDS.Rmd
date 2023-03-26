@@ -186,9 +186,9 @@ view(abcover_byplot_prep) # prints to new tab
 abcover_byplot <- abcover_byplot_prep %>% 
   select(c(site_rep, species, percentcover))
 
-write.csv(abcover_byplot, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/abcover_byplot.csv")
+#write.csv(abcover_byplot, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/abcover_byplot.csv")
 
-abcover_byplot_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/abcover_byplot_onlysite_repsppcover.csv", header = TRUE, na.strings=c("","NA"))
+#abcover_byplot_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/abcover_byplot_onlysite_repsppcover.csv", header = TRUE, na.strings=c("","NA"))
 ```
 
 
@@ -197,18 +197,19 @@ abcover_byplot_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertatio
 
 # use this for GROUPS: abcover_byplot_nmdsprep
 
-abcover_byplot_nmdsprep <- abcover_byplot_load %>% 
+abcover_byplot_nmdsprep <- abcover_byplot %>% 
   tidyr::spread(site_rep, percentcover) %>% # transpose data so columns are species
   replace(is.na(.), 0) # replace NA with zeros
 view(abcover_byplot_nmdsprep)
+dim(abcover_byplot_nmdsprep)
 
 abcover_byplot_nmdsprep_num <- abcover_byplot_nmdsprep %>% 
   # use the ungroup() function to take out grouping
   ungroup() %>% 
-  select(!c(species))
+  select(!c(species, standtype, site))
 # 33 species (rows) by 15 sites (columns)
 # DEG 1-6, ENH 1-6, INT 1-3 = 15 transects
-
+dim(abcover_byplot_nmdsprep_num)
 ```
 
 ```{r write nmds to csv}
@@ -250,14 +251,19 @@ stressplot(seedbank_byplot_nmds)
 
 nmds_df <- data.frame(seedbank_byplot_nmds$points, # unnamed column is species n = 33
                       abcover_byplot_nmdsprep) # from chatgpt
-head(nmds_df)
+view(nmds_df)
 ```
 
 
 ```{r ggplot bw}
 
-ggplot
+ggplot(nmds_df, aes(x = MDS1, y = MDS2, color = standtype)) +
+  geom_point()+
+  theme_bw() +
+  stat_ellipse(linetype = 2, size = 1) +
+  labs(title = "NMDS: by seed bank germination counts", color = "Stand type", shape = "Stand type")
 
+#
 ggplot(nmds_df, aes(x = MDS1, y = MDS2, color = stand, shape = stand)) +
   geom_point(size = 3, alpha = 0.8) +
   scale_color_manual(values = c("gray0", "gray30", "gray60")) +
@@ -315,15 +321,15 @@ abcover_byspecies_NMDS <- metaMDS(abcover_byspecies_nmdsprep_num,
                                   autotransform = F)
 # stress tests are really low ==> I may have insufficient data. :/
 
-stressplot(abcover_byspecies_NMDS)
-plot(abcover_byspecies_NMDS)
+stressplot(seedbank_byplot_nmds)
+plot(seedbank_byplot_nmds)
 
 #basic normal plot
 ordiplot(abcover_byspecies_NMDS) # without point labels
 ordiplot(abcover_byspecies_NMDS, type = "t") # with point labels
 
 #ggvegan to make a quick nice plot
-autoplot(abcover_byspecies_NMDS) # NMDS1 x NMDS2, Key = "Score": sites, species
+autoplot(seedbank_byplot_nmds) # NMDS1 x NMDS2, Key = "Score": sites, species
 
 
 
