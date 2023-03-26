@@ -32,6 +32,7 @@ library(plotly)
 ```{r load deg_seedbank csv}
 # 
 seedbank_load_raw <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_seedbank_20230308.csv", header = TRUE, na.strings=c("","NA"))
+
 head(seedbank_load_raw)
 str(seedbank_load_raw)
 
@@ -204,7 +205,7 @@ nmds_df <- data.frame(seedbank_bysitecore_nmds$points, seedbank_bysitecore_nmdsp
 
 ```
 
-```{r ggplot color}
+```{r ggplot bw}
 ggplot(nmds_df, aes(x = MDS1, y = MDS2, color = stand, shape = stand)) +
   geom_point(size = 3, alpha = 0.8) +
   scale_color_manual(values = c("gray0", "gray30", "gray60")) +
@@ -213,7 +214,7 @@ ggplot(nmds_df, aes(x = MDS1, y = MDS2, color = stand, shape = stand)) +
   labs(title = "NMDS: by seed bank germination counts", color = "Stand type", shape = "Stand type")
 ```
 
-```{r ggplot bw}
+```{r ggplot color}
 ggplot(nmds_df, aes(x = MDS1, y = MDS2, color = stand, shape = stand)) +
   geom_point(size = 3, alpha = 0.8) +
   scale_color_manual(values = c("darkgreen", "darkmagenta", "darkgoldenrod1")) +
