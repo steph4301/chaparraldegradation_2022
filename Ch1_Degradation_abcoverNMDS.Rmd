@@ -76,8 +76,6 @@ head(abcover_full_v_omitground)
 (5) Identify the unique species at each site_rep_dist to get rid of duplicate species recordings. (e.g., Present at one distance = 1/41 to get percent cover) 
 ```{r ab percent cover unby species, inclue = TRUE}
 
-# use this for GROUPS: abcover_byspecies
-
 abcover_byspecies <- abcover_full_v_omitground %>% 
   group_by(standtype, site, site_rep, species) %>% 
   filter(site_rep != "Intact4_4") %>% #omit Intact 4 from data
@@ -92,16 +90,19 @@ view(abcover_byspecies) # prints to new tab
 (6) Prepare data for an NMDS (percent cover x species x standtype)
 ```{r transpose percent cover data by species, include=TRUE}
 
+# use this for GROUPS: abcover_byspecies_nmdsprep
+
 abcover_byspecies_nmdsprep <- abcover_byspecies %>% 
   tidyr::spread(species, percentcover) %>% # transpose data so columns are species
   replace(is.na(.), 0) # replace NA with zeros
-# view(abcover_byspecies_nmdsprep)
+view(abcover_byspecies_nmdsprep)
 
 abcover_byspecies_nmdsprep_num <- abcover_byspecies_nmdsprep %>% 
   # use the ungroup() function to take out grouping
   ungroup() %>% 
-  select(!c(standtype, site, site_rep, count_per_dist))
-# 96 observations x 33 species
+  select(!c(standtype, site, site_rep))
+# 15 sites (rows) by 36 species (columns)
+# DEG 1-6, ENH 1-6, INT 1-3 = 15 transects
          
 view(abcover_byspecies_nmdsprep_num) # only numbers
 write.csv(abcover_byspecies_nmdsprep_num, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/nmds_aboveground.csv")
@@ -110,19 +111,73 @@ write.csv(abcover_byspecies_nmdsprep_num, "~/Dropbox/GRADSCHOOL/Dissertation/R_d
 NMDS 
 ```{r nmds by species percent cover}
 
-abcover_plot_NMDS <- metaMDS(abcover_byspecies_nmdsprep_num, 
+abcover_byspecies_NMDS <- metaMDS(abcover_byspecies_nmdsprep_num, 
                                   distance = "raup")
 
-seedbank_bysitecore_nmds <- metaMDS(seedbank_bysitecore_nmdsprep_num, autotransform = F)
+abcover_byspecies_NMDS <- metaMDS(seedbank_bysitecore_nmdsprep_num, autotransform = F)
 
 #stressplot(abcover_byspecies_NMDS)
 #plot(abcover_byspecies_NMDS)
 ```
+
+
+```{r scores nmds}
+
+scores(abcover_byspecies_NMDS)
+```
+
+```{r stress test}
+
+stressplot(abcover_byspecies_NMDS)
+# if stress tests are really low ==> I may have insufficient data. :/
+
+#plot_df <- scores(seedbank_bysitecore_nmds, display = "sites") %>% # from An's code
+#  as.data.frame() %>% 
+#  rownames_to_column("stand_core") %>% 
+#  full_join(seedbank_bysitecore, by = "stand_core")
+
+nmds_above_df <- data.frame(abcover_byspecies_NMDS$points, abcover_byspecies_nmdsprep) # code from chatgpt
+
+
+```
+
+
+```{r ggplot above bw}
+ggplot(nmds_above_df, aes(x = MDS1, y = MDS2, color = standtype, shape = standtype)) +
+  geom_point(size = 3, alpha = 0.8) +
+  scale_color_manual(values = c("gray0", "gray30", "gray60")) +
+  scale_shape_manual(values = c(16, 4, 15)) +
+  theme_bw() +
+  stat_ellipse(linetype = 2, size = 1) +
+  labs(title = "NMDS: by percent cover", color = "Stand type", shape = "Stand type")
+```
+
+```{r ggplot aove color}
+ggplot(nmds_above_df, aes(x = MDS1, y = MDS2, color = standtype, shape = standtype)) +
+  geom_point(size = 3, alpha = 0.8) +
+  scale_color_manual(values = c("darkgreen", "darkmagenta", "darkgoldenrod1")) +
+  theme_bw() +
+  #stat_ellipse(level = .95, linetype = 2, size = 1) +
+  stat_ellipse(linetype = 2, size = 1) +
+  labs(title = "NMDS: by percent cover", color = "Stand type", shape = "Stand type")
+
+
+```
+
+
+NMDS by Plots! to determine which species are driving transect disimiliarity. 
+```{r}
+
+```
+
+
+
+
 ```{r}
 # useful code on how to color code NMDS from YouTube: https://www.youtube.com/watch?v=h7OrVmT7Ja8&t=446s
 # and how to group NMDS values: https://www.youtube.com/watch?v=Y0GI34S-ZMI
 
-str(abcover_byspecies_NMDS) # structure of the file, look at the points to get the matrix of numbers and columns (2 columns)
+scores(abcover_byspecies_NMDS) # structure of the file, look at the points to get the matrix of numbers and columns (2 columns)
 abcover_byspecies_NMDS$points # to get the points/values of MDS1 and MDS2
 scores(abcover_byspecies_NMDS) # scores of your variables
 plot(abcover_byspecies_NMDS)
