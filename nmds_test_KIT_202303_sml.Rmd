@@ -301,10 +301,16 @@ data(package = "vegan")
 data(dune)
 data(BCI)
 
+view(dune)
+str(dune)
+#20 rows or obs, 30 columns or variables
+
 #transforming data
 dune.hel <- decostand(dune, method = "hellinger")
 view(dune.hel)
 str(dune.hel)
+#20 rows or obs, 30 columns or variables
+
 #preforming the actual nmds, Im having it run 100 times to prevent it reaching local minimums for stress. (stress being the measure of fit)
 dune.nmds <- metaMDS(dune.hel, 
                  autotransform = T,
@@ -315,7 +321,10 @@ dune.nmds <- metaMDS(dune.hel,
 
 plot(dune.nmds)
 ordiplot(dune.nmds,type="n")
+
+
 orditorp(dune.nmds,display="species",col="red",air=0.01)
+
 orditorp(dune.nmds,display="sites",cex=1.25,air=0.01)
 
 #how do i do this in ggplot (for better control + cleaner graphics)
