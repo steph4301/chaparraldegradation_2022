@@ -87,6 +87,9 @@ seedbank_load_v <- seedbank_load %>%
             "intact", "enhanced", "degraded")) %>% 
   mutate(treatment = fct_relevel(treatment, 
                                  "control", "charate", "oven", "ovenchar"))
+
+# renaming observations
+seedbank_load_v$stand <- factor(seedbank_load_v$stand, levels=c("intact", "enhanced", "degraded"), labels=c("Intact", "Matrix", "Degraded"))
 ```
 
 (3) Create new columns for SITE_CORE, SITE_CORE_DEPTH, SITE_CORE_DEPTH_TREATMENT, SITE_TREATMENT, SITE_DEPTH for seed bank data. 
@@ -215,14 +218,15 @@ ggplot(nmds_df, aes(x = MDS1, y = MDS2, color = stand, shape = stand)) +
 ```
 
 ```{r ggplot color}
-ggplot(nmds_df, aes(x = MDS1, y = MDS2, color = stand, shape = stand)) +
+seedbank_nmds_plot_color <- ggplot(nmds_df, aes(x = MDS1, y = MDS2, color = stand, shape = stand)) +
   geom_point(size = 3, alpha = 0.8) +
   scale_color_manual(values = c("darkgreen", "darkmagenta", "darkgoldenrod1")) +
   theme_bw() +
+  theme(legend.position = c(0.15, 0.15)) + # x, y left corner: 0,0
   #stat_ellipse(level = .95, linetype = 2, size = 1) +
   stat_ellipse(linetype = 2, size = 1) +
   labs(title = "NMDS: by seed bank germination counts", color = "Stand type", shape = "Stand type")
-
+seedbank_nmds_plot_color
 
 ```
 
@@ -253,7 +257,8 @@ seedbank_bysitecore_nmds_fortplot <- ggplot() +
   geom_point(data = subset(seedbank_bysitecore_nmds_fort, Score == 'sites'),
              mapping = aes(x = NMDS1, y = NMDS2),
              color = 'black',
-             alpha = 0.5) +
+             size = 4,
+             alpha = 1) +
   geom_segment(data = subset(seedbank_bysitecore_nmds_fort, Score == 'species'),
                mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
                arrow = arrow(length = unit(0.015, "npc"),
@@ -261,18 +266,21 @@ seedbank_bysitecore_nmds_fortplot <- ggplot() +
                color = 'darkgrey',
                linewidth = 0.8) +
   geom_text(data = subset(seedbank_bysitecore_nmds_fort, Score == 'species'),
+             position = position_jitter(width = 0.2, height = 0.2),
             mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1))+
   geom_abline(intercept = 0,slope = 0,linetype = "dashed", linewidth = 0.8,colour = "gray")+
   geom_vline(aes(xintercept = 0), linetype = "dashed", linewidth = 0.8, colour = "gray")+
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         axis.line = element_line(colour = "black"))
+seedbank_bysitecore_nmds_fortplot
 
 #only vectors shown
 seedbank_bysitecore_nmds_fortplot1 <- ggplot() + 
   geom_point(data = subset(seedbank_bysitecore_nmds_fort, Score == 'sites'),
              mapping = aes(x = NMDS1, y = NMDS2),
              color = 'black',
+             size = 3,
              alpha = 0) +
   geom_segment(data = subset(seedbank_bysitecore_nmds_fort, Score == 'species'),
                mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
@@ -281,6 +289,7 @@ seedbank_bysitecore_nmds_fortplot1 <- ggplot() +
                color = 'darkgrey',
                linewidth = 0.8) +
   geom_text(data = subset(seedbank_bysitecore_nmds_fort, Score == 'species'),
+            position = position_jitter(width = 0.2, height = 0.2),
             mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1))+
   geom_abline(intercept = 0,slope = 0,linetype = "dashed", linewidth = 0.8,colour = "gray")+
   geom_vline(aes(xintercept = 0), linetype = "dashed", size = 0.8, colour = "gray")+
@@ -315,8 +324,8 @@ seedbank_bysitecore_nmds_fortplot2 <- ggplot() +
 ggplotly(seedbank_bysitecore_nmds_fortplot)
 
 #show both plots 
-hi <- ggarrange(seedbank_bysitecore_nmds_fortplot1, seedbank_bysitecore_nmds_fortplot2, ncol = 1)
-hi
+hi_below <- ggarrange(seedbank_nmds_plot_color, seedbank_bysitecore_nmds_fortplot, ncol = 1)
+hi_below
 
 ```
 
