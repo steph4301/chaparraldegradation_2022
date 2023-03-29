@@ -325,8 +325,6 @@ hi_below
 ```{r nmds color and vectors with envfit function}
 # code from An Bui: https://rpubs.com/an-bui/vegan-cheat-sheet 
 
-# START HERE - I NEED TO COMBINE DATA FRAMES TO RUN THE NEW PLOTS
-
 nmds_above_df <- data.frame(abcover_byspecies_NMDS$points, abcover_byspecies_nmdsprep) # code from chatgpt
 
 seedbank_bysitecore_nmdsprep <- seedbank_bysitecore_nmdsprep %>% 
@@ -357,7 +355,7 @@ fit_below_spp <- fit_below %>%
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   full_join(., fit_below_pvals, by = "species") %>% 
-  filter(pvals < 0.05) %>% 
+  filter(pvals < 0.004) %>% # limited number for visual clarity
   filter(!species == 'standtype_ID')
 
 # new plot
@@ -369,7 +367,8 @@ nmdsbelow_plot_new <- ggplot(plot_below_df, aes(x = NMDS1, y = NMDS2)) +
   geom_segment(data = fit_below_spp, aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
                arrow = arrow(length = unit(0.25, "cm")),
                col = "black") +
-  geom_text(data = fit_below_spp, aes(label = species))
+  geom_text(data = fit_below_spp, aes(label = species),  
+            position = position_jitter(width = 0.2, height = 0.2))
 nmdsbelow_plot_new
 
 ```
