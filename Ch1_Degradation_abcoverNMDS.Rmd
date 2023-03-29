@@ -24,6 +24,7 @@ library(janitor)
 library(calecopal) 
 library(multcompView)
 library(plotly)
+library(ggvegan)
 ```
 
 ```{r load csv}
@@ -152,8 +153,8 @@ nmds_above_df <- data.frame(abcover_byspecies_NMDS$points, abcover_byspecies_nmd
 ```{r ggplot above ground}
 nmds_above_df_plotcolor <- ggplot(nmds_above_df, aes(x = MDS1, y = MDS2, color = standtype, shape = standtype)) +
   geom_point(size = 3, alpha = 0.8) +
-  scale_color_manual(values = c("darkgreen", "darkmagenta", "darkgoldenrod1")) +
-  # scale_color_manual(values = c("gray0", "gray30", "gray60")) +
+  scale_color_manual(values = c("darkgreen", "darkmagenta", "darkgoldenrod1")) + # in color
+  # scale_color_manual(values = c("gray0", "gray30", "gray60")) + # in bw
   theme_bw() +
   theme(legend.position = c(0.1, 0.85)) + # x, y left corner: 0,0
   stat_ellipse(level = .95, linetype = 2, size = 1) +
@@ -166,8 +167,6 @@ nmds_above_df_plotcolor
 
 #this makes a dataframe that gives a lot of control graphically 
 abcover_byspecies_NMDS_fort <- fortify(abcover_byspecies_NMDS)
-
-nmds_above_df
 
 # vectors AND measurments
 abcover_byspecies_NMDS_fortplot <- ggplot() + 
@@ -428,6 +427,7 @@ hi
 ```
 
 
+```{r}
 
 ggplot(nmds_df, aes(x = MDS1, y = MDS2)) +
   geom_point()+
@@ -729,6 +729,45 @@ orditorp(abcover_bysite_NMDS,display="sites",col=c(rep("green",6),rep("blue",6),
 ```
 
 
+```{r species richness by stand type}
+sppr <- specnumber(abcover_byspecies_nmdsprep_num)
+
+sppr_aov <- aov(sppr ~ standtype, data = abcover_byspecies_nmdsprep)
+summary(sppr_aov)
+
+#             Df Sum Sq Mean Sq F value Pr(>F)
+#standtype    2  17.40   8.700   1.921  0.189
+#Residuals   12  54.33   4.528
+
+abcover_byspecies_nmdsprep <- abcover_byspecies_nmdsprep %>% 
+  mutate(standtype_ID = 1)
+
+abcover_byspecies_nmdsprep$standtype_ID <- 1:15
+
+sppr_df <- sppr %>% 
+  enframe() %>% 
+  full_join(abcover_byspecies_nmdsprep, by = c("name" = "standtype_ID"))
+
+
+pal <- c("lightsalmon1", "gold1", "palegreen4")
+
+plot_sppr <- ggplot(sppr_df, aes(x = standtype, y = value, fill = standtype)) +
+  geom_boxplot() +
+  scale_fill_manual(values = pal) +
+  scale_x_discrete(labels = c("Intact \n (n = 9)", "Matrix \n (n = 10)", "Degraded \n (n = 7)")) +
+  theme(legend.position = "none",
+        plot.background = element_rect("white"),
+        panel.background = element_rect("white"),
+        panel.grid = element_line("grey90"),
+        axis.line = element_line("gray25"),
+        axis.text = element_text(size = 12, color = "gray25"),
+        axis.title = element_text(color = "gray25"),
+        legend.text = element_text(size = 12)) + 
+  labs(x = "Stand Type",
+       y = "Number of species per site",
+       title = "Above ground species richness")
+plot_sppr
+```
 
 
 
