@@ -327,11 +327,19 @@ hi_below
 
 # START HERE - I NEED TO COMBINE DATA FRAMES TO RUN THE NEW PLOTS
 
+nmds_above_df <- data.frame(abcover_byspecies_NMDS$points, abcover_byspecies_nmdsprep) # code from chatgpt
+
+seedbank_bysitecore_nmdsprep <- seedbank_bysitecore_nmdsprep %>% 
+  mutate(standtype_ID = 1)
+
+seedbank_bysitecore_nmdsprep$standtype_ID <- 1:26
+
 plot_below_df <- scores(seedbank_bysitecore_nmds, display = "sites") %>% 
   as.data.frame() %>% 
-  rownames_to_column("stand_core") %>% 
-  full_join(seedbank_bysitecore, by = "stand_core") %>% 
-  full_join(seedbank_bysitecore_nmdsprep, by = "")
+  rownames_to_column("standtype_ID") %>% 
+  mutate_at(c('standtype_ID'), as.numeric) %>% 
+  full_join(seedbank_bysitecore_nmdsprep, by = "standtype_ID")
+#view(plot_below_df)
 
 # envfit() takes the output of metaMDS() and the species matrix you created
 fit_below <- envfit(seedbank_bysitecore_nmds, seedbank_bysitecore_nmdsprep, perm = 999) # pvalues for spp and stand, site, stand_core
@@ -341,14 +349,16 @@ fit_below_pvals <- fit_below$vectors$pvals %>%
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   dplyr::rename("pvals" = ".")
+#view(fit_below_pvals)
 
-# extract coordinates for species, only keep species with p-val = 0.001
+# extract coordinates for species, only keep species with p-val = 0.05
 fit_below_spp <- fit_below %>% 
   scores(., display = "vectors") %>% 
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   full_join(., fit_below_pvals, by = "species") %>% 
-  filter(pvals < 0.05)
+  filter(pvals < 0.05) %>% 
+  filter(!species == 'standtype_ID')
 
 # new plot
 nmdsbelow_plot_new <- ggplot(plot_below_df, aes(x = NMDS1, y = NMDS2)) +
