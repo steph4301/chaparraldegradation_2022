@@ -165,10 +165,9 @@ summary(sppdiv_aov)
 
 abcover_byspecies_nmdsprep <- abcover_byspecies %>% 
   tidyr::spread(species, percentcover) %>% # transpose data so columns are species
-  replace(is.na(.), 0) %>% # replace NA with zeros
-  mutate(standtype_ID = 1)
+  replace(is.na(.), 0) # replace NA with zeros
 
-abcover_byspecies_nmdsprep$standtype_ID <- 1:15
+
 
 view(abcover_byspecies_nmdsprep)
 # 15 sites (rows) by 37 columns
@@ -248,6 +247,11 @@ nmds_above_df_plotcolor
 
 nmds_above_df <- data.frame(abcover_byspecies_NMDS$points, abcover_byspecies_nmdsprep) # code from chatgpt
 
+abcover_byspecies_nmdsprep <- abcover_byspecies_nmdsprep %>% 
+  mutate(standtype_ID = 1)
+
+abcover_byspecies_nmdsprep$standtype_ID <- 1:15
+
 plot_above_df <- scores(abcover_byspecies_NMDS, display = "sites") %>% 
   as.data.frame() %>% 
   rownames_to_column("standtype_ID") %>% 
@@ -264,7 +268,7 @@ fit_above_pvals <- fit_above$vectors$pvals %>%
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   dplyr::rename("pvals" = ".")
-#view(fit_above_pvals)
+view(fit_above_pvals)
 
 # extract coordinates for species, only keep species with p-val = 0.05
 fit_above_spp <- fit_above %>% 
@@ -272,21 +276,22 @@ fit_above_spp <- fit_above %>%
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   full_join(., fit_above_pvals, by = "species") %>% 
-  filter(pvals < 0.004) %>% # limited number for visual clarity
+  filter(pvals < 0.05) %>%  # limited number for visual clarity
   filter(!species == 'standtype_ID')
+view(fit_above_spp)
 
 # new plot
-nmdsbelow_plot_new <- ggplot(plot_below_df, aes(x = NMDS1, y = NMDS2)) +
-  coord_fixed() +
-  geom_point(aes(color = stand, shape = stand), size = 3, alpha = 0.8) +
-  stat_ellipse(aes(color = stand)) +
-   scale_color_manual(values = c("darkgreen", "darkmagenta", "darkgoldenrod1")) +
-  geom_segment(data = fit_below_spp, aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
+nmdsabove_plot_new <- ggplot(plot_above_df, aes(x = NMDS1, y = NMDS2)) +
+  #coord_fixed() +
+  geom_point(aes(color = standtype, shape = standtype), size = 3, alpha = 0.8) +
+  stat_ellipse(aes(color = standtype)) +
+  scale_color_manual(values = c("darkgreen", "darkmagenta", "darkgoldenrod1")) +
+  geom_segment(data = fit_above_spp, aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
                arrow = arrow(length = unit(0.25, "cm")),
                col = "black") +
-  geom_text(data = fit_below_spp, aes(label = species),  
-            position = position_jitter(width = 0.2, height = 0.2))
-nmdsbelow_plot_new
+  geom_text(data = fit_above_spp, aes(label = species),  
+            position = position_jitter(width = 0.2, height = 0.3)) 
+nmdsabove_plot_new + theme_bw()
 
 ```
 
