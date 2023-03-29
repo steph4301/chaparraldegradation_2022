@@ -767,6 +767,20 @@ plot_sppr <- ggplot(sppr_df, aes(x = standtype, y = value, fill = standtype)) +
        y = "Number of species per site",
        title = "Above ground species richness")
 plot_sppr
+
+```
+```{r shannon diversity}
+# this doesn't make sense for % cover, but I could run it on shrub density. I could also run it on the seedbank data. 
+shannondiv <- diversity(abcover_byspecies_nmdsprep_num)
+head(shannondiv)
+
+sppdiv_aov <- aov(shannondiv ~ standtype, data = abcover_byspecies_nmdsprep)
+summary(sppdiv_aov)
+
+#     Df Sum Sq Mean Sq F value Pr(>F)  
+#standtype    2 0.2899 0.14493   3.924 0.0489 *
+#Residuals   12 0.4433 0.03694        
+
 ```
 
 
