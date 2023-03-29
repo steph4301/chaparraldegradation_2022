@@ -240,6 +240,8 @@ seedbank_nmds_plot_color <- ggplot(nmds_df, aes(x = MDS1, y = MDS2, color = stan
   geom_point(size = 3, alpha = 0.8) +
   scale_color_manual(values = c("darkgreen", "darkmagenta", "darkgoldenrod1")) +
   theme_bw() +
+  coord_equal() +
+  #coord_fixed() +
   #theme_ipsum_rc() +
   theme(legend.position = c(0.15, 0.83)) + # x, y left corner: 0,0
   #stat_ellipse(level = .95, linetype = 2, size = 1) +
@@ -268,7 +270,7 @@ plot_below_df <- scores(seedbank_bysitecore_nmds, display = "sites") %>%
   full_join(seedbank_bysitecore_nmdsprep, by = "standtype_ID") %>%  
   select(!c(standtype_ID))
 
-view(plot_below_df)
+# view(plot_below_df)
 
 # envfit() takes the output of metaMDS() and the species matrix you created
 fit_below <- envfit(seedbank_bysitecore_nmds, seedbank_bysitecore_nmdsprep, perm = 999) # pvalues for spp and stand, site, stand_core
@@ -279,7 +281,7 @@ fit_below_pvals <- fit_below$vectors$pvals %>%
   rownames_to_column("species") %>% 
   dplyr::rename("pvals" = ".") %>% 
   filter(!species == 'standtype_ID')
-view(fit_below_pvals)
+#view(fit_below_pvals)
 
 # extract coordinates for species, only keep species with p-val = 0.05
 fit_below_spp <- fit_below %>% 
@@ -292,7 +294,7 @@ fit_below_spp <- fit_below %>%
 
 # new plot
 nmdsbelow_plot_new <- ggplot(plot_below_df, aes(x = NMDS1, y = NMDS2)) +
-  #coord_fixed() +
+  coord_equal() +
   geom_point(aes(color = stand, shape = stand), size = 3, alpha = 0.8) +
   stat_ellipse(aes(color = stand)) +
    scale_color_manual(values = c("darkgreen", "darkmagenta", "darkgoldenrod1")) +
@@ -300,7 +302,7 @@ nmdsbelow_plot_new <- ggplot(plot_below_df, aes(x = NMDS1, y = NMDS2)) +
                arrow = arrow(length = unit(0.25, "cm")),
                col = "black") +
   geom_text(data = fit_below_spp, aes(label = species),  
-            position = position_jitter(width = 0.2, height = 0.4))
+            position = position_jitter(width = 0.2, height = 0.2))
 nmdsbelow_plot_new + theme_bw()
 
 ```
