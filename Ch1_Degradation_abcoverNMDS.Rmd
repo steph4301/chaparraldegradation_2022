@@ -109,8 +109,13 @@ unique(abcover_byspecies$species)
 
 abcover_byspecies_nmdsprep <- abcover_byspecies %>% 
   tidyr::spread(species, percentcover) %>% # transpose data so columns are species
-  replace(is.na(.), 0) # replace NA with zeros
+  replace(is.na(.), 0) %>% # replace NA with zeros
+  mutate(standtype_ID = 1)
+
+abcover_byspecies_nmdsprep$standtype_ID <- 1:15
+
 view(abcover_byspecies_nmdsprep)
+
 
 abcover_byspecies_nmdsprep_num <- abcover_byspecies_nmdsprep %>% 
   # use the ungroup() function to take out grouping
