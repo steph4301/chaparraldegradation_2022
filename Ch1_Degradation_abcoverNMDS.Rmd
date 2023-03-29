@@ -35,8 +35,8 @@ abcover_full_raw <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/c
 (1) Organize the percent cover data by converting the dataframe into a tibble.
 ```{r ab percent cover by status, include = TRUE}
 
-abcover_full_raw
-# [1] 113   6
+str(abcover_full_raw)
+
 head(abcover_full_raw)
 tail(abcover_full_raw)
 
@@ -73,6 +73,7 @@ abcover_full_v$stand_status <- paste(abcover_full_v$standtype, abcover_full_v$st
 abcover_full_v$site_rep_species <- paste(abcover_full_v$site_rep, abcover_full_v$species, sep="_") 
 
 head(abcover_full_v) # look at new columns
+
 ```
 
 (4) Omit "ground" as a status since I'm interested in only Native and Non-native species.
@@ -92,7 +93,13 @@ abcover_byspecies <- abcover_full_v_omitground %>%
    select(!c(count_per_dist))
   
 
-view(abcover_byspecies) # prints to new tab
+head(abcover_byspecies) # prints to new tab
+
+
+unique(abcover_byspecies$standtype)
+unique(abcover_byspecies$site)
+unique(abcover_byspecies$species)
+
 ```
 
 (6) Prepare data for an NMDS (percent cover x species x standtype)
