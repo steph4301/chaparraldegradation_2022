@@ -221,7 +221,8 @@ ggplot(nmds_df, aes(x = MDS1, y = MDS2, color = stand, shape = stand)) +
 seedbank_nmds_plot_color <- ggplot(nmds_df, aes(x = MDS1, y = MDS2, color = stand, shape = stand)) +
   geom_point(size = 3, alpha = 0.8) +
   scale_color_manual(values = c("darkgreen", "darkmagenta", "darkgoldenrod1")) +
-  theme_bw() +
+  # theme_bw() +
+  theme_ipsum_rc() +
   theme(legend.position = c(0.15, 0.15)) + # x, y left corner: 0,0
   #stat_ellipse(level = .95, linetype = 2, size = 1) +
   stat_ellipse(linetype = 2, size = 1) +
