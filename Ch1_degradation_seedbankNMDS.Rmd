@@ -24,6 +24,7 @@ library(janitor)
 library(calecopal) 
 library(multcompView)
 library(plotly)
+library(ggvegan)
 
 # dune data: https://www.rpubs.com/RGrieger/545184
 
@@ -180,12 +181,21 @@ write.csv(seedbank_bysitecore_nmdsprep_num, "~/Dropbox/GRADSCHOOL/Dissertation/R
 # str(seedbank_bysitecore_nmdsprep_num)
 # stand_core_depth -->  tibble [89 × 52]
 
-# stress test, will run 20 times
-seedbank_bysitecore_nmds <- metaMDS(seedbank_bysitecore_nmdsprep_num, distance = "raup")
+# the AUTOTRANSFORM = F skips the automatic data transformations and uses the input data as is
+# - when the raw data contains the information you need (e.g., abundance)
+# - when you have a small number of samples or small number of variables
+# - when you want to preseve the original scale of the data (e.g., interested in the absolute differences betwen two sets of measurements)
+seedbank_bysitecore_nmds <- metaMDS(seedbank_bysitecore_nmdsprep_num, autotransform = F)
+
+# uses the RAUP-CRICK dissimilarity index to calculate pairwise dissimilarities
+# - adjusts for spp richness
+# - downweights importance of rare spp 
+# - more useful when interested in community STRUCTURE rather than individual species
+# - takes into account differences in species evenness
+# seedbank_bysitecore_nmds <- metaMDS(seedbank_bysitecore_nmdsprep_num, distance = "raup")
 # stress tests are really low ==> I may have insufficient data. :/
 
-# stress test, will run 20 times
-seedbank_bysitecore_nmds <- metaMDS(seedbank_bysitecore_nmdsprep_num, autotransform = F)
+
 ```
 
 ```{r scores nmds}
