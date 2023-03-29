@@ -102,6 +102,62 @@ unique(abcover_byspecies$species)
 
 ```
 
+
+```{r species richness by stand type}
+sppr <- specnumber(abcover_byspecies_nmdsprep_num)
+
+sppr_aov <- aov(sppr ~ standtype, data = abcover_byspecies_nmdsprep)
+summary(sppr_aov)
+
+#             Df Sum Sq Mean Sq F value Pr(>F)
+#standtype    2  17.40   8.700   1.921  0.189
+#Residuals   12  54.33   4.528
+
+abcover_byspecies_nmdsprep <- abcover_byspecies_nmdsprep %>% 
+  mutate(standtype_ID = 1)
+
+abcover_byspecies_nmdsprep$standtype_ID <- 1:15
+
+sppr_df <- sppr %>% 
+  enframe() %>% 
+  full_join(abcover_byspecies_nmdsprep, by = c("name" = "standtype_ID"))
+
+
+pal <- c("lightsalmon1", "gold1", "palegreen4")
+
+plot_sppr <- ggplot(sppr_df, aes(x = standtype, y = value, fill = standtype)) +
+  geom_boxplot() +
+  scale_fill_manual(values = pal) +
+  scale_x_discrete(labels = c("Intact \n (n = 9)", "Matrix \n (n = 10)", "Degraded \n (n = 7)")) +
+  theme(legend.position = "none",
+        plot.background = element_rect("white"),
+        panel.background = element_rect("white"),
+        panel.grid = element_line("grey90"),
+        axis.line = element_line("gray25"),
+        axis.text = element_text(size = 12, color = "gray25"),
+        axis.title = element_text(color = "gray25"),
+        legend.text = element_text(size = 12)) + 
+  labs(x = "Stand Type",
+       y = "Number of species per site",
+       title = "Above ground species richness")
+plot_sppr
+
+```
+```{r shannon diversity}
+# this doesn't make sense for % cover, but I could run it on shrub density. I could also run it on the seedbank data. 
+shannondiv <- diversity(abcover_byspecies_nmdsprep_num)
+head(shannondiv)
+
+sppdiv_aov <- aov(shannondiv ~ standtype, data = abcover_byspecies_nmdsprep)
+summary(sppdiv_aov)
+
+#     Df Sum Sq Mean Sq F value Pr(>F)  
+#standtype    2 0.2899 0.14493   3.924 0.0489 *
+#Residuals   12 0.4433 0.03694        
+
+```
+
+
 (6) Prepare data for an NMDS (percent cover x species x standtype)
 ```{r transpose percent cover data by species, include=TRUE}
 
@@ -192,34 +248,30 @@ nmds_above_df_plotcolor
 
 nmds_above_df <- data.frame(abcover_byspecies_NMDS$points, abcover_byspecies_nmdsprep) # code from chatgpt
 
-seedbank_bysitecore_nmdsprep <- seedbank_bysitecore_nmdsprep %>% 
-  mutate(standtype_ID = 1)
-
-seedbank_bysitecore_nmdsprep$standtype_ID <- 1:26
-
-plot_below_df <- scores(seedbank_bysitecore_nmds, display = "sites") %>% 
+plot_above_df <- scores(abcover_byspecies_NMDS, display = "sites") %>% 
   as.data.frame() %>% 
   rownames_to_column("standtype_ID") %>% 
   mutate_at(c('standtype_ID'), as.numeric) %>% 
-  full_join(seedbank_bysitecore_nmdsprep, by = "standtype_ID")
-#view(plot_below_df)
+  full_join(abcover_byspecies_nmdsprep, by = "standtype_ID") %>% 
+  select(!c(standtype_ID))
+view(plot_above_df)
 
 # envfit() takes the output of metaMDS() and the species matrix you created
-fit_below <- envfit(seedbank_bysitecore_nmds, seedbank_bysitecore_nmdsprep, perm = 999) # pvalues for spp and stand, site, stand_core
+fit_above <- envfit(abcover_byspecies_NMDS, abcover_byspecies_nmdsprep, perm = 999) # pvalues for spp and stand, site, stand_core
 
 # extract p-values for each species
-fit_below_pvals <- fit_below$vectors$pvals %>% 
+fit_above_pvals <- fit_above$vectors$pvals %>% 
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   dplyr::rename("pvals" = ".")
-#view(fit_below_pvals)
+#view(fit_above_pvals)
 
 # extract coordinates for species, only keep species with p-val = 0.05
-fit_below_spp <- fit_below %>% 
+fit_above_spp <- fit_above %>% 
   scores(., display = "vectors") %>% 
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
-  full_join(., fit_below_pvals, by = "species") %>% 
+  full_join(., fit_above_pvals, by = "species") %>% 
   filter(pvals < 0.004) %>% # limited number for visual clarity
   filter(!species == 'standtype_ID')
 
@@ -807,60 +859,6 @@ orditorp(abcover_bysite_NMDS,display="sites",col=c(rep("green",6),rep("blue",6),
 
 ```
 
-
-```{r species richness by stand type}
-sppr <- specnumber(abcover_byspecies_nmdsprep_num)
-
-sppr_aov <- aov(sppr ~ standtype, data = abcover_byspecies_nmdsprep)
-summary(sppr_aov)
-
-#             Df Sum Sq Mean Sq F value Pr(>F)
-#standtype    2  17.40   8.700   1.921  0.189
-#Residuals   12  54.33   4.528
-
-abcover_byspecies_nmdsprep <- abcover_byspecies_nmdsprep %>% 
-  mutate(standtype_ID = 1)
-
-abcover_byspecies_nmdsprep$standtype_ID <- 1:15
-
-sppr_df <- sppr %>% 
-  enframe() %>% 
-  full_join(abcover_byspecies_nmdsprep, by = c("name" = "standtype_ID"))
-
-
-pal <- c("lightsalmon1", "gold1", "palegreen4")
-
-plot_sppr <- ggplot(sppr_df, aes(x = standtype, y = value, fill = standtype)) +
-  geom_boxplot() +
-  scale_fill_manual(values = pal) +
-  scale_x_discrete(labels = c("Intact \n (n = 9)", "Matrix \n (n = 10)", "Degraded \n (n = 7)")) +
-  theme(legend.position = "none",
-        plot.background = element_rect("white"),
-        panel.background = element_rect("white"),
-        panel.grid = element_line("grey90"),
-        axis.line = element_line("gray25"),
-        axis.text = element_text(size = 12, color = "gray25"),
-        axis.title = element_text(color = "gray25"),
-        legend.text = element_text(size = 12)) + 
-  labs(x = "Stand Type",
-       y = "Number of species per site",
-       title = "Above ground species richness")
-plot_sppr
-
-```
-```{r shannon diversity}
-# this doesn't make sense for % cover, but I could run it on shrub density. I could also run it on the seedbank data. 
-shannondiv <- diversity(abcover_byspecies_nmdsprep_num)
-head(shannondiv)
-
-sppdiv_aov <- aov(shannondiv ~ standtype, data = abcover_byspecies_nmdsprep)
-summary(sppdiv_aov)
-
-#     Df Sum Sq Mean Sq F value Pr(>F)  
-#standtype    2 0.2899 0.14493   3.924 0.0489 *
-#Residuals   12 0.4433 0.03694        
-
-```
 
 
 
