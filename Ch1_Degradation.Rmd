@@ -57,40 +57,80 @@ knitr::opts_chunk$set(echo = TRUE)
 -   You only need to do this once.
 -   Install packages in the Console.
 
-```{r install packages}
-# install.packages("ggplot2")
-# install.packages("ggpubr")
-# install.packages("tidyverse")
-# install.packages( tidyverse, repo = 'https //mac.r-project.org')
+```{r install packages only if you need to, include=FALSE}
+
+# HOW TO
+# Tools > Install Packages > _______
+
+#install.packages("ggplot2")
+#install.packages("ggpubr")
+#install.packages("tidyverse")
+#install.packages( tidyverse, repo = 'https //mac.r-project.org')
 #install.packages("broom")
 #install.packages("AICcmodavg")
 #install.packages("janitor")
 #install.packages("multcompView")
-#install.packages("devtools") # install An Bui California color pallets
-#devtools::install_github("an-bui/calecopal")
+install.packages("devtools") # install An Bui California color pallets
+devtools::install_github("an-bui/calecopal")
 # names(cal_palettes)
 ```
 
 # Install your Libraries
 
--   You'll need to do this every time you restart R.\
+-   You'll need to do this every time you restart R.
 
 ```{r install libraries, message=FALSE}
 
-library(tidyverse) # includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
-# library(ggplot2) # data visualization
+library(here) # similar to set working directory
+library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
+# library(lubridate) # dates and times
+library(ggplot2) # data visualization
 # library(readr)
-# library(dplyr)
+library(dplyr)
+library(ggthemes)
+library(plotly)
 library(ggpubr) # customize ggplot2 for publication
-library(broom)
-library(AICcmodavg)
-library(vegan)
+#library(broom)
+#library(AICcmodavg)
+library(vegan) #community ecology package - includes, MASS, cluster, mgcv
 library(readxl) # for .xls and .xlsx sheets
-library(janitor)
-library(calecopal) 
-library(multcompView)
+#library(janitor)
+library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD, dist{stats}, simint, simtest, csimint, csimtest{multcomp}, friedmanmc, kruskalmc{pgirmess}
+#library(multcomp) # functions: multcompLetters2, multcompLetters3, multcompLetters4 using aov object
 
 ```
+
+# Load colors for graphs
+
+```{r colors, include=TRUE}
+devtools::install_github("an-bui/calecopal")
+
+library(calecopal)
+# all palettes
+names(cal_palettes)
+
+# Stand colors: INTACT, MATRIX, DEGRADED 
+cal_palette(name = "chaparral3", n = 3, type = "continuous") 
+deg <- "#D3E3CA"
+mat <- "#92A587"
+int <- "#2F3525"
+standcolors <- c(int, mat, deg)
+
+# Lifeform colors: shrub, grass, forb
+cal_palette(name = "chaparral3", n = 3, type = "continuous") 
+shrub <- "#D3E3CA"
+grass <- "#92A587"
+forb <- "#2F3525"
+lifeformcolors <- c(int, mat, deg)
+
+# Status colors: native, exotic 
+cal_palette(name = "chaparral1", n = 6, type = "continuous") 
+native <- "#AEBFA8"
+exotic <- "#F19B34"
+statuscolors <- c(native, exotic)
+
+```
+
 
 # Upload your csv files
 
@@ -99,9 +139,14 @@ library(multcompView)
 -   You can preview, name, and Import files from the Files tab
 
 ```{r upload all csv files, echo=FALSE, eval=F}
+
 # ABOVE GROUND 
 # overall species richness, native richness
-abrich_full <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_abrich.csv", header = TRUE, na.strings=c("","NA"))
+abrich_full <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_abrich.csv", header = TRUE, na.strings=c("","NA")) %>% 
+  dplyr::select('trasecttype', 'standtype', 'site', 'rep', 'distance', 'vertical', 'species', 'lifeform', 'status', 'lifecycle', 'Family', 'lifestage') %>% 
+  rename(transecttype = trasecttype, 
+         family = Family)
+glimpse(abrich_full)
 
 # percent cover
 abcover_full <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA"))
