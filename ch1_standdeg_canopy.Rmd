@@ -132,8 +132,7 @@ abcover_bylf_bystatus_meanSD <- abcover_bylf_bystatus %>%
             SE = ((sd(percentcover))/sqrt(length((percentcover)))))
 print(abcover_bylf_bystatus_meanSD)
 
-abcover_bylf_bystatus_meanSD$status_lifeform <- paste(abcover_bylf_bystatus_meanSD$status, abcover_bylf_bystatus_meanSD$lifeform, sep="_") # combine site and rep to one column
-
+abcover_bylf_bystatus_meanSD$status_lifeform <- paste(abcover_bylf_bystatus_meanSD$status, abcover_bylf_bystatus_meanSD$lifeform, sep="_") # combine status and life form to one column
  
 view(abcover_bylf_bystatus_meanSD)
 ```
