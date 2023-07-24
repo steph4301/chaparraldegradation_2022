@@ -138,23 +138,42 @@ statuscolors <- c(native, exotic)
 -   Use snake_case = no capitals or spaces
 -   You can preview, name, and Import files from the Files tab
 
-```{r upload all csv files, echo=FALSE, eval=F}
+```{r dataprep, echo=FALSE, eval=F}
 
-# ABOVE GROUND 
-# overall species richness, native richness
+# percent cover - belt transects, point intercept transects
+abcover_full <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA")) %>% 
+  rename(family = Family, 
+         speciescode = code) 
+glimpse(abcover_full)
+
+# species richness, native richness
 abrich_full <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_abrich.csv", header = TRUE, na.strings=c("","NA")) %>% 
   dplyr::select('trasecttype', 'standtype', 'site', 'rep', 'distance', 'vertical', 'species', 'lifeform', 'status', 'lifecycle', 'Family', 'lifestage') %>% 
   rename(transecttype = trasecttype, 
          family = Family)
 glimpse(abrich_full)
 
-# percent cover
-abcover_full <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA"))
+
 
 # abcoverspp_full <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_percentcover_byspecies.csv", header = TRUE, na.strings=c("","NA"))
 
 # native shrub density 
-shrubdensitylife_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_bylifestage.csv") #StandType, Site, rep, ScientificName, dead, immature, mature, resprout, seedling.
+shrubdensitylife_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_bylifestage.csv", 
+    col_types = cols(
+      StandType = col_character(), 
+      Site = col_character(),
+      rep = col_integer(),
+      ScientificName = col_character(), 
+      dead = col_integer(),
+      immature = col_integer(),
+      mature = col_integer(), 
+      resprout = col_integer(), 
+      seedling = col_integer()
+      )
+     ) %>% 
+  rename()
+  
+
 
 shrubdensityspp_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_byspecies.csv")
 # shrubdensityalive_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_beltdensity_seperatealive.csv")
