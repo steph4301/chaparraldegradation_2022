@@ -1,0 +1,175 @@
+---
+title: "ch1_standdeg_canopy"
+author: "Stephanie Ma Lucero"
+date: "2023-07-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r install libraries, message=FALSE}
+
+library(here) # similar to set working directory
+library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
+# library(lubridate) # dates and times
+library(ggplot2) # data visualization
+# library(readr)
+library(dplyr)
+library(ggthemes)
+library(plotly)
+library(ggpubr) # customize ggplot2 for publication
+#library(broom)
+#library(AICcmodavg)
+library(vegan) #community ecology package - includes, MASS, cluster, mgcv
+library(readxl) # for .xls and .xlsx sheets
+#library(janitor)
+library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD, dist{stats}, simint, simtest, csimint, csimtest{multcomp}, friedmanmc, kruskalmc{pgirmess}
+#library(multcomp) # functions: multcompLetters2, multcompLetters3, multcompLetters4 using aov object
+
+```
+
+```{r install colors, include=TRUE}
+devtools::install_github("an-bui/calecopal")
+
+library(calecopal)
+# all palettes
+names(cal_palettes)
+
+# Stand colors: INTACT, MATRIX, DEGRADED 
+cal_palette(name = "chaparral3", n = 3, type = "continuous") 
+deg <- "#D3E3CA"
+mat <- "#92A587"
+int <- "#2F3525"
+standcolors <- c(int, mat, deg)
+
+# Lifeform colors: shrub, grass, forb
+cal_palette(name = "chaparral3", n = 3, type = "continuous") 
+shrub <- "#D3E3CA"
+grass <- "#92A587"
+forb <- "#2F3525"
+lifeformcolors <- c(int, mat, deg)
+
+# Status colors: native, exotic 
+cal_palette(name = "chaparral1", n = 6, type = "continuous") 
+native <- "#AEBFA8"
+exotic <- "#F19B34"
+statuscolors <- c(native, exotic)
+
+```
+
+# 1. How does physical structure differ among the stands?
+
+### 1.1 Percent cover by stand (horizontal variation)
+
+```{r load csv, create columns, calculate - percent cover, echo=FALSE, eval=F}
+
+# percent cover - belt transects, point intercept transects
+abcover_full <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA")) %>% 
+  rename(speciescode = species.1 ) %>%
+  mutate(standtype = fct_relevel(standtype, 
+            "intact", "matrix", "degraded")) %>% 
+  dplyr::select(!speciescode)
+glimpse(abcover_full)
+str(abcover_full)
+
+#abcover_full$standtype <- factor(abcover_full$standtype, levels = c("intact", "matrix", "degraded"))
+
+# convert dataframe to tibble
+abcover_full_v <- as_tibble(abcover_full) 
+class(abcover_full_v)
+
+# combine site and rep to one column
+abcover_full_v$site_rep <- paste(abcover_full_v$site, abcover_full_v$rep, sep="_") 
+
+# combine site_rep and distance to one column
+abcover_full_v$site_rep_dist <- paste(abcover_full_v$site_rep, abcover_full_v$distance, sep="_") 
+
+# combine standtype and native/nonnative status to one column
+abcover_full_v$stand_status <- paste(abcover_full_v$standtype, abcover_full_v$status, sep="_") 
+
+view(abcover_full_v) # look at new columns
+
+abcover_full_v %>%  
+  na.omit() %>%  
+  group_by(standtype, rep) %>% 
+  summarize(data_points = length(rep))
+
+# omit "ground" as a status since interested in Native and Non-native species 
+abcover_full_v_omitground <- filter(abcover_full_v, status !="ground")
+glimpse(abcover_full_v_omitground)
+```
+
+##### (A) by cover type - OMIT 
+
+##### (B) Percent cover by lifeform by native/nonnative status 
+
+
+```{r cover x status x lifeform, inclue = TRUE}
+# line 933 from Ch1_Degradation_original.Rmd
+
+# data prep
+abcover_bylf_bystatus <- abcover_full_v_omitground %>% 
+  group_by(standtype, lifeform, status, site, rep, site_rep) %>% 
+  dplyr::summarize(
+    count_per_transect = n_distinct(site_rep_dist), 
+    percentcover = n_distinct(site_rep_dist)/41
+    )
+view(abcover_bylf_bystatus) # prints to new tab
+
+write.csv(abcover_bylf_bystatus,"processed/percentcover_bystatus_bylifeform.csv")
+
+# calculate means and SD 
+abcover_bylf_bystatus_meanSD <- abcover_bylf_bystatus %>%
+  group_by(standtype, status, lifeform) %>%
+#  group_by(standtype = "intact", lifeform, status) %>%
+#  group_by(standtype = "matrix", lifeform, status) %>%
+# group_by(standtype = "degraded", lifeform, status) %>%
+  summarize(mean_cover = mean(percentcover),
+            SD = sd(percentcover),
+            N = length(percentcover), 
+            SE = ((sd(percentcover))/sqrt(length((percentcover)))))
+print(abcover_bylf_bystatus_meanSD)
+
+abcover_bylf_bystatus_meanSD$status_lifeform <- paste(abcover_bylf_bystatus_meanSD$status, abcover_bylf_bystatus_meanSD$lifeform, sep="_") # combine site and rep to one column
+
+ 
+view(abcover_bylf_bystatus_meanSD)
+```
+
+
+
+
+```{r}
+# species richness, native richness
+abrich_full <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_abrich.csv", header = TRUE, na.strings=c("","NA")) %>% 
+  dplyr::select('trasecttype', 'standtype', 'site', 'rep', 'distance', 'vertical', 'species', 'lifeform', 'status', 'lifecycle', 'Family', 'lifestage') %>% 
+  rename(transecttype = trasecttype, 
+         family = Family)
+glimpse(abrich_full)
+
+# native shrub density 
+shrubdensitylife_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_bylifestage.csv", 
+    col_types = cols(
+      StandType = col_character(), 
+      Site = col_character(),
+      rep = col_integer(),
+      ScientificName = col_character(), 
+      dead = col_integer(),
+      immature = col_integer(),
+      mature = col_integer(), 
+      resprout = col_integer(), 
+      seedling = col_integer()
+      )
+     ) %>% 
+  rename()
+  
+
+
+shrubdensityspp_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_byspecies.csv")
+# shrubdensityalive_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_beltdensity_seperatealive.csv")
+
+# stand height 
+standheight_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_maxheight.csv")
+```
