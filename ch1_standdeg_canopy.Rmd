@@ -120,6 +120,9 @@ view(abcover_bylf_bystatus) # prints to new tab
 
 write.csv(abcover_bylf_bystatus,"processed/percentcover_bystatus_bylifeform.csv")
 
+# normality
+# anova - what results do I want to report?
+
 # calculate means and SD 
 abcover_bylf_bystatus_meanSD <- abcover_bylf_bystatus %>%
   group_by(standtype, status, lifeform) %>%
@@ -135,6 +138,37 @@ print(abcover_bylf_bystatus_meanSD)
 abcover_bylf_bystatus_meanSD$status_lifeform <- paste(abcover_bylf_bystatus_meanSD$status, abcover_bylf_bystatus_meanSD$lifeform, sep="_") # combine status and life form to one column
  
 view(abcover_bylf_bystatus_meanSD)
+```
+
+```{r plot abcover_bylf_meanSD, include = TRUE}
+# line 965 in Ch1_Degradation_original.Rmd
+
+#  column plot, 2 x 2 by lifeform
+abcover_bylf_bystatus_meanSD_plot_wrap <- ggplot(abcover_bylf_bystatus_meanSD, aes(x = standtype, y = mean_cover, fill = status )) +
+  facet_wrap(~ lifeform) +
+  geom_col(position = "dodge", width = 0.8) +
+  geom_errorbar(aes(ymin=mean_cover-SD, ymax=mean_cover+SD), width=.2,
+                 position=position_dodge(.9)) +
+  labs(title = "Percent Cover by lifeform", x = "Stand Type", y = "Average Percent Cover") +
+  scale_fill_manual(values = c(statuscolors)) + # manual colors
+#   scale_fill_manual(values = cal_palette('chaparral3')) + # continuous colors
+                       theme_bw()
+abcover_bylf_bystatus_meanSD_plot_wrap + scale_x_discrete(limits=c("intact", "matrix", "degraded"),
+                                         labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded"))
+
+
+#  column plot, 2 x 2 by lifeform
+abcover_bylf_bystatus_meanSD_plot_wrap <- ggplot(abcover_bylf_bystatus_meanSD, aes(x = standtype, y = mean, fill = status )) +
+  facet_wrap(~ lifeform) +
+  geom_col(position = "dodge", width = 0.8) +
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2,
+                 position=position_dodge(.9)) +
+  labs(title = "Percent Cover by status and lifeform", x = "Stand Type", y = "Average Percent Cover") +
+  scale_fill_manual(values = c('#D3E3CA', '#92A587', '#2F3525')) + # manual colors
+#   scale_fill_manual(values = cal_palette('chaparral3')) + # continuous colors
+                       theme_bw()
+abcover_bylf_bystatus_meanSD_plot_wrap + scale_x_discrete(limits=c("intact", "matrix", "degraded"),
+                                         labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded"))
 ```
 
 
