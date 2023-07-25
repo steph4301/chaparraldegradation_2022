@@ -132,8 +132,9 @@ TukeyHSD(aov(percentcover_veg ~ standtype, data = abcover_vegcover))
 #degraded-intact -5.551115e-17 -0.02981350 0.02981350     1
 #degraded-matrix -1.110223e-16 -0.02434262 0.02434262     1
 
-summary(aov(percentcover ~ standtype * covertype, data = abcover_vegcover_long))
-TukeyHSD((aov(percentcover ~ standtype * covertype, data = abcover_vegcover_long)))
+# I'm less interested in the amount of canopy openings
+#summary(aov(percentcover ~ standtype * covertype, data = abcover_vegcover_long))
+#TukeyHSD((aov(percentcover ~ standtype * covertype, data = abcover_vegcover_long)))
 #$`standtype:covertype`
 #                                                                diff         lwr         upr     p adj
 #matrix:percentcover_veg-intact:percentcover_veg          0.008130081 -0.04407217  0.06033233 0.9963927 <-- max - int veg
@@ -154,23 +155,29 @@ TukeyHSD((aov(percentcover ~ standtype * covertype, data = abcover_vegcover_long
 
 # no significant difference in ground cover or in vegetation cover
 ```
-```{r plot veg/ground cover, include=TRUE}
+```{r plot caonpy veg cover, include=TRUE}
 #  column plot
 
-abcover_vegcover_plot <- ggplot(abcover_vegcover_meanSD, aes(x = standtype, y = mean, fill = status)) +
+abcover_vegcover_plot <- ggplot(abcover_vegcover_meanSD, aes(x = standtype, y = mean_cover, fill = covertype)) +
   geom_col(position = "dodge", width = 0.8) +
-  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2,
-                 position=position_dodge(.9)) +
-               labs(title = "Percent Cover", x = "Stand Type", y = "Average Percent Cover (%)") + # title, axes titles
- # scale_fill_manual(values = c('#D3E3CA', '#92A587', '#2F3525'), # manual colors
-   scale_fill_manual(values = cal_palette('chaparral2')) +  # continuous colors
+  geom_errorbar(
+    aes(ymin=mean_cover-sd, ymax=mean_cover+sd), 
+                width=.2, position=position_dodge(.9)) +
+  labs(
+    title = "Percent Canopy Cover", 
+    x = "Stand Type", 
+    y = "Average Percent Canopy Cover (%)") + # title, axes titles
+  scale_fill_manual(values = c(standcolors)) + # manual colors
+  # scale_fill_manual(values = cal_palette('chaparral2')) +  # continuous colors
   #                  limits = c("intact", "matrix", "degraded"), # "limits" reorders the x-axis
   #                  labels = c("Intact", "Matrix", "Degraded")) + # "labels" changes the name
-                    theme_bw() +
-  scale_x_discrete(limits=c("intact", "matrix", "degraded"),
-                                         labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded"))
+  theme_bw() +
+  scale_x_discrete(
+    limits=c("intact", "matrix", "degraded"),
+    labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded")
+    )
 
-print(abcover_bystatus_plot)  
+abcover_vegcover_plot
 ```
 
 
