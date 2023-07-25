@@ -181,7 +181,6 @@ abcover_vegcover_plot
 ```
 
 
-
 ##### (B) Percent cover by lifeform by native/nonnative status 
 
 ```{r cover x status x lifeform, include = TRUE}
@@ -196,18 +195,16 @@ abcover_bylf_bystatus <- abcover_full_v_omitground %>%
     )
 view(abcover_bylf_bystatus) # prints to new tab
 
-write.csv(abcover_bylf_bystatus,"processed/percentcover_bystatus_bylifeform.csv")
-
-# normality
-# anova - what results do I want to report?
+#write.csv(abcover_bylf_bystatus,"processed/percentcover_bystatus_bylifeform.csv")
+cover_statuslf_matrix <- read.csv("percentcover_bystatus_bylifeform_matrix.csv", header = TRUE)
 
 # calculate means and SD 
-abcover_bylf_bystatus_meanSD <- abcover_bylf_bystatus %>%
+abcover_bylf_bystatus_meanSD <- cover_statuslf_matrix %>%
   group_by(standtype, status, lifeform) %>%
 #  group_by(standtype = "intact", lifeform, status) %>%
 #  group_by(standtype = "matrix", lifeform, status) %>%
 # group_by(standtype = "degraded", lifeform, status) %>%
-  summarize(mean_cover = mean(percentcover),
+  summarize(mean = mean(percentcover),
             SD = sd(percentcover),
             N = length(percentcover), 
             SE = ((sd(percentcover))/sqrt(length((percentcover)))))
@@ -216,6 +213,8 @@ print(abcover_bylf_bystatus_meanSD)
 abcover_bylf_bystatus_meanSD$status_lifeform <- paste(abcover_bylf_bystatus_meanSD$status, abcover_bylf_bystatus_meanSD$lifeform, sep="_") # combine status and life form to one column
  
 view(abcover_bylf_bystatus_meanSD)
+
+# test for df normality
 ```
 
 ```{r plot abcover_bylf_meanSD, include = TRUE}
