@@ -102,11 +102,82 @@ glimpse(abcover_full_v_omitground)
 ```
 
 ##### (A) by cover type - OMIT 
+```{r calculate veg/ground cover, include = TRUE}
+abcover_vegcover <- abcover_full_v %>% 
+  filter(vertical == "1") %>% 
+  group_by(standtype, site, rep) %>% 
+  dplyr::summarize(count_per_transect = length(vertical), 
+    percentcover_veg = length(vertical)/41, 
+    percentcover_ground = (1-percentcover_veg)
+    )
+print(abcover_vegcover)
+
+abcover_vegcover_long <- gather(abcover_vegcover, covertype, percentcover, percentcover_veg:percentcover_ground, factor_key = TRUE) 
+abcover_vegcover_long
+
+abcover_vegcover_meanSD <- abcover_vegcover_long %>%
+  group_by(standtype, covertype) %>% 
+  summarize(mean_cover = mean(percentcover),
+            n = length((percentcover)),
+            sd = sd(percentcover),
+            se = ((sd(percentcover))/sqrt(length((percentcover)))))
+print(abcover_vegcover_meanSD)
+```
+```{r aov veg/ground cover, include=TRUE}
+summary(aov(percentcover_veg ~ standtype, data = abcover_vegcover))
+TukeyHSD(aov(percentcover_veg ~ standtype, data = abcover_vegcover))
+#$standtype
+#                         diff         lwr        upr p adj
+#matrix-intact    5.551115e-17 -0.02981350 0.02981350     1
+#degraded-intact -5.551115e-17 -0.02981350 0.02981350     1
+#degraded-matrix -1.110223e-16 -0.02434262 0.02434262     1
+
+summary(aov(percentcover ~ standtype * covertype, data = abcover_vegcover_long))
+TukeyHSD((aov(percentcover ~ standtype * covertype, data = abcover_vegcover_long)))
+#$`standtype:covertype`
+#                                                                diff         lwr         upr     p adj
+#matrix:percentcover_veg-intact:percentcover_veg          0.008130081 -0.04407217  0.06033233 0.9963927 <-- max - int veg
+#degraded:percentcover_veg-intact:percentcover_veg        0.028455285 -0.02374697  0.08065754 0.5537578 <-- deg - int veg
+#intact:percentcover_ground-intact:percentcover_veg      -0.934959350 -0.99523732 -0.87468138 0.0000000
+#matrix:percentcover_ground-intact:percentcover_veg      -0.943089431 -0.99529168 -0.89088718 0.0000000
+#degraded:percentcover_ground-intact:percentcover_veg    -0.963414634 -1.01561689 -0.91121238 0.0000000
+#degraded:percentcover_veg-matrix:percentcover_veg        0.020325203 -0.02229776  0.06294816 0.6828902 <-- deg - mat veg
+#intact:percentcover_ground-matrix:percentcover_veg      -0.943089431 -0.99529168 -0.89088718 0.0000000
+#matrix:percentcover_ground-matrix:percentcover_veg      -0.951219512 -0.99384247 -0.90859655 0.0000000
+#degraded:percentcover_ground-matrix:percentcover_veg    -0.971544715 -1.01416768 -0.92892175 0.0000000
+#intact:percentcover_ground-degraded:percentcover_veg    -0.963414634 -1.01561689 -0.91121238 0.0000000
+#matrix:percentcover_ground-degraded:percentcover_veg    -0.971544715 -1.01416768 -0.92892175 0.0000000
+#degraded:percentcover_ground-degraded:percentcover_veg  -0.991869919 -1.03449288 -0.94924696 0.0000000
+#matrix:percentcover_ground-intact:percentcover_ground   -0.008130081 -0.06033233  0.04407217 0.9963927 <-- mat - int grd
+#degraded:percentcover_ground-intact:percentcover_ground -0.028455285 -0.08065754  0.02374697 0.5537578 <-- deg - int grd
+#degraded:percentcover_ground-matrix:percentcover_ground -0.020325203 -0.06294816  0.02229776 0.6828902 <-- deg - mat grd
+
+# no significant difference in ground cover or in vegetation cover
+```
+```{r plot veg/ground cover, include=TRUE}
+#  column plot
+
+abcover_vegcover_plot <- ggplot(abcover_vegcover_meanSD, aes(x = standtype, y = mean, fill = status)) +
+  geom_col(position = "dodge", width = 0.8) +
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.2,
+                 position=position_dodge(.9)) +
+               labs(title = "Percent Cover", x = "Stand Type", y = "Average Percent Cover (%)") + # title, axes titles
+ # scale_fill_manual(values = c('#D3E3CA', '#92A587', '#2F3525'), # manual colors
+   scale_fill_manual(values = cal_palette('chaparral2')) +  # continuous colors
+  #                  limits = c("intact", "matrix", "degraded"), # "limits" reorders the x-axis
+  #                  labels = c("Intact", "Matrix", "Degraded")) + # "labels" changes the name
+                    theme_bw() +
+  scale_x_discrete(limits=c("intact", "matrix", "degraded"),
+                                         labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded"))
+
+print(abcover_bystatus_plot)  
+```
+
+
 
 ##### (B) Percent cover by lifeform by native/nonnative status 
 
-
-```{r cover x status x lifeform, inclue = TRUE}
+```{r cover x status x lifeform, include = TRUE}
 # line 933 from Ch1_Degradation_original.Rmd
 
 # data prep
