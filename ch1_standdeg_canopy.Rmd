@@ -213,13 +213,16 @@ abcover_bylf_bystatus_aov_shrubnat <- aov(percentcover ~ standtype, data = cover
                                    filter((lifeform == 'shrub')) %>%  
                                   filter((status == 'native')))
 print(summary(abcover_bylf_bystatus_aov_shrubnat))
+#            Df Sum Sq Mean Sq F value   Pr(>F)    
+#standtype    2 0.5516 0.27581    13.9 0.000752 ***
+#Residuals   12 0.2382 0.01985 
 print(TukeyHSD(abcover_bylf_bystatus_aov_shrubnat))
 #$standtype
 #                      diff        lwr         upr     p adj
 #intact-degraded  0.5162602  0.2505030  0.78201736 0.0006178
 #matrix-degraded  0.2439024  0.0269126  0.46089228 0.0277839
 #matrix-intact   -0.2723577 -0.5381149 -0.00660053 0.0444896
-# significant differences in native shrub covoer among stands
+# significant differences in native shrub cover among stands
 
 
 # FORB
@@ -229,6 +232,9 @@ print(TukeyHSD(abcover_bylf_bystatus_aov_forb))
 ## forb - native
 abcover_bylf_bystatus_aov_forbnat <- aov(percentcover ~ standtype, data = cover_statuslf_matrix %>% filter((lifeform == 'forb')) %>% filter((status == 'native')))
 print(summary(abcover_bylf_bystatus_aov_forbnat))
+# Df  Sum Sq  Mean Sq F value Pr(>F)
+#standtype    2 0.00512 0.002558   0.905   0.43
+#Residuals   12 0.03391 0.002826  
 print(TukeyHSD(abcover_bylf_bystatus_aov_forbnat))
 #$standtype
 #                      diff         lwr       upr     p adj
@@ -239,6 +245,9 @@ print(TukeyHSD(abcover_bylf_bystatus_aov_forbnat))
 # forb - nonnative
 abcover_bylf_bystatus_aov_forbnn <- aov(percentcover ~ standtype, data = cover_statuslf_matrix %>% filter((lifeform == 'forb')) %>% filter((status == 'nonnative')))
 print(summary(abcover_bylf_bystatus_aov_forbnn))
+#    Df Sum Sq Mean Sq F value   Pr(>F)    
+#standtype    2 0.6180 0.30901    13.3 0.000904 ***
+#Residuals   12 0.2789 0.02324    
 print(TukeyHSD(abcover_bylf_bystatus_aov_forbnn))
 #$standtype
 #                      diff        lwr        upr     p adj
@@ -254,6 +263,10 @@ print(TukeyHSD(abcover_bylf_bystatus_aov_grass))
 ## grass - native
 abcover_bylf_bystatus_aov_grassnat <- aov(percentcover ~ standtype, data = cover_statuslf_matrix %>% filter((lifeform == 'grass')) %>% filter((status == 'native')))
 print(summary(abcover_bylf_bystatus_aov_grassnat))
+# print(summary(abcover_bylf_bystatus_aov_grassnat))
+#            Df Sum Sq Mean Sq F value   Pr(>F)    
+#standtype    2 0.6728  0.3364   30.36 2.02e-05 ***
+#Residuals   12 0.1330  0.0111  
 print(TukeyHSD(abcover_bylf_bystatus_aov_grassnat))
 #$standtype
 #                       diff         lwr        upr     p adj
@@ -264,6 +277,9 @@ print(TukeyHSD(abcover_bylf_bystatus_aov_grassnat))
 # nonnative
 abcover_bylf_bystatus_aov_grassnn <- aov(percentcover ~ standtype, data = cover_statuslf_matrix %>% filter((lifeform == 'grass')) %>% filter((status == 'nonnative')))
 print(summary(abcover_bylf_bystatus_aov_grassnn))
+#            Df Sum Sq Mean Sq F value   Pr(>F)    
+#standtype    2 1.3178  0.6589   55.46 8.66e-07 ***
+#Residuals   12 0.1426  0.0119 
 print(TukeyHSD(abcover_bylf_bystatus_aov_grassnn))
 #$standtype
 #                      diff        lwr         upr     p adj
@@ -322,6 +338,44 @@ abcover_bylf_bystatus_meanSD_plot_wrap + scale_x_discrete(limits=c("intact", "ma
 
 ```
 
+### 1.2 Canopy height (vertical variation)
+
+```{r load csv - canopy height, include=TRUE}
+# stand height 
+
+standheight_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_maxheight.csv",
+                             col_types = cols(
+                               standtype = col_character(),
+                               site = col_character(),
+                               Transect_rep = col_character(),
+                               Reading = col_character(),
+                               Species = col_character(),
+                               height_cm = col_double(),
+                               next_tallest = col_character())) %>%
+  dplyr::select('standtype', 'site', 'Transect_rep', 'Reading', 'Species', 'height_cm') %>% 
+  rename(rep = Transect_rep, 
+         reading = Reading, 
+         species = Species) %>% 
+  mutate(standtype = fct_relevel(standtype, "Intact", "Matrix", "Degraded")) %>% 
+  na.omit() %>% 
+  filter(site!= "Intact_4")
+view(standheight_full)
+```
+
+```{r combo columns - canopy height, include = TRUE}
+####### START HERE
+standheight_full_v$site_rep <- paste(standheight_full$site, standheight_full$Transect_rep, sep="_") # combine site and rep to one column
+
+standheight <- standheight_full_v %>% 
+  filter(site_rep != "Intact4_4")  #omit Intact 4 from data# rename dataframe
+
+standheight_siterep_meanSD <- standheight %>%
+  group_by(standtype, site_rep) %>%
+  summarise_at(vars(height_cm), funs(mean, sd)) %>% 
+  rename (mean_height_cm = mean) %>% 
+  print(standheight_siterep_meanSD)
+
+```
 
 
 
@@ -354,6 +408,4 @@ shrubdensitylife_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertat
 shrubdensityspp_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_byspecies.csv")
 # shrubdensityalive_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_beltdensity_seperatealive.csv")
 
-# stand height 
-standheight_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_maxheight.csv")
 ```
