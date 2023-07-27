@@ -357,25 +357,56 @@ standheight_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/c
          reading = Reading, 
          species = Species) %>% 
   mutate(standtype = fct_relevel(standtype, "Intact", "Matrix", "Degraded")) %>% 
-  na.omit() %>% 
   filter(site!= "Intact_4")
 view(standheight_full)
+
+standheight_full %>%  
+  group_by(site,rep) %>% 
+  summarize(data_points = length(reading))
 ```
 
-```{r combo columns - canopy height, include = TRUE}
-####### START HERE
-standheight_full_v$site_rep <- paste(standheight_full$site, standheight_full$Transect_rep, sep="_") # combine site and rep to one column
+```{r combine columns - canopy height, include = TRUE}
 
-standheight <- standheight_full_v %>% 
-  filter(site_rep != "Intact4_4")  #omit Intact 4 from data# rename dataframe
+standheight_full$site_rep <- paste(standheight_full$site, standheight_full$rep, sep="_") # combine site and rep to one column
 
-standheight_siterep_meanSD <- standheight %>%
+standheight_siterep_meanSD <- standheight_full %>%
   group_by(standtype, site_rep) %>%
-  summarise_at(vars(height_cm), funs(mean, sd)) %>% 
-  rename (mean_height_cm = mean) %>% 
+  summarize(mean_height = mean(height_cm),
+            n = length((height_cm)),
+            sd = sd(height_cm),
+            se = ((sd(height_cm))/sqrt(length((height_cm))))) %>% 
   print(standheight_siterep_meanSD)
 
+standheight_meanSD <- standheight_full %>%
+  group_by(standtype, rep) %>%
+  summarize(mean_height_byrep = mean(height_cm),
+            n = length((height_cm)),
+            sd = sd(height_cm),
+            se = ((sd(height_cm))/sqrt(length((height_cm))))) %>% 
+  group_by(standtype) %>% 
+   summarize(mean_height_bystandtype_cm = mean(mean_height_byrep),
+   n = length((mean_height_byrep)),
+            sd_cm = sd(mean_height_byrep),
+            se_cm = ((sd(mean_height_byrep))/sqrt(length((mean_height_byrep))))) %>%
+  print(standheight_meanSD)
+
+# standtype mean_height_bystandtype N SD SE
+#Intact	  150.29268	3	62.942199	36.339695
+#Matrix	  90.17480	6	30.885894	12.609114
+#Degraded	94.00813	6	6.593106	2.691624
+
 ```
+
+```{r stand height - stats, include=TRUE}
+
+standheight_siterep_standtype_aov <- aov((mean_height_cm ~ standtype) , data = standheight_siterep_meanSD)
+summary.aov(standheight_siterep_standtype_aov)
+
+standheight_siterep_standtype_tukey <- TukeyHSD(standheight_siterep_standtype_aov, conf.level=.95) 
+print(standheight_siterep_standtype_tukey)
+
+```
+
 
 
 
