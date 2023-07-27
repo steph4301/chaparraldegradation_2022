@@ -377,7 +377,7 @@ standheight_siterep_meanSD <- standheight_full %>%
             se = ((sd(height_cm))/sqrt(length((height_cm))))) %>% 
   print(standheight_siterep_meanSD)
 
-standheight_meanSD <- standheight_full %>%
+standheight_standtype_meanSD <- standheight_full %>%
   group_by(standtype, rep) %>%
   summarize(mean_height_byrep = mean(height_cm),
             n = length((height_cm)),
@@ -388,7 +388,7 @@ standheight_meanSD <- standheight_full %>%
    n = length((mean_height_byrep)),
             sd_cm = sd(mean_height_byrep),
             se_cm = ((sd(mean_height_byrep))/sqrt(length((mean_height_byrep))))) %>%
-  print(standheight_meanSD)
+  print(standheight_standtype_meanSD)
 
 # standtype mean_height_bystandtype N SD SE
 #Intact	  150.29268	3	62.942199	36.339695
@@ -398,14 +398,27 @@ standheight_meanSD <- standheight_full %>%
 ```
 
 ```{r stand height - stats, include=TRUE}
-
-standheight_siterep_standtype_aov <- aov((mean_height_cm ~ standtype) , data = standheight_siterep_meanSD)
-summary.aov(standheight_siterep_standtype_aov)
-
-standheight_siterep_standtype_tukey <- TukeyHSD(standheight_siterep_standtype_aov, conf.level=.95) 
-print(standheight_siterep_standtype_tukey)
-
+summary(aov((mean_height ~ standtype) , data = standheight_siterep_meanSD))
+TukeyHSD(aov((mean_height ~ standtype) , data = standheight_siterep_meanSD), conf.level=.95) 
 ```
+
+```{r COV - stand height, include=TRUE}
+standheight_cov <- standheight_siterep_meanSD %>% 
+  group_by(standtype, site_rep) %>% 
+  dplyr::summarize(cov = sd/mean_height) %>% 
+  print(standheight_cov)
+
+standheight_cov %>% 
+  group_by(standtype) %>% 
+  summarize(mean_cov = mean(cov),
+            n = length((cov)),
+            sd = sd(cov),
+            se = ((sd(cov))/sqrt(length((cov)))))
+
+summary(aov((cov ~ standtype) , data = standheight_cov))
+TukeyHSD(aov((cov ~ standtype) , data = standheight_cov), conf.level=.95) 
+```
+
 
 
 
