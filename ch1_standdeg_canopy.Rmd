@@ -375,19 +375,19 @@ standheight_siterep_meanSD <- standheight_full %>%
             n = length((height_cm)),
             sd = sd(height_cm),
             se = ((sd(height_cm))/sqrt(length((height_cm))))) %>% 
-  print(standheight_siterep_meanSD)
+  print(standheight_siterep_meanSD) # prints: standtype - site_rep - mean... 
 
 standheight_standtype_meanSD <- standheight_full %>%
   group_by(standtype, rep) %>%
   summarize(mean_height_byrep = mean(height_cm),
             n = length((height_cm)),
             sd = sd(height_cm),
-            se = ((sd(height_cm))/sqrt(length((height_cm))))) %>% 
+            se = ((sd(height_cm))/sqrt(length((height_cm))))) %>% # equivalent to: standheight_siterep_meanSD
   group_by(standtype) %>% 
    summarize(mean_height_bystandtype_cm = mean(mean_height_byrep),
-   n = length((mean_height_byrep)),
-            sd_cm = sd(mean_height_byrep),
-            se_cm = ((sd(mean_height_byrep))/sqrt(length((mean_height_byrep))))) %>%
+             n = length((mean_height_byrep)),
+             sd_cm = sd(mean_height_byrep),
+             se_cm = ((sd(mean_height_byrep))/sqrt(length((mean_height_byrep))))) %>% # summarizes by standtype
   print(standheight_standtype_meanSD)
 
 # standtype mean_height_bystandtype N SD SE
@@ -398,14 +398,22 @@ standheight_standtype_meanSD <- standheight_full %>%
 ```
 
 ```{r stand height - stats, include=TRUE}
-summary(aov((mean_height ~ standtype) , data = standheight_siterep_meanSD))
+summary(aov((mean_height ~ standtype) , data = standheight_siterep_meanSD)) # use by site, rep for stats... Intact n = 3, Matrix and Deg n = 6
+#            Df Sum Sq Mean Sq F value Pr(>F)  
+#standtype    2   8174    4087   3.799 0.0527 .
 TukeyHSD(aov((mean_height ~ standtype) , data = standheight_siterep_meanSD), conf.level=.95) 
+#$standtype
+#                      diff        lwr       upr     p adj
+#Matrix-Intact   -60.117886 -121.99488  1.759103 0.0571081
+#Degraded-Intact -56.284553 -118.16154  5.592437 0.0760433
+#Degraded-Matrix   3.833333  -46.68902 54.355684 0.9777065
+# the stands are the same height - no sig difference in canopy height
 ```
 
 ```{r COV - stand height, include=TRUE}
-standheight_cov <- standheight_siterep_meanSD %>% 
+standheight_cov <- standheight_siterep_meanSD %>% # Intact n = 3, Matrix and Deg n = 6
   group_by(standtype, site_rep) %>% 
-  dplyr::summarize(cov = sd/mean_height) %>% 
+  dplyr::summarize(cov = sd/mean_height) %>% # COV = SD / mean
   print(standheight_cov)
 
 standheight_cov %>% 
@@ -414,9 +422,20 @@ standheight_cov %>%
             n = length((cov)),
             sd = sd(cov),
             se = ((sd(cov))/sqrt(length((cov)))))
+#Intact	0.6187625	3	0.12556945	0.07249755 <-- larger number = more variation
+#Matrix	0.6668496	6	0.09217907	0.03763195 <-- smaller number = less variatin
+#Degraded	0.3218140	6	0.11316173	0.04619808
+
 
 summary(aov((cov ~ standtype) , data = standheight_cov))
+#            Df Sum Sq Mean Sq F value   Pr(>F)    
+#standtype    2 0.3943  0.1971   17.14 0.000304 ***
 TukeyHSD(aov((cov ~ standtype) , data = standheight_cov), conf.level=.95) 
+#$standtype
+#                       diff        lwr         upr     p adj
+#Matrix-Intact    0.04808716 -0.1542489  0.25042324 0.8045742
+#Degraded-Intact -0.29694845 -0.4992845 -0.09461236 0.0053826 <-- Deg and Int
+#Degraded-Matrix -0.34503560 -0.5102423 -0.17982888 0.0003305 <-- Deg and Mat
 ```
 
 
