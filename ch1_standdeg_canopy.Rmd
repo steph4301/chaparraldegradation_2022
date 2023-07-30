@@ -161,7 +161,7 @@ TukeyHSD(aov(percentcover_veg ~ standtype, data = abcover_vegcover))
 abcover_vegcover_plot <- ggplot(abcover_vegcover_meanSD, aes(x = standtype, y = mean_cover, fill = covertype)) +
   geom_col(position = "dodge", width = 0.8) +
   geom_errorbar(
-    aes(ymin=mean_cover-sd, ymax=mean_cover+sd), 
+    aes(ymin=mean_cover-se, ymax=mean_cover+se), # mean +- SE
                 width=.2, position=position_dodge(.9)) +
   labs(
     title = "Percent Canopy Cover", 
@@ -422,9 +422,10 @@ standheight_cov %>%
             n = length((cov)),
             sd = sd(cov),
             se = ((sd(cov))/sqrt(length((cov)))))
-#Intact	0.6187625	3	0.12556945	0.07249755 <-- larger number = more variation
-#Matrix	0.6668496	6	0.09217907	0.03763195 <-- smaller number = less variatin
-#Degraded	0.3218140	6	0.11316173	0.04619808
+#         mean_COV  N SD          SE
+#Intact	  0.6187625	3	0.12556945	0.07249755 <-- larger number = more variation
+#Matrix	  0.6668496	6	0.09217907	0.03763195 
+#Degraded	0.3218140	6	0.11316173	0.04619808 <-- smaller number = less variation
 
 
 summary(aov((cov ~ standtype) , data = standheight_cov))
@@ -436,11 +437,308 @@ TukeyHSD(aov((cov ~ standtype) , data = standheight_cov), conf.level=.95)
 #Matrix-Intact    0.04808716 -0.1542489  0.25042324 0.8045742
 #Degraded-Intact -0.29694845 -0.4992845 -0.09461236 0.0053826 <-- Deg and Int
 #Degraded-Matrix -0.34503560 -0.5102423 -0.17982888 0.0003305 <-- Deg and Mat
+
+# Degraded sites are significantly more homogeneous than the INT and MAT standtypes
+```
+### 1.3 Shrub density 
+
+```{r  load data - shrub density, include=TRUE}
+
+# native shrub density 
+shrubdensitylife_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_bylifestage.csv", 
+    col_types = cols(
+      StandType = col_character(), 
+      Site = col_character(),
+      rep = col_character(),
+      ScientificName = col_character(), 
+      dead = col_integer(),
+      immature = col_integer(),
+      mature = col_integer(), 
+      resprout = col_integer(), 
+      seedling = col_integer()
+      )
+     ) %>% 
+  rename(standtype = StandType, 
+         site = Site, 
+         species = ScientificName) %>%
+  mutate(standtype = case_when(standtype == "Grass" ~ "degraded", 
+                               standtype == "matrix" ~ "matrix",
+                               standtype == "Intact" ~ "intact")) %>% 
+  mutate(standtype = fct_relevel(standtype, 
+            "intact", "matrix", "degraded"))
+  
+glimpse(shrubdensitylife_full)
+
+#dim(shrubdensitylife_full)
+#head(shrubdensitylife_full)
+#tail(shrubdensitylife_full)
+
+# convert dataframe to tibble
+shrubdensitylife_full <- as_tibble(shrubdensitylife_full) 
+class(shrubdensitylife_full) # now a tibble
+# [1] "tbl_df"     "tbl"        "data.frame"
+
+shrubdensitylife_transposed <- gather(shrubdensitylife_full, "status", "count", 5:9) # transpose data from wide to long format
+glimpse(shrubdensitylife_transposed)
+
+shrubdensity <- shrubdensitylife_transposed # 
+shrubdensity$site_rep <- paste(shrubdensity$site, shrubdensity$rep, sep="_") # combine site and rep to one column
+head(shrubdensity) # look at new column site_rep, last column
+
+shrubdensity %>% 
+  group_by(site_rep, status) %>% 
+  summarize(length_count = length(count)) %>% 
+  print(shrubdensity_sum_bysiterep_meanSD)
+# all site_rep have 5 status categories: dead, immature, mature, resprout, seedling 
+# all status have 13 length_count --> 13 species per status
+# take home = no missing data points
+
+write.csv(shrubdensitylife_transposed,"processed/shrubdensitylife_transposed.csv")
+
+# shrubdensityspp_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_byspecies.csv")
+# shrubdensityalive_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_beltdensity_seperatealive.csv")
+
 ```
 
+#### ALIVE shrub density
+
+```{r alive shrub dentsity 1m2 - mean SD, include=TRUE}
+
+# ALIVE
+shrubdensity_sum_bysiterep <- shrubdensity %>% # call tibble
+  filter(status != "dead") %>% #omit dead shrubs
+  group_by(standtype, site_rep) %>%  # lump immature, mature, resprout shrubs and seedlings
+  summarize(aliveshrubdensity_80m2 = sum(count), 
+            aliveshrubdensity_1m2 = aliveshrubdensity_80m2/80) %>% # 4m x 20 m belt transect
+  print(shrubdensity_sum_bysiterep) 
+
+shrubdensity_sum_bysiterep_meanSD <- shrubdensity_sum_bysiterep %>%
+  group_by(standtype) %>%
+  summarize(mean_aliveshrubdensity_1m2 = mean(aliveshrubdensity_1m2),
+            n = length((aliveshrubdensity_1m2)),
+            sd = sd(aliveshrubdensity_1m2),
+            se = ((sd(aliveshrubdensity_1m2))/sqrt(length((aliveshrubdensity_1m2))))) %>% 
+  print(shrubdensity_sum_bysiterep_meanSD)
+#standtype    mean_aliveshrubdensity_1m2  n sd  se
+#intact	      0.6375000	                  3	0.21323403	0.12311072
+#matrix	      0.7750000	                  6	0.77245550	0.31535364
+#degraded	    0.1895833	                  6	0.07600027	0.03102698
 
 
+```
 
+```{r alive shrub dentsity 1m2 - aov tukey, include=TRUE}
+
+# ALIVE
+summary(aov((aliveshrubdensity_1m2 ~ standtype) , data = shrubdensity_sum_bysiterep))
+#            Df Sum Sq Mean Sq F value Pr(>F)
+#standtype    2  1.086  0.5430     2.1  0.165
+#Residuals   12  3.103  0.2586 
+
+TukeyHSD(aov((aliveshrubdensity_1m2 ~ standtype) , data = shrubdensity_sum_bysiterep), conf.level=.95) 
+#$standtype
+#                      diff        lwr       upr     p adj
+#matrix-intact    0.1375000 -0.8218272 1.0968272 0.9230712
+#degraded-intact -0.4479167 -1.4072439 0.5114105 0.4505607
+#degraded-matrix -0.5854167 -1.3687040 0.1978707 0.1560871
+
+```
+
+```{r alive shrub dentsity 1m2 - plot, include=TRUE}
+
+shrubdensity_sum_bysiterep_aov_1m2_column <- ggplot(shrubdensity_sum_bysiterep_meanSD, aes(x = standtype, y = mean_aliveshrubdensity_1m2, fill = standtype)) +
+  geom_col(position = "dodge", width = 0.8) +
+  geom_errorbar(
+    aes(ymin=mean_aliveshrubdensity_1m2-se, ymax=mean_aliveshrubdensity_1m2+se), 
+                width=.2, position=position_dodge(.9)) +
+  labs(
+    title = "Alive shrub density by stand type", 
+    x = "Stand Type", 
+    y = "Average alive shrub density (#/m2)") + # title, axes titles
+  scale_fill_manual(values = c(standcolors)) + # manual colors
+  # scale_fill_manual(values = cal_palette('chaparral2')) +  # continuous colors
+  #                  limits = c("intact", "matrix", "degraded"), # "limits" reorders the x-axis
+  #                  labels = c("Intact", "Matrix", "Degraded")) + # "labels" changes the name
+  theme_bw()
+shrubdensity_sum_bysiterep_aov_1m2_column
+
+# table: standtype, species, lifestage
+shrubdensity_table <- shrubdensity %>%
+  mutate(status = case_when(status == "resprout" ~ "immature", 
+                            TRUE ~ status)) %>% 
+  mutate(status = fct_relevel(status, "mature", "immature", "seedling", "dead")) %>% 
+  group_by(standtype, species, status) %>%
+  summarize(N = sum(count)) %>%
+  print(shrubdensity_table) 
+
+shrubdensity_table$species_status <- paste(shrubdensity_table$species, shrubdensity_table$status, sep="_") 
+
+shrubdensity_table %>%
+  
+  
+  
+  cover_statuslf_matrix <- read.csv("percentcover_bystatus_bylifeform_matrix.csv", header = TRUE) %>% mutate(lifeform = case_when(lifeform == "herb" ~ "forb", 
+                               TRUE ~ lifeform))
+cover_statuslf_matrix <- cover_statuslf_matrix %>% 
+  mutate(standtype = fct_relevel(standtype, 
+            "intact", "matrix", "degraded"))
+```
+
+#### MATURE shrub density
+
+```{r mature shrub density - mean SD, include=TRUE}
+
+# MATURE 
+shrubdensity_sum_bysiterep_mature <- shrubdensity %>%
+  filter(status == "mature") %>% #select only mature shrubs
+  group_by(standtype, site_rep) %>%  
+  summarize(matureshrubdensity_80m2 = sum(count), 
+            matureshrubdensity_1m2 = matureshrubdensity_80m2/80) %>% # 4m x 20 m belt transect
+  print(shrubdensity_sum_bysiterep_mature) 
+
+shrubdensity_sum_bysiterep_mature_meanSD <- shrubdensity_sum_bysiterep_mature %>%
+  group_by(standtype) %>%
+  summarize(mean_matureshrubdensity_1m2 = mean(matureshrubdensity_1m2),
+            n = length((matureshrubdensity_1m2)),
+            sd = sd(matureshrubdensity_1m2),
+            se = ((sd(matureshrubdensity_1m2))/sqrt(length((matureshrubdensity_1m2))))) %>% 
+  print(shrubdensity_sum_bysiterep_mature_meanSD)
+#standtype    mean_matureshrubdensity_1m2  n sd  se
+#intact	      0.4208333	                  3	0.22511571	0.12997062
+#matrix	      0.6187500	                  6	0.52361424	0.21376462
+#degraded	    0.1500000	                  6	0.06072479	0.02479079
+
+```
+
+```{r mature shrub density - aov tukey, include=TRUE}
+
+# MATURE 
+summary(aov((matureshrubdensity_1m2 ~ standtype) , data = shrubdensity_sum_bysiterep_mature))
+#            Df Sum Sq Mean Sq F value Pr(>F)
+#standtype    2 0.6624  0.3312   2.666   0.11
+#Residuals   12 1.4907  0.1242  
+
+TukeyHSD(aov((matureshrubdensity_1m2 ~ standtype) , data = shrubdensity_sum_bysiterep_mature), conf.level=.95) 
+#$standtype
+#                      diff        lwr        upr     p adj
+#matrix-intact    0.1979167 -0.4669675 0.86280085 0.7135344
+#degraded-intact -0.2708333 -0.9357175 0.39405085 0.5397636
+#degraded-matrix -0.4687500 -1.0116257 0.07412566 0.0937921
+```
+
+#### IMMATURE shrub density
+
+```{r immature shrub density, include=TRUE}
+
+shrubdensity_sum_bysiterep_immature <- shrubdensity %>%
+  filter(status == "immature") %>% #select only mature shrubs
+  group_by(standtype, site_rep) %>%  
+  summarize(immatureshrubdensity_80m2 = sum(count), 
+            immatureshrubdensity_1m2 = immatureshrubdensity_80m2/80) %>% # 4m x 20 m belt transect
+  print(shrubdensity_sum_bysiterep_immature) 
+
+shrubdensity_sum_bysiterep_immature_meanSD <- shrubdensity_sum_bysiterep_immature %>%
+  group_by(standtype) %>%
+  summarize(mean_immatureshrubdensity_1m2 = mean(immatureshrubdensity_1m2),
+            n = length((immatureshrubdensity_1m2)),
+            sd = sd(immatureshrubdensity_1m2),
+            se = ((sd(immatureshrubdensity_1m2))/sqrt(length((immatureshrubdensity_1m2))))) %>% 
+  print(shrubdensity_sum_bysiterep_immature_meanSD)
+#standtype  mean      n sd  se
+#intact	    0.1833333	3	0.02886751	0.016666667
+#matrix	    0.1395833	6	0.22184125	0.090566312
+#degraded	  0.0312500	6	0.02200852	0.008984941
+
+summary(aov((immatureshrubdensity_1m2 ~ standtype) , data = shrubdensity_sum_bysiterep_immature))
+#Df  Sum Sq Mean Sq F value Pr(>F)
+#standtype    2 0.05822 0.02911   1.396  0.285
+#Residuals   12 0.25016 0.02085  
+
+```
+#### SEEDLING shrub density
+
+```{r immature shrub density, include=TRUE}
+
+shrubdensity_sum_bysiterep_seedling <- shrubdensity %>%
+  filter(status == "seedling") %>% #select only mature shrubs
+  group_by(standtype, site_rep) %>%  
+  summarize(seedlingdensity_80m2 = sum(count), 
+            seedlingdensity_1m2 = seedlingdensity_80m2/80) %>% # 4m x 20 m belt transect
+  print(shrubdensity_sum_bysiterep_seedling) 
+
+shrubdensity_sum_bysiterep_seedling_meanSD <- shrubdensity_sum_bysiterep_seedling %>%
+  group_by(standtype) %>%
+  summarize(mean_seedlingdensity_1m2 = mean(seedlingdensity_1m2),
+            n = length((seedlingdensity_1m2)),
+            sd = sd(seedlingdensity_1m2),
+            se = ((sd(seedlingdensity_1m2))/sqrt(length((seedlingdensity_1m2))))) %>% 
+  print(shrubdensity_sum_bysiterep_seedling_meanSD)
+#standtype  mean      n sd  se
+#intact	    0.02916667	3	0.04018188	0.023199018
+#matrix	    0.01041667	6	0.01461306	0.005965759
+#degraded	  0.00625000	6	0.01530931	0.00625000
+
+summary(aov((seedlingdensity_1m2 ~ standtype) , data = shrubdensity_sum_bysiterep_seedling))
+#Df  Sum Sq Mean Sq F value Pr(>F)
+#standtype    2 0.001094 0.0005469     1.2  0.335
+#Residuals   12 0.005469 0.0004557   
+
+```
+#### RESPROUT shrub density
+```{r resprout density, include=TRUE}
+
+shrubdensity_sum_bysiterep_respt <- shrubdensity %>%
+  filter(status == "resprout") %>% #select only mature shrubs
+  group_by(standtype, site_rep) %>%  
+  summarize(resptdensity_80m2 = sum(count), 
+            resptdensity_1m2 = resptdensity_80m2/80) %>% # 4m x 20 m belt transect
+  print(shrubdensity_sum_bysiterep_respt) 
+
+shrubdensity_sum_bysiterep_respt_meanSD <- shrubdensity_sum_bysiterep_respt %>%
+  group_by(standtype) %>%
+  summarize(mean_resptdensity_1m2 = mean(resptdensity_1m2),
+            n = length((resptdensity_1m2)),
+            sd = sd(resptdensity_1m2),
+            se = ((sd(resptdensity_1m2))/sqrt(length((resptdensity_1m2))))) %>% 
+  print(shrubdensity_sum_bysiterep_respt_meanSD)
+#standtype  mean        n sd  se
+#intact	    0.004166667	3	0.007216878	0.004166667
+#matrix	    0.006250000	6	0.015309311	0.006250000
+#degraded	  0.002083333	6	0.005103104	0.002083333
+
+summary(aov((resptdensity_1m2 ~ standtype) , data = shrubdensity_sum_bysiterep_respt))
+#Df  Sum Sq Mean Sq F value Pr(>F)
+#standtype    2 0.0000521 2.604e-05   0.222  0.804
+#Residuals   12 0.0014063 1.172e-04 
+```
+
+#### DEAD shrub density
+```{r dead shrub density, include=TRUE}
+
+shrubdensity_sum_bysiterep_dead <- shrubdensity %>%
+  filter(status == "dead") %>% #select only mature shrubs
+  group_by(standtype, site_rep) %>%  
+  summarize(deaddensity_80m2 = sum(count), 
+            deaddensity_1m2 = deaddensity_80m2/80) %>% # 4m x 20 m belt transect
+  print(shrubdensity_sum_bysiterep_dead) 
+
+shrubdensity_sum_bysiterep_dead_meanSD <- shrubdensity_sum_bysiterep_dead %>%
+  group_by(standtype) %>%
+  summarize(mean_deaddensity_1m2 = mean(deaddensity_1m2),
+            n = length((deaddensity_1m2)),
+            sd = sd(deaddensity_1m2),
+            se = ((sd(deaddensity_1m2))/sqrt(length((deaddensity_1m2))))) %>% 
+  print(shrubdensity_sum_bysiterep_dead_meanSD)
+#standtype  mean      n sd  se
+#intact	0.09166667	3	0.1371207	0.07916667
+#matrix	0.53333333	6	1.2698097	0.51839764
+#degraded	0.00000000	6	0.0000000	0.00000000
+
+summary(aov((deaddensity_1m2 ~ standtype) , data = shrubdensity_sum_bysiterep_dead))
+#Df  Sum Sq Mean Sq F value Pr(>F)
+#standtype    2  0.927  0.4634   0.687  0.522
+#Residuals   12  8.100  0.6750  
+```
 
 ```{r}
 # species richness, native richness
