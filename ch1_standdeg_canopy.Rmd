@@ -544,7 +544,7 @@ TukeyHSD(aov((aliveshrubdensity_1m2 ~ standtype) , data = shrubdensity_sum_bysit
 
 ```
 
-```{r alive shrub dentsity 1m2 - plot, include=TRUE}
+```{r alive shrub dentsity 1m2 - figures - tables, include=TRUE}
 
 shrubdensity_sum_bysiterep_aov_1m2_column <- ggplot(shrubdensity_sum_bysiterep_meanSD, aes(x = standtype, y = mean_aliveshrubdensity_1m2, fill = standtype)) +
   geom_col(position = "dodge", width = 0.8) +
@@ -571,17 +571,22 @@ shrubdensity_table <- shrubdensity %>%
   summarize(N = sum(count)) %>%
   print(shrubdensity_table) 
 
-shrubdensity_table$species_status <- paste(shrubdensity_table$species, shrubdensity_table$status, sep="_") 
+shrubdensity_table_spread <- shrubdensity_table %>%  
+  spread( key = status, value = N) %>% 
+  print(shrubdensity_table_spread)
 
-shrubdensity_table %>%
-  
-  
-  
-  cover_statuslf_matrix <- read.csv("percentcover_bystatus_bylifeform_matrix.csv", header = TRUE) %>% mutate(lifeform = case_when(lifeform == "herb" ~ "forb", 
-                               TRUE ~ lifeform))
-cover_statuslf_matrix <- cover_statuslf_matrix %>% 
-  mutate(standtype = fct_relevel(standtype, 
-            "intact", "matrix", "degraded"))
+#write.csv(shrubdensity_table_spread,"processed/shrubdensity_table_spread.csv")
+
+shrubdensity_table_spread %>% 
+  group_by(standtype) %>% 
+  summarize(sum_mature = sum(mature), 
+            sum_immature = sum(immature), 
+            sum_seedling = sum(seedling), 
+            sum_dead = sum(dead))
+#standtype sum_mature sum_immature sum_seedlingsum_dead
+#intact	  101	    45	  7	    22
+#matrix	  297	    70	  5	    256
+#degraded	72	    16	  3	    0
 ```
 
 #### MATURE shrub density
