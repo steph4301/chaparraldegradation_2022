@@ -568,11 +568,12 @@ shrubdensity_table <- shrubdensity %>%
                             TRUE ~ status)) %>% 
   mutate(status = fct_relevel(status, "mature", "immature", "seedling", "dead")) %>% 
   group_by(standtype, species, status) %>%
+   rename(lifestage = status) %>% 
   summarize(N = sum(count)) %>%
   print(shrubdensity_table) 
 
 shrubdensity_table_spread <- shrubdensity_table %>%  
-  spread( key = status, value = N) %>% 
+  spread(key = lifestage, value = N) %>% 
   print(shrubdensity_table_spread)
 
 #write.csv(shrubdensity_table_spread,"processed/shrubdensity_table_spread.csv")
@@ -745,7 +746,10 @@ summary(aov((deaddensity_1m2 ~ standtype) , data = shrubdensity_sum_bysiterep_de
 #Residuals   12  8.100  0.6750  
 ```
 
-```{r}
+# END 
+
+
+```{r above ground - species richness - native richness, include = FALSE}
 # species richness, native richness
 abrich_full <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_abrich.csv", header = TRUE, na.strings=c("","NA")) %>% 
   dplyr::select('trasecttype', 'standtype', 'site', 'rep', 'distance', 'vertical', 'species', 'lifeform', 'status', 'lifecycle', 'Family', 'lifestage') %>% 
