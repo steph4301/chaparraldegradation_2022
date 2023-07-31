@@ -27,7 +27,8 @@ library(readxl) # for .xls and .xlsx sheets
 #library(janitor)
 library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD, dist{stats}, simint, simtest, csimint, csimtest{multcomp}, friedmanmc, kruskalmc{pgirmess}
 #library(multcomp) # functions: multcompLetters2, multcompLetters3, multcompLetters4 using aov object
-
+#library(DHARMa) #The ‘DHARMa’ package uses a simulation-based approach to create readily interpretable scaled (quantile) residuals for fitted (generalized) linear mixed models.
+#citation("DHARMa")
 ```
 
 ```{r install colors, include=TRUE}
@@ -101,7 +102,7 @@ abcover_full_v_omitground <- filter(abcover_full_v, status !="ground")
 glimpse(abcover_full_v_omitground)
 ```
 
-##### (A) by cover type - OMIT 
+##### (A) by cover type 
 ```{r calculate veg/ground cover, include = TRUE}
 abcover_vegcover <- abcover_full_v %>% 
   filter(vertical == "1") %>% 
@@ -115,6 +116,25 @@ print(abcover_vegcover)
 abcover_vegcover_long <- gather(abcover_vegcover, covertype, percentcover, percentcover_veg:percentcover_ground, factor_key = TRUE) 
 abcover_vegcover_long
 
+# visualizing data
+ggplot(data = abcover_vegcover_long, aes(y = percentcover, x = standtype))+
+  geom_boxplot()+
+  scale_y_continuous(breaks = seq(0,1,0.2), limits = c(0, 1))+
+  xlab("Stand Type")+
+  ylab("Canopy cover (%)")+
+  scale_x_discrete(labels = c("intact" = "Intact", "matrix" = "Matrix",
+                              "degraded" = "Degraded"))+
+  theme_bw()+
+  theme(text = element_text(size = 14), axis.text.y = element_text(size = 12), axis.text.x = element_text(size = 12))
+#can add more shit if we want or pretty it up
+
+#testing for normality
+shapiro.test(abcover_vegcover_long$percentcover)
+qqPlot(abcover_vegcover_long$percentcover)
+library(ggpubr)
+ggqqplot(abcover_vegcover_long$percentcover)
+
+# mean SD
 abcover_vegcover_meanSD <- abcover_vegcover_long %>%
   group_by(standtype, covertype) %>% 
   summarize(mean_cover = mean(percentcover),
@@ -443,6 +463,10 @@ TukeyHSD(aov((cov ~ standtype) , data = standheight_cov), conf.level=.95)
 ### 1.3 Shrub density 
 
 ```{r  load data - shrub density, include=TRUE}
+#1. Every variable is a column --> ARCA_dead
+#2. Each observation is a row --> DEG_1
+#3. Each cell contains a single value --> N
+
 
 # native shrub density 
 shrubdensitylife_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_bylifestage.csv", 
@@ -472,6 +496,7 @@ glimpse(shrubdensitylife_full)
 #dim(shrubdensitylife_full)
 #head(shrubdensitylife_full)
 #tail(shrubdensitylife_full)
+specnumber(shrubdensitylife_full)
 
 # convert dataframe to tibble
 shrubdensitylife_full <- as_tibble(shrubdensitylife_full) 
