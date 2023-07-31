@@ -5,6 +5,25 @@ date: "2023-07-24"
 output: html_document
 ---
 
+```{r adam sandler message, include=FALSE}
+
+# jul31 
+# You've figured out how to visualize the raw data with a histogram, jitter plot, and box plots
+# and how to test for normality with the shapiro.test(df$responsevariable).
+# None of the above ground percent cover data are normally distributed.
+# Leave it and MOVE ON to your seedbank data. 
+# 1. complete data collection of Bay 6 tray
+# 2. open seedbank NMDS file 
+# 3. add the INT seed bank data
+# 4. open the file in R and 
+# 5. look at hist(seedbank$abundance)
+# From talking with Rob - get rid of the zeros in abundance data because you don't know if the seeds were there or not... just calculate means and stats on germination counts. If there was only one tray with Sp. A, you can't run stats on it because you only have one rep with Sp. A present. 
+
+
+```
+
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -224,7 +243,7 @@ abcover_vegcover_plot
 ```
 
 
-##### (B) Percent cover by lifeform by native/nonnative status 
+##### (B) Percent cover by lifeform by native/nonnative status - there shouldn't be zeros in your df
 
 ```{r cover x status x lifeform - data prep, include = TRUE}
 # line 933 from Ch1_Degradation_original.Rmd
@@ -257,6 +276,7 @@ shapiro.test(abcover_bylf_bystatus$percentcover)
 #W = 0.90228, p-value = 0.0001246 <-- not normally distributed
 
 #write.csv(abcover_bylf_bystatus,"processed/percentcover_bystatus_bylifeform.csv")
+# GET RID OF ZEROS in df
 cover_statuslf_matrix <- read.csv("percentcover_bystatus_bylifeform_matrix.csv", header = TRUE) %>% mutate(lifeform = case_when(lifeform == "herb" ~ "forb", 
                                TRUE ~ lifeform))
 cover_statuslf_matrix <- cover_statuslf_matrix %>% 
