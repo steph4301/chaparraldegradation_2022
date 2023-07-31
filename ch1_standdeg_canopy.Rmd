@@ -102,7 +102,7 @@ abcover_full_v_omitground <- filter(abcover_full_v, status !="ground")
 glimpse(abcover_full_v_omitground)
 ```
 
-##### (A) by cover type 
+##### (A) by cover type - veg or ground
 ```{r calculate veg/ground cover, include = TRUE}
 abcover_vegcover <- abcover_full_v %>% 
   filter(vertical == "1") %>% 
@@ -117,7 +117,14 @@ abcover_vegcover_long <- gather(abcover_vegcover, covertype, percentcover, perce
 abcover_vegcover_long
 
 # visualizing data
-ggplot(data = abcover_vegcover_long, aes(y = percentcover, x = standtype))+
+hist(abcover_vegcover_long$percentcover) # histogram
+ggplot(data = abcover_vegcover_long, aes(y = percentcover, x = standtype, fill = covertype)) +
+    geom_boxplot() # boxplots
+ggplot(data = abcover_vegcover_long, aes(y = percentcover, x = standtype, color = covertype)) + 
+  geom_jitter()
+
+# visualize boxplots
+ggplot(data = abcover_vegcover_long, aes(y = percentcover, x = standtype, fill = covertype))+
   geom_boxplot()+
   scale_y_continuous(breaks = seq(0,1,0.2), limits = c(0, 1))+
   xlab("Stand Type")+
@@ -126,7 +133,23 @@ ggplot(data = abcover_vegcover_long, aes(y = percentcover, x = standtype))+
                               "degraded" = "Degraded"))+
   theme_bw()+
   theme(text = element_text(size = 14), axis.text.y = element_text(size = 12), axis.text.x = element_text(size = 12))
-#can add more shit if we want or pretty it up
+
+# jitter code
+ggplot(data = abcover_vegcover_long, aes(x = standtype, y = percentcover, color = covertype))+ #start with the raw data
+  #geom_jitter(width = 0.05, alpha = 0.25, pch=ifelse(grepl("c_", prop2mdata$stim), 17,19), cex=2.5)+ #use geom_jitter to add raw data points
+  #geom_point(d = plotnewdata, aes(x = stim, y = stim.mean.prop2m), shape = rep(c(17,19),2), cex = 4)+ #now use geom_point to add the model estimate means
+  #geom_linerange(d = plotnewdata, aes(x=stim,ymin=lse,ymax=use),size=1.5,position=position_dodge(width=0.25)) + #and geom_linerange to add the standard errors
+  #things below this line just make it look pretty
+  geom_jitter()+
+  geom_point()+
+  scale_y_continuous(breaks = seq(0,1,0.2), limits = c(0, 1.))+
+  xlab("Stimulus")+
+  ylab("Proportion approaching stimulus")+
+  scale_x_discrete(labels = c("c_scents" = "Control Scents", "t_scents" = "Rival Scents",
+                              "c_intruders" = "Control Intruders", "t_intruders" = "Rival Intruders"))+
+  theme_bw()+
+  theme(text = element_text(size = 14), axis.text.y = element_text(size = 12), axis.text.x = element_text(size = 12))
+# end jitter code
 
 #testing for normality
 shapiro.test(abcover_vegcover_long$percentcover)
@@ -214,6 +237,24 @@ abcover_bylf_bystatus <- abcover_full_v_omitground %>%
     percentcover = n_distinct(site_rep_dist)/41
     )
 view(abcover_bylf_bystatus) # prints to new tab
+
+# visualizing data
+
+## histogram 
+hist(abcover_bylf_bystatus$percentcover) 
+## jitter
+ggplot(data = abcover_bylf_bystatus, aes(y = percentcover, x = standtype, color = lifeform)) + 
+  geom_jitter()
+ggplot(data = abcover_bylf_bystatus, aes(y = percentcover, x = standtype, color = status)) + 
+  geom_jitter()
+## boxplot
+ggplot(data = abcover_bylf_bystatus, aes(y = percentcover, x = standtype, fill = lifeform)) +
+    geom_boxplot() # boxplots
+
+
+# testing for normality
+shapiro.test(abcover_bylf_bystatus$percentcover)
+#W = 0.90228, p-value = 0.0001246 <-- not normally distributed
 
 #write.csv(abcover_bylf_bystatus,"processed/percentcover_bystatus_bylifeform.csv")
 cover_statuslf_matrix <- read.csv("percentcover_bystatus_bylifeform_matrix.csv", header = TRUE) %>% mutate(lifeform = case_when(lifeform == "herb" ~ "forb", 
