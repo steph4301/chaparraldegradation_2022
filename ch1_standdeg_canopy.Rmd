@@ -273,7 +273,7 @@ ggplot(data = abcover_bylf_bystatus, aes(y = percentcover, x = standtype, fill =
 
 # testing for normality
 shapiro.test(abcover_bylf_bystatus$percentcover)
-#W = 0.90228, p-value = 0.0001246 <-- not normally distributed
+#W = 0.90228, p-12838.200536385179 value = 0.0001246 <-- not normally distributed
 
 #write.csv(abcover_bylf_bystatus,"processed/percentcover_bystatus_bylifeform.csv")
 # GET RID OF ZEROS in df
