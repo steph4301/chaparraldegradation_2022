@@ -1241,10 +1241,10 @@ abcover_byspecies_tidy <- abrover_byspecies %>%
 #
 
 
-  dplyr::spread( # transposes data (e.g., date and observations and replicates your repeating data (e.g., species observed)
-    names_to = "species", # creates a new column named "date_alive" with column dates as values
-    values_to = "num_alive", # creates a new column with observation values paired with date values
-    cols = c("7/28/18": "10/21/18") # tells R that we want to do this for every column between the 7/28/18 column and the 10/21/18 column. The ":" means "from here to here"
+  dplyr::spread( #transposes data (e.g., date and observations and replicates your repeating data... e.g., species observed
+    names_to = "species", #creates a new column named "date_alive" with column dates as values
+    values_to = "num_alive", #creates a new column with observation values paired with date values
+    cols = c("7/28/18": "10/21/18")) # tells R that we want to do this for every column between the 7/28/18 column and the 10/21/18 column. The ":" means "from here to here"
 
 abcover_byspecies_nmdsprep <- abcover_byspecies %>% 
   dplyr::spread(species, percentcover)
@@ -1553,7 +1553,7 @@ penguins %>%
 # For per treatment, you’ll just replace group_by(treatment). 
 
 
-Then you’ll want to check if your data are normally distributed. I’m assuming you want to do ANOVA of richness? For stand, you only have 2 groupings (enhanced vs degraded), so you'll actually just do a t-test for normal data:
+#Then you’ll want to check if your data are normally distributed. I’m assuming you want to do ANOVA of richness? For stand, you only have 2 groupings (enhanced vs degraded), so you'll actually just do a t-test for normal data:
 #t-test for native richness by stand
 native_richness_stand_ttest <- t.test(native_richness ~ stand, data = native_richness_stand)
 summary(native_richness_stand_ttest) #show t.test output
