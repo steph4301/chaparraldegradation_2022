@@ -32,60 +32,36 @@ library(ggvegan)
 
 ```{r load deg_seedbank csv}
 # 
-seedbank_load_raw <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_seedbank_20230308.csv", header = TRUE, na.strings=c("","NA"))
-
-head(seedbank_load_raw)
-str(seedbank_load_raw)
+seedbank_load_raw <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_seedbank_20231007.csv", header = TRUE, na.strings=c("","NA"))
 
 seedbank_load <- seedbank_load_raw %>% 
-  select(c("stand", "site", "soilcore", "depthname", "treatment", "species", "lifeform", "status", "lifecycle", "family", "totalcount"))
+  select(c("stand", "site", "soilcore", "depth_name", "treatment", "rep", "species_diversity", "genus_abundance", "lifeform", "status", "lifescycle", "family", "count"))
   
-seedbank_load$totalcount <- as.numeric(seedbank_load$totalcount)
+seedbank_load$count <- as.numeric(seedbank_load$count)
 str(seedbank_load)
-
-# load without unknowns and NAs <-- how do I omit UNKNOWNs?
-seedbank_load %>%
-  filter(!str_detect(species, "unk"), 
-         !str_detect(species, "Typha spp.")) 
-
-# rename treatments to be all lowercase 
-seedbank_load <- seedbank_load %>% 
-  mutate(treatment = recode(treatment,
-                            Oven = 'oven',
-                            Ovenchar = 'ovenchar',
-                            Char = 'char',
-                            Control = 'control', 
-                            Native = 'native')
-                            ) 
-  
          
 print(seedbank_load)
 unique(seedbank_load$stand)
 unique(seedbank_load$site)
 unique(seedbank_load$soilcore)
-unique(seedbank_load$depthname)
+unique(seedbank_load$depth_name)
 unique(seedbank_load$treatment)
+unique(seedbank_load$status)
 unique(seedbank_load$species)
-seedbank_load <- seedbank_load %>% 
-  filter(species != "Typha spp. ") # will omit Typha
-
-seedbank_load <- seedbank_load[seedbank_load$species != "Typha spp. ", ] # will remove Typha from the df
 
 view(seedbank_load)
-
 ```
 
 (1) Organize the seed bank data by converting the df into a tibble.
 ```{r preparing df, include = TRUE}
 
 dim(seedbank_load)
-# [1] 2117   19
+# [1] 2126   13
 head(seedbank_load)
 tail(seedbank_load)
 
 # convert dataframe to tibble
 seedbank_load <- as_tibble(seedbank_load) 
-
 class(seedbank_load) # now a tibble
 ```
 
@@ -97,8 +73,7 @@ seedbank_load_v <- seedbank_load %>%
   mutate(treatment = fct_relevel(treatment, 
                                  "control", "charate", "oven", "ovenchar"))
 
-# renaming observations
-seedbank_load_v$stand <- factor(seedbank_load_v$stand, levels=c("intact", "enhanced", "degraded"), labels=c("Intact", "Matrix", "Degraded"))
+unique(seedbank_load_v$status)
 ```
 
 (3) Create new columns for SITE_CORE, SITE_CORE_DEPTH, SITE_CORE_DEPTH_TREATMENT, SITE_TREATMENT, SITE_DEPTH for seed bank data. 
@@ -112,6 +87,8 @@ seedbank_load_v$stand_core_depth <- paste(seedbank_load_v$stand_core, seedbank_l
 
 # combine SITE_CORE_DEPTH and TREATMENT to one column
 seedbank_load_v$stand_core_depth_treat <- paste(seedbank_load_v$stand_core_depth, seedbank_load_v$treatment, sep="_") 
+
+glimpse(seedbank_load_v)
 ```
 
 (4) Omit "pre-treatment" as a treatment since I'm only interested in Control, Char, Oven, and CharOven treatments
@@ -123,12 +100,19 @@ head(seedbank_load_v_omitpretreatment)
 
 unique(seedbank_load_v_omitpretreatment$treatment) # list unique treatments --> ordered: control, charate, oven, ovenchar
 unique(seedbank_load_v_omitpretreatment$status) # list unique treatments --> native, nonnative
-unique(seedbank_load_v_omitpretreatment$species) # list unique species --> 41 species
+unique(seedbank_load_v_omitpretreatment$genus_abundance) # list unique species --> 52 species
 unique(seedbank_load_v_omitpretreatment$stand_core) # unique stand_core --> 26 = 7 + 10 + 9
 
 ```
 
-(5.1) sum of germinates at each stand_core (e.g., present in one core = sum (char, control, oven, charoven)
+(5.1) 
+```{r}
+stand_sppdiversity <- seedbank_load_v_omitpretreatment %>% 
+  group_by()
+```
+
+
+sum of germinates BY GENUS at each stand_core (e.g., present in one core = sum (char, control, oven, charoven)
 ```{r organize data for nmds, inclue = TRUE}
 
 # species in columns
@@ -136,15 +120,34 @@ unique(seedbank_load_v_omitpretreatment$stand_core) # unique stand_core --> 26 =
 
 # this is the df you'll call to set GROUPS: seedbank_bysitecore
 seedbank_bysitecore <- seedbank_load_v_omitpretreatment %>% 
-  group_by(stand, site, stand_core, species) %>% # by stand_core and species 
+  group_by(stand, site, stand_core, genus_abundance) %>% # by stand_core and species 
   # This will give a data point for every species based on germination numbers per species
   #group_by(stand_core_depth, species) %>% # by stand_core_depth - DOES NOT CONSIDER TREATMENT
   #group_by(stand_core_detph_treat, species) %>% # by stand_core_depth_treat
-  filter(!is.na(species)) %>% # omit blank cells in species 
-  dplyr::summarize(totalgerm = sum(totalcount)) 
+  filter(!is.na(genus_abundance)) %>% # omit blank cells in species 
+  dplyr::summarize(totalgerm_genus = sum(count)) 
 
 view(seedbank_bysitecore) # df before transpose - use for ellipses
 ```
+
+(5.1) sum of germinates BY GENUS at each stand_core (e.g., present in one core = sum (char, control, oven, charoven)
+```{r organize data for nmds, inclue = TRUE}
+
+# species in columns
+# sites or observations in rows
+
+# this is the df you'll call to set GROUPS: seedbank_bysitecore
+seedbank_bysitecore <- seedbank_load_v_omitpretreatment %>% 
+  group_by(stand, site, stand_core, genus_abundance) %>% # by stand_core and species 
+  # This will give a data point for every species based on germination numbers per species
+  #group_by(stand_core_depth, species) %>% # by stand_core_depth - DOES NOT CONSIDER TREATMENT
+  #group_by(stand_core_detph_treat, species) %>% # by stand_core_depth_treat
+  filter(!is.na(genus_abundance)) %>% # omit blank cells in species 
+  dplyr::summarize(totalgerm_genus = sum(count)) 
+
+view(seedbank_bysitecore) # df before transpose - use for ellipses
+```
+
 
 (6) Prepare data for an NMDS
 ```{r transpose data by species for nmds, include=TRUE}
@@ -256,12 +259,12 @@ seedbank_nmds_plot_color
 ```{r nmds color and vectors with envfit function}
 # code from An Bui: https://rpubs.com/an-bui/vegan-cheat-sheet 
 
-nmds_above_df <- data.frame(abcover_byspecies_NMDS$points, abcover_byspecies_nmdsprep) # code from chatgpt
+nmds_above_df <- data.frame(abcover_byspecies_NMDS$points, abcover_byspecies_nmdsprep) # code from chatgpt. Adds NMDS1 and NMDS2 values to dataframe.
 
 seedbank_bysitecore_nmdsprep <- seedbank_bysitecore_nmdsprep %>% 
   mutate(standtype_ID = 1)
 
-seedbank_bysitecore_nmdsprep$standtype_ID <- 1:26
+seedbank_bysitecore_nmdsprep$standtype_ID <- 1:26 #shorten df to first 26 rows
 
 plot_below_df <- scores(seedbank_bysitecore_nmds, display = "sites") %>% 
   as.data.frame() %>% 
@@ -325,22 +328,23 @@ autoplot(seedbank_bysitecore_nmds) # NMDS1 x NMDS2, Key = "Score": sites, specie
 #this makes a dataframe that gives a lot of control graphically 
 seedbank_bysitecore_nmds_fort <- fortify(seedbank_bysitecore_nmds)
 
+
 # vectors AND measurments
 seedbank_bysitecore_nmds_fortplot <- ggplot() + 
-  geom_point(data = subset(seedbank_bysitecore_nmds_fort, Score == 'sites'),
+  geom_point(data = subset(seedbank_bysitecore_nmds_fort, score == 'sites'),
              mapping = aes(x = NMDS1, y = NMDS2),
              color = 'black',
              size = 4,
              alpha = 1) +
-  geom_segment(data = subset(seedbank_bysitecore_nmds_fort, Score == 'species'),
+  geom_segment(data = subset(seedbank_bysitecore_nmds_fort, score == 'species'),
                mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
                arrow = arrow(length = unit(0.015, "npc"),
                              type = 'closed'),
                color = 'darkgrey',
                linewidth = 0.8) +
-  geom_text(data = subset(seedbank_bysitecore_nmds_fort, Score == 'species'),
+  geom_text(data = subset(seedbank_bysitecore_nmds_fort, score == 'species'),
              position = position_jitter(width = 0.2, height = 0.2),
-            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1))+
+            mapping = aes( x = NMDS1*1.1, y = NMDS2*1.1))+
   geom_abline(intercept = 0,slope = 0,linetype = "dashed", linewidth = 0.8,colour = "gray")+
   geom_vline(aes(xintercept = 0), linetype = "dashed", linewidth = 0.8, colour = "gray")+
   theme(panel.grid.major = element_blank(),
@@ -350,18 +354,18 @@ seedbank_bysitecore_nmds_fortplot
 
 #only vectors shown
 seedbank_bysitecore_nmds_fortplot1 <- ggplot() + 
-  geom_point(data = subset(seedbank_bysitecore_nmds_fort, Score == 'sites'),
+  geom_point(data = subset(seedbank_bysitecore_nmds_fort, score == 'sites'),
              mapping = aes(x = NMDS1, y = NMDS2),
              color = 'black',
              size = 3,
              alpha = 0) +
-  geom_segment(data = subset(seedbank_bysitecore_nmds_fort, Score == 'species'),
+  geom_segment(data = subset(seedbank_bysitecore_nmds_fort, score == 'species'),
                mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
                arrow = arrow(length = unit(0.015, "npc"),
                              type = 'closed'),
                color = 'darkgrey',
                linewidth = 0.8) +
-  geom_text(data = subset(seedbank_bysitecore_nmds_fort, Score == 'species'),
+  geom_text(data = subset(seedbank_bysitecore_nmds_fort, score == 'species'),
             position = position_jitter(width = 0.2, height = 0.2),
             mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1))+
   geom_abline(intercept = 0,slope = 0,linetype = "dashed", linewidth = 0.8,colour = "gray")+
