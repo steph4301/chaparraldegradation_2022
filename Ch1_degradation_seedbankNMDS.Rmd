@@ -289,7 +289,7 @@ fit_below_spp <- fit_below %>%
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   full_join(., fit_below_pvals, by = "species") %>% 
-  filter(pvals <= 0.00) %>% # limited number for visual clarity
+  filter(pvals <= 0.001) %>% # limited number for visual clarity
   filter(!species == 'standtype_ID')
 
 # new plot
@@ -302,7 +302,7 @@ nmdsbelow_plot_new <- ggplot(plot_below_df, aes(x = NMDS1, y = NMDS2)) +
                arrow = arrow(length = unit(0.25, "cm")),
                col = "black") +
   geom_text(data = fit_below_spp, aes(label = species),  
-            position = position_jitter(width = 0.1, height = 0.2))
+            position = position_jitter(width = 0.2, height = 0.3))
 nmdsbelow_plot_new + theme_bw()
 
 ```
