@@ -83,7 +83,7 @@ unique(seedbank_load_v$status)
 seedbank_load_v$stand_core <- paste(seedbank_load_v$site, seedbank_load_v$soilcore, sep="_") 
 
 # combine SITE_CORE and DEPT to one column
-seedbank_load_v$stand_core_depth <- paste(seedbank_load_v$stand_core, seedbank_load_v$depthname, sep="_") 
+seedbank_load_v$stand_core_depth <- paste(seedbank_load_v$stand_core, seedbank_load_v$depth_name, sep="_") 
 
 # combine SITE_CORE_DEPTH and TREATMENT to one column
 seedbank_load_v$stand_core_depth_treat <- paste(seedbank_load_v$stand_core_depth, seedbank_load_v$treatment, sep="_") 
@@ -106,10 +106,7 @@ unique(seedbank_load_v_omitpretreatment$stand_core) # unique stand_core --> 26 =
 ```
 
 (5.1) 
-```{r}
-stand_sppdiversity <- seedbank_load_v_omitpretreatment %>% 
-  group_by()
-```
+
 
 
 sum of germinates BY GENUS at each stand_core (e.g., present in one core = sum (char, control, oven, charoven)
@@ -156,13 +153,13 @@ view(seedbank_bysitecore) # df before transpose - use for ellipses
 # observations or sites in rows across
 
 seedbank_bysitecore_nmdsprep <- seedbank_bysitecore %>% 
- tidyr::spread(species, totalgerm) %>% # transpose data so columns are stand_core_depth
+ tidyr::spread(genus_abundance, totalgerm_genus) %>% # transpose data so columns are stand_core_depth
   #tidyr::spread(stand_core_depth, totalgerm) %>% # transpose data so columns are stand_core_depth
   # tidyr::spread(stand_core_depth_treat, totalgerm) %>% # transpose data so columns are stand_core_depth_treat
   replace(is.na(.), 0) # replace NA with zeros --> isn't compatible with character columns
 
 view(seedbank_bysitecore_nmdsprep)
-# 26 x 45
+
 ```
 
 ```{r replace NAs with zeros}
@@ -181,7 +178,7 @@ view(seedbank_bysitecore_nmdsprep_num) # only numbers
 
 ```{r write nmds matrix to csv}
 
-write.csv(seedbank_bysitecore_nmdsprep_num, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/seedbank_NMDS_202303.csv")
+write.csv(seedbank_bysitecore_nmdsprep_num, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/seedbank_NMDS_202310.csv")
 
 ```
 
@@ -284,7 +281,7 @@ fit_below_pvals <- fit_below$vectors$pvals %>%
   rownames_to_column("species") %>% 
   dplyr::rename("pvals" = ".") %>% 
   filter(!species == 'standtype_ID')
-#view(fit_below_pvals)
+view(fit_below_pvals)
 
 # extract coordinates for species, only keep species with p-val = 0.05
 fit_below_spp <- fit_below %>% 
@@ -292,7 +289,7 @@ fit_below_spp <- fit_below %>%
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   full_join(., fit_below_pvals, by = "species") %>% 
-  filter(pvals <= 0.05) %>% # limited number for visual clarity
+  filter(pvals <= 0.00) %>% # limited number for visual clarity
   filter(!species == 'standtype_ID')
 
 # new plot
