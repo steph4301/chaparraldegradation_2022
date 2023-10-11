@@ -62,7 +62,9 @@ cal_palette(name = "chaparral3", n = 3, type = "continuous")
 deg <- "#D3E3CA"
 mat <- "#92A587"
 int <- "#2F3525"
+line <- "red"
 standcolors <- c(int, mat, deg)
+standcolors_line <- c(line, int, mat, deg)
 
 # Lifeform colors: shrub, grass, forb
 cal_palette(name = "chaparral3", n = 3, type = "continuous") 
@@ -322,7 +324,7 @@ cover_statuslf_matrix <- cover_statuslf_matrix %>%
             "intact", "matrix", "degraded"))
 ```
 
-```{r cover by lf by status - stats, include=TRUE}
+```{r cover by lf by status - aov, include=TRUE}
 # SHRUB
 # highlight all and run as one command
 
@@ -361,10 +363,17 @@ print(TukeyHSD(abcover_bylf_bystatus_aov_shrubnat))
 # Intact_2-Intact_1 -1.110223e-16 -0.561276438 0.56127644 1.0000000
 # Intact_3-Intact_1  2.439024e-01 -0.317373999 0.80517888 0.6558165
 # Intact_3-Intact_2  2.439024e-01 -0.317373999 0.80517888 0.6558165
-ggplot(data = cover_statuslf_matrix %>% filter((lifeform == 'shrub')) %>% filter((status == 'native')), 
-       aes(y = percentcover, x = site_rep, fill = lifeform)) +
-    geom_boxplot() # boxplots
 
+ggplot(data = cover_statuslf_matrix %>% filter((lifeform == 'shrub')) %>% filter((status == 'native')), 
+     aes(x = site_rep, y = percentcover*100, fill = standtype)) +
+   geom_col(color = "black") +
+  scale_fill_manual(values = standcolors) +
+  labs(x = "Site", y = "Shrub Cover (%)", title = "Shrub Cover by Site") +
+  theme_bw()
+
+```
+
+```{r scatterplot}
 # The arguments to spread():
 # - data: Data object
 # - key: Name of column containing the new column names
@@ -379,16 +388,20 @@ cover_statuslf_matrix_wide1 <- cover_statuslf_matrix_long %>%
 view(cover_statuslf_matrix_wide1)
 
 ggplot(data = cover_statuslf_matrix_wide1, 
-       aes(x = nonnative_grass*100, y = native_shrub*100, color = standtype)) +
+       aes(x = nonnative_grass*100, y = native_shrub*100, color = standtype)) + #color = standtype
   geom_point(size = 3, alpha = 0.8) +
- # scale_fill_manual(values = standcolors) +
-  labs(x = "Non-native grass cover (%)", y = "Native shrub cover (%)", title = "Native Shrub Cover by Non-native Grass Cover") +
-   scale_color_manual(values = c(standcolors),
+  geom_smooth(method = "gam", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  scale_color_manual(values = c(standcolors),
                      name = "Stand Type",
                      labels = c("intact" = "shrub dominated", 
                                 "matrix" = "matrix", 
                                 "degraded" = "grass dominated")) +
+  labs(x = "Non-native grass cover (%)", 
+       y = "Native shrub cover (%)", 
+       title = "Native Shrub Cover by Non-native Grass Cover") +
   theme_bw()
+
+
 ```
 
 ```{r forb native percent cover by site, include=TRUE}
