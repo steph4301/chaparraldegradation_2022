@@ -390,6 +390,8 @@ view(cover_statuslf_matrix_wide1)
 ggplot(data = cover_statuslf_matrix_wide1, 
        aes(x = nonnative_grass*100, y = native_shrub*100, color = standtype)) + #color = standtype
   geom_point(size = 3, alpha = 0.8) +
+  ylim(0, 100)+
+  xlim(0,100) +
   geom_smooth(method = "gam", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
   scale_color_manual(values = c(standcolors),
                      name = "Stand Type",
