@@ -66,15 +66,15 @@ standcolors <- c(int, mat, deg)
 
 # Lifeform colors: shrub, grass, forb
 cal_palette(name = "chaparral3", n = 3, type = "continuous") 
-shrub <- "#D3E3CA"
-grass <- "#92A587"
-forb <- "#2F3525"
+shrub <- "green4"
+grass <- "yellow2"
+forb <- "purple2"
 lifeformcolors <- c(int, mat, deg)
 
 # Status colors: native, exotic 
 cal_palette(name = "chaparral1", n = 6, type = "continuous") 
-native <- "#AEBFA8"
-exotic <- "#F19B34"
+native <- "gray75"
+exotic <- "gray25"
 statuscolors <- c(native, exotic)
 
 ```
@@ -137,24 +137,24 @@ abcover_vegcover_long
 
 # visualizing data
 hist(abcover_vegcover_long$percentcover) # histogram
-ggplot(data = abcover_vegcover_long, aes(y = percentcover, x = standtype, fill = covertype)) +
+ggplot(data = abcover_vegcover_long, aes(y = percentcover, x = site, fill = covertype)) +
     geom_boxplot() # boxplots
-ggplot(data = abcover_vegcover_long, aes(y = percentcover, x = standtype, color = covertype)) + 
+ggplot(data = abcover_vegcover_long, aes(y = percentcover, x = site, color = covertype)) + 
   geom_jitter()
 
 # visualize boxplots
-ggplot(data = abcover_vegcover_long, aes(y = percentcover, x = standtype, fill = covertype))+
+ggplot(data = abcover_vegcover_long, aes(y = percentcover, x = site, fill = covertype))+
   geom_boxplot()+
   scale_y_continuous(breaks = seq(0,1,0.2), limits = c(0, 1))+
-  xlab("Stand Type")+
-  ylab("Canopy cover (%)")+
-  scale_x_discrete(labels = c("intact" = "Intact", "matrix" = "Matrix",
-                              "degraded" = "Degraded"))+
+  xlab("Site")+
+  ylab("Canopy cover (%)") +
+ # scale_x_discrete(labels = c("intact" = "Intact", "matrix" = "Matrix",
+ #                             "degraded" = "Degraded"))+
   theme_bw()+
   theme(text = element_text(size = 14), axis.text.y = element_text(size = 12), axis.text.x = element_text(size = 12))
 
 # jitter code
-ggplot(data = abcover_vegcover_long, aes(x = standtype, y = percentcover, color = covertype))+ #start with the raw data
+ggplot(data = abcover_vegcover_long, aes(x = site, y = percentcover, color = covertype))+ #start with the raw data
   #geom_jitter(width = 0.05, alpha = 0.25, pch=ifelse(grepl("c_", prop2mdata$stim), 17,19), cex=2.5)+ #use geom_jitter to add raw data points
   #geom_point(d = plotnewdata, aes(x = stim, y = stim.mean.prop2m), shape = rep(c(17,19),2), cex = 4)+ #now use geom_point to add the model estimate means
   #geom_linerange(d = plotnewdata, aes(x=stim,ymin=lse,ymax=use),size=1.5,position=position_dodge(width=0.25)) + #and geom_linerange to add the standard errors
@@ -178,14 +178,51 @@ ggqqplot(abcover_vegcover_long$percentcover)
 
 # mean SD
 abcover_vegcover_meanSD <- abcover_vegcover_long %>%
-  group_by(standtype, covertype) %>% 
+  group_by(site, covertype) %>% 
   summarize(mean_cover = mean(percentcover),
             n = length((percentcover)),
             sd = sd(percentcover),
             se = ((sd(percentcover))/sqrt(length((percentcover)))))
 print(abcover_vegcover_meanSD)
 ```
-```{r aov veg/ground cover, include=TRUE}
+```{r aov veg/ground cover by SITE, include=TRUE}
+summary(aov(percentcover_veg ~ site, data = abcover_vegcover))
+# Df   Sum Sq   Mean Sq F value Pr(>F)
+# site         6 0.004125 0.0006874   1.156  0.413
+# Residuals    8 0.004759 0.0005949 
+
+TukeyHSD(aov(percentcover_veg ~ site, data = abcover_vegcover))
+#   Tukey multiple comparisons of means
+#     95% family-wise confidence level
+# 
+# Fit: aov(formula = percentcover_veg ~ site, data = abcover_vegcover)
+# 
+# $site
+#                            diff         lwr        upr     p adj
+# DEG2-DEG1         -8.130081e-03 -0.08415896 0.06789879 0.9993832
+# ENH1-DEG1         -1.626016e-02 -0.09228904 0.05976871 0.9761030
+# ENH2-DEG1         -3.252033e-02 -0.10854920 0.04350855 0.6696893
+# Intact_1-DEG1     -4.878049e-02 -0.15630155 0.05874058 0.6167821
+# Intact_2-DEG1     -4.878049e-02 -0.15630155 0.05874058 0.6167821
+# Intact_3-DEG1      0.000000e+00 -0.10752107 0.10752107 1.0000000
+# ENH1-DEG2         -8.130081e-03 -0.08415896 0.06789879 0.9993832
+# ENH2-DEG2         -2.439024e-02 -0.10041912 0.05163863 0.8667146
+# Intact_1-DEG2     -4.065041e-02 -0.14817147 0.06687066 0.7679756
+# Intact_2-DEG2     -4.065041e-02 -0.14817147 0.06687066 0.7679756
+# Intact_3-DEG2      8.130081e-03 -0.09939098 0.11565115 0.9999156
+# ENH2-ENH1         -1.626016e-02 -0.09228904 0.05976871 0.9761030
+# Intact_1-ENH1     -3.252033e-02 -0.14004139 0.07500074 0.8931131
+# Intact_2-ENH1     -3.252033e-02 -0.14004139 0.07500074 0.8931131
+# Intact_3-ENH1      1.626016e-02 -0.09126090 0.12378123 0.9958564
+# Intact_1-ENH2     -1.626016e-02 -0.12378123 0.09126090 0.9958564
+# Intact_2-ENH2     -1.626016e-02 -0.12378123 0.09126090 0.9958564
+# Intact_3-ENH2      3.252033e-02 -0.07500074 0.14004139 0.8931131
+# Intact_2-Intact_1  1.110223e-15 -0.13168587 0.13168587 1.0000000
+# Intact_3-Intact_1  4.878049e-02 -0.08290539 0.18046636 0.7823082
+# Intact_3-Intact_2  4.878049e-02 -0.08290539 0.18046636 0.7823082
+```
+
+```{r aov veg/ground cover by standtype, include=FALSE}
 summary(aov(percentcover_veg ~ standtype, data = abcover_vegcover))
 TukeyHSD(aov(percentcover_veg ~ standtype, data = abcover_vegcover))
 #$standtype
@@ -217,27 +254,28 @@ TukeyHSD(aov(percentcover_veg ~ standtype, data = abcover_vegcover))
 
 # no significant difference in ground cover or in vegetation cover
 ```
+
 ```{r plot caonpy veg cover, include=TRUE}
 #  column plot
 
-abcover_vegcover_plot <- ggplot(abcover_vegcover_meanSD, aes(x = standtype, y = mean_cover, fill = covertype)) +
+abcover_vegcover_plot <- ggplot(abcover_vegcover_meanSD, aes(x = site, y = mean_cover, fill = covertype)) +
   geom_col(position = "dodge", width = 0.8) +
   geom_errorbar(
     aes(ymin=mean_cover-se, ymax=mean_cover+se), # mean +- SE
                 width=.2, position=position_dodge(.9)) +
   labs(
     title = "Percent Canopy Cover", 
-    x = "Stand Type", 
+    x = "Site", 
     y = "Average Percent Canopy Cover (%)") + # title, axes titles
   scale_fill_manual(values = c(standcolors)) + # manual colors
   # scale_fill_manual(values = cal_palette('chaparral2')) +  # continuous colors
   #                  limits = c("intact", "matrix", "degraded"), # "limits" reorders the x-axis
   #                  labels = c("Intact", "Matrix", "Degraded")) + # "labels" changes the name
-  theme_bw() +
-  scale_x_discrete(
-    limits=c("intact", "matrix", "degraded"),
-    labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded")
-    )
+  theme_bw() #+
+ # scale_x_discrete(
+ #   limits=c("intact", "matrix", "degraded"),
+ #   labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded")
+ #   )
 
 abcover_vegcover_plot
 ```
@@ -287,24 +325,73 @@ cover_statuslf_matrix <- cover_statuslf_matrix %>%
 ```{r cover by lf by status - stats, include=TRUE}
 # SHRUB
 # highlight all and run as one command
-abcover_bylf_bystatus_aov_shrub <- aov(percentcover ~ standtype * status, data = cover_statuslf_matrix %>% 
-                                   filter((lifeform == 'shrub')))
 
-abcover_bylf_bystatus_aov_shrubnat <- aov(percentcover ~ standtype, data = cover_statuslf_matrix %>% 
+#abcover_bylf_bystatus_aov_shrub <- aov(percentcover ~ site * status, data = cover_statuslf_matrix %>% 
+#                                   filter((lifeform == 'shrub'))) <-- native and non-native
+
+abcover_bylf_bystatus_aov_shrubnat <- aov(percentcover ~ site, data = cover_statuslf_matrix %>% 
                                    filter((lifeform == 'shrub')) %>%  
-                                  filter((status == 'native')))
+                                  filter((status == 'native'))) # <-- NATIVE only
 print(summary(abcover_bylf_bystatus_aov_shrubnat))
-#            Df Sum Sq Mean Sq F value   Pr(>F)    
-#standtype    2 0.5516 0.27581    13.9 0.000752 ***
-#Residuals   12 0.2382 0.01985 
-print(TukeyHSD(abcover_bylf_bystatus_aov_shrubnat))
-#$standtype
-#                      diff        lwr         upr     p adj
-#intact-degraded  0.5162602  0.2505030  0.78201736 0.0006178
-#matrix-degraded  0.2439024  0.0269126  0.46089228 0.0277839
-#matrix-intact   -0.2723577 -0.5381149 -0.00660053 0.0444896
-# significant differences in native shrub cover among stands
+#            Df Sum Sq Mean Sq F value  Pr(>F)   
+# site         6 0.7033 0.11722   10.85 0.00179 ** <-- 
+# Residuals    8 0.0865 0.01081                   
 
+print(TukeyHSD(abcover_bylf_bystatus_aov_shrubnat))
+# $site
+#                            diff          lwr        upr     p adj
+# DEG2-DEG1         -1.056911e-01 -0.429744159 0.21836205 0.8584743
+# ENH1-DEG1          3.170732e-01 -0.006979931 0.64112627 0.0556174
+# ENH2-DEG1          6.504065e-02 -0.259012452 0.38909375 0.9823925
+# Intact_1-DEG1      3.821138e-01 -0.076166471 0.84039411 0.1142444
+# Intact_2-DEG1      3.821138e-01 -0.076166471 0.84039411 0.1142444
+# Intact_3-DEG1      6.260163e-01  0.167735968 1.08429655 0.0089206 <--
+# ENH1-DEG2          4.227642e-01  0.098711125 0.74681733 0.0117502
+# ENH2-DEG2          1.707317e-01 -0.153321395 0.49478481 0.4727239
+# Intact_1-DEG2      4.878049e-01  0.029524585 0.94608517 0.0364522
+# Intact_2-DEG2      4.878049e-01  0.029524585 0.94608517 0.0364522
+# Intact_3-DEG2      7.317073e-01  0.273427024 1.18998761 0.0033449
+# ENH2-ENH1         -2.520325e-01 -0.576085623 0.07202058 0.1507687
+# Intact_1-ENH1      6.504065e-02 -0.393239643 0.52332094 0.9970509
+# Intact_2-ENH1      6.504065e-02 -0.393239643 0.52332094 0.9970509
+# Intact_3-ENH1      3.089431e-01 -0.149337204 0.76722338 0.2485277
+# Intact_1-ENH2      3.170732e-01 -0.141207122 0.77535346 0.2285600
+# Intact_2-ENH2      3.170732e-01 -0.141207122 0.77535346 0.2285600
+# Intact_3-ENH2      5.609756e-01  0.102695317 1.01925590 0.0170163
+# Intact_2-Intact_1 -1.110223e-16 -0.561276438 0.56127644 1.0000000
+# Intact_3-Intact_1  2.439024e-01 -0.317373999 0.80517888 0.6558165
+# Intact_3-Intact_2  2.439024e-01 -0.317373999 0.80517888 0.6558165
+ggplot(data = cover_statuslf_matrix %>% filter((lifeform == 'shrub')) %>% filter((status == 'native')), 
+       aes(y = percentcover, x = site_rep, fill = lifeform)) +
+    geom_boxplot() # boxplots
+
+# The arguments to spread():
+# - data: Data object
+# - key: Name of column containing the new column names
+# - value: Name of column containing values
+cover_statuslf_matrix$status_lifeform <- paste(cover_statuslf_matrix$status, cover_statuslf_matrix$lifeform, sep="_") # combine status and life form to one column
+cover_statuslf_matrix_long <- cover_statuslf_matrix %>%
+ dplyr::select(standtype, site_rep, percentcover, status_lifeform)
+view(cover_statuslf_matrix_long)
+
+cover_statuslf_matrix_wide1 <- cover_statuslf_matrix_long %>%
+  spread(status_lifeform, percentcover)
+view(cover_statuslf_matrix_wide1)
+
+ggplot(data = cover_statuslf_matrix_wide1, 
+       aes(x = nonnative_grass*100, y = native_shrub*100, color = standtype)) +
+  geom_point(size = 3, alpha = 0.8) +
+ # scale_fill_manual(values = standcolors) +
+  labs(x = "Non-native grass cover (%)", y = "Native shrub cover (%)", title = "Native Shrub Cover by Non-native Grass Cover") +
+   scale_color_manual(values = c(standcolors),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) +
+  theme_bw()
+```
+
+```{r forb native percent cover by site, include=TRUE}
 
 # FORB
 abcover_bylf_bystatus_aov_forb <- aov(percentcover ~ standtype * status, data = cover_statuslf_matrix %>% filter((lifeform == 'forb')))
