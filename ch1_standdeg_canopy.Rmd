@@ -5,6 +5,8 @@ date: "2023-07-24"
 output: html_document
 ---
 
+### NOTES 
+
 ```{r adam sandler message, include=FALSE}
 
 # jul31 
@@ -19,16 +21,19 @@ output: html_document
 # 5. look at hist(seedbank$abundance)
 # From talking with Rob - get rid of the zeros in abundance data because you don't know if the seeds were there or not... just calculate means and stats on germination counts. If there was only one tray with Sp. A, you can't run stats on it because you only have one rep with Sp. A present. 
 
+# October 11, 20203
+# you need to rerun above ground data by transect, not grouped by stand type
+# model = model_type(dependent_variable ~ independent_variable + covariate, data = dataset_name),
+
 
 ```
-
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r install libraries, message=FALSE}
+```{r libraries, message=FALSE}
 
 library(here) # similar to set working directory
 library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
@@ -50,7 +55,7 @@ library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD
 #citation("DHARMa")
 ```
 
-```{r install colors, include=TRUE}
+```{r colors, include=TRUE}
 devtools::install_github("an-bui/calecopal")
 
 library(calecopal)
@@ -81,9 +86,6 @@ statuscolors <- c(native, exotic)
 
 ```
 
-# 1. How does physical structure differ among the stands?
-
-### 1.1 Percent cover by stand (horizontal variation)
 
 ```{r load csv, create columns, calculate - percent cover, echo=FALSE, eval=F}
 
@@ -123,8 +125,11 @@ abcover_full_v_omitground <- filter(abcover_full_v, status !="ground")
 glimpse(abcover_full_v_omitground)
 ```
 
-##### (A) by cover type - veg or ground
-```{r calculate veg/ground cover, include = TRUE}
+# 1. How does physical structure differ among the stands?
+
+### 1.1 Percent cover (horizontal variation)
+
+```{r percent cover - abcover_vegcover, include = TRUE}
 abcover_vegcover <- abcover_full_v %>% 
   filter(vertical == "1") %>% 
   group_by(standtype, site, rep) %>% 
@@ -136,15 +141,19 @@ print(abcover_vegcover)
 
 abcover_vegcover_long <- gather(abcover_vegcover, covertype, percentcover, percentcover_veg:percentcover_ground, factor_key = TRUE) 
 abcover_vegcover_long
+```
+### 1.1A total % vegetation cover
 
-# visualizing data
+```{r FIGURES totalvegcover, include=TRUE}
+
+# 1) visualizing data - highlight all and run
 hist(abcover_vegcover_long$percentcover) # histogram
 ggplot(data = abcover_vegcover_long, aes(y = percentcover, x = site, fill = covertype)) +
     geom_boxplot() # boxplots
 ggplot(data = abcover_vegcover_long, aes(y = percentcover, x = site, color = covertype)) + 
   geom_jitter()
 
-# visualize boxplots
+# 2) visualize boxplots
 ggplot(data = abcover_vegcover_long, aes(y = percentcover, x = site, fill = covertype))+
   geom_boxplot()+
   scale_y_continuous(breaks = seq(0,1,0.2), limits = c(0, 1))+
@@ -155,7 +164,7 @@ ggplot(data = abcover_vegcover_long, aes(y = percentcover, x = site, fill = cove
   theme_bw()+
   theme(text = element_text(size = 14), axis.text.y = element_text(size = 12), axis.text.x = element_text(size = 12))
 
-# jitter code
+# 3) jitter code
 ggplot(data = abcover_vegcover_long, aes(x = site, y = percentcover, color = covertype))+ #start with the raw data
   #geom_jitter(width = 0.05, alpha = 0.25, pch=ifelse(grepl("c_", prop2mdata$stim), 17,19), cex=2.5)+ #use geom_jitter to add raw data points
   #geom_point(d = plotnewdata, aes(x = stim, y = stim.mean.prop2m), shape = rep(c(17,19),2), cex = 4)+ #now use geom_point to add the model estimate means
@@ -171,23 +180,32 @@ ggplot(data = abcover_vegcover_long, aes(x = site, y = percentcover, color = cov
   theme_bw()+
   theme(text = element_text(size = 14), axis.text.y = element_text(size = 12), axis.text.x = element_text(size = 12))
 # end jitter code
+```
 
+```{r MEAN totalvegcover, include=TRUE}
 #testing for normality
 shapiro.test(abcover_vegcover_long$percentcover)
-qqPlot(abcover_vegcover_long$percentcover)
-library(ggpubr)
+# qqPlot(abcover_vegcover_long$percentcover) # error
+
 ggqqplot(abcover_vegcover_long$percentcover)
+
+abcover_vegcover_long$site_rep <- paste(abcover_vegcover_long$site, abcover_vegcover_long$rep, sep="_") # combine site and rep form to one column
 
 # mean SD
 abcover_vegcover_meanSD <- abcover_vegcover_long %>%
-  group_by(site, covertype) %>% 
+  group_by(site, covertype) %>% # by site
   summarize(mean_cover = mean(percentcover),
             n = length((percentcover)),
             sd = sd(percentcover),
             se = ((sd(percentcover))/sqrt(length((percentcover)))))
 print(abcover_vegcover_meanSD)
+
+# no mean when by site_rep
 ```
-```{r aov veg/ground cover by SITE, include=TRUE}
+
+```{r STATS totalvegcover, include=FALSE}
+
+# by SITE
 summary(aov(percentcover_veg ~ site, data = abcover_vegcover))
 # Df   Sum Sq   Mean Sq F value Pr(>F)
 # site         6 0.004125 0.0006874   1.156  0.413
@@ -257,9 +275,30 @@ TukeyHSD(aov(percentcover_veg ~ standtype, data = abcover_vegcover))
 # no significant difference in ground cover or in vegetation cover
 ```
 
-```{r plot caonpy veg cover, include=TRUE}
-#  column plot
+```{r bar plot totalvegcover, include=TRUE}
 
+# combine standtype and native/nonnative status to one column
+abcover_vegcover$site_rep <- paste(abcover_vegcover$site, abcover_vegcover$rep, sep="_") 
+
+#  column plot - by site_rep
+abcover_vegcover_plot_2 <- ggplot(abcover_vegcover, aes(x = site_rep, y = percentcover_veg, fill = standtype)) +
+  geom_col(position = "dodge", width = 0.8) +
+  labs(
+    title = "Total Vegetation Cover", 
+    x = "Site", 
+    y = "Percent Vegetation Cover (%)") + # title, axes titles
+  scale_fill_manual(values = c(standcolors)) + # manual colors
+  # scale_fill_manual(values = cal_palette('chaparral2')) +  # continuous colors
+  #                  limits = c("intact", "matrix", "degraded"), # "limits" reorders the x-axis
+  #                  labels = c("Intact", "Matrix", "Degraded")) + # "labels" changes the name
+  theme_bw() #+
+ # scale_x_discrete(
+ #   limits=c("intact", "matrix", "degraded"),
+ #   labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded")
+ #   )
+abcover_vegcover_plot_2
+
+#  column plot - by SITE
 abcover_vegcover_plot <- ggplot(abcover_vegcover_meanSD, aes(x = site, y = mean_cover, fill = covertype)) +
   geom_col(position = "dodge", width = 0.8) +
   geom_errorbar(
@@ -278,12 +317,10 @@ abcover_vegcover_plot <- ggplot(abcover_vegcover_meanSD, aes(x = site, y = mean_
  #   limits=c("intact", "matrix", "degraded"),
  #   labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded")
  #   )
-
 abcover_vegcover_plot
 ```
 
-
-##### (B) Percent cover by lifeform by native/nonnative status - there shouldn't be zeros in your df
+### 1.1B Percent cover by lifeform by native/nonnative status - there shouldn't be zeros in your df
 
 ```{r cover x status x lifeform - data prep, include = TRUE}
 # line 933 from Ch1_Degradation_original.Rmd
@@ -301,7 +338,23 @@ view(abcover_bylf_bystatus) # prints to new tab
 
 ## histogram 
 hist(abcover_bylf_bystatus$percentcover) 
-## jitter
+
+## jitter - by site_rep
+ggplot(data = abcover_bylf_bystatus, aes(y = percentcover, x = site_rep, color = lifeform)) + 
+  geom_jitter()
+ggplot(data = abcover_bylf_bystatus, aes(y = percentcover, x = lifeform, color = standtype)) + 
+  geom_jitter()
+
+# STEPHANIE - start here 10/11/2023
+
+
+ggplot(data = abcover_bylf_bystatus, aes(y = percentcover, x = standtype, color = status)) + 
+  geom_jitter()
+## boxplot
+ggplot(data = abcover_bylf_bystatus, aes(y = percentcover, x = standtype, fill = lifeform)) +
+    geom_boxplot() # boxplots
+
+## jitter - by standtype
 ggplot(data = abcover_bylf_bystatus, aes(y = percentcover, x = standtype, color = lifeform)) + 
   geom_jitter()
 ggplot(data = abcover_bylf_bystatus, aes(y = percentcover, x = standtype, color = status)) + 
