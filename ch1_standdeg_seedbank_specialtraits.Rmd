@@ -1,0 +1,220 @@
+---
+title: "ch1_standdeg_seedbank"
+author: "Stephanie Ma Lucero"
+date: "2023-07-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r install libraries, include=TRUE}
+library(here) # similar to set working directory
+library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
+library(ggplot2) # data visualization
+library(dplyr)
+library(ggthemes)
+library(plotly)
+library(ggpubr) # customize ggplot2 for publication
+library(vegan) #community ecology package - includes, MASS, cluster, mgcv
+library(readxl) # for .xls and .xlsx sheets
+library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD, dist{stats}, simint, simtest, csimint, csimtest{multcomp}, friedmanmc, kruskalmc{pgirmess}
+```
+
+# Load data
+
+```{r load seedbank data, include=TRUE}
+
+# STAND COMPARISONS BY SEEDBANK SPECIES RICHNESS AND GERMINATION COUNTS - OMIT Zeros
+# 1. species richness - use "species_richness" column 
+# 2. native species richness - filter status == "native"
+# 3. germination abundance - "genus_abundance" column and "count" column
+# 4. germination of fire followers - ask Rob how he would select for not present in CK but present in treated tray.
+
+
+seedbank_load_raw <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_seedbank_20231007.csv", header = TRUE, na.strings=c("","NA"))
+
+
+seedbank_load_slice <- seedbank_load_raw %>%
+  slice(1:2127) 
+
+seedbank_load_v <- seedbank_load_slice %>%
+  mutate(year = as.character(year),
+                                     stand = as.character(stand), 
+                                site = as.character(site),
+                                soilcore = as.character(soilcore), 
+                                depth_cm = as.character(depth_cm), 
+                                depth_name = as.character(depth_name),
+                                treatment = as.character(treatment), 
+        rep = as.integer(rep),                        
+         species_diversity = as.character(species_diversity), 
+                                genus_abundance = as.character(genus_abundance), 
+                                lifeform = as.character(lifeform), 
+                                status = as.character(status), 
+                                lifescycle = as.character(lifescycle), 
+                                family = as.character(family), 
+                                count = as.integer(count),
+                                NOTES = as.character(NOTES)
+                              ) %>% 
+  select(c("stand", "site", "soilcore", "depth_name", "treatment", "rep", "species_diversity", "genus_abundance", "lifeform", "status", "lifescycle", "family", "count")) %>% 
+  mutate(stand = fct_relevel(stand, 
+            "intact", "enhanced", "degraded")) %>% 
+  mutate(treatment = fct_relevel(treatment, 
+                                 "control", "charate", "oven", "ovenchar")) %>% 
+  mutate(stand = fct_recode(stand, 
+                                "shrub_dominated" = "intact", # rename stand types
+                                "matrix" = "enhanced",
+                                "grass_dominated" = "degraded")) %>%
+   filter(count != 0) # omitting observations with 0 count
+
+# combine SITE and CORE to one column
+seedbank_load_v$stand_core <- paste(seedbank_load_v$site, seedbank_load_v$soilcore, sep="_") 
+
+# combine SITE_CORE and DEPT to one column
+seedbank_load_v$stand_core_depth <- paste(seedbank_load_v$stand_core, seedbank_load_v$depth_name, sep="_") 
+
+# combine SITE_CORE_DEPTH and TREATMENT to one column
+seedbank_load_v$stand_core_depth_treat <- paste(seedbank_load_v$stand_core_depth, seedbank_load_v$treatment, sep="_") 
+
+# combine SITE_CORE and TREATMENT to one column
+seedbank_load_v$stand_core_treat <- paste(seedbank_load_v$stand_core, seedbank_load_v$treatment, sep="_") 
+
+seedbank_load_v <- seedbank_load_v %>% 
+  mutate(stand_core = fct_relevel(stand_core, 
+                                  "INT1_1", "INT1_2" , "INT1_3" ,"INT2_4"  ,"INT2_5" , "INT2_6",  "INT3_7" , "INT3_8" , "INT3_9",
+                                  "ENH1_1" , "ENH1_2" , "ENH1_3" , "ENH1_4" , "ENH1_5" , "ENH2_6" , "ENH2_7" , "ENH2_8"  ,"ENH2_9"  ,"ENH2_10", 
+                                 "DEG1_1" , "DEG1_2"  ,"DEG1_3"  ,"DEG1_4" , "DEG2_5" , "DEG2_6" , "DEG2_7" ))
+
+glimpse(seedbank_load_v)
+
+unique(seedbank_load_v$stand)
+unique(seedbank_load_v$site)
+unique(seedbank_load_v$soilcore)
+unique(seedbank_load_v$depth_name)
+unique(seedbank_load_v$treatment)
+unique(seedbank_load_v$species_diversity)
+unique(seedbank_load_v$status)
+unique(seedbank_load_v$stand_core_depth)
+unique(seedbank_load_v$stand_core_treat) # wrap by treatment instead of ordering
+
+
+#head(seedbank_load_v)
+str(seedbank_load_v)
+glimpse(seedbank_load_v)
+
+
+#seedbank_load_v <- seedbank_load_v %>% 
+#  filter(treatment != "pretreatment") # will OMIT species from pretreatment
+
+
+```
+
+```{r slice by stand type, include=TRUE}
+
+SHRUB_seedbank <- seedbank_load_v %>% 
+  filter(stand == "shrub_dominated")
+unique(SHRUB_seedbank$site)
+
+MATRIX_seedbank <- seedbank_load_v %>% 
+  filter(stand == "matrix")
+unique(MATRIX_seedbank$site)
+
+GRASS_seedbank <- seedbank_load_v %>% 
+  filter(stand == "grass_dominated")
+unique(GRASS_seedbank$site)
+```
+
+# Fire following species
+
+```{r fire followers only, include = TRUE}
+
+control_spp = seedbank_load_v$species_diversity[seedbank_load_v$treatment=="control"]
+unique(control_spp)
+
+charate_spp = seedbank_load_v$species_diversity[seedbank_load_v$treatment=="charate"]
+unique(charate_spp)
+
+oven_spp = seedbank_load_v$species_diversity[seedbank_load_v$treatment=="oven"]
+unique(oven_spp)
+
+ovenchar_spp = seedbank_load_v$species_diversity[seedbank_load_v$treatment=="ovenchar"]
+
+firefollowers = unique(c(charate_spp, oven_spp, ovenchar_spp))
+
+fire_only = tibble(firefollowers[!firefollowers %in% control_spp])
+control_df = tibble(control_spp)
+view(fire_only) #24 species
+```
+
+```{r fire followers}
+
+```
+
+
+```{r intact seed bank, include = TRUE}
+
+INT_speciesdiversity <- unique(INT_seedbank$species_diversity) # list of names
+# 38 species
+# [1] "Pseudognaphalium californicum" "Artemisia californica"         "Pseudognaphalium luteoalbum"   "Stipa lepida"                 
+# [5] "Emmenanthe penduliflora"       "Eucrypta chrysanthemifolia"    "Nicotiana glauca"              "Bromus diandrus"              
+# [9] NA                              "Polypogon monspeliensis"       "Erigeron canadensis"           "Malacothrix saxatilis"        
+#[13] "Sonchus oleraceus"             "UnknownA"                      "Astragalus trichopodus"        "Claytonia parviflora"         
+#[17] "Claytonia perfoliata"          "Ribes spp."                    "Apiastrum angustifolium"       "Cryptantha spp."              
+#[21] "Bromus madritensis"            "Phacelia viscida"              "Festuca myuros"                "Acmispon glaber"              
+#[25] "Solanum xanti"                 "Centaurea melitensis"          "Oxalis corniculata"            "Salvia leucophylla"           
+#[29] "Laennecia coulteri"            "Marah macrocarpa"              "Malacothamnus fasciculatus"    "Melica imperfecta"            
+#[33] "Carduus pycnocephalus"         "Ceanothus oliganthus"          "Phacelia tanacetifolia"        "Madia gracilis"               
+#[37] "Typha domingensis"             "Uropappus lindleyi"            "Stephanomeria virgata"        
+
+INT_seedbank %>% 
+  group_by(status) %>% 
+  summarise(species = species_diversity,
+            N_native = unique(species_diversity))
+  
+  
+INT_seedbank %>% 
+  filter(status == "nonnative") %>% 
+  summarize(N_nonnative = length(unique(species_diversity)))
+  
+```
+
+```{r old code, include=FALSE}
+
+
+seedbank_load <- seedbank_load_raw %>% 
+  select(c("stand", "site", "soilcore", "depthname", "treatment", "species", "lifeform", "status", "lifecycle", "family", "totalcount"))
+seedbank_load$totalcount <- as.numeric(seedbank_load$totalcount)
+str(seedbank_load)
+
+# load without unknowns and NAs <-- how do I omit UNKNOWNs?
+seedbank_load %>%
+  filter(!str_detect(species, "unk"), 
+         !str_detect(species, "Typha spp.")) 
+
+# rename treatments to be all lowercase 
+seedbank_load <- seedbank_load %>% 
+  mutate(treatment = recode(treatment,
+                            Oven = 'oven',
+                            Ovenchar = 'ovenchar',
+                            Char = 'char',
+                            Control = 'control', 
+                            Native = 'native')
+                            ) 
+  
+         
+print(seedbank_load)
+unique(seedbank_load$stand)
+unique(seedbank_load$site)
+unique(seedbank_load$soilcore)
+unique(seedbank_load$depthname)
+unique(seedbank_load$treatment)
+unique(seedbank_load$species)
+seedbank_load <- seedbank_load %>% 
+  filter(species != "Typha spp. ") # will omit Typha
+
+seedbank_load <- seedbank_load[seedbank_load$species != "Typha spp. ", ] # will remove Typha from the df
+
+view(seedbank_load)
+
+```
