@@ -345,9 +345,6 @@ ggplot(data = abcover_bylf_bystatus, aes(y = percentcover, x = site_rep, color =
 ggplot(data = abcover_bylf_bystatus, aes(y = percentcover, x = lifeform, color = standtype)) + 
   geom_jitter()
 
-# STEPHANIE - start here 10/11/2023
-
-
 ggplot(data = abcover_bylf_bystatus, aes(y = percentcover, x = standtype, color = status)) + 
   geom_jitter()
 ## boxplot
