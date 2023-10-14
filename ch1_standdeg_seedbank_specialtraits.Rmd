@@ -144,77 +144,202 @@ firefollowers = unique(c(charate_spp, oven_spp, ovenchar_spp))
 
 fire_only = tibble(firefollowers[!firefollowers %in% control_spp])
 control_df = tibble(control_spp)
-view(fire_only) #24 species
+glimpse(fire_only) #24 species
+names(fire_only)[names(fire_only) == "firefollowers[!firefollowers %in% control_spp]"] <- "species_diversity"
+
 ```
 
-```{r fire followers}
+```{r fire followers by site total emergence, include=TRUE}
 
+#left join data frames
+seedbank_fire <- left_join(fire_only, seedbank_load_v, by =  "species_diversity")
+unique(seedbank_fire$species_diversity)
+
+seedbank_fire_totalemerg <- seedbank_fire %>% 
+  na.omit() %>%
+  group_by(stand, stand_core) %>% 
+  summarise(sum = sum(count))
+
+
+```
+
+```{r fire followers plot, include = TRUE}
+# bar plot
+seedbank_fire_plot <- ggplot(seedbank_fire_totalemerg, aes(x = stand_core, y = sum, fill = stand)) +
+  geom_col(position = "dodge", width = 0.8) +
+  labs(
+    title = "Total emergence of fire following species", 
+    x = "Site", 
+    y = "Total emergence (N)") + # title, axes titles
+  scale_fill_manual(values = c(standcolors)) + # manual colors
+  # scale_fill_manual(values = cal_palette('chaparral2')) +  # continuous colors
+  #                  limits = c("intact", "matrix", "degraded"), # "limits" reorders the x-axis
+  #                  labels = c("Intact", "Matrix", "Degraded")) + # "labels" changes the name
+  theme_bw() #+
+ # scale_x_discrete(
+ #   limits=c("intact", "matrix", "degraded"),
+ #   labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded")
+ #   )
+ 
+seedbank_fire_plot +
+  theme(axis.text.x = element_text(angle = 90
+                                  , hjust = 1))
+
+seedbank_fire %>% 
+  group_by(stand_core) %>% 
+  summarise(sum = sum(count))
 ```
 
 
 ```{r intact seed bank, include = TRUE}
 
-INT_speciesdiversity <- unique(INT_seedbank$species_diversity) # list of names
-# 38 species
-# [1] "Pseudognaphalium californicum" "Artemisia californica"         "Pseudognaphalium luteoalbum"   "Stipa lepida"                 
-# [5] "Emmenanthe penduliflora"       "Eucrypta chrysanthemifolia"    "Nicotiana glauca"              "Bromus diandrus"              
-# [9] NA                              "Polypogon monspeliensis"       "Erigeron canadensis"           "Malacothrix saxatilis"        
-#[13] "Sonchus oleraceus"             "UnknownA"                      "Astragalus trichopodus"        "Claytonia parviflora"         
-#[17] "Claytonia perfoliata"          "Ribes spp."                    "Apiastrum angustifolium"       "Cryptantha spp."              
-#[21] "Bromus madritensis"            "Phacelia viscida"              "Festuca myuros"                "Acmispon glaber"              
-#[25] "Solanum xanti"                 "Centaurea melitensis"          "Oxalis corniculata"            "Salvia leucophylla"           
-#[29] "Laennecia coulteri"            "Marah macrocarpa"              "Malacothamnus fasciculatus"    "Melica imperfecta"            
-#[33] "Carduus pycnocephalus"         "Ceanothus oliganthus"          "Phacelia tanacetifolia"        "Madia gracilis"               
-#[37] "Typha domingensis"             "Uropappus lindleyi"            "Stephanomeria virgata"        
+INT_speciesdiversity <- unique(SHRUB_seedbank$species_diversity) # list of names
+print(INT_speciesdiversity)
 
-INT_seedbank %>% 
+# 39 species
+
+#  [1] "Bromus diandrus"               "Claytonia parviflora"         
+#  [3] "Emmenanthe penduliflora"       "Eucrypta chrysanthemifolia"   
+#  [5] "Pseudognaphalium luteoalbum"   "Stipa lepida"                 
+#  [7] "Unknown A - shrub"             "Astragalus trichopodus"       
+#  [9] "Claytonia perfoliata"          "Nicotiana glauca"             
+# [11] "Polypogon monspeliensis"       "Pseudognaphalium californicum"
+# [13] "Sonchus oleraceus"             "Erigeron canadensis"          
+# [15] "Malacothrix saxatilis"         "Artemisia californica"        
+# [17] "Ribes spp."                    "Apiastrum angustifolium"      
+# [19] "Cryptantha spp."               "Bromus madritensis"           
+# [21] "Festuca myuros"                "Phacelia viscida"             
+# [23] "Acmispon glaber"               "Bromus spp."                  
+# [25] "Solanum xanti"                 "Centaurea melitensis"         
+# [27] "Laennecia coulteri"            "Oxalis corniculata"           
+# [29] "Salvia leucophylla"            "Marah macrocarpa"             
+# [31] "Ceanothus oliganthus"          "Malacothamnus fasciculatus"   
+# [33] "Melica imperfecta"             "Carduus pycnocephalus"        
+# [35] "Phacelia tanacetifolia"        "Typha domingensis"            
+# [37] "Madia gracilis"                "Uropappus lindleyi"           
+# [39] "Stephanomeria virgata"            
+
+
+
+SHRUB_seedbank %>% 
   group_by(status) %>% 
-  summarise(species = species_diversity,
-            N_native = unique(species_diversity))
-  
-  
-INT_seedbank %>% 
-  filter(status == "nonnative") %>% 
-  summarize(N_nonnative = length(unique(species_diversity)))
-  
+   summarize(N = length(unique(species_diversity)))
+# status  N
+# native	28			
+# nonnative	11	
+
+# NATIVE SPP
+INT_speciesdiversity_native <-(SHRUB_seedbank %>% 
+  filter(status == "native"))
+INT_speciesdiversity_native_unique <- unique(INT_speciesdiversity_native$species_diversity)
+print(INT_speciesdiversity_native_unique)
+#  [1] "Claytonia parviflora"          "Emmenanthe penduliflora"      
+#  [3] "Eucrypta chrysanthemifolia"    "Stipa lepida"                 
+#  [5] "Unknown A - shrub"             "Astragalus trichopodus"       
+#  [7] "Claytonia perfoliata"          "Pseudognaphalium californicum"
+#  [9] "Erigeron canadensis"           "Malacothrix saxatilis"        
+# [11] "Artemisia californica"         "Ribes spp."                   
+# [13] "Apiastrum angustifolium"       "Cryptantha spp."              
+# [15] "Phacelia viscida"              "Acmispon glaber"              
+# [17] "Solanum xanti"                 "Laennecia coulteri"           
+# [19] "Salvia leucophylla"            "Marah macrocarpa"             
+# [21] "Ceanothus oliganthus"          "Malacothamnus fasciculatus"   
+# [23] "Melica imperfecta"             "Phacelia tanacetifolia"       
+# [25] "Typha domingensis"             "Madia gracilis"               
+# [27] "Uropappus lindleyi"            "Stephanomeria virgata" 
+
+INT_speciesdiversity_nn <-(SHRUB_seedbank %>% 
+  filter(status == "nonnative"))
+INT_speciesdiversity_nn_unique <- unique(INT_speciesdiversity_nn$species_diversity)
+print(INT_speciesdiversity_nn_unique)  
+# 1] "Bromus diandrus"             "Pseudognaphalium luteoalbum"
+#  [3] "Nicotiana glauca"            "Polypogon monspeliensis"    
+#  [5] "Sonchus oleraceus"           "Bromus madritensis"         
+#  [7] "Festuca myuros"              "Bromus spp."                
+#  [9] "Centaurea melitensis"        "Oxalis corniculata"         
+# [11] "Carduus pycnocephalus"
 ```
 
-```{r old code, include=FALSE}
+```{r MATRIX seed bank, include=TRUE}
+MATRIX_speciesdiversity <- unique(MATRIX_seedbank$species_diversity) # list of names
+print(MATRIX_speciesdiversity)
 
+# 41 species
 
-seedbank_load <- seedbank_load_raw %>% 
-  select(c("stand", "site", "soilcore", "depthname", "treatment", "species", "lifeform", "status", "lifecycle", "family", "totalcount"))
-seedbank_load$totalcount <- as.numeric(seedbank_load$totalcount)
-str(seedbank_load)
+# [1] "Bromus madritensis"                             
+#  [2] "Centaurea melitensis"                           
+#  [3] "Eriodictyon crassifolium"                       
+#  [4] "Salvia leucophylla "                            
+#  [5] "Typha domingensis"                              
+#  [6] "Acmispon maritimus"                             
+#  [7] "Malacothamnus fasciculatus"                     
+#  [8] "Artemisia californica"                          
+#  [9] "Diplacus aurantiacus"                           
+# [10] "Sonchus oleraceus"                              
+# [11] "Festuca myuros "                                
+# [12] "Lactuca serriola "                              
+# [13] "Hirschfeldia incana"                            
+# [14] "Calochortus clavatus"                           
+# [15] "Acmispon glaber"                                
+# [16] "Erodium spp. "                                  
+# [17] "Pseudognaphalium luteoalbum"                    
+# [18] "Emmenanthe penduliflora"                        
+# [19] "Logfia filaginoides"                            
+# [20] "Stipa lepida"                                   
+# [21] "Uropappus lindleyi"                             
+# [22] "Asclepias fascicularis"                         
+# [23] "Bromus hordeaceus"                              
+# [24] "Juncus bufonius"                                
+# [25] "Phacelia spp."                                  
+# [26] "Festuca myuros"                                 
+# [27] "Astragalus trichopodus "                        
+# [28] "Avena barbara"                                  
+# [29] "Bromus diandrus"                                
+# [30] "Dipterostemon capitatus"                        
+# [31] "Unknown D - brown dicot"                        
+# [32] "Unknown C - bright green seedling, small leaves"
+# [33] "Trifolium spp."                                 
+# [34] "Acmispon strigosus"                             
+# [35] "Thysanocarpus spp. "                            
+# [36] "Stephanomeria virgata"                          
+# [37] "Unknown E - plastic plant"                      
+# [38] "Unknown G - fuzzy leaf dicot"                   
+# [39] "Trifolium willdenovii"                          
+# [40] "Lupinus bicolor "                               
+# [41] "Solanum xanti"   
 
-# load without unknowns and NAs <-- how do I omit UNKNOWNs?
-seedbank_load %>%
-  filter(!str_detect(species, "unk"), 
-         !str_detect(species, "Typha spp.")) 
+MATRIX_seedbank %>% 
+  group_by(status) %>% 
+   summarize(N = length(unique(species_diversity)))
 
-# rename treatments to be all lowercase 
-seedbank_load <- seedbank_load %>% 
-  mutate(treatment = recode(treatment,
-                            Oven = 'oven',
-                            Ovenchar = 'ovenchar',
-                            Char = 'char',
-                            Control = 'control', 
-                            Native = 'native')
-                            ) 
-  
-         
-print(seedbank_load)
-unique(seedbank_load$stand)
-unique(seedbank_load$site)
-unique(seedbank_load$soilcore)
-unique(seedbank_load$depthname)
-unique(seedbank_load$treatment)
-unique(seedbank_load$species)
-seedbank_load <- seedbank_load %>% 
-  filter(species != "Typha spp. ") # will omit Typha
-
-seedbank_load <- seedbank_load[seedbank_load$species != "Typha spp. ", ] # will remove Typha from the df
-
-view(seedbank_load)
-
+# status    N
+# native	  28			
+# nonnative	12			
+# unknown	  1	
 ```
+
+```{r GRASS seed bank, include=TRUE}
+GRASS_speciesdiversity <- unique(GRASS_seedbank$species_diversity) # list of names
+print(GRASS_speciesdiversity)
+
+# 20 species
+
+# [1] "Astragalus trichopodus"      "Bromus madritensis"         
+#  [3] "Emmenanthe penduliflora"     "Erodium cicutarium"         
+#  [5] "Hirschfeldia incana"         "Erodium moschatum"          
+#  [7] "Croton setiger"              "Nicotiana glauca"           
+#  [9] "Bromus diandrus"             "Artemisia californica"      
+# [11] "Acmispon maritimus"          "Centaurea melitensis"       
+# [13] "Pseudognaphalium luteoalbum" "Trifolium gracelentum"      
+# [15] "Galium porrigens"            "Fragaria vesca"             
+# [17] "Malacothamnus fasciculatus"  "Eucrypta chrysanthemifolia" 
+# [19] "Cryptantha spp."             "Erigeron canadensis"       
+
+GRASS_seedbank %>% 
+  group_by(status) %>% 
+   summarize(N = length(unique(species_diversity)))
+# status    N
+# native	  12			
+# nonnative	8	
+```
+
