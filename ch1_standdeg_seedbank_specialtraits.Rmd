@@ -190,8 +190,9 @@ seedbank_fire %>%
   summarise(sum = sum(count))
 ```
 
+# SHRUB - species diversity
 
-```{r intact seed bank, include = TRUE}
+```{r SHRUB diversity, include = TRUE}
 
 INT_speciesdiversity <- unique(SHRUB_seedbank$species_diversity) # list of names
 print(INT_speciesdiversity)
@@ -341,5 +342,35 @@ GRASS_seedbank %>%
 # status    N
 # native	  12			
 # nonnative	8	
+```
+
+# stand differences
+```{r}
+seedbank_native <- seedbank_load_v%>% 
+  filter(status == "native") %>% 
+  group_by(stand, stand_core) %>% 
+  summarize(total_native_emergence = sum(count))
+view(seedbank_native)
+
+# bar plot
+seedbank_native_plot <- ggplot(seedbank_native, aes(x = stand_core, y = total_native_emergence, fill = stand)) +
+  geom_col(position = "dodge", width = 0.8) +
+  labs(
+    title = "Total emergence of native species", 
+    x = "Site", 
+    y = "Total emergence (N)") + # title, axes titles
+  scale_fill_manual(values = c(standcolors)) + # manual colors
+  # scale_fill_manual(values = cal_palette('chaparral2')) +  # continuous colors
+  #                  limits = c("intact", "matrix", "degraded"), # "limits" reorders the x-axis
+  #                  labels = c("Intact", "Matrix", "Degraded")) + # "labels" changes the name
+  theme_bw() #+
+ # scale_x_discrete(
+ #   limits=c("intact", "matrix", "degraded"),
+ #   labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded")
+ #   )
+ 
+seedbank_native_plot +
+  theme(axis.text.x = element_text(angle = 90
+                                  , hjust = 1))
 ```
 
