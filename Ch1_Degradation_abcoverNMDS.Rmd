@@ -301,7 +301,8 @@ fit_above <- envfit(abcover_byspecies_NMDS, abcover_byspecies_nmdsprep, perm = 9
 fit_above_pvals <- fit_above$vectors$pvals %>% 
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
-  dplyr::rename("pvals" = ".")
+  dplyr::rename("pvals" = ".") %>% 
+  filter(!c(species == "standtype_ID"))
 view(fit_above_pvals)
 
 # extract coordinates for species, only keep species with p-val = 0.05
@@ -310,22 +311,30 @@ fit_above_spp <- fit_above %>%
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   full_join(., fit_above_pvals, by = "species") %>% 
-  filter(pvals < 0.05) %>%  # limited number for visual clarity
+  filter(pvals < 0.01) %>%  # limited number for visual clarity
   filter(!species == 'standtype_ID')
 view(fit_above_spp)
 
 # new plot
 nmdsabove_plot_new <- ggplot(plot_above_df, aes(x = NMDS1, y = NMDS2)) +
   #coord_fixed() +
-  geom_point(aes(color = standtype, shape = standtype), size = 3, alpha = 0.8) +
+  geom_point(aes(color = standtype), size = 3, alpha = 0.8) +
   stat_ellipse(aes(color = standtype)) +
-  scale_color_manual(values = c("darkgreen", "darkmagenta", "darkgoldenrod1")) +
+  scale_color_manual(values = c("darkgreen", "darkmagenta", "darkgoldenrod1"),
+                     name = "Stand Type",
+                     labels = c("Intact" = "Shrub dominated", 
+                                "Matrix" = "Matrix", 
+                                "Degraded" = "Grass dominated")) + #rename standtypes labels
   geom_segment(data = fit_above_spp, aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
                arrow = arrow(length = unit(0.25, "cm")),
                col = "black") +
   geom_text(data = fit_above_spp, aes(label = species),  
-            position = position_jitter(width = 0.2, height = 0.3)) 
-nmdsabove_plot_new + theme_bw()
+            position = position_jitter(width = 0.1, height = 0.2)) 
+
+
+nmds_above_print <- nmdsabove_plot_new + theme_bw() + theme(legend.position = c(0.125, 0.825))
+
+ggsave("Ch1_Degradation_figures/nmds_above_print.png", nmds_above_print, width = 8, height = 6)
 
 ```
 
@@ -333,7 +342,7 @@ nmdsabove_plot_new + theme_bw()
 
 
 
-```{r byplot - ggplot vectors and measurments}
+```{r byplot - ggplot vectors and measurments, include = FALSE}
 
 #this makes a dataframe that gives a lot of control graphically 
 abcover_byspecies_NMDS_fort <- fortify(abcover_byspecies_NMDS)
