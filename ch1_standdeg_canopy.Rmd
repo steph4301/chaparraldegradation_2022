@@ -39,6 +39,7 @@ library(here) # similar to set working directory
 library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
 # library(lubridate) # dates and times
 library(ggplot2) # data visualization
+library(gridExtra)
 # library(readr)
 library(dplyr)
 library(ggthemes)
@@ -113,6 +114,13 @@ abcover_full_v$site_rep_dist <- paste(abcover_full_v$site_rep, abcover_full_v$di
 # combine standtype and native/nonnative status to one column
 abcover_full_v$stand_status <- paste(abcover_full_v$standtype, abcover_full_v$status, sep="_") 
 
+abcover_full_v <- abcover_full_v %>% 
+  mutate(site_rep = fct_relevel(site_rep, 
+                                "Intact_1_1", "Intact_2_2", "Intact_3_3", "ENH1_1", "ENH1_2",    "ENH1_3"  ,   "ENH2_4"  ,   "ENH2_5"    , "ENH2_6"  , "DEG1_1"   ,  "DEG1_2"  ,   "DEG1_3"     ,"DEG2_4" ,    "DEG2_5"    , "DEG2_6" )) #%>%
+  # mutate(standtype = case_when(standtype == "intact" ~ "shrub_dominated", 
+  #                              standtype == "matrix" ~ "matrix",
+  #                              standtype == "degraded" ~ "grass_dominated")) 
+
 view(abcover_full_v) # look at new columns
 
 abcover_full_v %>%  
@@ -142,6 +150,7 @@ print(abcover_vegcover)
 abcover_vegcover_long <- gather(abcover_vegcover, covertype, percentcover, percentcover_veg:percentcover_ground, factor_key = TRUE) 
 abcover_vegcover_long
 ```
+
 ### 1.1A total % vegetation cover
 
 ```{r FIGURES totalvegcover, include=TRUE}
@@ -373,6 +382,7 @@ cover_statuslf_matrix <- cover_statuslf_matrix %>%
   mutate(standtype = fct_relevel(standtype, 
             "intact", "matrix", "degraded"))
 ```
+### - SHRUB
 
 ```{r cover by lf by status - aov, include=TRUE}
 # SHRUB
@@ -423,7 +433,7 @@ ggplot(data = cover_statuslf_matrix %>% filter((lifeform == 'shrub')) %>% filter
 
 ```
 
-```{r scatterplot}
+```{r SHRUB scatterplot}
 # The arguments to spread():
 # - data: Data object
 # - key: Name of column containing the new column names
@@ -437,6 +447,7 @@ cover_statuslf_matrix_wide1 <- cover_statuslf_matrix_long %>%
   spread(status_lifeform, percentcover)
 view(cover_statuslf_matrix_wide1)
 
+# scatterplot - shrub x nn grass
 ggplot(data = cover_statuslf_matrix_wide1, 
        aes(x = nonnative_grass*100, y = native_shrub*100, color = standtype)) + #color = standtype
   geom_point(size = 3, alpha = 0.8) +
@@ -447,20 +458,85 @@ ggplot(data = cover_statuslf_matrix_wide1,
                      name = "Stand Type",
                      labels = c("intact" = "shrub dominated", 
                                 "matrix" = "matrix", 
-                                "degraded" = "grass dominated")) +
+                                "degraded" = "grass dominated")) + #rename standtypes labels
   labs(x = "Non-native grass cover (%)", 
        y = "Native shrub cover (%)", 
        title = "Native Shrub Cover by Non-native Grass Cover") +
   theme_bw()
 
-
 ```
 
-```{r forb native percent cover by site, include=TRUE}
+### - FORB
+
+```{r forb native percent cover by site_rep, include=TRUE}
+
+# FORB
+
+cover_statuslf_matrix %>% 
+  filter(lifeform == 'forb') %>% 
+  group_by(site_rep, status) 
+
+cover_statuslf_matrix %>% 
+  filter(lifeform == 'forb' & status == "native") %>% 
+  group_by(site_rep) 
+
+cover_statuslf_matrix %>% 
+  filter(lifeform == 'forb' & status == "nonnative") %>% 
+  group_by(site_rep) 
+
+# scatterplot - forb x nn grass
+natforb_grass_scatter <- ggplot(data = cover_statuslf_matrix_wide1,
+              aes(x = nonnative_grass*100, y = native_forb*100, color = standtype)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(0, 100)+
+  xlim(0,100) +
+  geom_smooth(method = "gam", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  scale_color_manual(values = c(standcolors),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) + #rename standtypes labels
+  labs(x = "Non-native grass cover (%)", 
+       y = "Native forb cover (%)", 
+       title = "Native forb cover by non-native grass cover") +
+  theme_bw()
+
+# scatterplot - nnforb x nn grass
+nnforb_grass_scatter <- ggplot(data = cover_statuslf_matrix_wide1,
+              aes(x = nonnative_grass*100, y = nonnative_forb*100, color = standtype)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(0, 100)+
+  xlim(0,100) +
+  geom_smooth(method = "gam", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  scale_color_manual(values = c(standcolors),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) + #rename standtypes labels
+  labs(x = "Non-native grass cover (%)", 
+       y = "Non-native forb cover (%)", 
+       title = "Non-native forb cover by non-native grass cover") +
+  theme_bw()
+
+natforb_grass_scatter
+nnforb_grass_scatter
+
+
+# print the plots into a single figure
+grid.arrange(natforb_grass_scatter, nnforb_grass_scatter, ncol = 1, nrow = 2)
+
+
+ggsave("Ch1_Degradation_figures/natforb_grass_scatter.png", natforb_grass_scatter, width = 8, height = 6)
+ggsave("Ch1_Degradation_figures/nnforb_grass_scatter.png", nnforb_grass_scatter, width = 8, height = 6)
+```
+
+```{r forb stats percent cover by site}
 
 # FORB
 abcover_bylf_bystatus_aov_forb <- aov(percentcover ~ standtype * status, data = cover_statuslf_matrix %>% filter((lifeform == 'forb')))
+
 print(summary(abcover_bylf_bystatus_aov_forb))
+
 print(TukeyHSD(abcover_bylf_bystatus_aov_forb))
 ## forb - native
 abcover_bylf_bystatus_aov_forbnat <- aov(percentcover ~ standtype, data = cover_statuslf_matrix %>% filter((lifeform == 'forb')) %>% filter((status == 'native')))
@@ -488,6 +564,29 @@ print(TukeyHSD(abcover_bylf_bystatus_aov_forbnn))
 #matrix-degraded -0.3373984 -0.5722198 -0.1025769 0.0062271 <-- Mat - Deg
 #matrix-intact    0.1707317 -0.1168647  0.4583281 0.2896736
 
+
+
+# scatterplot - forb x nn grass
+ggplot(data = cover_statuslf_matrix_wide1, 
+       aes(x = nonnative_grass*100, y = native_forb*100, color = standtype)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(0, 100)+
+  xlim(0,100) +
+  geom_smooth(method = "gam", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  scale_color_manual(values = c(standcolors),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) + #rename standtypes labels
+  labs(x = "Non-native grass cover (%)", 
+       y = "Native forb cover (%)", 
+       title = "Native Forb Cover by Non-native Grass Cover") +
+  theme_bw()
+
+```
+
+### - GRASS
+```{r grass}
 # GRASS
 abcover_bylf_bystatus_aov_grass <- aov(percentcover ~ standtype * status, data = cover_statuslf_matrix %>% 
                                    filter((lifeform == 'grass')))
@@ -520,7 +619,9 @@ print(TukeyHSD(abcover_bylf_bystatus_aov_grassnn))
 #matrix-degraded -0.2195122 -0.3874051 -0.05161929 0.0115409 <--
 #matrix-intact    0.5894309  0.3838049  0.79505687 0.0000165 <-- 
 # SIG different non-native grass among sites
+```
 
+```{r fern}
 # FERN
 abcover_bylf_bystatus_aov_fern <- aov(percentcover ~ standtype * status, data = cover_statuslf_matrix %>% 
                                    filter((lifeform == 'fern')))
@@ -551,6 +652,7 @@ abcover_bylf_bystatus_meanSD$status_lifeform <- paste(abcover_bylf_bystatus_mean
 print(abcover_bylf_bystatus_meanSD) 
 ```
 
+### - STATS
 ```{r plot abcover_bylf_meanSD, include = TRUE}
 # line 965 in Ch1_Degradation_original.Rmd
 
@@ -597,6 +699,21 @@ standheight_full %>%
   group_by(site,rep) %>% 
   summarize(data_points = length(reading))
 ```
+
+```{r max height plot, include = TRUE}
+
+ggplot(standheight_full, aes(x = as.integer(reading)/2, y = height_cm, group = site_rep, color = site_rep)) +
+  facet_wrap(~ standtype, scales = "free_y", ncol = 1) +
+  geom_line() +
+  labs(
+    title = "Height vs Distance",
+    x = "Distance (m)",
+    y = "Height (cm)"
+  ) +
+  ylim(0, 500)+
+  theme_bw()
+```
+
 
 ```{r combine columns - canopy height, include = TRUE}
 
@@ -988,6 +1105,14 @@ summary(aov((deaddensity_1m2 ~ standtype) , data = shrubdensity_sum_bysiterep_de
 
 
 ```{r above ground - species richness - native richness, include = FALSE}
+
+### SPECIES RICHNESS DATA IS IN CH1_DEGRADATION_ABCOVERNMDS.RMD FILE ###
+
+
+
+
+
+
 # species richness, native richness
 abrich_full <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_abrich.csv", header = TRUE, na.strings=c("","NA")) %>% 
   dplyr::select('trasecttype', 'standtype', 'site', 'rep', 'distance', 'vertical', 'species', 'lifeform', 'status', 'lifecycle', 'Family', 'lifestage') %>% 
