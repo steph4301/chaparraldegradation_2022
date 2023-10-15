@@ -315,7 +315,7 @@ fit_above_spp <- fit_above %>%
   filter(!species == 'standtype_ID')
 view(fit_above_spp)
 
-# new plot
+# new plot - stand type
 nmdsabove_plot_new <- ggplot(plot_above_df, aes(x = NMDS1, y = NMDS2)) +
   #coord_fixed() +
   geom_point(aes(color = standtype), size = 3, alpha = 0.8) +
@@ -336,6 +336,22 @@ nmds_above_print <- nmdsabove_plot_new + theme_bw() + theme(legend.position = c(
 
 ggsave("Ch1_Degradation_figures/nmds_above_print.png", nmds_above_print, width = 8, height = 6)
 
+# nmds - by site_rep
+nmdsabove_plot_site_rep <- ggplot(plot_above_df, aes(x = NMDS1, y = NMDS2)) +
+  #coord_fixed() +
+  geom_point(aes(color = standtype), size = 3, alpha = 0.8) +
+  stat_ellipse(aes(color = site_rep)) +
+#  scale_color_manual(values = c("darkgreen", "darkmagenta", "darkgoldenrod1")) +#,
+                   #  name = "Stand Type",
+                   #  labels = c("Intact" = "Shrub dominated", 
+                    #            "Matrix" = "Matrix", 
+                   #             "Degraded" = "Grass dominated")) + #rename standtypes labels
+  geom_segment(data = fit_above_spp, aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
+               arrow = arrow(length = unit(0.25, "cm")),
+               col = "black") +
+  geom_text(data = fit_above_spp, aes(label = species),  
+            position = position_jitter(width = 0.1, height = 0.2)) 
+nmdsabove_plot_site_rep
 ```
 
 
