@@ -448,7 +448,7 @@ cover_statuslf_matrix_wide1 <- cover_statuslf_matrix_long %>%
 view(cover_statuslf_matrix_wide1)
 
 # scatterplot - shrub x nn grass
-ggplot(data = cover_statuslf_matrix_wide1, 
+shub_grass_scatter <- ggplot(data = cover_statuslf_matrix_wide1, 
        aes(x = nonnative_grass*100, y = native_shrub*100, color = standtype)) + #color = standtype
   geom_point(size = 3, alpha = 0.8) +
   ylim(0, 100)+
@@ -463,6 +463,11 @@ ggplot(data = cover_statuslf_matrix_wide1,
        y = "Native shrub cover (%)", 
        title = "Native Shrub Cover by Non-native Grass Cover") +
   theme_bw()
+
+shub_grass_scatter_print <- shub_grass_scatter+ theme(legend.position = c(0.15, 0.2))
+
+
+ggsave("Ch1_Degradation_figures/shub_grass_scatter_print.png", shub_grass_scatter_print, width = 8, height = 6)
 
 ```
 
@@ -507,7 +512,7 @@ nnforb_grass_scatter <- ggplot(data = cover_statuslf_matrix_wide1,
   geom_point(size = 3, alpha = 0.8) +
   ylim(0, 100)+
   xlim(0,100) +
-  geom_smooth(method = "gam", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  geom_smooth(method = "gam", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm, gam
   scale_color_manual(values = c(standcolors),
                      name = "Stand Type",
                      labels = c("intact" = "shrub dominated", 
@@ -518,16 +523,16 @@ nnforb_grass_scatter <- ggplot(data = cover_statuslf_matrix_wide1,
        title = "Non-native forb cover by non-native grass cover") +
   theme_bw()
 
-natforb_grass_scatter
-nnforb_grass_scatter
+natforb_grass_scatter_print <- natforb_grass_scatter + theme(legend.position = c(0.15, 0.8))
+nnforb_grass_scatter_print <- nnforb_grass_scatter+ theme(legend.position = c(0.15, 0.8))
 
 
 # print the plots into a single figure
-grid.arrange(natforb_grass_scatter, nnforb_grass_scatter, ncol = 1, nrow = 2)
+grid.arrange(natforb_grass_scatter_print, nnforb_grass_scatter_print, ncol = 1, nrow = 2)
 
 
-ggsave("Ch1_Degradation_figures/natforb_grass_scatter.png", natforb_grass_scatter, width = 8, height = 6)
-ggsave("Ch1_Degradation_figures/nnforb_grass_scatter.png", nnforb_grass_scatter, width = 8, height = 6)
+ggsave("Ch1_Degradation_figures/natforb_grass_scatter.png", natforb_grass_scatter_print, width = 8, height = 6)
+ggsave("Ch1_Degradation_figures/nnforb_grass_scatter.png", nnforb_grass_scatter_print, width = 8, height = 6)
 ```
 
 ```{r forb stats percent cover by site}
@@ -563,25 +568,6 @@ print(TukeyHSD(abcover_bylf_bystatus_aov_forbnn))
 #intact-degraded -0.5081301 -0.7957264 -0.2205337 0.0013474 <-- Int - Deg
 #matrix-degraded -0.3373984 -0.5722198 -0.1025769 0.0062271 <-- Mat - Deg
 #matrix-intact    0.1707317 -0.1168647  0.4583281 0.2896736
-
-
-
-# scatterplot - forb x nn grass
-ggplot(data = cover_statuslf_matrix_wide1, 
-       aes(x = nonnative_grass*100, y = native_forb*100, color = standtype)) + #color = standtype
-  geom_point(size = 3, alpha = 0.8) +
-  ylim(0, 100)+
-  xlim(0,100) +
-  geom_smooth(method = "gam", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
-  scale_color_manual(values = c(standcolors),
-                     name = "Stand Type",
-                     labels = c("intact" = "shrub dominated", 
-                                "matrix" = "matrix", 
-                                "degraded" = "grass dominated")) + #rename standtypes labels
-  labs(x = "Non-native grass cover (%)", 
-       y = "Native forb cover (%)", 
-       title = "Native Forb Cover by Non-native Grass Cover") +
-  theme_bw()
 
 ```
 
@@ -619,6 +605,30 @@ print(TukeyHSD(abcover_bylf_bystatus_aov_grassnn))
 #matrix-degraded -0.2195122 -0.3874051 -0.05161929 0.0115409 <--
 #matrix-intact    0.5894309  0.3838049  0.79505687 0.0000165 <-- 
 # SIG different non-native grass among sites
+
+
+
+# scatterplot - nnforb x nn grass
+natgrass_grass_scatter <- ggplot(data = cover_statuslf_matrix_wide1,
+              aes(x = nonnative_grass*100, y = native_grass*100, color = standtype)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(0, 100)+
+  xlim(0,100) +
+  geom_smooth(method = "gam", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm, gam
+  scale_color_manual(values = c(standcolors),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) + #rename standtypes labels
+  labs(x = "Non-native grass cover (%)", 
+       y = "Native grass cover (%)", 
+       title = "Native grass cover by non-native grass cover") +
+  theme_bw()
+
+natgrass_grass_scatter_print <- natgrass_grass_scatter + theme(legend.position = c(0.8, 0.8))
+
+ggsave("Ch1_Degradation_figures/natgrass_grass_scatter_print.png", natgrass_grass_scatter_print, width = 8, height = 6)
+
 ```
 
 ```{r fern}
@@ -650,6 +660,17 @@ abcover_bylf_bystatus_meanSD <- cover_statuslf_matrix %>%
 
 abcover_bylf_bystatus_meanSD$status_lifeform <- paste(abcover_bylf_bystatus_meanSD$status, abcover_bylf_bystatus_meanSD$lifeform, sep="_") # combine status and life form to one column
 print(abcover_bylf_bystatus_meanSD) 
+```
+
+```{r percent cover x nn grass combine, include = TRUE}
+
+# print the plots into a single figure
+nncover_combined <- grid.arrange(shub_grass_scatter_print, natgrass_grass_scatter_print, natforb_grass_scatter_print, nnforb_grass_scatter_print, ncol = 2, nrow = 2,
+  heights = c(1, 1),  # Adjust the height ratios between rows
+  widths = c(1, 1)     # Adjust the width ratios between columns
+)
+
+ggsave("Ch1_Degradation_figures/nncover_combined.png", nncover_combined, width = 15, height = 10)
 ```
 
 ### - STATS
