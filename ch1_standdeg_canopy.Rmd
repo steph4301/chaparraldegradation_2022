@@ -328,26 +328,27 @@ view(abcover_bylf_bystatus) # prints to new tab
 hist(abcover_bylf_bystatus$percentcover) 
 
 ## jitter - by site_rep
-ggplot(data = abcover_bylf_bystatus, aes(y = percentcover, x = site_rep, color = lifeform)) + 
+ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = site_rep, color = lifeform)) + 
   geom_jitter()
-ggplot(data = abcover_bylf_bystatus, aes(y = percentcover, x = lifeform, color = standtype)) + 
+ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = lifeform, color = standtype)) + 
+  geom_jitter()
+ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, color = status)) + 
   geom_jitter()
 
-ggplot(data = abcover_bylf_bystatus, aes(y = percentcover, x = standtype, color = status)) + 
-  geom_jitter()
 ## boxplot
-ggplot(data = abcover_bylf_bystatus, aes(y = percentcover, x = standtype, fill = lifeform)) +
+ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, fill = lifeform)) +
     geom_boxplot() # boxplots
 
 ## jitter - by standtype
-ggplot(data = abcover_bylf_bystatus, aes(y = percentcover, x = standtype, color = lifeform)) + 
+ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, color = lifeform)) + 
   geom_jitter()
-ggplot(data = abcover_bylf_bystatus, aes(y = percentcover, x = standtype, color = status)) + 
+ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, color = status)) + 
   geom_jitter()
+ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, color = status)) + 
+  geom_point()
 ## boxplot
-ggplot(data = abcover_bylf_bystatus, aes(y = percentcover, x = standtype, fill = lifeform)) +
+ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, fill = lifeform)) +
     geom_boxplot() # boxplots
-
 
 # testing for normality
 shapiro.test(abcover_bylf_bystatus$percentcover)
@@ -361,6 +362,21 @@ cover_statuslf_matrix <- cover_statuslf_matrix %>%
   mutate(standtype = fct_relevel(standtype, 
             "intact", "matrix", "degraded"))
 ```
+### STACKED proportion of Family by Transect
+```{r proportion cover by family, include=TRUE}
+# data prep
+abcover_byfamily <- abcover_full_v_omitground %>% 
+  group_by(standtype, site, rep, site_rep, family) %>% 
+  #group_by(standtype, site, rep, site_rep, family, lifeform, status) %>% 
+  dplyr::summarize(
+    count_per_transect = n_distinct(site_rep_dist), 
+    percentcover = (n_distinct(site_rep_dist)/41)*100
+    )
+view(abcover_byfamily) # prints to new tab
+```
+
+
+
 ### - SHRUB
 
 ```{r cover by lf by status - aov, include=TRUE}
