@@ -362,6 +362,7 @@ cover_statuslf_matrix <- cover_statuslf_matrix %>%
   mutate(standtype = fct_relevel(standtype, 
             "intact", "matrix", "degraded"))
 ```
+
 ### STACKED proportion of Family by Transect
 ```{r proportion cover by family, include=TRUE}
 # data prep
