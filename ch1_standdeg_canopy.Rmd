@@ -137,7 +137,7 @@ abcover_full_v_omitground <- filter(abcover_full_v, status !="ground")
 glimpse(abcover_full_v_omitground)
 ```
 
-# 1. How does physical structure differ among the stands?
+# 1. PHYSICAL STRUCTURE 
 
 ### 1.1 Percent cover (horizontal variation)
 
@@ -195,19 +195,38 @@ ggplot(data = abcover_vegcover_long, aes(x = site, y = percentcover, color = cov
 # end jitter code
 ```
 
-```{r normality abcover, include=TRUE}
-#testing for normality
+```{r normality abcover total veg cover, include=TRUE}
 shapiro.test(abcover_vegcover_long$percentcover)
 # Shapiro-Wilk normality test
-# 
 # data:  abcover_vegcover_long$percentcover
-# W = 0.67222, p-value = 6.305e-07 <-- not normally distributed
-
-# qqPlot(abcover_vegcover_long$percentcover) # error
-
-ggqqplot(abcover_vegcover_long$percentcover) # <-- because data is close to 0% or close to 100%
+# W = 0.67222, p-value = 6.305e-07 <-- not normally distributed...
 
 abcover_vegcover_long$site_rep <- paste(abcover_vegcover_long$site, abcover_vegcover_long$rep, sep="_") # combine site and rep form to one column
+
+# total veg cover only
+abcover_vegcover_long_vegonly <- abcover_vegcover_long %>% 
+  filter(covertype == "percentcover_veg")
+
+#testing for normality of veg cover only
+shapiro.test(abcover_vegcover_long_vegonly$percentcover)
+# 	Shapiro-Wilk normality test
+# 
+# data:  abcover_vegcover_long_vegonly$percentcover
+# W = 0.73103, p-value = 0.0005447
+
+ggqqplot(abcover_vegcover_long_vegonly$percentcover) 
+
+abcover_vegcover_long_vegonly$site_rep <- paste(abcover_vegcover_long_vegonly$site, abcover_vegcover_long_vegonly$rep, sep="_") # combine site and rep form to one column
+
+# code from --> http://www.sthda.com/english/wiki/kruskal-wallis-test-in-r
+kruskal.test(covertype ~ standtype, data = abcover_vegcover_long_vegonly)
+# ata:  covertype by standtype
+# Kruskal-Wallis chi-squared = NaN, df = 2, p-value = NA
+pairwise.wilcox.test(abcover_vegcover_long_vegonly$percentcover, abcover_vegcover_long_vegonly$standtype,
+                 p.adjust.method = "BH")
+#          intact matrix
+# matrix   0.78   -     
+# degraded 0.32   0.32  <-- nothing is significant
 ```
 
 ```{r mean sd of abcover by site, include=TRUE}
@@ -222,46 +241,6 @@ print(abcover_vegcover_meanSD)
 
 # no mean when by site_rep
 ```
-
-```{r STATS totalvegcover, include=FALSE}
-
-# by SITE
-summary(aov(percentcover_veg ~ site, data = abcover_vegcover))
-# Df   Sum Sq   Mean Sq F value Pr(>F)
-# site         6 0.004125 0.0006874   1.156  0.413
-# Residuals    8 0.004759 0.0005949 
-
-TukeyHSD(aov(percentcover_veg ~ site, data = abcover_vegcover))
-#   Tukey multiple comparisons of means
-#     95% family-wise confidence level
-# 
-# Fit: aov(formula = percentcover_veg ~ site, data = abcover_vegcover)
-# 
-# $site
-#                            diff         lwr        upr     p adj
-# DEG2-DEG1         -8.130081e-03 -0.08415896 0.06789879 0.9993832
-# ENH1-DEG1         -1.626016e-02 -0.09228904 0.05976871 0.9761030
-# ENH2-DEG1         -3.252033e-02 -0.10854920 0.04350855 0.6696893
-# Intact_1-DEG1     -4.878049e-02 -0.15630155 0.05874058 0.6167821
-# Intact_2-DEG1     -4.878049e-02 -0.15630155 0.05874058 0.6167821
-# Intact_3-DEG1      0.000000e+00 -0.10752107 0.10752107 1.0000000
-# ENH1-DEG2         -8.130081e-03 -0.08415896 0.06789879 0.9993832
-# ENH2-DEG2         -2.439024e-02 -0.10041912 0.05163863 0.8667146
-# Intact_1-DEG2     -4.065041e-02 -0.14817147 0.06687066 0.7679756
-# Intact_2-DEG2     -4.065041e-02 -0.14817147 0.06687066 0.7679756
-# Intact_3-DEG2      8.130081e-03 -0.09939098 0.11565115 0.9999156
-# ENH2-ENH1         -1.626016e-02 -0.09228904 0.05976871 0.9761030
-# Intact_1-ENH1     -3.252033e-02 -0.14004139 0.07500074 0.8931131
-# Intact_2-ENH1     -3.252033e-02 -0.14004139 0.07500074 0.8931131
-# Intact_3-ENH1      1.626016e-02 -0.09126090 0.12378123 0.9958564
-# Intact_1-ENH2     -1.626016e-02 -0.12378123 0.09126090 0.9958564
-# Intact_2-ENH2     -1.626016e-02 -0.12378123 0.09126090 0.9958564
-# Intact_3-ENH2      3.252033e-02 -0.07500074 0.14004139 0.8931131
-# Intact_2-Intact_1  1.110223e-15 -0.13168587 0.13168587 1.0000000
-# Intact_3-Intact_1  4.878049e-02 -0.08290539 0.18046636 0.7823082
-# Intact_3-Intact_2  4.878049e-02 -0.08290539 0.18046636 0.7823082
-```
-
 ```{r aov veg/ground cover by standtype, include=FALSE}
 #testing for normality
 shapiro.test(abcover_vegcover$percentcover_veg)
@@ -278,36 +257,10 @@ kruskal.test(percentcover_veg ~ standtype, data = abcover_vegcover)
 # Kruskal-Wallis chi-squared = 3.0521, df = 2, p-value = 0.2174
 pairwise.wilcox.test(abcover_vegcover$percentcover_veg, abcover_vegcover$standtype,
                  p.adjust.method = "BH")
-summary(aov(percentcover_veg ~ standtype, data = abcover_vegcover))
-TukeyHSD(aov(percentcover_veg ~ standtype, data = abcover_vegcover))
-#$standtype
-#                         diff         lwr        upr p adj
-#matrix-intact    5.551115e-17 -0.02981350 0.02981350     1
-#degraded-intact -5.551115e-17 -0.02981350 0.02981350     1
-#degraded-matrix -1.110223e-16 -0.02434262 0.02434262     1
-
-# I'm less interested in the amount of canopy openings
-#summary(aov(percentcover ~ standtype * covertype, data = abcover_vegcover_long))
-#TukeyHSD((aov(percentcover ~ standtype * covertype, data = abcover_vegcover_long)))
-#$`standtype:covertype`
-#                                                                diff         lwr         upr     p adj
-#matrix:percentcover_veg-intact:percentcover_veg          0.008130081 -0.04407217  0.06033233 0.9963927 <-- max - int veg
-#degraded:percentcover_veg-intact:percentcover_veg        0.028455285 -0.02374697  0.08065754 0.5537578 <-- deg - int veg
-#intact:percentcover_ground-intact:percentcover_veg      -0.934959350 -0.99523732 -0.87468138 0.0000000
-#matrix:percentcover_ground-intact:percentcover_veg      -0.943089431 -0.99529168 -0.89088718 0.0000000
-#degraded:percentcover_ground-intact:percentcover_veg    -0.963414634 -1.01561689 -0.91121238 0.0000000
-#degraded:percentcover_veg-matrix:percentcover_veg        0.020325203 -0.02229776  0.06294816 0.6828902 <-- deg - mat veg
-#intact:percentcover_ground-matrix:percentcover_veg      -0.943089431 -0.99529168 -0.89088718 0.0000000
-#matrix:percentcover_ground-matrix:percentcover_veg      -0.951219512 -0.99384247 -0.90859655 0.0000000
-#degraded:percentcover_ground-matrix:percentcover_veg    -0.971544715 -1.01416768 -0.92892175 0.0000000
-#intact:percentcover_ground-degraded:percentcover_veg    -0.963414634 -1.01561689 -0.91121238 0.0000000
-#matrix:percentcover_ground-degraded:percentcover_veg    -0.971544715 -1.01416768 -0.92892175 0.0000000
-#degraded:percentcover_ground-degraded:percentcover_veg  -0.991869919 -1.03449288 -0.94924696 0.0000000
-#matrix:percentcover_ground-intact:percentcover_ground   -0.008130081 -0.06033233  0.04407217 0.9963927 <-- mat - int grd
-#degraded:percentcover_ground-intact:percentcover_ground -0.028455285 -0.08065754  0.02374697 0.5537578 <-- deg - int grd
-#degraded:percentcover_ground-matrix:percentcover_ground -0.020325203 -0.06294816  0.02229776 0.6828902 <-- deg - mat grd
-
-# no significant difference in ground cover or in vegetation cover
+#          intact matrix
+# matrix   0.78   -     
+# degraded 0.32   0.32  
+# no differences in percentcover_veg between standtypes
 ```
 
 ```{r bar plot totalvegcover, include=TRUE}
