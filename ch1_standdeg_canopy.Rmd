@@ -65,10 +65,14 @@ names(cal_palettes)
 
 # Stand colors: INTACT, MATRIX, DEGRADED 
 cal_palette(name = "chaparral3", n = 3, type = "continuous") 
-deg <- "#D3E3CA"
-mat <- "#92A587"
-int <- "#2F3525"
+#deg <- "#D3E3CA"
+#mat <- "#92A587"
+#int <- "#2F3525"
+deg <- "gray60"
+mat <- "gray40"
+int <- "gray20"
 line <- "red"
+
 standcolors <- c(int, mat, deg)
 standcolors_line <- c(line, int, mat, deg)
 
@@ -81,8 +85,8 @@ lifeformcolors <- c(int, mat, deg)
 
 # Status colors: native, exotic 
 cal_palette(name = "chaparral1", n = 6, type = "continuous") 
-native <- "gray75"
-exotic <- "gray25"
+native <- "gray50"
+exotic <- "gray0"
 statuscolors <- c(native, exotic)
 
 ```
@@ -191,15 +195,22 @@ ggplot(data = abcover_vegcover_long, aes(x = site, y = percentcover, color = cov
 # end jitter code
 ```
 
-```{r MEAN totalvegcover, include=TRUE}
+```{r normality abcover, include=TRUE}
 #testing for normality
 shapiro.test(abcover_vegcover_long$percentcover)
+# Shapiro-Wilk normality test
+# 
+# data:  abcover_vegcover_long$percentcover
+# W = 0.67222, p-value = 6.305e-07 <-- not normally distributed
+
 # qqPlot(abcover_vegcover_long$percentcover) # error
 
-ggqqplot(abcover_vegcover_long$percentcover)
+ggqqplot(abcover_vegcover_long$percentcover) # <-- because data is close to 0% or close to 100%
 
 abcover_vegcover_long$site_rep <- paste(abcover_vegcover_long$site, abcover_vegcover_long$rep, sep="_") # combine site and rep form to one column
+```
 
+```{r mean sd of abcover by site, include=TRUE}
 # mean SD
 abcover_vegcover_meanSD <- abcover_vegcover_long %>%
   group_by(site, covertype) %>% # by site
@@ -252,6 +263,21 @@ TukeyHSD(aov(percentcover_veg ~ site, data = abcover_vegcover))
 ```
 
 ```{r aov veg/ground cover by standtype, include=FALSE}
+#testing for normality
+shapiro.test(abcover_vegcover$percentcover_veg)
+# 	Shapiro-Wilk normality test
+# 
+# data:  abcover_vegcover$percentcover_veg
+# W = 0.73103, p-value = 0.0005447 <-- data not normally distributed
+ 
+# code from --> http://www.sthda.com/english/wiki/kruskal-wallis-test-in-r
+kruskal.test(percentcover_veg ~ standtype, data = abcover_vegcover)
+# 	Kruskal-Wallis rank sum test
+# 
+# data:  percentcover_veg by standtype
+# Kruskal-Wallis chi-squared = 3.0521, df = 2, p-value = 0.2174
+pairwise.wilcox.test(abcover_vegcover$percentcover_veg, abcover_vegcover$standtype,
+                 p.adjust.method = "BH")
 summary(aov(percentcover_veg ~ standtype, data = abcover_vegcover))
 TukeyHSD(aov(percentcover_veg ~ standtype, data = abcover_vegcover))
 #$standtype
