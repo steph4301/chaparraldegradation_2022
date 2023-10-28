@@ -350,7 +350,8 @@ nmdsabove_plot_site_rep <- ggplot(plot_above_df, aes(x = NMDS1, y = NMDS2)) +
                arrow = arrow(length = unit(0.25, "cm")),
                col = "black") +
   geom_text(data = fit_above_spp, aes(label = species),  
-            position = position_jitter(width = 0.1, height = 0.2)) 
+            position = position_jitter(width = 0.1, height = 0.2)) +
+  theme_bw()
 nmdsabove_plot_site_rep
 ```
 
