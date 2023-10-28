@@ -168,21 +168,22 @@ seedbank_fire_totalemerg <- seedbank_fire %>%
 seedbank_fire_plot <- ggplot(seedbank_fire_totalemerg, aes(x = stand_core, y = sum, fill = stand)) +
   geom_col(position = "dodge", width = 0.8) +
   labs(
-    title = "Total emergence of fire following species", 
+    title = "Total emergence of species following fire", 
     x = "Site", 
     y = "Total emergence (N)") + # title, axes titles
   scale_fill_manual(values = c(standcolors)) + # manual colors
   # scale_fill_manual(values = cal_palette('chaparral2')) +  # continuous colors
   #                  limits = c("intact", "matrix", "degraded"), # "limits" reorders the x-axis
   #                  labels = c("Intact", "Matrix", "Degraded")) + # "labels" changes the name
-  theme_bw() #+
+  theme_bw() +
  # scale_x_discrete(
  #   limits=c("intact", "matrix", "degraded"),
  #   labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded")
  #   )
+  scale_y_continuous(breaks = seq(0, max(seedbank_fire_totalemerg$sum), by = 1))
  
 seedbank_fire_plot +
-  theme(axis.text.x = element_text(angle = 90
+  theme(axis.text.x = element_text(angle = 45
                                   , hjust = 1))
 
 seedbank_fire %>% 
