@@ -95,7 +95,7 @@ statuscolors <- c(native, exotic)
 ```{r load csv, create columns, calculate - percent cover, echo=FALSE, eval=F}
 
 # percent cover - belt transects, point intercept transects
-abcover_full <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA")) %>% 
+abcover_full <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA")) %>% 
   rename(speciescode = species.1 ) %>%
   mutate(standtype = fct_relevel(standtype, 
             "intact", "matrix", "degraded")) %>% 
@@ -125,7 +125,7 @@ abcover_full_v <- abcover_full_v %>%
   #                              standtype == "matrix" ~ "matrix",
   #                              standtype == "degraded" ~ "grass_dominated")) 
 
-view(abcover_full_v) # look at new columns
+glimpse(abcover_full_v) # look at new columns
 
 abcover_full_v %>%  
   na.omit() %>%  
@@ -816,7 +816,7 @@ TukeyHSD(aov((cov ~ standtype) , data = standheight_cov), conf.level=.95)
 
 
 # native shrub density 
-shrubdensitylife_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_bylifestage.csv", 
+shrubdensitylife_full <- read_csv("deg_beltdensity_bylifestage.csv", 
     col_types = cols(
       StandType = col_character(), 
       Site = col_character(),
