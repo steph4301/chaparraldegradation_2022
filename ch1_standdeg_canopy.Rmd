@@ -212,55 +212,45 @@ shapiro.test(abcover_vegcover_long_vegonly$percentcover)
 # 	Shapiro-Wilk normality test
 # 
 # data:  abcover_vegcover_long_vegonly$percentcover
-# W = 0.73103, p-value = 0.0005447
+# W = 0.73103, p-value = 0.0005447 <-- not normally distributed
 
 ggqqplot(abcover_vegcover_long_vegonly$percentcover) 
 
 abcover_vegcover_long_vegonly$site_rep <- paste(abcover_vegcover_long_vegonly$site, abcover_vegcover_long_vegonly$rep, sep="_") # combine site and rep form to one column
 
 # code from --> http://www.sthda.com/english/wiki/kruskal-wallis-test-in-r
-kruskal.test(covertype ~ standtype, data = abcover_vegcover_long_vegonly)
-# ata:  covertype by standtype
-# Kruskal-Wallis chi-squared = NaN, df = 2, p-value = NA
+kruskal.test(percentcover ~ standtype, data = abcover_vegcover_long_vegonly)
+# 	Kruskal-Wallis rank sum test
+# 
+# data:  percentcover by standtype
+# Kruskal-Wallis chi-squared = 3.0521, df = 2, p-value = 0.2174 <-- not significantly different
+
 pairwise.wilcox.test(abcover_vegcover_long_vegonly$percentcover, abcover_vegcover_long_vegonly$standtype,
                  p.adjust.method = "BH")
 #          intact matrix
 # matrix   0.78   -     
 # degraded 0.32   0.32  <-- nothing is significant
+
 ```
 
 ```{r mean sd of abcover by site, include=TRUE}
-# mean SD
-abcover_vegcover_meanSD <- abcover_vegcover_long %>%
-  group_by(site, covertype) %>% # by site
+# min / max percent cover of veg only
+min(abcover_vegcover_long_vegonly$percentcover)*100
+max(abcover_vegcover_long_vegonly$percentcover)*100
+
+# mean SD by stand type
+abcover_vegcover_meanSD <- abcover_vegcover_long_vegonly %>%
+  group_by(standtype) %>% # by site
   summarize(mean_cover = mean(percentcover),
             n = length((percentcover)),
             sd = sd(percentcover),
             se = ((sd(percentcover))/sqrt(length((percentcover)))))
 print(abcover_vegcover_meanSD)
+# standtype mean_cover  n   sd            se
+# intact	  0.9674797   3	  0.028163428	  0.016260163
+# matrix	  0.9756098	  6	  0.030851489	  0.012595068
+# degraded	0.9959350	  6	  0.009957275	  0.004065041
 
-# no mean when by site_rep
-```
-```{r aov veg/ground cover by standtype, include=FALSE}
-#testing for normality
-shapiro.test(abcover_vegcover$percentcover_veg)
-# 	Shapiro-Wilk normality test
-# 
-# data:  abcover_vegcover$percentcover_veg
-# W = 0.73103, p-value = 0.0005447 <-- data not normally distributed
- 
-# code from --> http://www.sthda.com/english/wiki/kruskal-wallis-test-in-r
-kruskal.test(percentcover_veg ~ standtype, data = abcover_vegcover)
-# 	Kruskal-Wallis rank sum test
-# 
-# data:  percentcover_veg by standtype
-# Kruskal-Wallis chi-squared = 3.0521, df = 2, p-value = 0.2174
-pairwise.wilcox.test(abcover_vegcover$percentcover_veg, abcover_vegcover$standtype,
-                 p.adjust.method = "BH")
-#          intact matrix
-# matrix   0.78   -     
-# degraded 0.32   0.32  
-# no differences in percentcover_veg between standtypes
 ```
 
 ```{r bar plot totalvegcover, include=TRUE}
@@ -318,7 +308,7 @@ abcover_bylf_bystatus <- abcover_full_v_omitground %>%
   group_by(standtype, lifeform, status, site, rep, site_rep) %>% 
   dplyr::summarize(
     count_per_transect = n_distinct(site_rep_dist), 
-    percentcover = n_distinct(site_rep_dist)/41
+    percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect, lifeform, and status
     )
 view(abcover_bylf_bystatus) # prints to new tab
 
@@ -349,10 +339,73 @@ ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, co
 ## boxplot
 ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, fill = lifeform)) +
     geom_boxplot() # boxplots
+```
+### 1.1C Percent cover by native/nonnative status
+```{r percent cover by status stats, include=TRUE}
 
-# testing for normality
-shapiro.test(abcover_bylf_bystatus$percentcover)
+# NATIVE and NON-NATIVE
+# testing for normality by status 
+shapiro.test(abcover_bylf_bystatus$percentcover) 
 #W = 0.90228, p-12838.200536385179 value = 0.0001246 <-- not normally distributed
+
+
+# NATIVE ONLY
+abcover_bylf_bystatus_native <- abcover_bylf_bystatus %>%   # NATIVE ONLY
+  filter(status =="native")
+shapiro.test(abcover_bylf_bystatus_native$percentcover) 
+# 	Shapiro-Wilk normality test
+# 
+# data:  abcover_bylf_bystatus_native$percentcover
+# W = 0.89092, p-value = 0.002663 <-- not normally distributed
+
+kruskal.test(percentcover ~ standtype, data = abcover_bylf_bystatus_native)
+# Kruskal-Wallis rank sum test
+# 
+# data:  percentcover by standtype
+# Kruskal-Wallis chi-squared = 4.1338, df = 2, p-value = 0.1266 <-- not sig different
+
+pairwise.wilcox.test(abcover_bylf_bystatus_native$percentcover, abcover_bylf_bystatus_native$standtype,
+                 p.adjust.method = "BH")
+# data:  abcover_bylf_bystatus_native$percentcover and abcover_bylf_bystatus_native$standtype 
+# 
+#          intact matrix
+# matrix   0.26   -     
+# degraded 0.20   0.26  <-- no significant differences
+# 
+# P value adjustment method: BH 
+# 
+# --- ERROR MESSAGE ---
+# Warning: cannot compute exact p-value with ties
+# 
+# From CHATGPT: The warning message you are seeing, "Warning: cannot compute exact p-value with ties," occurs when you are performing a statistical test that relies on exact p-values, such as the Mann-Whitney U test or the Kruskal-Wallis test, and there are tied values in your data. Tied values mean that there are two or more identical values in your dataset.
+
+# When ties occur, the exact ranks of these tied values cannot be determined, leading to potential inaccuracies in the p-value calculation. Some statistical tests require exact ranks to compute p-values, so when ties are present, the software might issue a warning indicating that the p-value might not be exact.
+
+
+# NON-NATVE
+abcover_bylf_bystatus_nonnative <- abcover_bylf_bystatus %>%  # NON-NATIVE ONLY
+  filter(status == "nonnative")
+shapiro.test(abcover_bylf_bystatus_nonnative$percentcover) 
+# 	Shapiro-Wilk normality test 
+# 
+# data:  abcover_bylf_bystatus_nonnative$percentcover
+# W = 0.9056, p-value = 0.01551  <-- not normally distributed
+
+kruskal.test(percentcover ~ standtype, data = abcover_bylf_bystatus_nonnative)
+# Kruskal-Wallis rank sum test
+# 
+# data:  percentcover by standtype
+# Kruskal-Wallis chi-squared = 11.254, df = 2, p-value = 0.0036 <-- significantly different 
+
+pairwise.wilcox.test(abcover_bylf_bystatus_nonnative$percentcover, abcover_bylf_bystatus_nonnative$standtype,
+                 p.adjust.method = "BH")
+#          intact matrix
+# matrix   0.078  -     
+# degraded 0.013  0.039 <-- significantly different
+
+```
+
+```{r }
 
 #write.csv(abcover_bylf_bystatus,"processed/percentcover_bystatus_bylifeform.csv")
 # GET RID OF ZEROS in df
@@ -695,7 +748,7 @@ abcover_bylf_bystatus_meanSD_plot_wrap + scale_x_discrete(limits=c("intact", "ma
 ```{r load csv - canopy height, include=TRUE}
 # stand height 
 
-standheight_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_maxheight.csv",
+standheight_full <- read_csv("deg_maxheight.csv",
                              col_types = cols(
                                standtype = col_character(),
                                site = col_character(),
@@ -719,6 +772,8 @@ standheight_full %>%
 
 ```{r max height plot, include = TRUE}
 
+standheight_full$site_rep <- paste(standheight_full$site, standheight_full$rep, sep="_") # combine site and rep to one column
+
 ggplot(standheight_full, aes(x = as.integer(reading)/2, y = height_cm, group = site_rep, color = site_rep)) +
   facet_wrap(~ standtype, scales = "free_y", ncol = 1) +
   geom_line() +
@@ -734,9 +789,8 @@ ggplot(standheight_full, aes(x = as.integer(reading)/2, y = height_cm, group = s
 
 ```{r combine columns - canopy height, include = TRUE}
 
-standheight_full$site_rep <- paste(standheight_full$site, standheight_full$rep, sep="_") # combine site and rep to one column
-
-standheight_siterep_meanSD <- standheight_full %>%
+# mean SD by transect - 15 rows
+standheight_siterep_meanSD <- standheight_full %>% 
   group_by(standtype, site_rep) %>%
   summarize(mean_height = mean(height_cm),
             n = length((height_cm)),
@@ -744,6 +798,7 @@ standheight_siterep_meanSD <- standheight_full %>%
             se = ((sd(height_cm))/sqrt(length((height_cm))))) %>% 
   print(standheight_siterep_meanSD) # prints: standtype - site_rep - mean... 
 
+# mean SD by stand type - 3 stand types
 standheight_standtype_meanSD <- standheight_full %>%
   group_by(standtype, rep) %>%
   summarize(mean_height_byrep = mean(height_cm),
@@ -765,16 +820,25 @@ standheight_standtype_meanSD <- standheight_full %>%
 ```
 
 ```{r stand height - stats, include=TRUE}
-summary(aov((mean_height ~ standtype) , data = standheight_siterep_meanSD)) # use by site, rep for stats... Intact n = 3, Matrix and Deg n = 6
-#            Df Sum Sq Mean Sq F value Pr(>F)  
-#standtype    2   8174    4087   3.799 0.0527 .
-TukeyHSD(aov((mean_height ~ standtype) , data = standheight_siterep_meanSD), conf.level=.95) 
-#$standtype
-#                      diff        lwr       upr     p adj
-#Matrix-Intact   -60.117886 -121.99488  1.759103 0.0571081
-#Degraded-Intact -56.284553 -118.16154  5.592437 0.0760433
-#Degraded-Matrix   3.833333  -46.68902 54.355684 0.9777065
-# the stands are the same height - no sig difference in canopy height
+
+shapiro.test(standheight_full$height_cm)
+# 	Shapiro-Wilk normality test
+# data:  standheight_full$height_cm
+# W = 0.90732, p-value < 2.2e-16 <-- not normally distributed
+
+kruskal.test(height_cm ~ standtype, data = standheight_full)
+# 	Kruskal-Wallis rank sum test
+# data:  height_cm by standtype
+# Kruskal-Wallis chi-squared = 37.914, df = 2, p-value = 5.85e-09
+
+pairwise.wilcox.test(standheight_full$height_cm, standheight_full$standtype,
+                 p.adjust.method = "BH")
+# Pairwise comparisons using Wilcoxon rank sum test with continuity correction 
+# data:  standheight_full$height_cm and standheight_full$standtype 
+#          Intact  Matrix 
+# Matrix   9.7e-07 -      
+# Degraded 9.7e-07 0.00042 <-- all are significantly different
+# P value adjustment method: BH 
 ```
 
 ```{r COV - stand height, include=TRUE}
@@ -794,10 +858,15 @@ standheight_cov %>%
 #Matrix	  0.6668496	6	0.09217907	0.03763195 
 #Degraded	0.3218140	6	0.11316173	0.04619808 <-- smaller number = less variation
 
+shapiro.test(standheight_cov$cov)
+# Shapiro-Wilk normality test
+# data:  standheight_cov$cov
+# W = 0.94294, p-value = 0.4207 <-- normally distributed
 
 summary(aov((cov ~ standtype) , data = standheight_cov))
 #            Df Sum Sq Mean Sq F value   Pr(>F)    
-#standtype    2 0.3943  0.1971   17.14 0.000304 ***
+#standtype    2 0.3943  0.1971   17.14 0.000304 *** <-- cov is significantly different by standtype
+
 TukeyHSD(aov((cov ~ standtype) , data = standheight_cov), conf.level=.95) 
 #$standtype
 #                       diff        lwr         upr     p adj
@@ -807,6 +876,7 @@ TukeyHSD(aov((cov ~ standtype) , data = standheight_cov), conf.level=.95)
 
 # Degraded sites are significantly more homogeneous than the INT and MAT standtypes
 ```
+
 ### 1.3 Shrub density 
 
 ```{r  load data - shrub density, include=TRUE}
