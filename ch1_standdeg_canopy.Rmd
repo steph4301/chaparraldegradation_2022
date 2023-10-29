@@ -54,6 +54,7 @@ library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD
 #library(multcomp) # functions: multcompLetters2, multcompLetters3, multcompLetters4 using aov object
 #library(DHARMa) #The ‘DHARMa’ package uses a simulation-based approach to create readily interpretable scaled (quantile) residuals for fitted (generalized) linear mixed models.
 #citation("DHARMa")
+library(ggpmisc)
 ```
 
 ```{r colors, include=TRUE}
@@ -433,52 +434,56 @@ view(abcover_byfamily) # prints to new tab
 
 ### - SHRUB
 
-```{r cover by lf by status - aov, include=TRUE}
+```{r cover by lf by status - stats, include=TRUE}
 # SHRUB
 # highlight all and run as one command
+cover_statuslf_matrix_shrub <- cover_statuslf_matrix %>% 
+  filter(lifeform == "shrub" & status == "native")
 
-#abcover_bylf_bystatus_aov_shrub <- aov(percentcover ~ site * status, data = cover_statuslf_matrix %>% 
-#                                   filter((lifeform == 'shrub'))) <-- native and non-native
+shapiro.test(cover_statuslf_matrix_shrub$percentcover)
+# 	Shapiro-Wilk normality test
+# data:  cover_statuslf_matrix_shrub$percentcover
+# W = 0.94384, p-value = 0.4331 <-- normally distributed
 
-abcover_bylf_bystatus_aov_shrubnat <- aov(percentcover ~ site, data = cover_statuslf_matrix %>% 
-                                   filter((lifeform == 'shrub')) %>%  
-                                  filter((status == 'native'))) # <-- NATIVE only
-print(summary(abcover_bylf_bystatus_aov_shrubnat))
-#            Df Sum Sq Mean Sq F value  Pr(>F)   
-# site         6 0.7033 0.11722   10.85 0.00179 ** <-- 
-# Residuals    8 0.0865 0.01081                   
+summary(aov(percentcover ~ standtype, data = cover_statuslf_matrix_shrub))
+# Df Sum Sq Mean Sq F value   Pr(>F)    
+# standtype    2 0.5516 0.27581    13.9 0.000752 *** <-- significantly different
+# Residuals   12 0.2382 0.01985     
 
-print(TukeyHSD(abcover_bylf_bystatus_aov_shrubnat))
-# $site
-#                            diff          lwr        upr     p adj
-# DEG2-DEG1         -1.056911e-01 -0.429744159 0.21836205 0.8584743
-# ENH1-DEG1          3.170732e-01 -0.006979931 0.64112627 0.0556174
-# ENH2-DEG1          6.504065e-02 -0.259012452 0.38909375 0.9823925
-# Intact_1-DEG1      3.821138e-01 -0.076166471 0.84039411 0.1142444
-# Intact_2-DEG1      3.821138e-01 -0.076166471 0.84039411 0.1142444
-# Intact_3-DEG1      6.260163e-01  0.167735968 1.08429655 0.0089206 <--
-# ENH1-DEG2          4.227642e-01  0.098711125 0.74681733 0.0117502
-# ENH2-DEG2          1.707317e-01 -0.153321395 0.49478481 0.4727239
-# Intact_1-DEG2      4.878049e-01  0.029524585 0.94608517 0.0364522
-# Intact_2-DEG2      4.878049e-01  0.029524585 0.94608517 0.0364522
-# Intact_3-DEG2      7.317073e-01  0.273427024 1.18998761 0.0033449
-# ENH2-ENH1         -2.520325e-01 -0.576085623 0.07202058 0.1507687
-# Intact_1-ENH1      6.504065e-02 -0.393239643 0.52332094 0.9970509
-# Intact_2-ENH1      6.504065e-02 -0.393239643 0.52332094 0.9970509
-# Intact_3-ENH1      3.089431e-01 -0.149337204 0.76722338 0.2485277
-# Intact_1-ENH2      3.170732e-01 -0.141207122 0.77535346 0.2285600
-# Intact_2-ENH2      3.170732e-01 -0.141207122 0.77535346 0.2285600
-# Intact_3-ENH2      5.609756e-01  0.102695317 1.01925590 0.0170163
-# Intact_2-Intact_1 -1.110223e-16 -0.561276438 0.56127644 1.0000000
-# Intact_3-Intact_1  2.439024e-01 -0.317373999 0.80517888 0.6558165
-# Intact_3-Intact_2  2.439024e-01 -0.317373999 0.80517888 0.6558165
+# abcover_bylf_bystatus_aov_shrubnat <- aov(percentcover ~ standtype, data = cover_statuslf_matrix %>% 
+#                                    filter((lifeform == 'shrub')) %>%  
+#                                   filter((status == 'native'))) # <-- NATIVE only
+# print(summary(abcover_bylf_bystatus_aov_shrubnat))
+# #             Df Sum Sq Mean Sq F value   Pr(>F)    
+# # standtype    2 0.5516 0.27581    13.9 0.000752 ***
+# # Residuals   12 0.2382 0.01985   
+
+TukeyHSD(aov(percentcover ~ standtype, data = cover_statuslf_matrix_shrub))
+# Fit: aov(formula = percentcover ~ standtype, data = cover_statuslf_matrix_shrub)
+# 
+# $standtype
+#                       diff        lwr         upr     p adj
+# matrix-intact   -0.2723577 -0.5381149 -0.00660053 0.0444896 <-- MAT-INT
+# degraded-intact -0.5162602 -0.7820174 -0.25050297 0.0006178 <-- DEG-INT
+# degraded-matrix -0.2439024 -0.4608923 -0.02691260 0.0277839 <-- DEG-MAT
+                
+```
+
+```{r figure shrub, include=TRUE}
+
+# Reorder the levels of the standtype variable
+cover_statuslf_matrix$site_rep <- factor(cover_statuslf_matrix$site_rep, 
+                                          levels = c("Intact_1_1"
+, "Intact_2_2" , "Intact_3_3", "ENH1_1" ,    "ENH1_2"   ,  "ENH1_3" ,    "ENH2_4" ,    "ENH2_5"    ,"ENH2_6", "DEG1_1",     "DEG1_2"  ,   "DEG1_3"   ,  "DEG2_4" ,    "DEG2_5"   ,  "DEG2_6"))
+
 
 ggplot(data = cover_statuslf_matrix %>% filter((lifeform == 'shrub')) %>% filter((status == 'native')), 
      aes(x = site_rep, y = percentcover*100, fill = standtype)) +
    geom_col(color = "black") +
   scale_fill_manual(values = standcolors) +
   labs(x = "Site", y = "Shrub Cover (%)", title = "Shrub Cover by Site") +
-  theme_bw()
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels by 45 degrees
 
 ```
 
@@ -496,13 +501,14 @@ cover_statuslf_matrix_wide1 <- cover_statuslf_matrix_long %>%
   spread(status_lifeform, percentcover)
 view(cover_statuslf_matrix_wide1)
 
+
 # scatterplot - shrub x nn grass
 shub_grass_scatter <- ggplot(data = cover_statuslf_matrix_wide1, 
-       aes(x = nonnative_grass*100, y = native_shrub*100, color = standtype)) + #color = standtype
+       aes(x = nonnative_grass*100, y = native_shrub*100)) + #color = standtype
   geom_point(size = 3, alpha = 0.8) +
   ylim(0, 100)+
   xlim(0,100) +
-  geom_smooth(method = "gam", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
   scale_color_manual(values = c(standcolors),
                      name = "Stand Type",
                      labels = c("intact" = "shrub dominated", 
@@ -511,7 +517,9 @@ shub_grass_scatter <- ggplot(data = cover_statuslf_matrix_wide1,
   labs(x = "Non-native grass cover (%)", 
        y = "Native shrub cover (%)", 
        title = "Native Shrub Cover by Non-native Grass Cover") +
-  theme_bw()
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
 
 shub_grass_scatter_print <- shub_grass_scatter+ theme(legend.position = c(0.15, 0.2))
 
@@ -525,6 +533,8 @@ ggsave("Ch1_Degradation_figures/shub_grass_scatter_print.png", shub_grass_scatte
 ```{r forb native percent cover by site_rep, include=TRUE}
 
 # FORB
+
+
 
 cover_statuslf_matrix %>% 
   filter(lifeform == 'forb') %>% 
