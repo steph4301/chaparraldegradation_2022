@@ -55,6 +55,7 @@ library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD
 #library(DHARMa) #The ‘DHARMa’ package uses a simulation-based approach to create readily interpretable scaled (quantile) residuals for fitted (generalized) linear mixed models.
 #citation("DHARMa")
 library(ggpmisc)
+library(segmented)
 ```
 
 ```{r colors, include=TRUE}
@@ -73,9 +74,14 @@ deg <- "gray60"
 mat <- "gray40"
 int <- "gray20"
 line <- "red"
+degshape <- 16
+matshape <- 17
+intshape <- 18
+
 
 standcolors <- c(int, mat, deg)
 standcolors_line <- c(line, int, mat, deg)
+standshape <- c(intshape, matshape, degshape)
 
 # Lifeform colors: shrub, grass, forb
 cal_palette(name = "chaparral3", n = 3, type = "continuous") 
@@ -423,11 +429,12 @@ abcover_nativecover_nngrasscover <- left_join(abcover_nativecover, cover_statusl
 view(abcover_nativecover_nngrasscover)
 
 native_by_nngrass_regression <- ggplot(data = abcover_nativecover_nngrasscover, 
-       aes(x = nonnative_grass*100, y = percentcover_native*100)) + #color = standtype
+       aes(x = nonnative_grass*100, y = percentcover_native*100, shape = standtype.x, color = standtype.x)) + #color = standtype
   geom_point(size = 3, alpha = 0.8) +
+   scale_shape_manual(values = c(16, 17, 18)) +
   ylim(0, 100)+
   xlim(0,100) +
-  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  #geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
   scale_color_manual(values = c(standcolors),
                      name = "Stand Type",
                      labels = c("intact" = "shrub dominated", 
@@ -435,13 +442,337 @@ native_by_nngrass_regression <- ggplot(data = abcover_nativecover_nngrasscover,
                                 "degraded" = "grass dominated")) + #rename standtypes labels
   labs(x = "Non-native grass cover (%)", 
        y = "Native cover (%)", 
-       title = "Native Cover by Non-native Grass Cover") +
+       title = "Total Native Cover by Non-native Grass Cover") +
   theme_bw() +  
   stat_poly_line() +
   stat_poly_eq(use_label(c("eq", "R2")))
 print(native_by_nngrass_regression)
 
 
+
+```
+
+
+```{r segmented scatterplot native shrub cover by nn grass cover, include=TRUE}
+
+### SEGMENTED ###
+p <- ggplot(abcover_nativecover_nngrasscover, aes(x = nonnative_grass, y = percentcover_native)) + geom_line()+
+  geom_point()
+p
+
+#create a linear model <-- from https://rpubs.com/MarkusLoew/12164
+my.lm <- lm(nonnative_grass ~ percentcover_native, data = abcover_nativecover_nngrasscover)
+summary(my.lm)
+
+# Extract the coefficients from the overall model
+my.coef <- coef(my.lm)
+
+# add the regression line to the graph
+# setting the aesthetics to a constant - this provides a name that we can reference later when we add additional layers
+p <- p + geom_abline(intercept = my.coef[1], 
+                         slope = my.coef[2], 
+                     aes(colour = "overall"))
+p
+```
+
+```{r}
+# -------------------
+# analyse breakpoints
+# -------------------
+# http://cran.r-project.org/doc/Rnews/Rnews_2008-1.pdf
+
+
+# have to provide estimates for breakpoints.
+# after looking a the data, 
+my.seg <- segmented(my.lm.nnnative_by_nngrass_regression, 
+                    seg.Z = ~ nonnative_grass,  # x-axis
+                    psi = c(.75)
+#                    psi = list(percentcover_nonnative = c(.5))
+                    )
+
+# When not providing estimates for the breakpoints "psi = NA" can be used.
+# The number of breakpoints that will show up is not defined
+#my.seg <- segmented(my.lm, 
+#                    seg.Z = ~ DistanceMeters, 
+#                    psi = NA)
+
+# display the summary
+summary(my.seg)
+
+# get the breakpoints
+my.seg$psi
+
+# get the slopes
+slope(my.seg)
+
+
+# get the slopes manually - excercise!!
+my.slopes <- coef(my.seg)
+
+# first line: 
+#y = b0 + b1*x
+#y = intercept1 + slope1 * x
+
+# second line:
+#y = c0 + c1*x
+#y = intercept2 + slope2 * x
+
+# third line
+#y = d0 + d1 *x
+#y = intercept3 + slope3 * x
+
+# At the breakpoint (break1), the segments b and c intersect
+
+#b0 + b1*x = c0 + c1*x
+
+b0 <- coef(my.seg)[[1]]
+b1 <- coef(my.seg)[[2]]
+
+# Important:
+# the coefficients are the differences in slope in comparison to the previous slope
+c1 <- coef(my.seg)[[2]] + coef(my.seg)[[3]]
+break1 <- my.seg$psi[[3]]
+
+#Solve for c0 (intercept of second segment):
+c0 <- b0 + b1 * break1 - c1 * break1
+
+
+# At the breakpoint (break2), the two lines are the same again:
+# the coefficients are the differences in slope in comparison to the previous slope
+d1 <- coef(my.seg)[[4]] + c1
+break2 <- my.seg$psi[[4]]
+
+#Solve for d0 (intercept of third segment):
+d0 <- c0 + c1 * break2 - d1 * break2
+
+# adding lines to the graph
+
+# line before first breakpoint
+p1 <- p1 + geom_abline(intercept = b0, slope = b1, 
+                     aes(colour = "first part"), show_guide = TRUE)
+p1
+
+
+# line after first breakpoint
+p1 <- p1 + geom_abline(intercept = c0, slope = c1, 
+                     aes(colour = "second part"), show_guide = TRUE)
+p1
+
+
+# line after second breakpoint -- if there is one
+p1 <- p1 + geom_abline(intercept = d0, slope = d1, 
+                     aes(colour = "third part"), show_guide = TRUE)
+p1
+
+
+# get the fitted data
+my.fitted <- fitted(my.seg)
+my.model <- data.frame(NonNativeGrassCover = abcover_nonnativecover_nngrasscover$nonnative_grass, TotalNonNativeCover = my.fitted)
+
+# plot the fitted model
+ggplot(my.model, aes(x = NonNativeGrassCover, y = TotalNonNativeCover)) + geom_line()
+
+
+# add the fitted data to the exisiting plot
+p1 + geom_line(data = my.model, aes(x = NonNativeGrassCover, y = TotalNonNativeCover), colour = "tomato")
+
+# add vertical lines to indicate the break locations
+# second row of the psi-matrix
+my.lines <- my.seg$psi[, 2]
+
+p1 <- p1 + geom_vline(xintercept = my.lines, linetype = "dashed")
+p1
+```
+
+
+```{r scatterplot native cover by native shrub cover, include=TRUE}
+
+native_by_nativeshrub_regression <- ggplot(data = abcover_nativecover_nngrasscover, 
+       aes(x = native_shrub*100, y = percentcover_native*100, shape = standtype.x, color = standtype.x)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  scale_shape_manual(values = c(16, 17, 18)) +
+  ylim(0, 100)+
+  xlim(0,100) +
+  #geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  scale_color_manual(values = c(standcolors),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) + #rename standtypes labels
+  labs(x = "Native shrub cover (%)", 
+       y = "Native cover (%)", 
+       title = "Total Native Cover by Natie Shrub Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
+print(native_by_nativeshrub_regression)
+```
+
+
+
+```{r scatterplot nonnative cover by nn grass cover, include=TRUE}
+
+abcover_nonnative_cover <- abcover_full_v %>% 
+  na.omit() %>%  
+  filter(status == "nonnative") %>% 
+  group_by(standtype, site_rep) %>% 
+  dplyr::summarize(count_per_transect = length(unique(distance)), 
+                  percentcover_nonnative = length(unique(distance))/41
+                  )
+view(abcover_nonnative_cover)
+
+abcover_nonnativecover_nngrasscover <- left_join(abcover_nonnative_cover, cover_statuslf_matrix_wide1, by = "site_rep")
+view(abcover_nonnativecover_nngrasscover)
+
+nnnative_by_nngrass_regression <- ggplot(data = abcover_nonnativecover_nngrasscover, 
+       aes(x = nonnative_grass*100, y = percentcover_nonnative*100), shape = standtype.x, color = standtype.x) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+   scale_shape_manual(values = c(16, 17, 18)) +
+  ylim(0, 100)+
+  xlim(0,100) +
+#  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  scale_color_manual(values = c(standcolors),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) + #rename standtypes labels
+  labs(x = "Non-native grass cover (%)", 
+       y = "Non-native cover (%)", 
+       title = "Total Native Cover by Non-native Grass Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
+print(nnnative_by_nngrass_regression)
+
+```
+
+```{r segmented scatterplot nonnative cover by nn grass cover, include=TRUE}
+
+### SEGMENTED ###
+p1 <- ggplot(abcover_nonnativecover_nngrasscover, aes(x = nonnative_grass, y = percentcover_nonnative)) + geom_line()+
+  geom_point()
+p1
+
+#create a linear model <-- from https://rpubs.com/MarkusLoew/12164
+my.lm.nnnative_by_nngrass_regression <- lm(nonnative_grass ~ percentcover_nonnative, data = abcover_nonnativecover_nngrasscover)
+summary(my.lm.nnnative_by_nngrass_regression)
+
+# Extract the coefficients from the overall model
+my.coef.my.lm.nnnative_by_nngrass_regression <- coef(my.lm.nnnative_by_nngrass_regression)
+
+# add the regression line to the graph
+# setting the aesthetics to a constant - this provides a name that we can reference later when we add additional layers
+p1 <- p1 + geom_abline(intercept = my.coef.my.lm.nnnative_by_nngrass_regression[1], 
+                         slope = my.coef.my.lm.nnnative_by_nngrass_regression[2], 
+                     aes(colour = "overall"))
+p1
+
+# -------------------
+# analyse breakpoints
+# -------------------
+# http://cran.r-project.org/doc/Rnews/Rnews_2008-1.pdf
+library(segmented)
+
+# have to provide estimates for breakpoints.
+# after looking a the data, 
+my.seg <- segmented(my.lm.nnnative_by_nngrass_regression, 
+                    seg.Z = ~ nonnative_grass,  # x-axis
+                    psi = c(.75)
+#                    psi = list(percentcover_nonnative = c(.5))
+                    )
+
+# When not providing estimates for the breakpoints "psi = NA" can be used.
+# The number of breakpoints that will show up is not defined
+#my.seg <- segmented(my.lm, 
+#                    seg.Z = ~ DistanceMeters, 
+#                    psi = NA)
+
+# display the summary
+summary(my.seg)
+
+# get the breakpoints
+my.seg$psi
+
+# get the slopes
+slope(my.seg)
+
+
+# get the slopes manually - excercise!!
+my.slopes <- coef(my.seg)
+
+# first line: 
+#y = b0 + b1*x
+#y = intercept1 + slope1 * x
+
+# second line:
+#y = c0 + c1*x
+#y = intercept2 + slope2 * x
+
+# third line
+#y = d0 + d1 *x
+#y = intercept3 + slope3 * x
+
+# At the breakpoint (break1), the segments b and c intersect
+
+#b0 + b1*x = c0 + c1*x
+
+b0 <- coef(my.seg)[[1]]
+b1 <- coef(my.seg)[[2]]
+
+# Important:
+# the coefficients are the differences in slope in comparison to the previous slope
+c1 <- coef(my.seg)[[2]] + coef(my.seg)[[3]]
+break1 <- my.seg$psi[[3]]
+
+#Solve for c0 (intercept of second segment):
+c0 <- b0 + b1 * break1 - c1 * break1
+
+
+# At the breakpoint (break2), the two lines are the same again:
+# the coefficients are the differences in slope in comparison to the previous slope
+d1 <- coef(my.seg)[[4]] + c1
+break2 <- my.seg$psi[[4]]
+
+#Solve for d0 (intercept of third segment):
+d0 <- c0 + c1 * break2 - d1 * break2
+
+# adding lines to the graph
+
+# line before first breakpoint
+p1 <- p1 + geom_abline(intercept = b0, slope = b1, 
+                     aes(colour = "first part"), show_guide = TRUE)
+p1
+
+
+# line after first breakpoint
+p1 <- p1 + geom_abline(intercept = c0, slope = c1, 
+                     aes(colour = "second part"), show_guide = TRUE)
+p1
+
+
+# line after second breakpoint -- if there is one
+p1 <- p1 + geom_abline(intercept = d0, slope = d1, 
+                     aes(colour = "third part"), show_guide = TRUE)
+p1
+
+
+# get the fitted data
+my.fitted <- fitted(my.seg)
+my.model <- data.frame(NonNativeGrassCover = abcover_nonnativecover_nngrasscover$nonnative_grass, TotalNonNativeCover = my.fitted)
+
+# plot the fitted model
+ggplot(my.model, aes(x = NonNativeGrassCover, y = TotalNonNativeCover)) + geom_line()
+
+
+# add the fitted data to the exisiting plot
+p1 + geom_line(data = my.model, aes(x = NonNativeGrassCover, y = TotalNonNativeCover), colour = "tomato")
+
+# add vertical lines to indicate the break locations
+# second row of the psi-matrix
+my.lines <- my.seg$psi[, 2]
+
+p1 <- p1 + geom_vline(xintercept = my.lines, linetype = "dashed")
+p1
 ```
 
 
@@ -469,6 +800,147 @@ abcover_byfamily <- abcover_full_v_omitground %>%
 view(abcover_byfamily) # prints to new tab
 ```
 
+### SEGMENTATION
+
+```{r segmentation internet info, include = FALSE}
+# Install and load the segmented package if you haven't already
+#install.packages("segmented")
+#library(segmented)
+
+# Generate some example data
+set.seed(123)
+x <- 1:100
+y <- c(2 * x[1:50] + rnorm(50, mean = 0, sd = 10),
+       5 * x[51:100] + rnorm(50, mean = 0, sd = 10))
+
+# Fit segmented regression model with one breakpoint
+seg_model <- segmented(lm(y ~ x), seg.Z = ~ x, psi = c(80))
+seg_model2 <- segmented(lm(y ~ x), seg.Z = ~ x, psi = c(50))
+# Plot the segmented regression line
+plot(x, y, col = "blue", pch = 16, main = "Segmented Regression Example")
+lines(x, predict(seg_model), col = "red", lwd = 2)
+lines(x, predict(seg_model2), col = "green", lwd = 2)
+
+#https://cran.r-project.org/web/packages/segmented/segmented.pdf
+#page 37: Segmented relationships in regression models
+set.seed(12)
+xx<-1:100
+zz<-runif(100)
+yy<-2+1.5*pmax(xx-35,0)-1.5*pmax(xx-70,0)+15*pmax(zz-.5,0)+rnorm(100,0,2)
+dati<-data.frame(x=xx,y=yy,z=zz)
+out.lm<-lm(y~x,data=dati)
+
+#the simplest example: the starting model includes just 1 covariate
+#.. and 1 breakpoint has to be estimated for that
+o<-segmented(out.lm) #1 breakpoint for x
+
+#the single segmented variable is not in the starting model, and thus..
+#... you need to specify it via seg.Z, but no starting value for psi
+o<-segmented(out.lm, seg.Z=~z)
+#note the leftmost slope is constrained to be zero (since out.lm does not include z)
+
+#2 segmented variables, 1 breakpoint each (again no need to specify npsi or psi)
+o<-segmented(out.lm,seg.Z=~z+x)
+
+#1 segmented variable, but 2 breakpoints: you have to specify starting values (vector) for psi:
+o<-segmented(out.lm,seg.Z=~x,psi=c(30,60), control=seg.control(display=FALSE))
+
+#.. or you can specify just the *number* of breakpoints
+#o<-segmented(out.lm,seg.Z=~x, npsi=2, control=seg.control(display=FALSE))
+
+slope(o) #the slopes of the segmented relationship
+
+#2 segmented variables: starting values requested via a named list
+out.lm<-lm(y~z,data=dati)
+o1<-update(o,seg.Z=~x+z,psi=list(x=c(30,60),z=.3))
+#..or by specifying just the *number* of breakpoints
+#o1<-update(o,seg.Z=~x+z, npsi=c(x=2,z=1))
+
+#the default method leads to the same results (but it is slower)
+#o1<-segmented.default(out.lm,seg.Z=~x+z,psi=list(x=c(30,60),z=.3))
+#o1<-segmented.default(out.lm,seg.Z=~x+z,psi=list(x=c(30,60),z=.3),
+# control=seg.control(fn.obj="sum(x$residuals^2)"))
+
+#automatic procedure to estimate breakpoints in the covariate x (starting from K quantiles)
+# Hint: increases number of iterations. Notice: bootstrap restart is not allowed!
+#o<-segmented.lm(out.lm,seg.Z=~x+z,psi=list(x=NA,z=.3),
+# control=seg.control(fix.npsi=FALSE, n.boot=0, tol=1e-7, it.max = 50, K=5, display=TRUE))
+
+#assess the progress of the breakpoint estimates throughout the iterations
+## Not run:
+par(mfrow=c(1,2))
+draw.history(o, "x")
+draw.history(o, "z")
+## End(Not run)
+#try to increase the number of iterations and re-assess the
+#convergence diagnostics
+# A simple segmented model with continuous responses and no linear covariates
+# No need to fit the starting lm model:
+segmented(yy, npsi=2) #NOTE: subsetting the vector works ( segmented(yy[-1],..) )
+#if seg.Z is unspecified, the segmented variable is taken as 1:n/n
+# An example using the Arima method:
+## Not run:
+n<-50
+idt <-1:n #the time index
+mu<-50-idt +1.5*pmax(idt-30,0)
+set.seed(6969)
+y<-mu+arima.sim(list(ar=.5),n)*3.5
+o<-arima(y, c(1,0,0), xreg=idt)
+os1<-segmented(o, ~idt, control=seg.control(display=TRUE))
+#note using the .coef argument is mandatory!
+slope(os1, .coef=os1$coef)
+plot(y)
+plot(os1, add=TRUE, .coef=os1$coef, col=2)
+## End(Not run)
+
+######Three examples using the default method:
+#==> 1. Cox regression with a segmented relationship
+## Not run:
+library(survival)
+data(stanford2)
+o<-coxph(Surv(time, status)~age, data=stanford2)
+os<-segmented(o, ~age, psi=40) #estimate the breakpoint in the age effect
+summary(os) #actually it means summary.coxph(os)
+plot(os) #it does not work
+plot.segmented(os) #call explicitly plot.segmented() to plot the fitted piecewise lines
+
+# ==> 2. Linear mixed model via the nlme package
+dati$g<-gl(10,10) #the cluster 'id' variable
+library(nlme)
+o<-lme(y~x+z, random=~1|g, data=dati)
+os<-segmented.default(o, ~x+z, npsi=list(x=2, z=1))
+
+#summarizing results (note the '.coef' argument)
+slope(os, .coef=fixef(os))
+plot.segmented(os, "x", .coef=fixef(os), conf.level=.95)
+confint.segmented(os, "x", .coef=fixef(os))
+dd<-data.frame(x=c(20,50),z=c(.2,.6), g=1:2)
+predict.segmented(os, newdata=dd, .coef=fixef(os))
+
+
+# ==> 3. segmented quantile regression via the quantreg package
+library(quantreg)
+data(Mammals)
+y<-with(Mammals, log(speed))
+x<-with(Mammals, log(weight))
+o<-rq(y~x, tau=.9)
+os<-segmented.default(o, ~x) #it does NOT work. It cannot compute the vcov matrix..
+
+#Let's define the vcov.rq function.. (I don't know if it is the best option..)
+vcov.rq<-function(x,...) {
+V<-summary(x,cov=TRUE,se="nid",...)$cov
+rownames(V)<-colnames(V)<-names(x$coef)
+V}
+
+os<-segmented.default(o, ~x) #now it does work
+plot.segmented(os, res=TRUE, col=2, conf.level=.95)
+
+## End(Not run)
+```
+
+```{r segmentation }
+
+```
 
 
 ### - SHRUB
@@ -488,14 +960,6 @@ summary(aov(percentcover ~ standtype, data = cover_statuslf_matrix_shrub))
 # Df Sum Sq Mean Sq F value   Pr(>F)    
 # standtype    2 0.5516 0.27581    13.9 0.000752 *** <-- significantly different
 # Residuals   12 0.2382 0.01985     
-
-# abcover_bylf_bystatus_aov_shrubnat <- aov(percentcover ~ standtype, data = cover_statuslf_matrix %>% 
-#                                    filter((lifeform == 'shrub')) %>%  
-#                                   filter((status == 'native'))) # <-- NATIVE only
-# print(summary(abcover_bylf_bystatus_aov_shrubnat))
-# #             Df Sum Sq Mean Sq F value   Pr(>F)    
-# # standtype    2 0.5516 0.27581    13.9 0.000752 ***
-# # Residuals   12 0.2382 0.01985   
 
 TukeyHSD(aov(percentcover ~ standtype, data = cover_statuslf_matrix_shrub))
 # Fit: aov(formula = percentcover ~ standtype, data = cover_statuslf_matrix_shrub)
@@ -520,7 +984,7 @@ ggplot(data = cover_statuslf_matrix %>% filter((lifeform == 'shrub')) %>% filter
      aes(x = site_rep, y = percentcover*100, fill = standtype)) +
    geom_col(color = "black") +
   scale_fill_manual(values = standcolors) +
-  labs(x = "Site", y = "Shrub Cover (%)", title = "Shrub Cover by Site") +
+  labs(x = "Transect", y = "Shrub Cover (%)", title = "Shrub Cover by Transect") +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels by 45 degrees
 
@@ -712,7 +1176,7 @@ natgrass_grass_scatter <- ggplot(data = cover_statuslf_matrix_wide1,
   geom_point(size = 3, alpha = 0.8) +
   ylim(0, 100)+
   xlim(0,100) +
-  geom_smooth(method = "gam", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm, gam
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm, gam
   scale_color_manual(values = c(standcolors),
                      name = "Stand Type",
                      labels = c("intact" = "shrub dominated", 
