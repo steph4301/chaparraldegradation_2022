@@ -32,16 +32,63 @@ library(here)
 ```
 
 # Load csv
+### 1. point-intercept transect data for percent cover
 
 ```{r load csv}
 # percent cover
 abcover_full_raw <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA"))
-glimpse(abcover_full_raw)
+abcover_full_raw <- abcover_full_raw %>% dplyr::select(!c(species.1))
+glimpse(abcover_full_raw) # point-intercept transect data
+
 ```
+### 2. belt transect data 
 
 ```{r load csv spp diversity, include = TRUE}
-ab_diversity_raw <- read.csv("ab_speciesdiversity.csv", header = TRUE)
-glimpse(ab_diversity_raw)
+names(abcover_full_raw)
+sort(unique(abcover_full_raw$species))
+glimpse(abcover_full_raw %>%  na.omit())
+# Rows: 2,060
+# Columns: 10
+
+
+# Renaming observations
+ab_diversity <- abcover_full_raw %>%
+  #dplyr::select(!c(species == "bare_ground")) 
+   mutate(species = case_when(
+    species == "Avena barbata dead" ~ "Avena barbata",
+        species == "Bromus diandrus dead" ~ "Bromus diandrus", 
+           species == "Bromus rubens dead" ~ "Bromus rubens", 
+       species == "Bromus spp." ~ "Bromus rubens", 
+    species == "Bromus spp. dead" ~ "Bromus rubens",
+          species == "Bromus madritensis " ~ "Bromus rubens",
+     species == "Centaurea melitensis dead" ~ "Centaurea melitensis",
+    species == "Erodium cicutarium" ~ "Erodium spp.", 
+    species == "Elymus condensatus dead" ~ "Elymus condensatus",
+    species == "Heteromeles arbutifolia dead" ~ "Heteromeles arbutifolia",
+    species == "Hirschfeldia incana dead" ~ "Hirschfeldia incana",
+    species == "Malacothamnus fasciculatus dead" ~ "Malacothamnus fasciculatus",
+           species == "Salvia leucophylla dead" ~ "Salvia leucophylla",
+      species == "Stipa lepida dead" ~ "Stipa lepida",
+    TRUE ~ as.character(species)  # Keep other observations unchanged
+  )) %>% 
+   na.omit() 
+
+sort(unique(ab_diversity$species))
+
+
+# Renaming observations - another way to rename observations
+# ab_diversity <- abcover_full_raw %>%
+#   mutate(species = case_when(
+#     species == "Avena barbata dead" ~ "Avena barbata",
+#     species == "Bromus rubens dead" ~ "Bromus rubens",
+#        species == "Bromus diandrus dead" ~ "Bromus diandrus",
+#     species == "Bromus rubens dead" ~ "Bromus rubens",
+#     TRUE ~ as.character(species)  # Keep other observations unchanged
+#   ))
+
+glimpse(ab_diversity)
+# Rows: 2,060
+# Columns: 10
 
 abcover_full_join <- abcover_full_raw %>% 
  dplyr::select(c(species, lifeform, status, lifecycle, family))
@@ -50,7 +97,7 @@ glimpse(abcover_full_join)
 
 
 ab_diversity <- left_join(ab_diversity_raw, abcover_full_join, by = "species")
-view(ab_diversity)
+#view(ab_diversity)
 
 ```
 
@@ -116,8 +163,10 @@ abcover_byspecies <- abcover_full_v_omitground %>%
   group_by(standtype, site, site_rep, species) %>% 
   filter(site_rep != "Intact4_4") %>% #omit Intact 4 from data
   filter(!is.na(species)) %>% # omit blank cells in species 
-  dplyr::summarize(count_per_dist = n_distinct(site_rep_dist), percentcover = n_distinct(site_rep_dist)/41) %>% 
-   select(!c(count_per_dist))
+  dplyr::summarize(
+    count_per_dist = n_distinct(site_rep_dist), 
+    percentcover = n_distinct(site_rep_dist)/41) %>% 
+   dplyr::select(!c(count_per_dist))
   
 
 head(abcover_byspecies) # prints to new tab
@@ -139,7 +188,7 @@ abcover_byspecies_nmdsprep <- abcover_byspecies %>%
   tidyr::spread(species, percentcover) %>% # transpose data so columns are species
   replace(is.na(.), 0) # replace NA with zeros
 
-view(abcover_byspecies_nmdsprep)
+#view(abcover_byspecies_nmdsprep)
 # 15 sites (rows) by 48 columns
 str(abcover_byspecies_nmdsprep)
 
@@ -147,12 +196,12 @@ str(abcover_byspecies_nmdsprep)
 abcover_byspecies_nmdsprep_num <- abcover_byspecies_nmdsprep %>% 
   # use the ungroup() function to take out grouping
   ungroup() %>% 
-  select(!c(standtype, site, site_rep))
+  dplyr::select(!c(standtype, site, site_rep))
 # 15 sites (rows) by 33 species (columns)
 # DEG 1-6, ENH 1-6, INT 1-3 = 15 transects
          
-view(abcover_byspecies_nmdsprep_num) # only numbers
-write.csv(abcover_byspecies_nmdsprep_num, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/nmds_aboveground.csv")
+#view(abcover_byspecies_nmdsprep_num) # only numbers
+write.csv(abcover_byspecies_nmdsprep_num, "processed/nmds_aboveground.csv")
 ```
 
 ### (7) Percent Cover
@@ -163,7 +212,7 @@ above_percentcover <- abcover_full_v_omitground %>%
   filter(site_rep != "Intact4_4") %>% #omit Intact 4 from data
   filter(!is.na(species)) %>% # omit blank cells in species 
   dplyr::summarize(count_per_dist = n_distinct(site_rep_dist), percentcover = n_distinct(site_rep_dist)/41) %>% 
-   select(!c(count_per_dist))
+   dplyr::select(!c(count_per_dist))
   
 
 view(above_percentcover) # prints to new tab
@@ -176,10 +225,37 @@ unique(abcover_byspecies$species)
 
 ```
 
-
 # Above ground species richness
 ```{r species richness by stand type}
+
+ab_richness <- abcover_byspecies_nmdsprep_num
+
+ab_richness$"HEAR" <- ab_richness$"Heteromeles arbutifolia" + ab_richness$"Heteromeles arbutifolia dead"
+
+view(ab_richness)
+abcover_byspecies_nmdsprep_num_sppr <- abcover_byspecies_nmdsprep_num %>% 
+  # rename("new" = "old")
+  dplyr::("Heteromeles arbutifolia" = "Heteromeles arbutifolia dead",
+         "Bromus rubens"  = "Bromus madritensis",
+       #  "Bromus rubens"  =  "Bromus spp. dead", 
+      #  "Bromus rubens"  =  "Bromus spp.", 
+      #   "Bromus rubens"  = "Bromus rubens dead", 
+         "Stipa lepida" = "Stipa lepida dead", 
+     #   "Elymus condensatus" = "Elymus condensatus dead",  
+        "Salvia leucophylla" = "Salvia leucophylla dead",  
+        "Centaurea melitensis"  = "Centaurea melitensis dead",  
+        "Hirschfeldia incana" = "Hirschfeldia incana dead" , 
+        #"Erodium spp." = "Erodium cicutarium",  
+        "Malacothamnus fasciculatus" = "Malacothamnus fasciculatus dead", 
+        "Avena barbata" = "Avena barbata dead",
+        "Bromus diandrus" = "Bromus diandrus dead")
+
+
+view(abcover_byspecies_nmdsprep_num_sppr)
+
 sppr <- specnumber(abcover_byspecies_nmdsprep_num)
+sppr
+# 11 15  7 15 13 16 11 13 13 10  8  9 12 10 12
 
 summary(aov(sppr ~ standtype, data = abcover_byspecies_nmdsprep)) # by stand type
 #             Df Sum Sq Mean Sq F value Pr(>F)
@@ -216,6 +292,13 @@ plot_sppr <- ggplot(sppr_df, aes(x = standtype, y = value, fill = standtype)) +
        y = "Number of species per site",
        title = "Above ground species richness")
 plot_sppr
+
+```
+```{r species richness Take 2, include = TRUE}
+above_percentcover
+
+
+
 
 ```
 
