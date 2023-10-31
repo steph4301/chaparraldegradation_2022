@@ -43,11 +43,11 @@ glimpse(abcover_full_raw) # point-intercept transect data
 ```
 ### 2. belt transect data 
 
-```{r load csv spp diversity, include = TRUE}
+```{r species diversity from point-line intercept transect, include = TRUE}
 names(abcover_full_raw)
 sort(unique(abcover_full_raw$species))
 glimpse(abcover_full_raw %>%  na.omit())
-# Rows: 2,060
+# Rows: 2,063
 # Columns: 10
 
 
@@ -75,6 +75,9 @@ ab_diversity <- abcover_full_raw %>%
 
 sort(unique(ab_diversity$species))
 
+# combine site and rep to one column
+ab_diversity$site_rep <- paste(ab_diversity$site, ab_diversity$rep, sep="_") 
+
 
 # Renaming observations - another way to rename observations
 # ab_diversity <- abcover_full_raw %>%
@@ -86,13 +89,12 @@ sort(unique(ab_diversity$species))
 #     TRUE ~ as.character(species)  # Keep other observations unchanged
 #   ))
 
-glimpse(ab_diversity)
+glimpse(ab_diversity)  # species diversity from point-line intercept transect
 # Rows: 2,060
 # Columns: 10
+```
 
-abcover_full_join <- abcover_full_raw %>% 
- dplyr::select(c(species, lifeform, status, lifecycle, family))
-glimpse(abcover_full_join)
+```{r}
 
 
 
