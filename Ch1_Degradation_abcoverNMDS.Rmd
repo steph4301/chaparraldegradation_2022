@@ -41,7 +41,7 @@ abcover_full_raw <- abcover_full_raw %>% dplyr::select(!c(species.1))
 glimpse(abcover_full_raw) # point-intercept transect data
 
 ```
-### 2. belt transect data 
+### 2. transect data for species richness 
 
 ```{r species diversity from point-line intercept transect, include = TRUE}
 names(abcover_full_raw)
@@ -92,14 +92,51 @@ ab_diversity$site_rep <- paste(ab_diversity$site, ab_diversity$rep, sep="_")
 glimpse(ab_diversity)  # species diversity from point-line intercept transect
 # Rows: 2,060
 # Columns: 10
+
+ab_diversity <- ab_diversity %>% 
+  dplyr::select(!c(distance, vertical))
+
+write.csv(ab_diversity, "processed/ab_diversity.csv")
 ```
 
-```{r}
+```{r species richness by belt transect, include = TRUE}
+beltrans_sppr <- read.csv("processed/shrubdensitylife_transposed.csv", header = TRUE, na.strings=c("","NA"))
+beltrans_sppr <- beltrans_sppr %>% 
+  dplyr::select(!c("X"))
 
+# combine site and rep to one column
+beltrans_sppr$site_rep <- paste(beltrans_sppr$site, beltrans_sppr$rep, sep="_") 
 
+glimpse(beltrans_sppr)
 
-ab_diversity <- left_join(ab_diversity_raw, abcover_full_join, by = "species")
-#view(ab_diversity)
+write.csv(beltrans_sppr, "processed/beltrans_sppr.csv")
+```
+
+```{r species richness above ground, include=TRUE}
+
+ab_diversity_2 <- read.csv("processed/ab_diversity_2.csv", header = TRUE, na.strings=c("","NA")) # combined point-intercept transect and belt transect species diversity
+nativecover <- read.csv("processed/abcover_nativecover_nngrasscover.csv") # native percent cover from ch1_standdeg_canopy.Rmd
+nncover <- read.csv("processed/abcover_nonnativecover_nngrasscover.csv") # non-native percent cover from ch1_standdeg_canopy.Rmd
+
+view(ab_diversity_2)
+glimpse(ab_diversity_2)
+# Rows: 2,018
+# Columns: 9
+
+nativecover <- nativecover %>% 
+  dplyr::select(!c(X, standtype.x, standtype.y ))
+nncover <- nncover %>% 
+  dplyr::select(c(site_rep, percentcover_nonnative))
+
+ab_diversity_2_native <- ab_diversity_2 %>% # join above ground species diversity with native transect percent cover
+  left_join(nativecover, by = "site_rep")
+ab_diversity_2_native_nn <- ab_diversity_2_native %>% # join above ground species diversity with non-native transect percent cover
+  left_join(nncover, by = "site_rep")
+
+view(ab_diversity_2_native_nn)
+glimpse(ab_diversity_2_native_nn)
+# Rows: 2,018
+# Columns: 20
 
 ```
 
@@ -230,29 +267,6 @@ unique(abcover_byspecies$species)
 # Above ground species richness
 ```{r species richness by stand type}
 
-ab_richness <- abcover_byspecies_nmdsprep_num
-
-ab_richness$"HEAR" <- ab_richness$"Heteromeles arbutifolia" + ab_richness$"Heteromeles arbutifolia dead"
-
-view(ab_richness)
-abcover_byspecies_nmdsprep_num_sppr <- abcover_byspecies_nmdsprep_num %>% 
-  # rename("new" = "old")
-  dplyr::("Heteromeles arbutifolia" = "Heteromeles arbutifolia dead",
-         "Bromus rubens"  = "Bromus madritensis",
-       #  "Bromus rubens"  =  "Bromus spp. dead", 
-      #  "Bromus rubens"  =  "Bromus spp.", 
-      #   "Bromus rubens"  = "Bromus rubens dead", 
-         "Stipa lepida" = "Stipa lepida dead", 
-     #   "Elymus condensatus" = "Elymus condensatus dead",  
-        "Salvia leucophylla" = "Salvia leucophylla dead",  
-        "Centaurea melitensis"  = "Centaurea melitensis dead",  
-        "Hirschfeldia incana" = "Hirschfeldia incana dead" , 
-        #"Erodium spp." = "Erodium cicutarium",  
-        "Malacothamnus fasciculatus" = "Malacothamnus fasciculatus dead", 
-        "Avena barbata" = "Avena barbata dead",
-        "Bromus diandrus" = "Bromus diandrus dead")
-
-
 view(abcover_byspecies_nmdsprep_num_sppr)
 
 sppr <- specnumber(abcover_byspecies_nmdsprep_num)
@@ -294,13 +308,6 @@ plot_sppr <- ggplot(sppr_df, aes(x = standtype, y = value, fill = standtype)) +
        y = "Number of species per site",
        title = "Above ground species richness")
 plot_sppr
-
-```
-```{r species richness Take 2, include = TRUE}
-above_percentcover
-
-
-
 
 ```
 
