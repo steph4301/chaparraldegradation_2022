@@ -28,13 +28,30 @@ if (!require(devtools)) {
   install.packages("devtools")
 }
 devtools::install_github("gavinsimpson/ggvegan")
+library(here)
 ```
 
 # Load csv
 
 ```{r load csv}
 # percent cover
-abcover_full_raw <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA"))
+abcover_full_raw <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA"))
+glimpse(abcover_full_raw)
+```
+
+```{r load csv spp diversity, include = TRUE}
+ab_diversity_raw <- read.csv("ab_speciesdiversity.csv", header = TRUE)
+glimpse(ab_diversity_raw)
+
+abcover_full_join <- abcover_full_raw %>% 
+ dplyr::select(c(species, lifeform, status, lifecycle, family))
+glimpse(abcover_full_join)
+
+
+
+ab_diversity <- left_join(ab_diversity_raw, abcover_full_join, by = "species")
+view(ab_diversity)
+
 ```
 
 ### (1) Organize the percent cover data by converting the dataframe into a tibble.
@@ -55,7 +72,8 @@ class(abcover_full_raw) # now a tibble
 ```{r ab percent cover reorder classes to Intact Matrix Degraded}
 abcover_full_v <- abcover_full_raw %>%
   mutate(standtype = fct_relevel(standtype, 
-            "intact", "matrix", "degraded")) 
+            "intact", "matrix", "degraded")) %>% 
+  na.omit()
 unique(abcover_full_v$standtype)
 
 # renaming observations
