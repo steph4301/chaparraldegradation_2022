@@ -428,13 +428,15 @@ view(cover_statuslf_matrix_wide1)
 abcover_nativecover_nngrasscover <- left_join(abcover_nativecover, cover_statuslf_matrix_wide1, by = "site_rep")
 view(abcover_nativecover_nngrasscover)
 
+formula6 <- abcover_nativecover_nngrasscover$percentcover_native ~ abcover_nativecover_nngrasscover$nonnative_grass
+
 native_by_nngrass_regression <- ggplot(data = abcover_nativecover_nngrasscover, 
-       aes(x = nonnative_grass*100, y = percentcover_native*100, shape = standtype.x, color = standtype.x)) + #color = standtype
+       aes(x = nonnative_grass*100, y = percentcover_native*100, shape = standtype.x, color = standtype.x)) + #shape = standtype.x, color = standtype.x
   geom_point(size = 3, alpha = 0.8) +
    scale_shape_manual(values = c(16, 17, 18)) +
   ylim(0, 100)+
   xlim(0,100) +
-  #geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+#  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
   scale_color_manual(values = c(standcolors),
                      name = "Stand Type",
                      labels = c("intact" = "shrub dominated", 
@@ -445,10 +447,15 @@ native_by_nngrass_regression <- ggplot(data = abcover_nativecover_nngrasscover,
        title = "Total Native Cover by Non-native Grass Cover") +
   theme_bw() +  
   stat_poly_line() +
-  stat_poly_eq(use_label(c("eq", "R2")))
+#  stat_poly_eq(use_label(c("eq", "R2")))
+ stat_poly_eq(
+    aes(label = paste(after_stat(eq.label), stat(adj.rr.label), sep = "~~~~")),
+    formula = formula6, 
+    parse=TRUE
+ )
 print(native_by_nngrass_regression)
 
-
+#write.csv(abcover_nativecover_nngrasscover,"processed/abcover_nativecover_nngrasscover.csv")
 
 ```
 
@@ -473,9 +480,7 @@ p <- p + geom_abline(intercept = my.coef[1],
                          slope = my.coef[2], 
                      aes(colour = "overall"))
 p
-```
 
-```{r}
 # -------------------
 # analyse breakpoints
 # -------------------
@@ -484,11 +489,13 @@ p
 
 # have to provide estimates for breakpoints.
 # after looking a the data, 
-my.seg <- segmented(my.lm.nnnative_by_nngrass_regression, 
+my.seg <- segmented(my.lm, 
                     seg.Z = ~ nonnative_grass,  # x-axis
-                    psi = c(.75)
-#                    psi = list(percentcover_nonnative = c(.5))
+                  # psi = .4, .7
+                   psi = list(percentcover_native = c(.1219,.829))
                     )
+
+my.seg <- segmented(my.lm, seg.Z = ~ nonnative_grass, psi = list(percentcover_native = c(.1, .7)))
 
 # When not providing estimates for the breakpoints "psi = NA" can be used.
 # The number of breakpoints that will show up is not defined
@@ -504,6 +511,10 @@ my.seg$psi
 
 # get the slopes
 slope(my.seg)
+
+```
+
+```{r}
 
 
 # get the slopes manually - excercise!!
@@ -606,10 +617,55 @@ native_by_nativeshrub_regression <- ggplot(data = abcover_nativecover_nngrasscov
   stat_poly_line() +
   stat_poly_eq(use_label(c("eq", "R2")))
 print(native_by_nativeshrub_regression)
+
 ```
 
+```{r scatterplot native forb by native shrub cover, include=TRUE}
 
+nativeforb_by_nativeshrub_regression <- ggplot(data = abcover_nativecover_nngrasscover, 
+       aes(x = native_shrub*100, y = native_forb*100, shape = standtype.x, color = standtype.x)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  scale_shape_manual(values = c(16, 17, 18)) +
+  ylim(0, 100)+
+  xlim(0,100) +
+  #geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  scale_color_manual(values = c(standcolors),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) + #rename standtypes labels
+  labs(x = "Native shrub cover (%)", 
+       y = "Native forb cover (%)", 
+       title = "Native forb cover x native shrub cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
+print(nativeforb_by_nativeshrub_regression)
 
+```
+```{r scatterplot native forb by nn grass cover, include=TRUE}
+
+nativeforb_by_nngrass_regression <- ggplot(data = abcover_nativecover_nngrasscover, 
+       aes(x = nonnative_grass*100, y = native_forb*100, shape = standtype.x, color = standtype.x)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  scale_shape_manual(values = c(16, 17, 18)) +
+  ylim(0, 100)+
+  xlim(0,100) +
+  #geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  scale_color_manual(values = c(standcolors),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) + #rename standtypes labels
+  labs(x = "Non-native grass cover (%)", 
+       y = "Native forb cover (%)", 
+       title = "Native forb cover x non-native grass cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
+print(nativeforb_by_nngrass_regression)
+
+```
 ```{r scatterplot nonnative cover by nn grass cover, include=TRUE}
 
 abcover_nonnative_cover <- abcover_full_v %>% 
@@ -630,7 +686,7 @@ nnnative_by_nngrass_regression <- ggplot(data = abcover_nonnativecover_nngrassco
    scale_shape_manual(values = c(16, 17, 18)) +
   ylim(0, 100)+
   xlim(0,100) +
-#  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  #geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
   scale_color_manual(values = c(standcolors),
                      name = "Stand Type",
                      labels = c("intact" = "shrub dominated", 
@@ -643,6 +699,54 @@ nnnative_by_nngrass_regression <- ggplot(data = abcover_nonnativecover_nngrassco
   stat_poly_line() +
   stat_poly_eq(use_label(c("eq", "R2")))
 print(nnnative_by_nngrass_regression)
+
+```
+
+```{r scatterplot nonnative cover by native shrub cover, include=TRUE}
+
+nncover_nativeshrub <- ggplot(data = abcover_nonnativecover_nngrasscover, 
+       aes(x = native_shrub*100, y = percentcover_nonnative*100, shape = standtype.x, color = standtype.x)) + #shape = standtype.x, color = standtype.x
+  geom_point(size = 3, alpha = 0.8) +
+  scale_shape_manual(values = c(16, 17, 18)) +
+  ylim(0, 100)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  scale_color_manual(values = c(standcolors),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) + #rename standtypes labels
+  labs(x = "Native shrub cover (%)", 
+       y = "Total non-native cover (%)", 
+       title = "Total non-native cover x native shrub cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
+print(nncover_nativeshrub)
+
+```
+
+```{r scatterplot nonnative grass cover by native shrub cover, include=TRUE}
+
+nngrass_nativeshrub <- ggplot(data = abcover_nonnativecover_nngrasscover, 
+       aes(x = native_shrub*100, y = nonnative_grass*100, shape = standtype.x, color = standtype.x)) + #shape = standtype.x, color = standtype.x
+  geom_point(size = 3, alpha = 0.8) +
+  scale_shape_manual(values = c(16, 17, 18)) +
+  ylim(0, 100)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  scale_color_manual(values = c(standcolors),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) + #rename standtypes labels
+  labs(x = "Native shrub cover (%)", 
+       y = "Non-native grass cover (%)", 
+       title = "Non-native grass cover x native shrub cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
+print(nngrass_nativeshrub)
 
 ```
 
