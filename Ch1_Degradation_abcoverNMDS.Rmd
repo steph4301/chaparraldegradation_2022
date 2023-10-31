@@ -60,7 +60,7 @@ ab_diversity <- abcover_full_raw %>%
            species == "Bromus rubens dead" ~ "Bromus rubens", 
        species == "Bromus spp." ~ "Bromus rubens", 
     species == "Bromus spp. dead" ~ "Bromus rubens",
-          species == "Bromus madritensis " ~ "Bromus rubens",
+          species == "Bromus madritensis" ~ "Bromus rubens",
      species == "Centaurea melitensis dead" ~ "Centaurea melitensis",
     species == "Erodium cicutarium" ~ "Erodium spp.", 
     species == "Elymus condensatus dead" ~ "Elymus condensatus",
@@ -266,7 +266,68 @@ unique(abcover_byspecies$species)
 
 # Above ground species richness
 ```{r species richness by stand type}
+ab_diversity_2_native_nn %>% 
+distinct(species) %>%
+  pull(species)
 
+ab_diversity_2_native_nn <- ab_diversity_2_native_nn %>% 
+  dplyr::filter(species != "moss") %>% 
+   dplyr::filter(species != "nonnative_thatch") %>% 
+dplyr::filter(species != "native_litter") 
+
+ab_diversity_2_native_nn %>% 
+  distinct(species) %>%
+  pull(species)
+
+ab_div_bysiterep <- ab_diversity_2_native_nn %>%
+  group_by(standtype, site_rep) %>%  
+  dplyr::summarize(num_species = length(unique(species)))
+ab_div_bysiterep
+```
+
+
+```{r}
+
+ab_diversity_2_native_nn %>% 
+   dplyr::filter(site_rep == "DEG1_1") %>% 
+  distinct(species) %>%
+  pull(species)
+  
+```
+
+```{r}
+shapiro.test(ab_div_bysiterep$num_species)
+```
+
+
+```{r scatterplot species diversity by nn grass cover, include=TRUE} 
+
+### NEED TO FIX CODE - KIT
+
+ab_sppr_nngrass <- ggplot(data = ab_diversity_2_native_nn, 
+       aes(x = nonnative_grass*100, y = length(unique(species)), shape = standtype, color = standtype)) + #shape = standtype.x, color = standtype.x
+  geom_point(size = 3, alpha = 0.8) +
+  scale_shape_manual(values = c(16, 17, 18)) +
+  ylim(0, 20)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  scale_color_manual(values = c(standcolors),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) + #rename standtypes labels
+  labs(x = "Non-native grass cover (%)", 
+       y = "Species richness (#)", 
+       title = "Species richness x non-native grass cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
+print(ab_sppr_nngrass)
+```
+
+
+
+```{r species richness figure from An code}
 view(abcover_byspecies_nmdsprep_num_sppr)
 
 sppr <- specnumber(abcover_byspecies_nmdsprep_num)
@@ -295,7 +356,7 @@ pal <- c("lightsalmon1", "gold1", "palegreen4")
 plot_sppr <- ggplot(sppr_df, aes(x = standtype, y = value, fill = standtype)) +
   geom_boxplot() +
   scale_fill_manual(values = pal) +
-  scale_x_discrete(labels = c("Intact \n (n = 9)", "Matrix \n (n = 10)", "Degraded \n (n = 7)")) +
+  scale_x_discrete(labels = c("Intact \n (n = 9)", "Matrix \n (n = 6)", "Degraded \n (n = 6)")) +
   theme(legend.position = "none",
         plot.background = element_rect("white"),
         panel.background = element_rect("white"),
