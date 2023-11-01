@@ -31,17 +31,17 @@ devtools::install_github("gavinsimpson/ggvegan")
 library(here)
 ```
 
-# Load csv
-### 1. point-intercept transect data for percent cover
+# Point-intercept transect data
+### load csv for percent cover
 
 ```{r load csv}
 # percent cover
 abcover_full_raw <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA"))
+
 abcover_full_raw <- abcover_full_raw %>% dplyr::select(!c(species.1))
 glimpse(abcover_full_raw) # point-intercept transect data
 
 ```
-### 2. transect data for species richness 
 
 ```{r species diversity from point-line intercept transect, include = TRUE}
 names(abcover_full_raw)
@@ -71,13 +71,24 @@ ab_diversity <- abcover_full_raw %>%
       species == "Stipa lepida dead" ~ "Stipa lepida",
     TRUE ~ as.character(species)  # Keep other observations unchanged
   )) %>% 
+  mutate(site = case_when(
+    site == "Intact_1" ~ "Intact1",
+      site == "Intact_2" ~ "Intact2",
+      site == "Intact_3" ~ "Intact3",
+    TRUE ~ as.character(site)  # Keep other observations unchanged
+  )) %>% 
+  mutate(standtype = fct_relevel(standtype, 
+            "intact", "matrix", "degraded")) %>% 
+   mutate(site = fct_relevel(site, 
+            "Intact1", "Intact2", "Intact3", "ENH1",    "ENH2", "DEG1",    "DEG2")) %>% 
    na.omit() 
 
 sort(unique(ab_diversity$species))
+sort(unique(ab_diversity$site))
 
 # combine site and rep to one column
 ab_diversity$site_rep <- paste(ab_diversity$site, ab_diversity$rep, sep="_") 
-
+sort(unique(ab_diversity$site_rep))
 
 # Renaming observations - another way to rename observations
 # ab_diversity <- abcover_full_raw %>%
@@ -99,8 +110,34 @@ ab_diversity <- ab_diversity %>%
 write.csv(ab_diversity, "processed/ab_diversity.csv")
 ```
 
-```{r species richness by belt transect, include = TRUE}
-beltrans_sppr <- read.csv("processed/shrubdensitylife_transposed.csv", header = TRUE, na.strings=c("","NA"))
+
+# Belt transect data
+### load data
+```{r SHRUB species richness by belt transect, include = TRUE}
+belttrans_byspecies <- read.csv("deg_beltdensity_byspecies.csv")
+sort(unique(belttrans_byspecies$species))
+
+belttrans_sppr <- belttrans_byspecies %>%  
+   mutate(species = case_when(
+    species == "Erodium cicutarium" ~ "Erodium spp",
+        species == "Bromus diandrus dead" ~ "Bromus diandrus", 
+           species == "Bromus rubens dead" ~ "Bromus rubens", 
+       species == "Bromus spp." ~ "Bromus rubens", 
+    species == "Bromus spp. dead" ~ "Bromus rubens",
+          species == "Bromus madritensis" ~ "Bromus rubens",
+     species == "Centaurea melitensis dead" ~ "Centaurea melitensis",
+    species == "Erodium cicutarium" ~ "Erodium spp.", 
+    species == "Elymus condensatus dead" ~ "Elymus condensatus",
+    species == "Heteromeles arbutifolia dead" ~ "Heteromeles arbutifolia",
+    species == "Hirschfeldia incana dead" ~ "Hirschfeldia incana",
+    species == "Malacothamnus fasciculatus dead" ~ "Malacothamnus fasciculatus",
+           species == "Salvia leucophylla dead" ~ "Salvia leucophylla",
+      species == "Stipa lepida dead" ~ "Stipa lepida",
+    TRUE ~ as.character(species)  # Keep other observations unchanged
+  )) 
+
+#beltrans_density <- read.csv("processed/shrubdensitylife_transposed.csv", header = TRUE, na.strings=c("","NA"))
+
 beltrans_sppr <- beltrans_sppr %>% 
   dplyr::select(!c("X"))
 
@@ -108,6 +145,8 @@ beltrans_sppr <- beltrans_sppr %>%
 beltrans_sppr$site_rep <- paste(beltrans_sppr$site, beltrans_sppr$rep, sep="_") 
 
 glimpse(beltrans_sppr)
+sort(unique(beltrans_sppr$site_rep))
+sort(unique(beltrans_sppr$species))
 
 write.csv(beltrans_sppr, "processed/beltrans_sppr.csv")
 ```
@@ -117,6 +156,19 @@ write.csv(beltrans_sppr, "processed/beltrans_sppr.csv")
 ab_diversity_2 <- read.csv("processed/ab_diversity_2.csv", header = TRUE, na.strings=c("","NA")) # combined point-intercept transect and belt transect species diversity
 nativecover <- read.csv("processed/abcover_nativecover_nngrasscover.csv") # native percent cover from ch1_standdeg_canopy.Rmd
 nncover <- read.csv("processed/abcover_nonnativecover_nngrasscover.csv") # non-native percent cover from ch1_standdeg_canopy.Rmd
+
+ab_diversity_2 <- ab_diversity_2 %>% 
+  mutate(site = case_when(
+    site == "Intact_1" ~ "Intact1",
+      site == "Intact_2" ~ "Intact2",
+      site == "Intact_3" ~ "Intact3",
+    TRUE ~ as.character(site)  # Keep other observations unchanged
+  )) %>% 
+  mutate(standtype = fct_relevel(standtype, 
+            "intact", "matrix", "degraded")) %>% 
+   mutate(site = fct_relevel(site, 
+            "Intact1", "Intact2", "Intact3", "ENH1",    "ENH2", "DEG1",    "DEG2")) %>% 
+   na.omit() 
 
 view(ab_diversity_2)
 glimpse(ab_diversity_2)
@@ -275,18 +327,22 @@ ab_diversity_2_native_nn <- ab_diversity_2_native_nn %>%
    dplyr::filter(species != "nonnative_thatch") %>% 
 dplyr::filter(species != "native_litter") 
 
+# combine site and site_rep_species to one column
+ab_diversity_2_native_nn$site_rep_species <- paste(ab_diversity_2_native_nn$site_rep, ab_diversity_2_native_nn$species, sep="_") 
+
 ab_diversity_2_native_nn %>% 
   distinct(species) %>%
   pull(species)
 
-ab_div_bysiterep <- ab_diversity_2_native_nn %>%
+
+ab_div_bysiterep <- ab_diversity_2_native_nn %>% # number of unique species per transect
   group_by(standtype, site_rep) %>%  
   dplyr::summarize(num_species = length(unique(species)))
-ab_div_bysiterep
+print(ab_div_bysiterep) 
 ```
 
 
-```{r}
+```{r check - number of unique species per transect, include=TRUE}
 
 ab_diversity_2_native_nn %>% 
    dplyr::filter(site_rep == "DEG1_1") %>% 
