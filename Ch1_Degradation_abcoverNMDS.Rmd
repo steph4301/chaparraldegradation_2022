@@ -302,14 +302,19 @@ belttrans_sppr <- belttrans_byspecies %>%
   )) %>% 
     rename(rep = transectstand, #rename(new_name = old_name) 
            status = origin) 
-  
 
 # combine site and rep to one column
 belttrans_sppr$site_rep <- paste(belttrans_sppr$site, belttrans_sppr$rep, sep="_") 
 belttrans_sppr$site_rep_species <- paste(belttrans_sppr$site_rep, belttrans_sppr$species, sep="_") 
 
+belttrans_sppr %>% 
+  dplyr::filter(site == "ENH2") %>% 
+  print(unique(belttrans_sppr$species))
+
 belttrans_sppr <- belttrans_sppr %>% 
-  dplyr::select(!c("transectsite", "lifestage"))
+  dplyr::select(!c("transectsite", "lifestage")) %>% 
+  dplyr::filter(site != "ENH2")
+sort(unique(belttrans_sppr$site))
 
 glimpse(belttrans_sppr)
 sort(unique(belttrans_sppr$site_rep))
@@ -317,6 +322,11 @@ sort(unique(belttrans_sppr$species))
 
 write.csv(belttrans_sppr, "processed/belttrans_sppr.csv")
 ```
+
+```{r belt transect sppr figure, include = TRUE}
+
+```
+
 
 # Join transect and belt sppr.
 ```{r species richness above ground, include=TRUE}
