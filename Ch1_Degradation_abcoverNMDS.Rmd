@@ -108,34 +108,183 @@ ab_diversity <- ab_diversity %>%
 # write.csv(ab_diversity, "processed/ab_diversity.csv")
 ```
 
-```{r figure point intercept transect sppr by nn cover}
+```{r join point intercept sppr with native and non-native percent cover, include=TRUE}
 
 ab_diversity # species richness from point intercept transects
-nativecover <- read.csv("processed/abcover_nativecover_nngrasscover.csv") # native percent cover from ch1_standdeg_canopy.Rmd
-nncover <- read.csv("processed/abcover_nonnativecover_nngrasscover.csv") # non-native percent cover from ch1_standdeg_canopy.Rmd
-
+sort(unique(ab_diversity$site_rep))
+# "DEG1_1"    "DEG1_2"    "DEG1_3"    "DEG2_4"    "DEG2_5"    "DEG2_6"    "ENH1_1"    "ENH1_2"    "ENH1_3"    "ENH2_4"    "ENH2_5"    "ENH2_6"   
+#"Intact1_1" "Intact2_2" "Intact3_3"
 glimpse(ab_diversity)
 # Rows: 1,450
-# Columns: 8
+# Columns: 10
+
+nativecover <- read.csv("processed/abcover_nativecover_nngrasscover.csv") # native percent cover from ch1_standdeg_canopy.Rmd
+sort(unique(nativecover$site_rep))
+# "DEG1_1"     "DEG1_2"     "DEG1_3"     "DEG2_4"     "DEG2_5"     "DEG2_6"     "ENH1_1"     "ENH1_2"     "ENH1_3"     "ENH2_4"     "ENH2_5"    
+# "ENH2_6"     "Intact_1_1" "Intact_2_2" "Intact_3_3"
+glimpse(nativecover)
+
+nncover <- read.csv("processed/abcover_nonnativecover_nngrasscover.csv") # non-native percent cover from ch1_standdeg_canopy.Rmd
+sort(unique(nncover$site_rep))
+# "DEG1_1"     "DEG1_2"     "DEG1_3"     "DEG2_4"     "DEG2_5"     "DEG2_6"     "ENH1_1"     "ENH1_2"     "ENH1_3"     "ENH2_4"     "ENH2_5"    
+# "ENH2_6"     "Intact_1_1" "Intact_2_2" "Intact_3_3"
+glimpse(nncover)
+
+nativecover <- nativecover %>% 
+  mutate(site_rep = case_when(
+    site_rep == "Intact_1_1" ~ "Intact1_1", # old name ~ new name
+      site_rep == "Intact_2_2" ~ "Intact2_2",
+      site_rep == "Intact_3_3" ~ "Intact3_3",
+    TRUE ~ as.character(site_rep)  # Keep other observations unchanged
+  )) 
+
+nncover <- nncover %>% 
+  mutate(site_rep = case_when(
+    site_rep == "Intact_1_1" ~ "Intact1_1", # old name ~ new name
+      site_rep == "Intact_2_2" ~ "Intact2_2",
+      site_rep == "Intact_3_3" ~ "Intact3_3",
+    TRUE ~ as.character(site_rep)  # Keep other observations unchanged
+  )) 
 
 nativecover <- nativecover %>% 
   dplyr::select(!c(X, standtype.x, standtype.y ))
 nncover <- nncover %>% 
   dplyr::select(c(site_rep, percentcover_nonnative))
 
-ab_diversity_2_native <- ab_diversity_2 %>% # join above ground species diversity with native transect percent cover
-  left_join(nativecover, by = "site_rep")
-ab_diversity_2_native_nn <- ab_diversity_2_native %>% # join above ground species diversity with non-native transect percent cover
+ab_diversity_native <- ab_diversity %>% # join above ground species diversity with native transect percent cover
+  left_join(nativecover, by = "site_rep") 
+ab_diversity_native_nn <- ab_diversity_native %>% # join above ground species diversity with non-native transect percent cover
   left_join(nncover, by = "site_rep")
 
-view(ab_diversity_2_native_nn)
-glimpse(ab_diversity_2_native_nn)
-# Rows: 2,018
-# Columns: 20
+view(ab_diversity_native_nn)
+glimpse(ab_diversity_native_nn)
+# Rows: 1,450
+# Columns: 21
 
+#write.csv(ab_diversity_native_nn, "processed/ab_diversity_native_nn.csv")
 
 ```
 
+```{r summary tables for point intercept transect figure, include=TRUE}
+
+summary_table_pttrans_sppr_tot <- ab_diversity_native_nn %>%
+  group_by(standtype, site_rep, nonnative_grass, native_shrub, percentcover_native, percentcover_nonnative) %>%
+  summarize(total_sppr = n_distinct(species))
+
+summary_table_pttrans_nat <- ab_diversity_native_nn %>%
+  filter(status == "native") %>% 
+ group_by(standtype, site_rep, nonnative_grass, native_shrub, percentcover_native, percentcover_nonnative) %>%
+  summarize(native_sppr = n_distinct(species))
+
+summary_table_pttrans_nn <- ab_diversity_native_nn %>%
+  filter(status == "nonnative") %>% 
+ group_by(standtype, site_rep, nonnative_grass, native_shrub, percentcover_native, percentcover_nonnative) %>%
+  summarize(nn_sppr = n_distinct(species))
+
+#checking the data
+ab_diversity_native_nn %>% 
+  filter(site_rep == "DEG1_1") %>% 
+   # filter(status == "native") %>%
+   filter(status == "nonnative") %>%  
+  distinct(species)
+
+# SPECIES = 9
+# Avena barbata				
+# Hirschfeldia incana				
+# Lupinus spp.				
+# Bromus rubens				
+# Salvia leucophylla				
+# Erodium spp.				
+# Dipterostemon capitatus				
+# Artemisia californica				
+# Acmispon maritimus
+
+# NATIVE SPECEIS = 5
+# # Lupinus spp.				
+# Salvia leucophylla				
+# Dipterostemon capitatus				
+# Artemisia californica				
+# Acmispon maritimus
+
+# NONNATIVE SPECIES = 4
+# Avena barbata				
+# Hirschfeldia incana				
+# Bromus rubens				
+# Erodium spp.
+```
+
+```{r figure point intercept transect - total sppr by nn cover}
+
+ab_diversity_totalsppr_regression <- ggplot(data = summary_table_pttrans_sppr_tot, 
+                                            aes(x = nonnative_grass*100, y = total_sppr, shape = standtype, color = standtype)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  scale_shape_manual(values = c(16, 17, 18)) +
+  ylim(0, 20)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  scale_color_manual(values = c(standcolors),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) + #rename standtypes labels
+  labs(x = "Non-native grass cover (%)", 
+       y = "Total species richness (#)", 
+       title = "Total species richness by Non-native grass cover") +
+  theme_bw() +  
+  stat_poly_line() +
+ stat_poly_eq(use_label(c("eq", "R2")))
+print(ab_diversity_totalsppr_regression)
+
+# I made another figure in excel sheet: sppr_pointintercept.xlsx
+
+```
+```{r figure point intercept transect - native sppr by nn cover}
+
+ab_diversity_nativesppr_regression <- ggplot(data = summary_table_pttrans_nat, 
+                                            aes(x = nonnative_grass*100, y = native_sppr, shape = standtype, color = standtype)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  scale_shape_manual(values = c(16, 17, 18)) +
+  ylim(0, 20)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  scale_color_manual(values = c(standcolors),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) + #rename standtypes labels
+  labs(x = "Non-native grass cover (%)", 
+       y = "Native species richness (#)", 
+       title = "Native richness by Non-native grass cover") +
+  theme_bw() +  
+  stat_poly_line() +
+ stat_poly_eq(use_label(c("eq", "R2")))
+print(ab_diversity_nativesppr_regression)
+
+```
+
+```{r figure point intercept transect - nonnative sppr by nn cover}
+
+ab_diversity_nnsppr_regression <- ggplot(data = summary_table_pttrans_nn, 
+                                            aes(x = nonnative_grass*100, y = nn_sppr, shape = standtype, color = standtype)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  scale_shape_manual(values = c(16, 17, 18)) +
+  ylim(0, 20)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  scale_color_manual(values = c(standcolors),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) + #rename standtypes labels
+  labs(x = "Non-native grass cover (%)", 
+       y = "Native species richness (#)", 
+       title = "Non-native richness by Non-native grass cover") +
+  theme_bw() +  
+  stat_poly_line() +
+ stat_poly_eq(use_label(c("eq", "R2")))
+print(ab_diversity_nnsppr_regression)
+
+```
 
 # Belt transect data
 ### load data
