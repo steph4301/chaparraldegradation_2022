@@ -679,6 +679,7 @@ view(abcover_nonnative_cover)
 
 abcover_nonnativecover_nngrasscover <- left_join(abcover_nonnative_cover, cover_statuslf_matrix_wide1, by = "site_rep")
 view(abcover_nonnativecover_nngrasscover)
+write.csv(abcover_nonnativecover_nngrasscover, "processed/abcover_nonnativecover_nngrasscover.csv")
 
 nnnative_by_nngrass_regression <- ggplot(data = abcover_nonnativecover_nngrasscover, 
        aes(x = nonnative_grass*100, y = percentcover_nonnative*100), shape = standtype.x, color = standtype.x) + #color = standtype
