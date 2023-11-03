@@ -295,7 +295,7 @@ sort(unique(belttrans_byspecies$species))
 belttrans_sppr <- belttrans_byspecies %>%  
    mutate(species = case_when(
     species == "Bromus madritensis" ~ "Bromus rubens", 
-        species == "Erodium cicutarium" ~ "Erodium spp",      
+        species == "Erodium cicutarium" ~ "Erodium spp.",      
 #    species == "Lupinus spp." ~ "Lupinus bicolor", # lupins are in different transects so leaving as three seperate entries: LUBI, LUSU, and Lupinus spp.
 #     species == "Lupinus spp." ~ "Lupinus succulentus",
     TRUE ~ as.character(species)  # Keep other observations unchanged
@@ -308,8 +308,7 @@ belttrans_sppr$site_rep <- paste(belttrans_sppr$site, belttrans_sppr$rep, sep="_
 belttrans_sppr$site_rep_species <- paste(belttrans_sppr$site_rep, belttrans_sppr$species, sep="_") 
 
 belttrans_sppr %>% 
-  dplyr::filter(site == "ENH2") %>% 
-  print(unique(belttrans_sppr$species))
+  dplyr::filter(site == "ENH2")
 
 belttrans_sppr <- belttrans_sppr %>% 
   dplyr::select(!c("transectsite", "lifestage")) %>% 
@@ -323,8 +322,46 @@ sort(unique(belttrans_sppr$species))
 write.csv(belttrans_sppr, "processed/belttrans_sppr.csv")
 ```
 
-```{r belt transect sppr figure, include = TRUE}
+```{r belt transect join percent cover, include=TRUE}
 
+belttrans_sppr_native <- belttrans_sppr %>% # join above ground species diversity with native transect percent cover
+  left_join(nativecover, by = "site_rep") 
+
+belttrans_sppr_native_nn <- belttrans_sppr_native %>% # join above ground species diversity with non-native transect percent cover
+  left_join(nncover, by = "site_rep")
+
+view(belttrans_sppr_native_nn)
+glimpse(ab_diversity_native_nn)
+# Rows: 1,450
+# Columns: 21
+
+#write.csv(ab_diversity_native_nn, "processed/ab_diversity_native_nn.csv")
+
+```
+
+
+```{r belt transect sppr figure - total sppr by nngrass, include = TRUE}
+
+belttrans_sppr_totalsppr_regression <- ggplot(data = belttrans_sppr, 
+                                            aes(x = nonnative_grass*100, y = total_sppr, shape = standtype, color = standtype)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  scale_shape_manual(values = c(16, 17, 18)) +
+  ylim(0, 20)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  scale_color_manual(values = c(standcolors),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) + #rename standtypes labels
+  labs(x = "Non-native grass cover (%)", 
+       y = "Total species richness (#)", 
+       title = "Total species richness by Non-native grass cover") +
+  theme_bw() +  
+  stat_poly_line() +
+ stat_poly_eq(use_label(c("eq", "R2")))
+print(belttrans_sppr_totalsppr_regression)
+  
 ```
 
 
