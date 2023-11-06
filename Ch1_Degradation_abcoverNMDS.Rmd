@@ -161,7 +161,7 @@ glimpse(ab_diversity_native_nn)
 # Rows: 1,450
 # Columns: 21
 
-#write.csv(ab_diversity_native_nn, "processed/ab_diversity_native_nn.csv")
+#write.csv(ab_diversity_native_nn, "processed/ab_diversity_native_nn.csv") <-- export data to EXCEL and make graphs there
 
 ```
 
@@ -170,6 +170,21 @@ glimpse(ab_diversity_native_nn)
 summary_table_pttrans_sppr_tot <- ab_diversity_native_nn %>%
   group_by(standtype, site_rep, nonnative_grass, native_shrub, percentcover_native, percentcover_nonnative) %>%
   summarize(total_sppr = n_distinct(species))
+# Intact_1 = 9
+# I_2 = 12
+# I_3 = 6
+# ENH_1 = 12
+# E_2 = 10
+# E_3 = 14
+# E_4 = 10
+# E_5 = 8
+# E_6 = 8
+# DEG_1 = 9
+# D_2 = 7
+# D_3 = 7
+# D_4 = 7
+# D_5 = 6
+# D_6 = 10
 
 summary_table_pttrans_nat <- ab_diversity_native_nn %>%
   filter(status == "native") %>% 
@@ -211,8 +226,10 @@ ab_diversity_native_nn %>%
 # Hirschfeldia incana				
 # Bromus rubens				
 # Erodium spp.
-```
 
+
+```
+### point-intercept sppr figures
 ```{r figure point intercept transect - total sppr by nn cover}
 
 ab_diversity_totalsppr_regression <- ggplot(data = summary_table_pttrans_sppr_tot, 
@@ -291,39 +308,51 @@ print(ab_diversity_nnsppr_regression)
 ```{r SHRUB species richness by belt transect, include = TRUE}
 belttrans_byspecies <- read.csv("deg_beltdensity_byspecies.csv")
 sort(unique(belttrans_byspecies$species))
+sort(unique(belttrans_byspecies$site))
+sort(unique(belttrans_byspecies$origin))
+sort(unique(belttrans_byspecies$lifespan))
 
 belttrans_sppr <- belttrans_byspecies %>%  
    mutate(species = case_when(
-    species == "Bromus madritensis" ~ "Bromus rubens", 
+    species == "Bromus madritensis" ~ "Bromus rubens", # old name ~ new name
         species == "Erodium cicutarium" ~ "Erodium spp.",      
 #    species == "Lupinus spp." ~ "Lupinus bicolor", # lupins are in different transects so leaving as three seperate entries: LUBI, LUSU, and Lupinus spp.
 #     species == "Lupinus spp." ~ "Lupinus succulentus",
     TRUE ~ as.character(species)  # Keep other observations unchanged
   )) %>% 
+      mutate(origin = case_when(
+        origin == "non-native" ~ "nonnative", 
+        TRUE ~ as.character(origin))) %>% 
+  mutate(lifespan = case_when(
+    lifespan == "Perennial" ~ "perennial", 
+     TRUE ~ as.character(lifespan))) %>% 
     rename(rep = transectstand, #rename(new_name = old_name) 
-           status = origin) 
+           status = origin) %>% 
+   filter(site != "ENH2") 
 
+belttrans_sppr$site <- factor(belttrans_sppr$site, levels=c("Intact1", "Intact2", "Intact3", "ENH1", "DEG1", "DEG2"))
+unique(belttrans_sppr$site)
+  
 # combine site and rep to one column
 belttrans_sppr$site_rep <- paste(belttrans_sppr$site, belttrans_sppr$rep, sep="_") 
 belttrans_sppr$site_rep_species <- paste(belttrans_sppr$site_rep, belttrans_sppr$species, sep="_") 
 
-belttrans_sppr %>% 
-  dplyr::filter(site == "ENH2")
-
 belttrans_sppr <- belttrans_sppr %>% 
-  dplyr::select(!c("transectsite", "lifestage")) %>% 
-  dplyr::filter(site != "ENH2")
+  dplyr::select(!c("transectsite", "lifestage")) 
 sort(unique(belttrans_sppr$site))
 
 glimpse(belttrans_sppr)
 sort(unique(belttrans_sppr$site_rep))
 sort(unique(belttrans_sppr$species))
 
-write.csv(belttrans_sppr, "processed/belttrans_sppr.csv")
+belttrans_sppr %>% 
+  filter(site_rep == "DEG2_6") %>%
+  distinct(species)
+
+#write.csv(belttrans_sppr, "processed/belttrans_sppr.csv")
 ```
 
 ```{r belt transect join percent cover, include=TRUE}
-
 belttrans_sppr_native <- belttrans_sppr %>% # join above ground species diversity with native transect percent cover
   left_join(nativecover, by = "site_rep") 
 
@@ -331,19 +360,150 @@ belttrans_sppr_native_nn <- belttrans_sppr_native %>% # join above ground specie
   left_join(nncover, by = "site_rep")
 
 view(belttrans_sppr_native_nn)
-glimpse(ab_diversity_native_nn)
-# Rows: 1,450
-# Columns: 21
+glimpse(belttrans_sppr_native_nn)
+# Rows: 904
+# Columns: 21 
 
-#write.csv(ab_diversity_native_nn, "processed/ab_diversity_native_nn.csv")
+#write.csv(belttrans_sppr_native_nn, "processed/belttrans_sppr_native_nn.csv") #<-- export to EXCEL to create belt transect sppr figures.
+
+```
+
+```{r join sppr from belt and point-intercept transect}
+# nov. 6, 2023
+# KIT - Can you create a df of the total species list (point intercept transect + belt transect species list) at INT 1-3, ENH 1-3, and DEG 1-6?
+
+belt_sppr <- belttrans_sppr %>% #select only site_rep_species from belt trans data
+  dplyr::select(c(site_rep_species)) 
+
+pointintercept_sppr <- ab_diversity_native_nn %>% #select only site_rep_species from belt trans data
+  dplyr::select(c(site_rep_species))
+
+belt_point_join_sppr <- belt_sppr %>% 
+  full_join(pointintercept_sppr, by = "site_rep_species")
+
+belt_point_join_sppr %>% 
+  summarize(total_sppr = n_distinct(site_rep_species))
+# ahhh.... standtype, site_rep, status, etc. needs to be brougt in from somewhere.... 
+
 
 ```
 
 
+```{r summary tables for belt transect figure, include=TRUE}
+
+belttrans_sppr_native_nn$site_rep <- factor(belttrans_sppr_native_nn$site_rep, levels=c("Intact1_1", "Intact2_2", "Intact3_3", "ENH1_1", "ENH1_2", "ENH1_3", "DEG1_1", "DEG1_2","DEG1_3", "DEG2_4","DEG2_5", "DEG2_6"))
+
+belttrans_sppr_native_nn_sppr_tot <- belttrans_sppr_native_nn %>%
+  group_by(site_rep) %>%
+  summarize(total_sppr = n_distinct(species))
+print(belttrans_sppr_native_nn_sppr_tot)
+# site_rep. total_sppr
+# Intact1_1	18			
+# Intact2_2	21			
+# Intact3_3	17			
+# ENH1_1	13			
+# ENH1_2	16			
+# ENH1_3	9			
+# DEG1_1	11			
+# DEG1_2	8			
+# DEG1_3	9			
+# DEG2_4	10	
+# DEG2_5	7			
+# DEG2_6	6	
+
+
+summary_table_belt_nat <- belttrans_sppr_native_nn %>%
+  filter(status == "native") %>% 
+ group_by(site_rep) %>%
+  summarize(native_sppr = n_distinct(species))
+print(summary_table_belt_nat)
+# site_rep. native_sppr
+# Intact1_1	15			
+# Intact2_2	17			
+# Intact3_3	13			
+# ENH1_1	13			
+# ENH1_2	14			
+# ENH1_3	8			
+# DEG1_1	7			
+# DEG1_2	8			
+# DEG1_3	6			
+# DEG2_4	10	
+# DEG2_5	7			
+# DEG2_6	6
+
+#checking the data
+belttrans_sppr_native_nn %>% 
+  filter(site_rep == "DEG2_6") %>% 
+    filter(status == "native") %>%
+   #filter(status == "nonnative") %>%  
+  distinct(species)
+
+```
+```{r}
+
+
+
+
+# Intact_1 = 15
+# I_2 = 17
+# I_3 = 13
+# ENH_1 = 13
+# E_2 = 14
+# E_3 = 8
+# DEG_1 = 7 
+# D_2 = 8
+# D_3 = 6
+# D_4 = 10
+# D_5 = 7
+# D_6 = 6
+
+summary_table_belt_nn <- belttrans_sppr_native_nn %>%
+  filter(status == "nonnative") %>% 
+ group_by(standtype, site_rep, nonnative_grass, native_shrub, percentcover_native, percentcover_nonnative) %>%
+  summarize(nn_sppr = n_distinct(species))
+
+#checking the data
+belttrans_sppr_native_nn %>% 
+  filter(site_rep == "DEG1_1") %>% 
+   # filter(status == "native") %>%
+   filter(status == "nonnative") %>%  
+  distinct(species)
+
+# SPECIES = 9
+# Avena barbata				
+# Hirschfeldia incana				
+# Lupinus spp.				
+# Bromus rubens				
+# Salvia leucophylla				
+# Erodium spp.				
+# Dipterostemon capitatus				
+# Artemisia californica				
+# Acmispon maritimus
+
+# NATIVE SPECEIS = 5
+# # Lupinus spp.				
+# Salvia leucophylla				
+# Dipterostemon capitatus				
+# Artemisia californica				
+# Acmispon maritimus
+
+# NONNATIVE SPECIES = 4
+# Avena barbata				
+# Hirschfeldia incana				
+# Bromus rubens				
+# Erodium spp.
+
+
+```
+
+### belt transect sppr - total sppr x nngrass
 ```{r belt transect sppr figure - total sppr by nngrass, include = TRUE}
 
-belttrans_sppr_totalsppr_regression <- ggplot(data = belttrans_sppr, 
-                                            aes(x = nonnative_grass*100, y = total_sppr, shape = standtype, color = standtype)) + #color = standtype
+belttrans_sppr_totalsppr_regression <- ggplot(data = belttrans_sppr_native_nn, 
+                                            aes(x = nonnative_grass*100, 
+                                                y = total_sppr, 
+                                                shape = standtype, 
+                                                color = standtype)) + #color = standtype
   geom_point(size = 3, alpha = 0.8) +
   scale_shape_manual(values = c(16, 17, 18)) +
   ylim(0, 20)+
