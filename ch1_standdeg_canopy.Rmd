@@ -759,7 +759,8 @@ print(nngrass_nativeshrub)
 ```{r segmented scatterplot nonnative cover by nn grass cover, include=TRUE}
 
 ### SEGMENTED ###
-p1 <- ggplot(abcover_nonnativecover_nngrasscover, aes(x = nonnative_grass, y = percentcover_nonnative)) + geom_line()+
+### Breakpoint analysis, segmented regression ### KIT, THANK YOU! 
+p1 <- ggplot(abcover_nonnativecover_nngrasscover, aes(x = nonnative_grass, y = native_shrub)) + geom_line()+
   geom_point()
 p1
 
