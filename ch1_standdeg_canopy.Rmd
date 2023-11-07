@@ -497,7 +497,7 @@ p
 my.seg <- segmented(my.lm, 
                     seg.Z = ~ nonnative_grass,  # x-axis
                   # psi = .4, .7
-                   psi = list(percentcover_native = c(.1219,.829))
+                   psi = list(percentcover_native = c(.1219,.829, 0.3))
                     )
 
 my.seg <- segmented(my.lm, seg.Z = ~ nonnative_grass, psi = list(percentcover_native = c(.1, .7)))
@@ -600,7 +600,6 @@ p1 <- p1 + geom_vline(xintercept = my.lines, linetype = "dashed")
 p1
 ```
 
-
 ```{r scatterplot native cover by native shrub cover, include=TRUE}
 
 native_by_nativeshrub_regression <- ggplot(data = abcover_nativecover_nngrasscover, 
@@ -648,6 +647,7 @@ nativeforb_by_nativeshrub_regression <- ggplot(data = abcover_nativecover_nngras
 print(nativeforb_by_nativeshrub_regression)
 
 ```
+
 ```{r scatterplot native forb by nn grass cover, include=TRUE}
 
 nativeforb_by_nngrass_regression <- ggplot(data = abcover_nativecover_nngrasscover, 
@@ -757,15 +757,22 @@ print(nngrass_nativeshrub)
 ```
 
 ```{r segmented scatterplot nonnative cover by nn grass cover, include=TRUE}
+abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$nonnative_grass),]
 
 ### SEGMENTED ###
+<<<<<<< Updated upstream
 ### Breakpoint analysis, segmented regression ### KIT, THANK YOU! 
 p1 <- ggplot(abcover_nonnativecover_nngrasscover, aes(x = nonnative_grass, y = native_shrub)) + geom_line()+
+=======
+p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(x = nonnative_grass, y = percentcover_nonnative)) + geom_line()+
+  geom_point()
+p2 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(y = nonnative_grass, x = percentcover_nonnative)) + geom_line()+
+>>>>>>> Stashed changes
   geom_point()
 p1
 
 #create a linear model <-- from https://rpubs.com/MarkusLoew/12164
-my.lm.nnnative_by_nngrass_regression <- lm(nonnative_grass ~ percentcover_nonnative, data = abcover_nonnativecover_nngrasscover)
+my.lm.nnnative_by_nngrass_regression <- lm(nonnative_grass ~ percentcover_nonnative, data = abcover_nonnativecover_nngrasscover2)
 summary(my.lm.nnnative_by_nngrass_regression)
 
 # Extract the coefficients from the overall model
@@ -788,7 +795,7 @@ library(segmented)
 # after looking a the data, 
 my.seg <- segmented(my.lm.nnnative_by_nngrass_regression, 
                     seg.Z = ~ nonnative_grass,  # x-axis
-                    psi = c(.75)
+                    psi = c(.3, .8)
 #                    psi = list(percentcover_nonnative = c(.5))
                     )
 
@@ -841,11 +848,11 @@ c0 <- b0 + b1 * break1 - c1 * break1
 
 # At the breakpoint (break2), the two lines are the same again:
 # the coefficients are the differences in slope in comparison to the previous slope
-d1 <- coef(my.seg)[[4]] + c1
-break2 <- my.seg$psi[[4]]
+ d1 <- coef(my.seg)[[4]] + c1
+ break2 <- my.seg$psi[[4]]
 
-#Solve for d0 (intercept of third segment):
-d0 <- c0 + c1 * break2 - d1 * break2
+#Solve for d0 (intercept of third segment): 
+ d0 <- c0 + c1 * break2 - d1 * break2
 
 # adding lines to the graph
 
@@ -869,22 +876,54 @@ p1
 
 # get the fitted data
 my.fitted <- fitted(my.seg)
-my.model <- data.frame(NonNativeGrassCover = abcover_nonnativecover_nngrasscover$nonnative_grass, TotalNonNativeCover = my.fitted)
+my.model <- data.frame(NonNativeGrassCover = abcover_nonnativecover_nngrasscover2$percentcover_nonnative, TotalNonNativeCover = my.fitted)
 
 # plot the fitted model
 ggplot(my.model, aes(x = NonNativeGrassCover, y = TotalNonNativeCover)) + geom_line()
 
 
 # add the fitted data to the exisiting plot
-p1 + geom_line(data = my.model, aes(x = NonNativeGrassCover, y = TotalNonNativeCover), colour = "tomato")
+p2 <- p2 + geom_line(data = my.model, aes(x = NonNativeGrassCover, y = TotalNonNativeCover), colour = "tomato")
 
 # add vertical lines to indicate the break locations
 # second row of the psi-matrix
 my.lines <- my.seg$psi[, 2]
 
-p1 <- p1 + geom_vline(xintercept = my.lines, linetype = "dashed")
-p1
+p2 <- p2 + geom_vline(xintercept = my.lines, linetype = "dashed")
+p2
 ```
+
+```{r}
+library(strucchange)
+
+abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$nonnative_grass),]
+
+bp <- breakpoints(nonnative_grass ~ percentcover_nonnative, data = abcover_nonnativecover_nngrasscover2, h = 3)
+summary(bp)
+
+plot(bp, breaks = 3)
+plot(nonnative_grass ~ percentcover_nonnative, data = abcover_nonnativecover_nngrasscover2, pch = 19)
+lines(fitted(bp, breaks = 1) ~ abcover_nonnativecover_nngrasscover2$percentcover_nonnative, col = 4, lwd = 1.5)
+
+#breakpoints to fitted data
+my.fitted1 <- fitted(bp, breaks = 1)
+my.model1 <- data.frame(NonNativeGrassCover = abcover_nonnativecover_nngrasscover2$percentcover_nonnative, TotalNonNativeCover = my.fitted1)
+
+p3 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(y = nonnative_grass, x = percentcover_nonnative)) +
+  geom_point()
+p3 <- p3 + geom_line(data = my.model1, aes(x = NonNativeGrassCover, y = TotalNonNativeCover), colour = "tomato")
+p3
+
+# #deep fit
+# my.fitted2 <- fitted(bp, breaks = 2)
+# my.model2 <- data.frame(NonNativeGrassCover = abcover_nonnativecover_nngrasscover2$percentcover_nonnative, TotalNonNativeCover = my.fitted2)
+# 
+# p4 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(y = nonnative_grass, x = percentcover_nonnative)) +
+#   geom_point()
+# p4 <- p4 + geom_line(data = my.model2, aes(x = NonNativeGrassCover, y = TotalNonNativeCover), colour = "tomato")
+# p4
+```
+
 
 
 ```{r }
