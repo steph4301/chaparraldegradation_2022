@@ -1573,6 +1573,7 @@ glimpse(shrubdensitylife_transposed)
 
 shrubdensity <- shrubdensitylife_transposed # 
 shrubdensity$site_rep <- paste(shrubdensity$site, shrubdensity$rep, sep="_") # combine site and rep to one column
+shrubdensity$site_rep_species <- paste(shrubdensity$site_rep, shrubdensity$species, sep="_") # combine site and rep to one column
 head(shrubdensity) # look at new column site_rep, last column
 
 shrubdensity %>% 
@@ -1583,7 +1584,11 @@ shrubdensity %>%
 # all status have 13 length_count --> 13 species per status
 # take home = no missing data points
 
-write.csv(shrubdensitylife_transposed,"processed/shrubdensitylife_transposed.csv")
+sort(unique(shrubdensity$site_rep))
+sort(unique(shrubdensity$site_rep_species))
+sort(unique(shrubdensity$species))
+
+write.csv(shrubdensity,"processed/shrubdensity.csv")
 
 # shrubdensityspp_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_byspecies.csv")
 # shrubdensityalive_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_beltdensity_seperatealive.csv")
@@ -1592,7 +1597,7 @@ write.csv(shrubdensitylife_transposed,"processed/shrubdensitylife_transposed.csv
 
 #### ALIVE shrub density
 
-```{r alive shrub dentsity 1m2 - mean SD, include=TRUE}
+```{r alive shrub dentsity 1m2 and figure x nngrass, include=TRUE}
 
 # ALIVE
 shrubdensity_sum_bysiterep <- shrubdensity %>% # call tibble
@@ -1601,7 +1606,52 @@ shrubdensity_sum_bysiterep <- shrubdensity %>% # call tibble
   summarize(aliveshrubdensity_80m2 = sum(count), 
             aliveshrubdensity_1m2 = aliveshrubdensity_80m2/80) %>% # 4m x 20 m belt transect
   print(shrubdensity_sum_bysiterep) 
+```
 
+```{r}
+
+nativecover <- read.csv("processed/abcover_nativecover_nngrasscover.csv") # native percent cover from ch1_standdeg_canopy.Rmd
+sort(unique(nativecover$site_rep))
+# "DEG1_1"     "DEG1_2"     "DEG1_3"     "DEG2_4"     "DEG2_5"     "DEG2_6"     "ENH1_1"     "ENH1_2"     "ENH1_3"     "ENH2_4"     "ENH2_5"    
+# "ENH2_6"     "Intact_1_1" "Intact_2_2" "Intact_3_3"
+glimpse(nativecover)
+
+nncover <- read.csv("processed/abcover_nonnativecover_nngrasscover.csv") # non-native percent cover from ch1_standdeg_canopy.Rmd
+sort(unique(nncover$site_rep))
+# "DEG1_1"     "DEG1_2"     "DEG1_3"     "DEG2_4"     "DEG2_5"     "DEG2_6"     "ENH1_1"     "ENH1_2"     "ENH1_3"     "ENH2_4"     "ENH2_5"    
+# "ENH2_6"     "Intact_1_1" "Intact_2_2" "Intact_3_3"
+glimpse(nncover)
+
+
+shrubdensity_sum_bysiterep_nat <- shrubdensity_sum_bysiterep %>%
+ left_join(nativecover, by = "site_rep") 
+shrubdensity_sum_bysiterep_nat_nn <- shrubdensity_sum_bysiterep_nat %>% # join above ground species diversity with non-native transect percent cover
+  left_join(nncover, by = "site_rep")
+view(shrubdensity_sum_bysiterep_nat_nn)
+
+shrubdensity_sum_bysiterep_regression <- ggplot(data = shrubdensity_sum_bysiterep_nat_nn, 
+       aes(x = nonnative_grass*100, y = aliveshrubdensity_1m2, shape = standtype, color = standtype)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  scale_shape_manual(values = c(16, 17, 18)) +
+  ylim(0, 3)+
+  xlim(0,100) +
+  #geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  scale_color_manual(values = c(standcolors),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) + #rename standtypes labels
+  labs(x = "Non-native grass cover (%)", 
+       y = "Shrub Density (#/m2)", 
+       title = "Shrub density (per m2) x non-native grass cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
+print(shrubdensity_sum_bysiterep_regression)
+```
+
+
+```{r alive shrub dentsity 1m2 - mean SD, include=TRUE}
 shrubdensity_sum_bysiterep_meanSD <- shrubdensity_sum_bysiterep %>%
   group_by(standtype) %>%
   summarize(mean_aliveshrubdensity_1m2 = mean(aliveshrubdensity_1m2),
@@ -1613,7 +1663,6 @@ shrubdensity_sum_bysiterep_meanSD <- shrubdensity_sum_bysiterep %>%
 #intact	      0.6375000	                  3	0.21323403	0.12311072
 #matrix	      0.7750000	                  6	0.77245550	0.31535364
 #degraded	    0.1895833	                  6	0.07600027	0.03102698
-
 
 ```
 
