@@ -50,9 +50,11 @@ unique(seedbank_load$soilcore)
 unique(seedbank_load$depth_name)
 unique(seedbank_load$treatment)
 unique(seedbank_load$status)
-unique(seedbank_load$species)
-
-view(seedbank_load)
+sort(unique(seedbank_load$species_diversity))
+sort(unique(seedbank_load$genus_abundance))
+sort(unique(seedbank_load$family))
+sort(unique(seedbank_load$lifeform))
+sort(unique(seedbank_load$lifescycle))
 ```
 # data prep
 (1) Organize the seed bank data by converting the df into a tibble.
@@ -74,9 +76,42 @@ seedbank_load_v <- seedbank_load %>%
   mutate(stand = fct_relevel(stand, 
             "intact", "enhanced", "degraded")) %>% 
   mutate(treatment = fct_relevel(treatment, 
-                                 "control", "charate", "oven", "ovenchar"))
-
-unique(seedbank_load_v$status)
+                                 "control", "charate", "oven", "ovenchar")) %>% 
+  mutate(family = case_when(
+    family ==  "Asteraceae  " ~ "Asteraceae", # old name ~ new name
+    family ==  "Cucurbitaceae  " ~ "Cucurbitaceae",
+    family ==  "Euphorbiaceae  " ~ "Euphorbiaceae",
+    family ==  "Fabaceae  " ~ "Fabaceae",
+    family ==  "Juncaceae  " ~ "Juncaceae",
+    family ==  "Liliaceae  " ~ "Liliaceae",
+    family ==  "Namaceae  " ~ "Namaceae",
+    family ==  "Phrymaceae  " ~ "Phrymaceae",
+    family == "Phrymaceae  "  ~ "Phrymaceae",
+    family ==  "Poaceae  " ~ "Poaceae",
+    family == "Themidaceae  " ~ "Themidaceae", 
+     TRUE ~ as.character(family)  # Keep other observations unchanged
+  )) %>% 
+   mutate(species_diversity = case_when(
+     species_diversity == "Astragalus trichopodus " ~ "Astragalus trichopodus",
+     species_diversity == "Erodium spp. "  ~ "Erodium spp.",
+     species_diversity == "Festuca myuros " ~ "Festuca myuros",
+     species_diversity == "Lactuca serriola " ~ "Lactuca serriola",
+     species_diversity ==   "Lupinus bicolor "   ~ "Lupinus bicolor", 
+     species_diversity ==  "Salvia leucophylla "   ~ "Salvia leucophylla", 
+     species_diversity == "Thysanocarpus spp. " ~ "Thysanocarpus spp.",     
+     TRUE ~ as.character(species_diversity)  # Keep other observations unchanged
+  )) %>% 
+   mutate(lifescycle = case_when(
+     lifescycle == "annual or biannual" ~ "biannual", # old name ~ new name
+       TRUE ~ as.character(lifescycle)  # Keep other observations unchanged
+  )) %>% 
+  mutate(genus_abundance = case_when(
+    genus_abundance == "Lactuca serriola "  ~ "Lactuca serriola",
+    genus_abundance == "Lupinus bicolor "   ~ "Lupinus bicolor", 
+    genus_abundance == "Thysanocarpus spp. "  ~ "Thysanocarpus spp.",
+    genus_abundance == "Unknown Phrymaceae  " ~ "Unknown Phrymaceae",
+    TRUE ~ as.character(genus_abundance)  # Keep other observations unchanged
+  )) 
 ```
 
 (3) Create new columns for SITE_CORE, SITE_CORE_DEPTH, SITE_CORE_DEPTH_TREATMENT, SITE_TREATMENT, SITE_DEPTH for seed bank data. 
@@ -109,7 +144,7 @@ unique(seedbank_load_v_omitpretreatment$stand_core) # unique stand_core --> 26 =
 ```
 
 # stacked germination by family
-```{r stacked germination by genus FIGURE, include=TRUE}
+```{r stacked germination by family, include=TRUE}
 # data prep 
 
 # this is the df you'll call to set GROUPS: seedbank_bysitecore
@@ -121,7 +156,7 @@ seedbank_byfamily <- seedbank_load_v_omitpretreatment %>%
   #group_by(stand_core_detph_treat, species) %>% # by stand_core_depth_treat
   dplyr::summarize(totalgerm_family = sum(count)) 
 
-view(seedbank_byfamily) # df before transpose - use for ellipses
+sort(unique(seedbank_byfamily$family)) # df before transpose - use for ellipses
 
 seedbank_byfamily_count <- seedbank_byfamily %>% # calculate the total number of hits to then calculate proportion 
   group_by(stand_core) %>%
@@ -147,6 +182,88 @@ ggplot(seedbank_byfamily_proportion, aes(fill=family, y=proportion_germination, 
   labs(x="Soil Core", y="Relative Germination") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
+# stacked germination by family and status
+```{r tacked germination by family and status FIGURE, include=TRUE}
+
+seedbank_byfamily_status <- seedbank_load_v_omitpretreatment %>% 
+   #filter(!is.na(genus_abundance)) %>% # omit blank cells 
+  group_by(stand, site, rep, stand_core,family, status) %>% # by stand_core and species 
+  # This will give a data point for every species based on germination numbers per species
+  #group_by(stand_core_depth, species) %>% # by stand_core_depth - DOES NOT CONSIDER TREATMENT
+  #group_by(stand_core_detph_treat, species) %>% # by stand_core_depth_treat
+  dplyr::summarize(totalgerm_family = sum(count)) 
+
+seedbank_byfamily_status_count <- seedbank_byfamily_status %>% # calculate the total number of hits to then calculate proportion 
+  group_by(stand_core, status) %>%
+  dplyr::summarize(totalgerm_family_bystandcore = sum(totalgerm_family))
+
+seedbank_byfamilystatus_proportion <- seedbank_byfamily_status %>%
+  left_join(seedbank_byfamily_count, by = c("stand_core")) %>%
+  mutate(proportion_germination = (totalgerm_family/totalgerm_family_bystandcore)*100) %>%
+  dplyr::select(!c(totalgerm_family, totalgerm_family_bystandcore))
+
+#this is the percents we calculated
+ggplot(seedbank_byfamilystatus_proportion %>%  
+         dplyr::filter(status == "native" | status == "nonnative"), 
+       aes(fill=family, y=proportion_germination, x=stand_core)) + 
+  geom_bar(position="stack", stat="identity") +
+  ggtitle("Relative Germination by Family and Status") +
+  labs(x="Soil Core", y="Relative Germination") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  facet_wrap(~ status)
+```
+
+
+# Total germination by stand_core
+```{r Total germination by stand_core, include=TRUE}
+
+abcover_nativecover <- abcover_full_v %>% 
+  na.omit() %>%  
+  filter(status == "native") %>% 
+  group_by(standtype, site_rep) %>% 
+  dplyr::summarize(count_per_transect = length(unique(distance)), 
+                  percentcover_native = length(unique(distance))/41
+                  )
+view(abcover_nativecover)
+
+cover_statuslf_matrix <- read.csv("percentcover_bystatus_bylifeform_matrix.csv", header = TRUE) %>% mutate(lifeform = case_when(lifeform == "herb" ~ "forb", TRUE ~ lifeform))
+cover_statuslf_matrix <- cover_statuslf_matrix %>% 
+  mutate(standtype = fct_relevel(standtype, 
+            "intact", "matrix", "degraded"))
+view(cover_statuslf_matrix_wide1)
+
+abcover_nativecover_nngrasscover <- left_join(abcover_nativecover, cover_statuslf_matrix_wide1, by = "site_rep")
+view(abcover_nativecover_nngrasscover)
+
+formula6 <- abcover_nativecover_nngrasscover$percentcover_native ~ abcover_nativecover_nngrasscover$nonnative_grass
+
+native_by_nngrass_regression <- ggplot(data = abcover_nativecover_nngrasscover, 
+       aes(x = nonnative_grass*100, y = percentcover_native*100, shape = standtype.x, color = standtype.x)) + #shape = standtype.x, color = standtype.x
+  geom_point(size = 3, alpha = 0.8) +
+   scale_shape_manual(values = c(16, 17, 18)) +
+  ylim(0, 100)+
+  xlim(0,100) +
+#  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  scale_color_manual(values = c(standcolors),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) + #rename standtypes labels
+  labs(x = "Non-native grass cover (%)", 
+       y = "Native cover (%)", 
+       title = "Total Native Cover by Non-native Grass Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+#  stat_poly_eq(use_label(c("eq", "R2")))
+ stat_poly_eq(
+    aes(label = paste(after_stat(eq.label), stat(adj.rr.label), sep = "~~~~")),
+    formula = formula6, 
+    parse=TRUE
+ )
+print(native_by_nngrass_regression)
+
+```
+
 
 # NMDS prep
 (5.1) sum of germinates BY GENUS at each stand_core (e.g., present in one core = sum (char, control, oven, charoven)
