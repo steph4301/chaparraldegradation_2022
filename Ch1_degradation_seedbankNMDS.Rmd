@@ -108,24 +108,44 @@ unique(seedbank_load_v_omitpretreatment$stand_core) # unique stand_core --> 26 =
 
 ```
 
-# stacked germination by genus
-```{r}
+# stacked germination by family
+```{r stacked germination by genus FIGURE, include=TRUE}
 # data prep 
 
 # this is the df you'll call to set GROUPS: seedbank_bysitecore
-seedbank_bysitecore <- seedbank_load_v_omitpretreatment %>% 
+seedbank_byfamily <- seedbank_load_v_omitpretreatment %>% 
    #filter(!is.na(genus_abundance)) %>% # omit blank cells 
   group_by(stand, site, rep, stand_core, family) %>% # by stand_core and species 
   # This will give a data point for every species based on germination numbers per species
   #group_by(stand_core_depth, species) %>% # by stand_core_depth - DOES NOT CONSIDER TREATMENT
   #group_by(stand_core_detph_treat, species) %>% # by stand_core_depth_treat
-  dplyr::summarize(totalgerm_genus = sum(count)) 
+  dplyr::summarize(totalgerm_family = sum(count)) 
 
-view(seedbank_bysitecore) # df before transpose - use for ellipses
+view(seedbank_byfamily) # df before transpose - use for ellipses
 
-abcover_transect_count <- abcover_byfamily %>% # calculate the total number of hits to then calculate proportion 
-  group_by(site_rep) %>%
-  dplyr::summarize(total_by_transect = sum(count_per_transect))
+seedbank_byfamily_count <- seedbank_byfamily %>% # calculate the total number of hits to then calculate proportion 
+  group_by(stand_core) %>%
+  dplyr::summarize(totalgerm_family_bystandcore = sum(totalgerm_family))
+
+
+seedbank_byfamily_proportion <- seedbank_byfamily %>%
+  left_join(seedbank_byfamily_count, by = c("stand_core")) %>%
+  mutate(proportion_germination = (totalgerm_family/totalgerm_family_bystandcore)*100) %>%
+  dplyr::select(!c(totalgerm_family, totalgerm_family_bystandcore))
+
+#this is with just the counts
+ggplot(seedbank_byfamily, aes(fill=family, y=totalgerm_family, x=stand_core)) + 
+  geom_bar(position="fill", stat="identity") +
+  ggtitle("Relative Germination by Family") +
+  labs(x="Soil Core", y="Relative Germination") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+#this is the percents we calculated
+ggplot(seedbank_byfamily_proportion, aes(fill=family, y=proportion_germination, x=stand_core)) + 
+  geom_bar(position="stack", stat="identity") +
+  ggtitle("Relative Germination by Family") +
+  labs(x="Soil Core", y="Relative Germination") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
 # NMDS prep
