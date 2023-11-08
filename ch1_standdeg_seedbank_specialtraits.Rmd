@@ -33,7 +33,7 @@ library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD
 # 4. germination of fire followers - ask Rob how he would select for not present in CK but present in treated tray.
 
 
-seedbank_load_raw <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_seedbank_20231007.csv", header = TRUE, na.strings=c("","NA"))
+seedbank_load_raw <- read.csv("deg_seedbank_20231007.csv", header = TRUE, na.strings=c("","NA"))
 
 
 seedbank_load_slice <- seedbank_load_raw %>%
@@ -57,7 +57,7 @@ seedbank_load_v <- seedbank_load_slice %>%
                                 count = as.integer(count),
                                 NOTES = as.character(NOTES)
                               ) %>% 
-  select(c("stand", "site", "soilcore", "depth_name", "treatment", "rep", "species_diversity", "genus_abundance", "lifeform", "status", "lifescycle", "family", "count")) %>% 
+  dplyr::select(c("stand", "site", "soilcore", "depth_name", "treatment", "rep", "species_diversity", "genus_abundance", "lifeform", "status", "lifescycle", "family", "count")) %>% 
   mutate(stand = fct_relevel(stand, 
             "intact", "enhanced", "degraded")) %>% 
   mutate(treatment = fct_relevel(treatment, 
