@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# libraries
 ```{r install libraries, message=FALSE}
 
 library(tidyverse) # includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
@@ -25,17 +26,19 @@ library(calecopal)
 library(multcompView)
 library(plotly)
 library(ggvegan)
+library(here)
 
 # dune data: https://www.rpubs.com/RGrieger/545184
 
 ```
 
+# load csv
 ```{r load deg_seedbank csv}
 # 
-seedbank_load_raw <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_seedbank_20231007.csv", header = TRUE, na.strings=c("","NA"))
+seedbank_load_raw <- read.csv("deg_seedbank_20231007.csv", header = TRUE, na.strings=c("","NA"))
 
 seedbank_load <- seedbank_load_raw %>% 
-  select(c("stand", "site", "soilcore", "depth_name", "treatment", "rep", "species_diversity", "genus_abundance", "lifeform", "status", "lifescycle", "family", "count"))
+  dplyr::select(c("stand", "site", "soilcore", "depth_name", "treatment", "rep", "species_diversity", "genus_abundance", "lifeform", "status", "lifescycle", "family", "count"))
   
 seedbank_load$count <- as.numeric(seedbank_load$count)
 str(seedbank_load)
@@ -51,7 +54,7 @@ unique(seedbank_load$species)
 
 view(seedbank_load)
 ```
-
+# data prep
 (1) Organize the seed bank data by converting the df into a tibble.
 ```{r preparing df, include = TRUE}
 
@@ -105,28 +108,27 @@ unique(seedbank_load_v_omitpretreatment$stand_core) # unique stand_core --> 26 =
 
 ```
 
-(5.1) 
-
-
-
-sum of germinates BY GENUS at each stand_core (e.g., present in one core = sum (char, control, oven, charoven)
-```{r organize data for nmds, inclue = TRUE}
-
-# species in columns
-# sites or observations in rows
+# stacked germination by genus
+```{r}
+# data prep 
 
 # this is the df you'll call to set GROUPS: seedbank_bysitecore
 seedbank_bysitecore <- seedbank_load_v_omitpretreatment %>% 
-  group_by(stand, site, stand_core, genus_abundance) %>% # by stand_core and species 
+   #filter(!is.na(genus_abundance)) %>% # omit blank cells 
+  group_by(stand, site, rep, stand_core, family) %>% # by stand_core and species 
   # This will give a data point for every species based on germination numbers per species
   #group_by(stand_core_depth, species) %>% # by stand_core_depth - DOES NOT CONSIDER TREATMENT
   #group_by(stand_core_detph_treat, species) %>% # by stand_core_depth_treat
-  filter(!is.na(genus_abundance)) %>% # omit blank cells in species 
   dplyr::summarize(totalgerm_genus = sum(count)) 
 
 view(seedbank_bysitecore) # df before transpose - use for ellipses
+
+abcover_transect_count <- abcover_byfamily %>% # calculate the total number of hits to then calculate proportion 
+  group_by(site_rep) %>%
+  dplyr::summarize(total_by_transect = sum(count_per_transect))
 ```
 
+# NMDS prep
 (5.1) sum of germinates BY GENUS at each stand_core (e.g., present in one core = sum (char, control, oven, charoven)
 ```{r organize data for nmds, inclue = TRUE}
 
@@ -144,7 +146,6 @@ seedbank_bysitecore <- seedbank_load_v_omitpretreatment %>%
 
 view(seedbank_bysitecore) # df before transpose - use for ellipses
 ```
-
 
 (6) Prepare data for an NMDS
 ```{r transpose data by species for nmds, include=TRUE}
@@ -181,7 +182,7 @@ view(seedbank_bysitecore_nmdsprep_num) # only numbers
 write.csv(seedbank_bysitecore_nmdsprep_num, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/seedbank_NMDS_202310.csv")
 
 ```
-
+# NMDS 
 (7) NMDS 
 ```{r stress tests}
 # USE THIS ONE!
