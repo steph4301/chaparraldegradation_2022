@@ -213,54 +213,56 @@ ggplot(seedbank_byfamilystatus_proportion %>%
   facet_wrap(~ status)
 ```
 
-
 # Total germination by stand_core
 ```{r Total germination by stand_core, include=TRUE}
+seedbank_load_v_omitpretreatment %>% 
+  dplyr::filter(stand_core == "DEG2_7") %>% 
+  print(n_distinct(species_diversity))
 
-abcover_nativecover <- abcover_full_v %>% 
-  na.omit() %>%  
-  filter(status == "native") %>% 
-  group_by(standtype, site_rep) %>% 
-  dplyr::summarize(count_per_transect = length(unique(distance)), 
-                  percentcover_native = length(unique(distance))/41
-                  )
-view(abcover_nativecover)
+seedbank_load_v_omitpretreatment_1 <- seedbank_load_v_omitpretreatment %>% 
+  dplyr::filter(count > 0)
 
-cover_statuslf_matrix <- read.csv("percentcover_bystatus_bylifeform_matrix.csv", header = TRUE) %>% mutate(lifeform = case_when(lifeform == "herb" ~ "forb", TRUE ~ lifeform))
-cover_statuslf_matrix <- cover_statuslf_matrix %>% 
-  mutate(standtype = fct_relevel(standtype, 
-            "intact", "matrix", "degraded"))
-view(cover_statuslf_matrix_wide1)
+seedbank_sppr <- seedbank_load_v_omitpretreatment %>% # <-- this is species richness
+  dplyr::filter(count > 0) %>% 
+   group_by(stand, stand_core) %>% 
+   dplyr::summarize(total_germination = n_distinct(species_diversity)) %>% 
+ print(seedbank_sppr)
 
-abcover_nativecover_nngrasscover <- left_join(abcover_nativecover, cover_statuslf_matrix_wide1, by = "site_rep")
-view(abcover_nativecover_nngrasscover)
+seedbank_sppr_bystand <- seedbank_sppr %>% 
+  # na.omit() %>%  
+   group_by(stand) %>% 
+   dplyr::summarize(mean_germination = mean(total_germination), # <-- this is total germination. WHAT AM I DOING? 
+                    sd = sd(total_germination),
+                    N = length(total_germination),
+                    SE = (sd(total_germination)) / sqrt(total_germination)
+                    ) %>% 
+ print(seedbank_sppr_bystand)
 
-formula6 <- abcover_nativecover_nngrasscover$percentcover_native ~ abcover_nativecover_nngrasscover$nonnative_grass
 
-native_by_nngrass_regression <- ggplot(data = abcover_nativecover_nngrasscover, 
-       aes(x = nonnative_grass*100, y = percentcover_native*100, shape = standtype.x, color = standtype.x)) + #shape = standtype.x, color = standtype.x
-  geom_point(size = 3, alpha = 0.8) +
-   scale_shape_manual(values = c(16, 17, 18)) +
-  ylim(0, 100)+
-  xlim(0,100) +
-#  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
-  scale_color_manual(values = c(standcolors),
-                     name = "Stand Type",
-                     labels = c("intact" = "shrub dominated", 
-                                "matrix" = "matrix", 
-                                "degraded" = "grass dominated")) + #rename standtypes labels
-  labs(x = "Non-native grass cover (%)", 
-       y = "Native cover (%)", 
-       title = "Total Native Cover by Non-native Grass Cover") +
-  theme_bw() +  
-  stat_poly_line() +
-#  stat_poly_eq(use_label(c("eq", "R2")))
- stat_poly_eq(
-    aes(label = paste(after_stat(eq.label), stat(adj.rr.label), sep = "~~~~")),
-    formula = formula6, 
-    parse=TRUE
- )
-print(native_by_nngrass_regression)
+seedbank_sppr_regression <- ggplot(data = seedbank_sppr, 
+        aes(x = nonnative_grass*100, y = percentcover_native*100, shape = standtype.x, color = standtype.x)) + #shape = standtype.x, color = standtype.x
+   geom_point(size = 3, alpha = 0.8) +
+    scale_shape_manual(values = c(16, 17, 18)) +
+   ylim(0, 100)+
+   xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+   scale_color_manual(values = c(standcolors),
+                      name = "Stand Type",
+                      labels = c("intact" = "shrub dominated", 
+                                 "matrix" = "matrix", 
+                                 "degraded" = "grass dominated")) + #rename standtypes labels
+#   labs(x = "Non-native grass cover (%)", 
+#        y = "Native cover (%)", 
+#        title = "Total Native Cover by Non-native Grass Cover") +
+#   theme_bw() +  
+#   stat_poly_line() +
+# #  stat_poly_eq(use_label(c("eq", "R2")))
+#  stat_poly_eq(
+#     aes(label = paste(after_stat(eq.label), stat(adj.rr.label), sep = "~~~~")),
+#     formula = formula6, 
+#     parse=TRUE
+#  )
+# print(native_by_nngrass_regression)
 
 ```
 
