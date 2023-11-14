@@ -428,6 +428,10 @@ cover_statuslf_matrix <- read.csv("percentcover_bystatus_bylifeform_matrix.csv",
 cover_statuslf_matrix <- cover_statuslf_matrix %>% 
   mutate(standtype = fct_relevel(standtype, 
             "intact", "matrix", "degraded"))
+
+cover_statuslf_matrix_wide1 <- cover_statuslf_matrix_long %>%
+  spread(status_lifeform, percentcover)
+
 view(cover_statuslf_matrix_wide1)
 
 abcover_nativecover_nngrasscover <- left_join(abcover_nativecover, cover_statuslf_matrix_wide1, by = "site_rep")
@@ -671,6 +675,7 @@ nativeforb_by_nngrass_regression <- ggplot(data = abcover_nativecover_nngrasscov
 print(nativeforb_by_nngrass_regression)
 
 ```
+
 ```{r scatterplot nonnative cover by nn grass cover, include=TRUE}
 
 abcover_nonnative_cover <- abcover_full_v %>% 
@@ -1304,16 +1309,16 @@ modelgraph_nnngrass
 
 ```{r segmented native shrub/nn cover}
 abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$native_shrub, decreasing = TRUE),]
-tail <- max(abcover_nonnativecover_nngrasscover2$percentcover_nonnative, n = 1)
-p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(x = percentcover_nonnative, y = native_shrub)) +
+tail <- max(abcover_nonnativecover_nngrasscover2$native_shrub, n = 1)
+p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(y = percentcover_nonnative, x = native_shrub)) +
   geom_point()
-model <- lm(native_shrub ~ percentcover_nonnative, data = abcover_nonnativecover_nngrasscover2)
+model <- lm(percentcover_nonnative ~ native_shrub, data = abcover_nonnativecover_nngrasscover2)
 
 #analyze breakpoints
 # have to provide estimates for breakpoints.
 # after looking a the data, 
 my.seg <- segmented(model, 
-                    seg.Z = ~ percentcover_nonnative,
+                    seg.Z = ~ native_shrub,
                     npsi = 1
                     )
 
@@ -1814,9 +1819,6 @@ cover_statuslf_matrix_long <- cover_statuslf_matrix %>%
  dplyr::select(standtype, site_rep, percentcover, status_lifeform)
 view(cover_statuslf_matrix_long)
 
-cover_statuslf_matrix_wide1 <- cover_statuslf_matrix_long %>%
-  spread(status_lifeform, percentcover)
-view(cover_statuslf_matrix_wide1)
 
 
 # scatterplot - shrub x nn grass
