@@ -760,14 +760,11 @@ print(nngrass_nativeshrub)
 abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$nonnative_grass),]
 
 ### SEGMENTED ###
-<<<<<<< Updated upstream
-### Breakpoint analysis, segmented regression ### KIT, THANK YOU! 
-p1 <- ggplot(abcover_nonnativecover_nngrasscover, aes(x = nonnative_grass, y = native_shrub)) + geom_line()+
-=======
-p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(x = nonnative_grass, y = percentcover_nonnative)) + geom_line()+
+
+p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(y = nonnative_grass, x = percentcover_nonnative)) + geom_line()+
   geom_point()
+
 p2 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(y = nonnative_grass, x = percentcover_nonnative)) + geom_line()+
->>>>>>> Stashed changes
   geom_point()
 p1
 
@@ -780,121 +777,773 @@ my.coef.my.lm.nnnative_by_nngrass_regression <- coef(my.lm.nnnative_by_nngrass_r
 
 # add the regression line to the graph
 # setting the aesthetics to a constant - this provides a name that we can reference later when we add additional layers
-p1 <- p1 + geom_abline(intercept = my.coef.my.lm.nnnative_by_nngrass_regression[1], 
+p1 + geom_abline(intercept = my.coef.my.lm.nnnative_by_nngrass_regression[1], 
                          slope = my.coef.my.lm.nnnative_by_nngrass_regression[2], 
                      aes(colour = "overall"))
-p1
-
-# -------------------
-# analyse breakpoints
-# -------------------
-# http://cran.r-project.org/doc/Rnews/Rnews_2008-1.pdf
-library(segmented)
-
+#analyze breakpoints
 # have to provide estimates for breakpoints.
 # after looking a the data, 
 my.seg <- segmented(my.lm.nnnative_by_nngrass_regression, 
                     seg.Z = ~ nonnative_grass,  # x-axis
                     psi = c(.3, .8)
-#                    psi = list(percentcover_nonnative = c(.5))
                     )
+ 
+# # display the summary
+# summary(my.seg)
+# 
+# # get the breakpoints
+# my.seg$psi
+# 
+# # get the slopes
+# slope(my.seg)
+# 
+#   b0 <- coef(my.seg)[[1]]
+#   b1 <- coef(my.seg)[[2]]
+# 
+# # Important:
+# # the coefficients are the differences in slope in comparison to the previous slope
+#   c1 <- coef(my.seg)[[2]] + coef(my.seg)[[3]]
+#   break1 <- my.seg$psi[[3]]
+# 
+# #Solve for c0 (intercept of second segment):
+#   c0 <- b0 + b1 * break1 - c1 * break1
+# 
+# 
+# # At the breakpoint (break2), the two lines are the same again:
+# # the coefficients are the differences in slope in comparison to the previous slope
+#  d1 <- coef(my.seg)[[4]] + c1
+#  break2 <- my.seg$psi[[4]]
+# 
+# #Solve for d0 (intercept of third segment): 
+#  d0 <- c0 + c1 * break2 - d1 * break2
+# 
+# # adding lines to the graph
+# 
+# # line before first breakpoint
+# p1 + geom_abline(intercept = b0, slope = b1, color = "red", show_guide = TRUE) + geom_abline(intercept = c0, slope = c1, color = "blue", show_guide = TRUE) + geom_abline(intercept = d0, slope = d1, color = "green", show_guide = TRUE)
+# p1
 
-# When not providing estimates for the breakpoints "psi = NA" can be used.
-# The number of breakpoints that will show up is not defined
-#my.seg <- segmented(my.lm, 
-#                    seg.Z = ~ DistanceMeters, 
-#                    psi = NA)
+bp <- as.data.frame(my.seg$psi)
+bp <- as.list(bp$Est.)
+bpcount <- length(bp) + 1
 
-# display the summary
-summary(my.seg)
+modelxbeg <- rep(NaN, times = bpcount)
+modelxend <- rep(NaN, times = bpcount)
+modelybeg <- rep(NaN, times = bpcount)
+modelyend <- rep(NaN, times = bpcount)
+intercept <- rep(NaN, times = bpcount)
+slope1 <- rep(NaN, times = bpcount)
+break1 <- rep(NaN, times = bpcount)
 
-# get the breakpoints
-my.seg$psi
+for (i in 1:bpcount) {
+  break1[i] <- my.seg$psi[[i+1]]
+  if (i == 1) {
+    slope1[i] <- coef(my.seg)[[2]] 
+    intercept[i] <- coef(my.seg)[[1]]
+    break1[i] <- 0
+  }
+  else {
+    slope1[i] <- slope1[i-1] + coef(my.seg)[[i+1]]
+    intercept[i] <- (intercept[i-1] + slope1[i-1]*break1[i]) - (slope1[i]*break1[i])
+  }
+}
 
-# get the slopes
-slope(my.seg)
+modelxend <- c(tail(break1, n = length(break1)-1), tail(abcover_nonnativecover_nngrasscover2$percentcover_nonnative, n = 1))
 
+for (i in 1:bpcount) {
+  modelybeg[i] <- slope1[i]*break1[i] + intercept[i] 
+  modelyend[i] <- slope1[i]*modelxend[i] + intercept[i] 
+}
 
-# get the slopes manually - excercise!!
-my.slopes <- coef(my.seg)
+segment_data = data.frame(
+    x = break1,
+    xend = modelxend,
+    y = modelybeg,
+    yend = modelyend)
 
-# first line: 
-#y = b0 + b1*x
-#y = intercept1 + slope1 * x
-
-# second line:
-#y = c0 + c1*x
-#y = intercept2 + slope2 * x
-
-# third line
-#y = d0 + d1 *x
-#y = intercept3 + slope3 * x
-
-# At the breakpoint (break1), the segments b and c intersect
-
-#b0 + b1*x = c0 + c1*x
-
-b0 <- coef(my.seg)[[1]]
-b1 <- coef(my.seg)[[2]]
-
-# Important:
-# the coefficients are the differences in slope in comparison to the previous slope
-c1 <- coef(my.seg)[[2]] + coef(my.seg)[[3]]
-break1 <- my.seg$psi[[3]]
-
-#Solve for c0 (intercept of second segment):
-c0 <- b0 + b1 * break1 - c1 * break1
-
-
-# At the breakpoint (break2), the two lines are the same again:
-# the coefficients are the differences in slope in comparison to the previous slope
- d1 <- coef(my.seg)[[4]] + c1
- break2 <- my.seg$psi[[4]]
-
-#Solve for d0 (intercept of third segment): 
- d0 <- c0 + c1 * break2 - d1 * break2
-
-# adding lines to the graph
-
-# line before first breakpoint
-p1 <- p1 + geom_abline(intercept = b0, slope = b1, 
-                     aes(colour = "first part"), show_guide = TRUE)
-p1
-
-
-# line after first breakpoint
-p1 <- p1 + geom_abline(intercept = c0, slope = c1, 
-                     aes(colour = "second part"), show_guide = TRUE)
-p1
-
-
-# line after second breakpoint -- if there is one
-p1 <- p1 + geom_abline(intercept = d0, slope = d1, 
-                     aes(colour = "third part"), show_guide = TRUE)
-p1
-
-
-# get the fitted data
-my.fitted <- fitted(my.seg)
-my.model <- data.frame(NonNativeGrassCover = abcover_nonnativecover_nngrasscover2$percentcover_nonnative, TotalNonNativeCover = my.fitted)
-
-# plot the fitted model
-ggplot(my.model, aes(x = NonNativeGrassCover, y = TotalNonNativeCover)) + geom_line()
-
-
-# add the fitted data to the exisiting plot
-p2 <- p2 + geom_line(data = my.model, aes(x = NonNativeGrassCover, y = TotalNonNativeCover), colour = "tomato")
-
-# add vertical lines to indicate the break locations
 # second row of the psi-matrix
 my.lines <- my.seg$psi[, 2]
 
-p2 <- p2 + geom_vline(xintercept = my.lines, linetype = "dashed")
+modelgraph <- p2 + 
+  geom_vline(xintercept = my.lines, linetype = "dashed") +
+  geom_segment(
+    data = segment_data, 
+    mapping = aes(x=x, y=y, xend=xend, yend=yend), 
+    inherit.aes = FALSE)
+
 p2
+
+```
+
+```{r segmented nonnative grass/all}
+abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$nonnative_grass),]
+tail <- tail(abcover_nonnativecover_nngrasscover2$percentcover_nonnative, n = 1)
+p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(y = nonnative_grass, x = percentcover_nonnative)) +
+  geom_point()
+model <- lm(nonnative_grass ~ percentcover_nonnative, data = abcover_nonnativecover_nngrasscover2)
+
+#analyze breakpoints
+# have to provide estimates for breakpoints.
+# after looking a the data, 
+my.seg <- segmented(model, 
+                    seg.Z = ~ nonnative_grass,  # x-axis
+                    psi = c(.3, .8)
+                    )
+
+bp <- as.data.frame(my.seg$psi)
+bp <- as.list(bp$Est.)
+bpcount <- length(bp) + 1
+bpcount1 <- length(bp) - 1
+
+modelxbeg <- rep(NaN, times = bpcount)
+modelxend <- rep(NaN, times = bpcount)
+modelybeg <- rep(NaN, times = bpcount)
+modelyend <- rep(NaN, times = bpcount)
+intercept <- rep(NaN, times = bpcount)
+slope1 <- rep(NaN, times = bpcount)
+break1 <- rep(NaN, times = bpcount)
+
+for (i in 1:bpcount) {
+  break1[i] <- my.seg$psi[[i+bpcount1]]
+  if (i == 1) {
+    slope1[i] <- coef(my.seg)[[2]] 
+    intercept[i] <- coef(my.seg)[[1]]
+    break1[i] <- 0
+  }
+  else {
+    slope1[i] <- slope1[i-1] + coef(my.seg)[[i+1]]
+    intercept[i] <- (intercept[i-1] + slope1[i-1]*break1[i]) - (slope1[i]*break1[i])
+  }
+}
+
+modelxend <- c(tail(break1, n = length(break1)-1), tail)
+
+for (i in 1:bpcount) {
+  modelybeg[i] <- slope1[i]*break1[i] + intercept[i] 
+  modelyend[i] <- slope1[i]*modelxend[i] + intercept[i] 
+}
+
+segment_data = data.frame(
+    x = break1,
+    xend = modelxend,
+    y = modelybeg,
+    yend = modelyend)
+
+# second row of the psi-matrix
+# second row of the psi-matrix
+my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
+
+modelgraph_nngrass <- p1 + 
+  geom_vline(xintercept = my.lines$psi, linetype = "dashed") +
+  geom_segment(
+    data = segment_data, 
+    mapping = aes(x=x, y=y, xend=xend, yend=yend), 
+    inherit.aes = FALSE) +
+  geom_text(data = my.lines,
+              mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
+              inherit.aes = FALSE,
+              hjust = 1)
+
+modelgraph_nngrass
+```
+
+```{r segmented nonnative grass/native}
+abcover_nativecover_nngrasscover2 <- abcover_nativecover_nngrasscover[order(abcover_nativecover_nngrasscover$percentcover_native, decreasing = TRUE),]
+tail <- max(abcover_nativecover_nngrasscover2$nonnative_grass, n = 1)
+p1 <- ggplot(abcover_nativecover_nngrasscover2, aes(x = nonnative_grass, y = percentcover_native)) +
+  geom_point()
+model <- lm(percentcover_native ~ nonnative_grass, data = abcover_nativecover_nngrasscover2)
+
+#analyze breakpoints
+# have to provide estimates for breakpoints.
+# after looking a the data, 
+my.seg <- segmented(model, 
+                    seg.Z = ~ nonnative_grass,
+                    npsi = 2
+                    )
+
+bp <- as.data.frame(my.seg$psi)
+bp <- as.list(bp$Est.)
+bpcount <- length(bp) + 1
+bpcount1 <- length(bp) - 1
+
+modelxbeg <- rep(NaN, times = bpcount)
+modelxend <- rep(NaN, times = bpcount)
+modelybeg <- rep(NaN, times = bpcount)
+modelyend <- rep(NaN, times = bpcount)
+intercept <- rep(NaN, times = bpcount)
+slope1 <- rep(NaN, times = bpcount)
+break1 <- rep(NaN, times = bpcount)
+
+for (i in 1:bpcount) {
+  break1[i] <- my.seg$psi[[i+bpcount1]]
+  if (i == 1) {
+    slope1[i] <- coef(my.seg)[[2]] 
+    intercept[i] <- coef(my.seg)[[1]]
+    break1[i] <- 0
+  }
+  else {
+    slope1[i] <- slope1[i-1] + coef(my.seg)[[i+1]]
+    intercept[i] <- (intercept[i-1] + slope1[i-1]*break1[i]) - (slope1[i]*break1[i])
+  }
+}
+
+modelxend <- c(tail(break1, n = length(break1)-1), tail)
+
+for (i in 1:bpcount) {
+  modelybeg[i] <- slope1[i]*break1[i] + intercept[i] 
+  modelyend[i] <- slope1[i]*modelxend[i] + intercept[i] 
+}
+
+segment_data = data.frame(
+    x = break1,
+    xend = modelxend,
+    y = modelybeg,
+    yend = modelyend)
+
+# second row of the psi-matrix
+my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
+
+modelgraph_nnngrass <- p1 + 
+  geom_vline(xintercept = my.lines$psi, linetype = "dashed") +
+  geom_segment(
+    data = segment_data, 
+    mapping = aes(x=x, y=y, xend=xend, yend=yend), 
+    inherit.aes = FALSE) +
+  geom_text(data = my.lines,
+              mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
+              inherit.aes = FALSE,
+              hjust = 1)
+
+modelgraph_nnngrass
+```
+
+```{r segmented nonnative forb/nn grass}
+abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$nonnative_forb , decreasing = TRUE),]
+tail <- max(abcover_nonnativecover_nngrasscover2$nonnative_grass, n = 1)
+p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(x = nonnative_grass, y = nonnative_forb)) +
+  geom_point()
+model <- lm(nonnative_forb ~ nonnative_grass, data = abcover_nonnativecover_nngrasscover2)
+
+#analyze breakpoints
+# have to provide estimates for breakpoints.
+# after looking a the data, 
+my.seg <- segmented(model, 
+                    seg.Z = ~ nonnative_grass,
+                    npsi = 1
+                    )
+
+bp <- as.data.frame(my.seg$psi)
+bp <- as.list(bp$Est.)
+bpcount <- length(bp) + 1
+bpcount1 <- length(bp) - 1
+
+modelxbeg <- rep(NaN, times = bpcount)
+modelxend <- rep(NaN, times = bpcount)
+modelybeg <- rep(NaN, times = bpcount)
+modelyend <- rep(NaN, times = bpcount)
+intercept <- rep(NaN, times = bpcount)
+slope1 <- rep(NaN, times = bpcount)
+break1 <- rep(NaN, times = bpcount)
+
+for (i in 1:bpcount) {
+  break1[i] <- my.seg$psi[[i+bpcount1]]
+  if (i == 1) {
+    slope1[i] <- coef(my.seg)[[2]] 
+    intercept[i] <- coef(my.seg)[[1]]
+    break1[i] <- 0
+  }
+  else {
+    slope1[i] <- slope1[i-1] + coef(my.seg)[[i+1]]
+    intercept[i] <- (intercept[i-1] + slope1[i-1]*break1[i]) - (slope1[i]*break1[i])
+  }
+}
+
+modelxend <- c(tail(break1, n = length(break1)-1), tail)
+
+for (i in 1:bpcount) {
+  modelybeg[i] <- slope1[i]*break1[i] + intercept[i] 
+  modelyend[i] <- slope1[i]*modelxend[i] + intercept[i] 
+}
+
+segment_data = data.frame(
+    x = break1,
+    xend = modelxend,
+    y = modelybeg,
+    yend = modelyend)
+
+# second row of the psi-matrix
+my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
+
+modelgraph_nnngrass <- p1 + 
+  geom_vline(xintercept = my.lines$psi, linetype = "dashed") +
+  geom_segment(
+    data = segment_data, 
+    mapping = aes(x=x, y=y, xend=xend, yend=yend), 
+    inherit.aes = FALSE) +
+  geom_text(data = my.lines,
+              mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
+              inherit.aes = FALSE,
+              hjust = 1)
+
+modelgraph_nnngrass
+```
+
+```{r segmented native forb/nn grass}
+abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$native_forb , decreasing = TRUE),]
+tail <- max(abcover_nonnativecover_nngrasscover2$nonnative_grass, n = 1)
+p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(x = nonnative_grass, y = native_forb)) +
+  geom_point()
+model <- lm(native_forb ~ nonnative_grass, data = abcover_nonnativecover_nngrasscover2)
+
+#analyze breakpoints
+# have to provide estimates for breakpoints.
+# after looking a the data, 
+my.seg <- segmented(model, 
+                    seg.Z = ~ nonnative_grass,
+                    npsi =  1
+                    )
+
+bp <- as.data.frame(my.seg$psi)
+bp <- as.list(bp$Est.)
+bpcount <- length(bp) + 1
+bpcount1 <- length(bp) - 1
+
+modelxbeg <- rep(NaN, times = bpcount)
+modelxend <- rep(NaN, times = bpcount)
+modelybeg <- rep(NaN, times = bpcount)
+modelyend <- rep(NaN, times = bpcount)
+intercept <- rep(NaN, times = bpcount)
+slope1 <- rep(NaN, times = bpcount)
+break1 <- rep(NaN, times = bpcount)
+
+for (i in 1:bpcount) {
+  break1[i] <- my.seg$psi[[i+bpcount1]]
+  if (i == 1) {
+    slope1[i] <- coef(my.seg)[[2]] 
+    intercept[i] <- coef(my.seg)[[1]]
+    break1[i] <- 0
+  }
+  else {
+    slope1[i] <- slope1[i-1] + coef(my.seg)[[i+1]]
+    intercept[i] <- (intercept[i-1] + slope1[i-1]*break1[i]) - (slope1[i]*break1[i])
+  }
+}
+
+modelxend <- c(tail(break1, n = length(break1)-1), tail)
+
+for (i in 1:bpcount) {
+  modelybeg[i] <- slope1[i]*break1[i] + intercept[i] 
+  modelyend[i] <- slope1[i]*modelxend[i] + intercept[i] 
+}
+
+segment_data = data.frame(
+    x = break1,
+    xend = modelxend,
+    y = modelybeg,
+    yend = modelyend)
+
+# second row of the psi-matrix
+my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
+
+modelgraph_nnngrass <- p1 + 
+  geom_vline(xintercept = my.lines$psi, linetype = "dashed") +
+  geom_segment(
+    data = segment_data, 
+    mapping = aes(x=x, y=y, xend=xend, yend=yend), 
+    inherit.aes = FALSE) +
+  geom_text(data = my.lines,
+              mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
+              inherit.aes = FALSE,
+              hjust = 1)
+
+modelgraph_nnngrass
+```
+
+```{r segmented native shrub/nn grass}
+abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$native_shrub, decreasing = TRUE),]
+tail <- max(abcover_nonnativecover_nngrasscover2$nonnative_grass, n = 1)
+p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(x = nonnative_grass, y = native_shrub)) +
+  geom_point()
+model <- lm(native_shrub ~ nonnative_grass, data = abcover_nonnativecover_nngrasscover2)
+
+#analyze breakpoints
+# have to provide estimates for breakpoints.
+# after looking a the data, 
+my.seg <- segmented(model, 
+                    seg.Z = ~ nonnative_grass,
+                    npsi = 1
+                    )
+
+bp <- as.data.frame(my.seg$psi)
+bp <- as.list(bp$Est.)
+bpcount <- length(bp) + 1
+bpcount1 <- length(bp) - 1
+
+modelxbeg <- rep(NaN, times = bpcount)
+modelxend <- rep(NaN, times = bpcount)
+modelybeg <- rep(NaN, times = bpcount)
+modelyend <- rep(NaN, times = bpcount)
+intercept <- rep(NaN, times = bpcount)
+slope1 <- rep(NaN, times = bpcount)
+break1 <- rep(NaN, times = bpcount)
+
+for (i in 1:bpcount) {
+  break1[i] <- my.seg$psi[[i+bpcount1]]
+  if (i == 1) {
+    slope1[i] <- coef(my.seg)[[2]] 
+    intercept[i] <- coef(my.seg)[[1]]
+    break1[i] <- 0
+  }
+  else {
+    slope1[i] <- slope1[i-1] + coef(my.seg)[[i+1]]
+    intercept[i] <- (intercept[i-1] + slope1[i-1]*break1[i]) - (slope1[i]*break1[i])
+  }
+}
+
+modelxend <- c(tail(break1, n = length(break1)-1), tail)
+
+for (i in 1:bpcount) {
+  modelybeg[i] <- slope1[i]*break1[i] + intercept[i] 
+  modelyend[i] <- slope1[i]*modelxend[i] + intercept[i] 
+}
+
+segment_data = data.frame(
+    x = break1,
+    xend = modelxend,
+    y = modelybeg,
+    yend = modelyend)
+
+# second row of the psi-matrix
+my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
+
+modelgraph_nnngrass <- p1 + 
+  geom_vline(xintercept = my.lines$psi, linetype = "dashed") +
+  geom_segment(
+    data = segment_data, 
+    mapping = aes(x=x, y=y, xend=xend, yend=yend), 
+    inherit.aes = FALSE) +
+  geom_text(data = my.lines,
+              mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
+              inherit.aes = FALSE,
+              hjust = 1)
+
+modelgraph_nnngrass
+```
+
+```{r segmented nn grass/n shrub}
+abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$native_shrub, decreasing = TRUE),]
+tail <- max(abcover_nonnativecover_nngrasscover2$native_shrub, n = 1)
+p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(y = nonnative_grass, x = native_shrub)) +
+  geom_point()
+model <- lm(nonnative_grass~ native_shrub, data = abcover_nonnativecover_nngrasscover2)
+
+#analyze breakpoints
+# have to provide estimates for breakpoints.
+# after looking a the data, 
+my.seg <- segmented(model, 
+                    seg.Z = ~ native_shrub,
+                    npsi = 2
+                    )
+
+bp <- as.data.frame(my.seg$psi)
+bp <- as.list(bp$Est.)
+bpcount <- length(bp) + 1
+bpcount1 <- length(bp) - 1
+
+modelxbeg <- rep(NaN, times = bpcount)
+modelxend <- rep(NaN, times = bpcount)
+modelybeg <- rep(NaN, times = bpcount)
+modelyend <- rep(NaN, times = bpcount)
+intercept <- rep(NaN, times = bpcount)
+slope1 <- rep(NaN, times = bpcount)
+break1 <- rep(NaN, times = bpcount)
+
+for (i in 1:bpcount) {
+  break1[i] <- my.seg$psi[[i+bpcount1]]
+  if (i == 1) {
+    slope1[i] <- coef(my.seg)[[2]] 
+    intercept[i] <- coef(my.seg)[[1]]
+    break1[i] <- 0
+  }
+  else {
+    slope1[i] <- slope1[i-1] + coef(my.seg)[[i+1]]
+    intercept[i] <- (intercept[i-1] + slope1[i-1]*break1[i]) - (slope1[i]*break1[i])
+  }
+}
+
+modelxend <- c(tail(break1, n = length(break1)-1), tail)
+
+for (i in 1:bpcount) {
+  modelybeg[i] <- slope1[i]*break1[i] + intercept[i] 
+  modelyend[i] <- slope1[i]*modelxend[i] + intercept[i] 
+}
+
+segment_data = data.frame(
+    x = break1,
+    xend = modelxend,
+    y = modelybeg,
+    yend = modelyend)
+
+# second row of the psi-matrix
+my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
+
+modelgraph_nnngrass <- p1 + 
+  geom_vline(xintercept = my.lines$psi, linetype = "dashed") +
+  geom_segment(
+    data = segment_data, 
+    mapping = aes(x=x, y=y, xend=xend, yend=yend), 
+    inherit.aes = FALSE) +
+  geom_text(data = my.lines,
+              mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
+              inherit.aes = FALSE,
+              hjust = 1)
+
+modelgraph_nnngrass
+```
+
+```{r segmented native shrub/nn cover}
+abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$native_shrub, decreasing = TRUE),]
+tail <- max(abcover_nonnativecover_nngrasscover2$percentcover_nonnative, n = 1)
+p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(x = percentcover_nonnative, y = native_shrub)) +
+  geom_point()
+model <- lm(native_shrub ~ percentcover_nonnative, data = abcover_nonnativecover_nngrasscover2)
+
+#analyze breakpoints
+# have to provide estimates for breakpoints.
+# after looking a the data, 
+my.seg <- segmented(model, 
+                    seg.Z = ~ percentcover_nonnative,
+                    npsi = 1
+                    )
+
+bp <- as.data.frame(my.seg$psi)
+bp <- as.list(bp$Est.)
+bpcount <- length(bp) + 1
+bpcount1 <- length(bp) - 1
+
+modelxbeg <- rep(NaN, times = bpcount)
+modelxend <- rep(NaN, times = bpcount)
+modelybeg <- rep(NaN, times = bpcount)
+modelyend <- rep(NaN, times = bpcount)
+intercept <- rep(NaN, times = bpcount)
+slope1 <- rep(NaN, times = bpcount)
+break1 <- rep(NaN, times = bpcount)
+
+for (i in 1:bpcount) {
+  break1[i] <- my.seg$psi[[i+bpcount1]]
+  if (i == 1) {
+    slope1[i] <- coef(my.seg)[[2]] 
+    intercept[i] <- coef(my.seg)[[1]]
+    break1[i] <- 0
+  }
+  else {
+    slope1[i] <- slope1[i-1] + coef(my.seg)[[i+1]]
+    intercept[i] <- (intercept[i-1] + slope1[i-1]*break1[i]) - (slope1[i]*break1[i])
+  }
+}
+
+modelxend <- c(tail(break1, n = length(break1)-1), tail)
+
+for (i in 1:bpcount) {
+  modelybeg[i] <- slope1[i]*break1[i] + intercept[i] 
+  modelyend[i] <- slope1[i]*modelxend[i] + intercept[i] 
+}
+
+segment_data = data.frame(
+    x = break1,
+    xend = modelxend,
+    y = modelybeg,
+    yend = modelyend)
+
+# second row of the psi-matrix
+my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
+
+modelgraph_nnngrass <- p1 + 
+  geom_vline(xintercept = my.lines$psi, linetype = "dashed") +
+  geom_segment(
+    data = segment_data, 
+    mapping = aes(x=x, y=y, xend=xend, yend=yend), 
+    inherit.aes = FALSE) +
+  geom_text(data = my.lines,
+              mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
+              inherit.aes = FALSE,
+              hjust = 1)
+
+modelgraph_nnngrass
+```
+
+```{r segmented native cover/n shrub}
+abcover_nativecover_nngrasscover2 <- abcover_nativecover_nngrasscover[order(abcover_nativecover_nngrasscover$percentcover_native, decreasing = TRUE),]
+tail <- max(abcover_nativecover_nngrasscover2$percentcover_native, n = 1)
+p1 <- ggplot(abcover_nativecover_nngrasscover2, aes(y = percentcover_native, x = native_shrub)) +
+  geom_point()
+model <- lm(percentcover_native ~ native_shrub, data = abcover_nativecover_nngrasscover2)
+
+#analyze breakpoints
+# have to provide estimates for breakpoints.
+# after looking a the data, 
+my.seg <- segmented(model, 
+                    seg.Z = ~ native_shrub,
+                    npsi = 1
+                    )
+
+bp <- as.data.frame(my.seg$psi)
+bp <- as.list(bp$Est.)
+bpcount <- length(bp) + 1
+bpcount1 <- length(bp) - 1
+
+modelxbeg <- rep(NaN, times = bpcount)
+modelxend <- rep(NaN, times = bpcount)
+modelybeg <- rep(NaN, times = bpcount)
+modelyend <- rep(NaN, times = bpcount)
+intercept <- rep(NaN, times = bpcount)
+slope1 <- rep(NaN, times = bpcount)
+break1 <- rep(NaN, times = bpcount)
+
+for (i in 1:bpcount) {
+  break1[i] <- my.seg$psi[[i+bpcount1]]
+  if (i == 1) {
+    slope1[i] <- coef(my.seg)[[2]] 
+    intercept[i] <- coef(my.seg)[[1]]
+    break1[i] <- min(abcover_nativecover_nngrasscover2$percentcover_native, n = 1)
+  }
+  else {
+    slope1[i] <- slope1[i-1] + coef(my.seg)[[i+1]]
+    intercept[i] <- (intercept[i-1] + slope1[i-1]*break1[i]) - (slope1[i]*break1[i])
+  }
+}
+
+modelxend <- c(tail(break1, n = length(break1)-1), tail)
+
+for (i in 1:bpcount) {
+  modelybeg[i] <- slope1[i]*break1[i] + intercept[i] 
+  modelyend[i] <- slope1[i]*modelxend[i] + intercept[i] 
+}
+
+segment_data = data.frame(
+    x = break1,
+    xend = modelxend,
+    y = modelybeg,
+    yend = modelyend)
+
+# second row of the psi-matrix
+my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
+
+modelgraph_nnngrass <- p1 + 
+  geom_vline(xintercept = my.lines$psi, linetype = "dashed") +
+  geom_segment(
+    data = segment_data, 
+    mapping = aes(x=x, y=y, xend=xend, yend=yend), 
+    inherit.aes = FALSE) +
+  geom_text(data = my.lines,
+              mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
+              inherit.aes = FALSE,
+              hjust = 1)
+
+modelgraph_nnngrass
+```
+
+```{r segmented native forbes/n shrub}
+abcover_nativecover_nngrasscover2 <- abcover_nativecover_nngrasscover[order(abcover_nativecover_nngrasscover$native_forb, decreasing = TRUE),]
+tail <- max(abcover_nativecover_nngrasscover2$native_forb, n = 1)
+p1 <- ggplot(abcover_nativecover_nngrasscover2, aes(y = native_forb, x = native_shrub)) +
+  geom_point()
+model <- lm(native_forb ~ native_shrub, data = abcover_nativecover_nngrasscover2)
+
+#analyze breakpoints
+# have to provide estimates for breakpoints.
+# after looking a the data, 
+my.seg <- segmented(model, 
+                    seg.Z = ~ native_shrub,
+                    npsi = 1
+                    )
+
+bp <- as.data.frame(my.seg$psi)
+bp <- as.list(bp$Est.)
+bpcount <- length(bp) + 1
+bpcount1 <- length(bp) - 1
+
+modelxbeg <- rep(NaN, times = bpcount)
+modelxend <- rep(NaN, times = bpcount)
+modelybeg <- rep(NaN, times = bpcount)
+modelyend <- rep(NaN, times = bpcount)
+intercept <- rep(NaN, times = bpcount)
+slope1 <- rep(NaN, times = bpcount)
+break1 <- rep(NaN, times = bpcount)
+
+for (i in 1:bpcount) {
+  break1[i] <- my.seg$psi[[i+bpcount1]]
+  if (i == 1) {
+    slope1[i] <- coef(my.seg)[[2]] 
+    intercept[i] <- coef(my.seg)[[1]]
+    break1[i] <- min(abcover_nativecover_nngrasscover2$percentcover_native, n = 1)
+  }
+  else {
+    slope1[i] <- slope1[i-1] + coef(my.seg)[[i+1]]
+    intercept[i] <- (intercept[i-1] + slope1[i-1]*break1[i]) - (slope1[i]*break1[i])
+  }
+}
+
+modelxend <- c(tail(break1, n = length(break1)-1), tail)
+
+for (i in 1:bpcount) {
+  modelybeg[i] <- slope1[i]*break1[i] + intercept[i] 
+  modelyend[i] <- slope1[i]*modelxend[i] + intercept[i] 
+}
+
+segment_data = data.frame(
+    x = break1,
+    xend = modelxend,
+    y = modelybeg,
+    yend = modelyend)
+
+# second row of the psi-matrix
+my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
+
+modelgraph_nnngrass <- p1 + 
+  geom_vline(xintercept = my.lines$psi, linetype = "dashed") +
+  geom_segment(
+    data = segment_data, 
+    mapping = aes(x=x, y=y, xend=xend, yend=yend), 
+    inherit.aes = FALSE) +
+  geom_text(data = my.lines,
+              mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
+              inherit.aes = FALSE,
+              hjust = 1)
+
+modelgraph_nnngrass
 ```
 
 ```{r}
 library(strucchange)
+
+abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$nonnative_grass),]
+
+bp <- breakpoints(nonnative_grass ~ percentcover_nonnative, data = abcover_nonnativecover_nngrasscover2, h = 3)
+summary(bp)
+
+plot(bp, breaks = 4)
+plot(nonnative_grass ~ percentcover_native, data = abcover_nativecover_nngrasscover2, pch = 19)
+lines(fitted(bp, breaks = 2) ~ abcover_nativecover_nngrasscover2$percentcover_native, col = 4, lwd = 1.5)
+
+#breakpoints to fitted data
+my.fitted1 <- fitted(bp, breaks = 2)
+my.model1 <- data.frame(NonNativeGrassCover = abcover_nonnativecover_nngrasscover2$percentcover_nonnative, TotalNonNativeCover = my.fitted1)
+
+p3 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(y = nonnative_grass, x = percentcover_nonnative)) +
+  geom_point()
+p3 <- p3 + geom_line(data = my.model1, aes(x = NonNativeGrassCover, y = TotalNonNativeCover), colour = "green4")
+p3
+
+# #deep fit
+# my.fitted2 <- fitted(bp, breaks = 2)
+# my.model2 <- data.frame(NonNativeGrassCover = abcover_nonnativecover_nngrasscover2$percentcover_nonnative, TotalNonNativeCover = my.fitted2)
+# 
+# p4 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(y = nonnative_grass, x = percentcover_nonnative)) +
+#   geom_point()
+# p4 <- p4 + geom_line(data = my.model2, aes(x = NonNativeGrassCover, y = TotalNonNativeCover), colour = "tomato")
+# p4
 
 abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$nonnative_grass),]
 
@@ -911,17 +1560,8 @@ my.model1 <- data.frame(NonNativeGrassCover = abcover_nonnativecover_nngrasscove
 
 p3 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(y = nonnative_grass, x = percentcover_nonnative)) +
   geom_point()
-p3 <- p3 + geom_line(data = my.model1, aes(x = NonNativeGrassCover, y = TotalNonNativeCover), colour = "tomato")
+p3 <- p3 + geom_line(data = my.model1, aes(x = NonNativeGrassCover, y = TotalNonNativeCover), colour = "green4")
 p3
-
-# #deep fit
-# my.fitted2 <- fitted(bp, breaks = 2)
-# my.model2 <- data.frame(NonNativeGrassCover = abcover_nonnativecover_nngrasscover2$percentcover_nonnative, TotalNonNativeCover = my.fitted2)
-# 
-# p4 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(y = nonnative_grass, x = percentcover_nonnative)) +
-#   geom_point()
-# p4 <- p4 + geom_line(data = my.model2, aes(x = NonNativeGrassCover, y = TotalNonNativeCover), colour = "tomato")
-# p4
 ```
 
 
