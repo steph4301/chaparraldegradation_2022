@@ -883,8 +883,7 @@ p2
 ```{r segmented nonnative grass/all}
 abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$nonnative_grass),]
 tail <- tail(abcover_nonnativecover_nngrasscover2$percentcover_nonnative, n = 1)
-p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(y = nonnative_grass, x = percentcover_nonnative)) +
-  geom_point()
+p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(y = nonnative_grass, x = percentcover_nonnative))
 model <- lm(nonnative_grass ~ percentcover_nonnative, data = abcover_nonnativecover_nngrasscover2)
 
 #analyze breakpoints
@@ -935,10 +934,16 @@ segment_data = data.frame(
     yend = modelyend)
 
 # second row of the psi-matrix
-# second row of the psi-matrix
 my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
+r2 <- round(summary(my.seg)$adj.r.squared, digits = 4)
 
 modelgraph_nngrass <- p1 + 
+  geom_point(aes(shape = standtype.x, color = standtype.x)) + 
+  scale_color_manual(values = c("salmon2", "green4", "lightblue3"),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) +
   geom_vline(xintercept = my.lines$psi, linetype = "dashed") +
   geom_segment(
     data = segment_data, 
@@ -947,7 +952,8 @@ modelgraph_nngrass <- p1 +
   geom_text(data = my.lines,
               mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
               inherit.aes = FALSE,
-              hjust = 1)
+              hjust = 1) +
+  geom_text(mapping = aes(x = 0.3, y = 0.8, hjust = 1, label=paste("Adjusted R Squared:", "\n", r2)), inherit.aes = FALSE)
 
 modelgraph_nngrass
 ```
@@ -955,8 +961,7 @@ modelgraph_nngrass
 ```{r segmented nonnative grass/native}
 abcover_nativecover_nngrasscover2 <- abcover_nativecover_nngrasscover[order(abcover_nativecover_nngrasscover$percentcover_native, decreasing = TRUE),]
 tail <- max(abcover_nativecover_nngrasscover2$nonnative_grass, n = 1)
-p1 <- ggplot(abcover_nativecover_nngrasscover2, aes(x = nonnative_grass, y = percentcover_native)) +
-  geom_point()
+p1 <- ggplot(abcover_nativecover_nngrasscover2, aes(x = nonnative_grass, y = percentcover_native))
 model <- lm(percentcover_native ~ nonnative_grass, data = abcover_nativecover_nngrasscover2)
 
 #analyze breakpoints
@@ -1008,8 +1013,15 @@ segment_data = data.frame(
 
 # second row of the psi-matrix
 my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
+r2 <- round(summary(my.seg)$adj.r.squared, digits = 4)
 
-modelgraph_nnngrass <- p1 + 
+modelgraph_nngrass <- p1 + 
+  geom_point(aes(shape = standtype.y, color = standtype.y)) + 
+  scale_color_manual(values = c("salmon2", "green4", "lightblue3"),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) +
   geom_vline(xintercept = my.lines$psi, linetype = "dashed") +
   geom_segment(
     data = segment_data, 
@@ -1018,9 +1030,10 @@ modelgraph_nnngrass <- p1 +
   geom_text(data = my.lines,
               mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
               inherit.aes = FALSE,
-              hjust = 1)
+              hjust = 1) +
+  geom_text(mapping = aes(x = 0.3, y = 0.8, hjust = 1, label=paste("Adjusted R Squared:", "\n", r2)), inherit.aes = FALSE)
 
-modelgraph_nnngrass
+modelgraph_nngrass
 ```
 
 ```{r segmented nonnative forb/nn grass}
@@ -1033,10 +1046,8 @@ model <- lm(nonnative_forb ~ nonnative_grass, data = abcover_nonnativecover_nngr
 #analyze breakpoints
 # have to provide estimates for breakpoints.
 # after looking a the data, 
-my.seg <- segmented(model, 
-                    seg.Z = ~ nonnative_grass,
-                    npsi = 1
-                    )
+my.seg <- segmented(model,
+                    npsi = 2)
 
 bp <- as.data.frame(my.seg$psi)
 bp <- as.list(bp$Est.)
@@ -1079,8 +1090,15 @@ segment_data = data.frame(
 
 # second row of the psi-matrix
 my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
+r2 <- round(summary(my.seg)$adj.r.squared, digits = 4)
 
-modelgraph_nnngrass <- p1 + 
+modelgraph_nngrass <- p1 + 
+  geom_point(aes(shape = standtype.x, color = standtype.x)) + 
+  scale_color_manual(values = c("salmon2", "green4", "lightblue3"),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) +
   geom_vline(xintercept = my.lines$psi, linetype = "dashed") +
   geom_segment(
     data = segment_data, 
@@ -1089,16 +1107,16 @@ modelgraph_nnngrass <- p1 +
   geom_text(data = my.lines,
               mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
               inherit.aes = FALSE,
-              hjust = 1)
+              hjust = 1) +
+  geom_text(mapping = aes(x = 0.3, y = 0.8, hjust = 1, label=paste("Adjusted R Squared:", "\n", r2)), inherit.aes = FALSE)
 
-modelgraph_nnngrass
+modelgraph_nngrass
 ```
 
 ```{r segmented native forb/nn grass}
 abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$native_forb , decreasing = TRUE),]
 tail <- max(abcover_nonnativecover_nngrasscover2$nonnative_grass, n = 1)
-p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(x = nonnative_grass, y = native_forb)) +
-  geom_point()
+p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(x = nonnative_grass, y = native_forb))
 model <- lm(native_forb ~ nonnative_grass, data = abcover_nonnativecover_nngrasscover2)
 
 #analyze breakpoints
@@ -1150,8 +1168,15 @@ segment_data = data.frame(
 
 # second row of the psi-matrix
 my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
+r2 <- round(summary(my.seg)$adj.r.squared, digits = 4)
 
-modelgraph_nnngrass <- p1 + 
+modelgraph_nngrass <- p1 + 
+  geom_point(aes(shape = standtype.x, color = standtype.x)) + 
+  scale_color_manual(values = c("salmon2", "green4", "lightblue3"),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) +
   geom_vline(xintercept = my.lines$psi, linetype = "dashed") +
   geom_segment(
     data = segment_data, 
@@ -1160,16 +1185,16 @@ modelgraph_nnngrass <- p1 +
   geom_text(data = my.lines,
               mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
               inherit.aes = FALSE,
-              hjust = 1)
+              hjust = 1) +
+  geom_text(mapping = aes(x = 0.3, y = 0.8, hjust = 1, label=paste("Adjusted R Squared:", "\n", r2)), inherit.aes = FALSE)
 
-modelgraph_nnngrass
+modelgraph_nngrass
 ```
 
 ```{r segmented native shrub/nn grass}
 abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$native_shrub, decreasing = TRUE),]
 tail <- max(abcover_nonnativecover_nngrasscover2$nonnative_grass, n = 1)
-p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(x = nonnative_grass, y = native_shrub)) +
-  geom_point()
+p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(x = nonnative_grass, y = native_shrub))
 model <- lm(native_shrub ~ nonnative_grass, data = abcover_nonnativecover_nngrasscover2)
 
 #analyze breakpoints
@@ -1177,77 +1202,6 @@ model <- lm(native_shrub ~ nonnative_grass, data = abcover_nonnativecover_nngras
 # after looking a the data, 
 my.seg <- segmented(model, 
                     seg.Z = ~ nonnative_grass,
-                    npsi = 1
-                    )
-
-bp <- as.data.frame(my.seg$psi)
-bp <- as.list(bp$Est.)
-bpcount <- length(bp) + 1
-bpcount1 <- length(bp) - 1
-
-modelxbeg <- rep(NaN, times = bpcount)
-modelxend <- rep(NaN, times = bpcount)
-modelybeg <- rep(NaN, times = bpcount)
-modelyend <- rep(NaN, times = bpcount)
-intercept <- rep(NaN, times = bpcount)
-slope1 <- rep(NaN, times = bpcount)
-break1 <- rep(NaN, times = bpcount)
-
-for (i in 1:bpcount) {
-  break1[i] <- my.seg$psi[[i+bpcount1]]
-  if (i == 1) {
-    slope1[i] <- coef(my.seg)[[2]] 
-    intercept[i] <- coef(my.seg)[[1]]
-    break1[i] <- 0
-  }
-  else {
-    slope1[i] <- slope1[i-1] + coef(my.seg)[[i+1]]
-    intercept[i] <- (intercept[i-1] + slope1[i-1]*break1[i]) - (slope1[i]*break1[i])
-  }
-}
-
-modelxend <- c(tail(break1, n = length(break1)-1), tail)
-
-for (i in 1:bpcount) {
-  modelybeg[i] <- slope1[i]*break1[i] + intercept[i] 
-  modelyend[i] <- slope1[i]*modelxend[i] + intercept[i] 
-}
-
-segment_data = data.frame(
-    x = break1,
-    xend = modelxend,
-    y = modelybeg,
-    yend = modelyend)
-
-# second row of the psi-matrix
-my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
-
-modelgraph_nnngrass <- p1 + 
-  geom_vline(xintercept = my.lines$psi, linetype = "dashed") +
-  geom_segment(
-    data = segment_data, 
-    mapping = aes(x=x, y=y, xend=xend, yend=yend), 
-    inherit.aes = FALSE) +
-  geom_text(data = my.lines,
-              mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
-              inherit.aes = FALSE,
-              hjust = 1)
-
-modelgraph_nnngrass
-```
-
-```{r segmented nn grass/n shrub}
-abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$native_shrub, decreasing = TRUE),]
-tail <- max(abcover_nonnativecover_nngrasscover2$native_shrub, n = 1)
-p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(y = nonnative_grass, x = native_shrub)) +
-  geom_point()
-model <- lm(nonnative_grass~ native_shrub, data = abcover_nonnativecover_nngrasscover2)
-
-#analyze breakpoints
-# have to provide estimates for breakpoints.
-# after looking a the data, 
-my.seg <- segmented(model, 
-                    seg.Z = ~ native_shrub,
                     npsi = 2
                     )
 
@@ -1292,8 +1246,15 @@ segment_data = data.frame(
 
 # second row of the psi-matrix
 my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
+r2 <- round(summary(my.seg)$adj.r.squared, digits = 4)
 
-modelgraph_nnngrass <- p1 + 
+modelgraph_nngrass <- p1 + 
+  geom_point(aes(shape = standtype.x, color = standtype.x)) + 
+  scale_color_manual(values = c("salmon2", "green4", "lightblue3"),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) +
   geom_vline(xintercept = my.lines$psi, linetype = "dashed") +
   geom_segment(
     data = segment_data, 
@@ -1302,17 +1263,17 @@ modelgraph_nnngrass <- p1 +
   geom_text(data = my.lines,
               mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
               inherit.aes = FALSE,
-              hjust = 1)
+              hjust = 1) +
+  geom_text(mapping = aes(x = 0.3, y = 0.8, hjust = 1, label=paste("Adjusted R Squared:", "\n", r2)), inherit.aes = FALSE)
 
-modelgraph_nnngrass
+modelgraph_nngrass
 ```
 
-```{r segmented native shrub/nn cover}
+```{r segmented nn grass/n shrub}
 abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$native_shrub, decreasing = TRUE),]
 tail <- max(abcover_nonnativecover_nngrasscover2$native_shrub, n = 1)
-p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(y = percentcover_nonnative, x = native_shrub)) +
-  geom_point()
-model <- lm(percentcover_nonnative ~ native_shrub, data = abcover_nonnativecover_nngrasscover2)
+p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(y = nonnative_grass, x = native_shrub))
+model <- lm(nonnative_grass~ native_shrub, data = abcover_nonnativecover_nngrasscover2)
 
 #analyze breakpoints
 # have to provide estimates for breakpoints.
@@ -1363,8 +1324,15 @@ segment_data = data.frame(
 
 # second row of the psi-matrix
 my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
+r2 <- round(summary(my.seg)$adj.r.squared, digits = 4)
 
-modelgraph_nnngrass <- p1 + 
+modelgraph_nngrass <- p1 + 
+  geom_point(aes(shape = standtype.x, color = standtype.x)) + 
+  scale_color_manual(values = c("salmon2", "green4", "lightblue3"),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) +
   geom_vline(xintercept = my.lines$psi, linetype = "dashed") +
   geom_segment(
     data = segment_data, 
@@ -1373,9 +1341,87 @@ modelgraph_nnngrass <- p1 +
   geom_text(data = my.lines,
               mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
               inherit.aes = FALSE,
-              hjust = 1)
+              hjust = 1) +
+  geom_text(mapping = aes(x = 0.3, y = 0.8, hjust = 1, label=paste("Adjusted R Squared:", "\n", r2)), inherit.aes = FALSE)
 
-modelgraph_nnngrass
+modelgraph_nngrass
+```
+
+```{r segmented native shrub/nn cover}
+abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$native_shrub, decreasing = TRUE),]
+tail <- max(abcover_nonnativecover_nngrasscover2$native_shrub, n = 1)
+p1 <- ggplot(abcover_nonnativecover_nngrasscover2, aes(y = percentcover_nonnative, x = native_shrub))
+model <- lm(percentcover_nonnative ~ native_shrub, data = abcover_nonnativecover_nngrasscover2)
+
+#analyze breakpoints
+# have to provide estimates for breakpoints.
+# after looking a the data, 
+my.seg <- segmented(model)
+
+plot(fitted(my.seg))
+
+bp <- as.data.frame(my.seg$psi)
+bp <- as.list(bp$Est.)
+bpcount <- length(bp) + 1
+bpcount1 <- length(bp) - 1
+
+modelxbeg <- rep(NaN, times = bpcount)
+modelxend <- rep(NaN, times = bpcount)
+modelybeg <- rep(NaN, times = bpcount)
+modelyend <- rep(NaN, times = bpcount)
+intercept <- rep(NaN, times = bpcount)
+slope1 <- rep(NaN, times = bpcount)
+break1 <- rep(NaN, times = bpcount)
+
+for (i in 1:bpcount) {
+  break1[i] <- my.seg$psi[[i+bpcount1]]
+  if (i == 1) {
+    slope1[i] <- coef(my.seg)[[2]] 
+    intercept[i] <- coef(my.seg)[[1]]
+    break1[i] <- 0
+  }
+  else {
+    slope1[i] <- slope1[i-1] + coef(my.seg)[[i+1]]
+    intercept[i] <- (intercept[i-1] + slope1[i-1]*break1[i]) - (slope1[i]*break1[i])
+  }
+}
+
+modelxend <- c(tail(break1, n = length(break1)-1), tail)
+
+for (i in 1:bpcount) {
+  modelybeg[i] <- slope1[i]*break1[i] + intercept[i] 
+  modelyend[i] <- slope1[i]*modelxend[i] + intercept[i] 
+}
+
+segment_data = data.frame(
+    x = break1,
+    xend = modelxend,
+    y = modelybeg,
+    yend = modelyend)
+
+# second row of the psi-matrix
+my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
+r2 <- round(summary(my.seg)$adj.r.squared, digits = 4)
+
+modelgraph_nngrass <- p1 + 
+  geom_point(aes(shape = standtype.x, color = standtype.x)) + 
+  scale_color_manual(values = c("salmon2", "green4", "lightblue3"),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) +
+  geom_vline(xintercept = my.lines$psi, linetype = "dashed") +
+  geom_segment(
+    data = segment_data, 
+    mapping = aes(x=x, y=y, xend=xend, yend=yend), 
+    inherit.aes = FALSE) +
+  geom_text(data = my.lines,
+              mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
+              inherit.aes = FALSE,
+              hjust = 1) +
+  geom_text(mapping = aes(x = 0.3, y = 0.8, hjust = 1, label=paste("Adjusted R Squared:", "\n", r2)), inherit.aes = FALSE)
+
+modelgraph_nngrass
 ```
 
 ```{r segmented native cover/n shrub}
@@ -1434,8 +1480,15 @@ segment_data = data.frame(
 
 # second row of the psi-matrix
 my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
+r2 <- round(summary(my.seg)$adj.r.squared, digits = 4)
 
-modelgraph_nnngrass <- p1 + 
+modelgraph_nngrass <- p1 + 
+  geom_point(aes(shape = standtype.x, color = standtype.x)) + 
+  scale_color_manual(values = c("salmon2", "green4", "lightblue3"),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) +
   geom_vline(xintercept = my.lines$psi, linetype = "dashed") +
   geom_segment(
     data = segment_data, 
@@ -1444,7 +1497,8 @@ modelgraph_nnngrass <- p1 +
   geom_text(data = my.lines,
               mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
               inherit.aes = FALSE,
-              hjust = 1)
+              hjust = 1) +
+  geom_text(mapping = aes(x = 0.3, y = 0.8, hjust = 1, label=paste("Adjusted R Squared:", "\n", r2)), inherit.aes = FALSE)
 
 modelgraph_nnngrass
 ```
@@ -1459,10 +1513,9 @@ model <- lm(native_forb ~ native_shrub, data = abcover_nativecover_nngrasscover2
 #analyze breakpoints
 # have to provide estimates for breakpoints.
 # after looking a the data, 
-my.seg <- segmented(model, 
-                    seg.Z = ~ native_shrub,
-                    npsi = 1
-                    )
+my.seg <- segmented(model)
+
+plot(fitted(my.seg))
 
 bp <- as.data.frame(my.seg$psi)
 bp <- as.list(bp$Est.)
@@ -1505,8 +1558,15 @@ segment_data = data.frame(
 
 # second row of the psi-matrix
 my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
+r2 <- round(summary(my.seg)$adj.r.squared, digits = 4)
 
-modelgraph_nnngrass <- p1 + 
+modelgraph_nngrass <- p1 + 
+  geom_point(aes(shape = standtype.x, color = standtype.x)) + 
+  scale_color_manual(values = c("salmon2", "green4", "lightblue3"),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) +
   geom_vline(xintercept = my.lines$psi, linetype = "dashed") +
   geom_segment(
     data = segment_data, 
@@ -1515,9 +1575,10 @@ modelgraph_nnngrass <- p1 +
   geom_text(data = my.lines,
               mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
               inherit.aes = FALSE,
-              hjust = 1)
+              hjust = 1) +
+  geom_text(mapping = aes(x = 0.3, y = 0.8, hjust = 1, label=paste("Adjusted R Squared:", "\n", r2)), inherit.aes = FALSE)
 
-modelgraph_nnngrass
+modelgraph_nngrass
 ```
 
 ```{r}
@@ -1525,12 +1586,12 @@ library(strucchange)
 
 abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$nonnative_grass),]
 
-bp <- breakpoints(nonnative_grass ~ percentcover_nonnative, data = abcover_nonnativecover_nngrasscover2, h = 3)
+bp <- breakpoints(nonnative_grass ~ percentcover_nonnative, data = abcover_nonnativecover_nngrasscover2, h = 1)
 summary(bp)
 
 plot(bp, breaks = 4)
 plot(nonnative_grass ~ percentcover_native, data = abcover_nativecover_nngrasscover2, pch = 19)
-lines(fitted(bp, breaks = 2) ~ abcover_nativecover_nngrasscover2$percentcover_native, col = 4, lwd = 1.5)
+lines(fitted(bp, breaks = 1) ~ abcover_nativecover_nngrasscover2$percentcover_native, col = 4, lwd = 1.5)
 
 #breakpoints to fitted data
 my.fitted1 <- fitted(bp, breaks = 2)
