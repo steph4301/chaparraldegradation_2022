@@ -2164,15 +2164,15 @@ standheight_full %>%
 
 standheight_full$site_rep <- paste(standheight_full$site, standheight_full$rep, sep="_") # combine site and rep to one column
 
-ggplot(standheight_full, aes(x = as.integer(reading)/2, y = height_cm, group = site_rep, color = site_rep)) +
-  facet_wrap(~ standtype, scales = "free_y", ncol = 1) +
+ggplot(standheight_full, aes(x = as.integer(reading)/2, y = height_cm/100, group = site_rep, color = standtype)) +
+ # facet_wrap(~ standtype, scales = "free_y", ncol = 1) +
   geom_line() +
   labs(
-    title = "Height vs Distance",
+    title = "Canopy Height by Point-Intercept transect distance",
     x = "Distance (m)",
-    y = "Height (cm)"
+    y = "Height (m)"
   ) +
-  ylim(0, 500)+
+  ylim(0, 5)+
   theme_bw()
 ```
 
@@ -2231,12 +2231,23 @@ pairwise.wilcox.test(standheight_full$height_cm, standheight_full$standtype,
 # P value adjustment method: BH 
 ```
 
-```{r COV - stand height, include=TRUE}
+```{r COV - stand height by transect line, include=TRUE}
+standheight_cov_transect <- standheight_siterep_meanSD %>% # Intact n = 3, Matrix and Deg n = 6
+  mutate(cov_bytransect = sd/mean_height) %>% # COV = SD / mean
+  print(standheight_cov_transect)
+
+standheight_cov_transect[order(standheight_cov_transect$cov_bytransect), ]
+
+```
+
+
+```{r COV - stand height by standtype, include=TRUE}
 standheight_cov <- standheight_siterep_meanSD %>% # Intact n = 3, Matrix and Deg n = 6
   group_by(standtype, site_rep) %>% 
   dplyr::summarize(cov = sd/mean_height) %>% # COV = SD / mean
   print(standheight_cov)
 
+# grouped by standtype
 standheight_cov %>% 
   group_by(standtype) %>% 
   summarize(mean_cov = mean(cov),
