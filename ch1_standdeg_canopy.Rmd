@@ -2174,8 +2174,14 @@ ggplot(standheight_full, aes(x = as.integer(reading)/2, y = height_cm/100, group
   ) +
   ylim(0, 5)+
   theme_bw()
-```
 
+histogram(standheight_full$height_cm)
+
+ggplot(data = standheight_full, 
+       aes(x = site_rep, y = height_cm)) +
+  geom_point() +
+  theme(axis.text.x.bottom = element_text(angle = 90))
+```
 
 ```{r combine columns - canopy height, include = TRUE}
 
@@ -2187,6 +2193,47 @@ standheight_siterep_meanSD <- standheight_full %>%
             sd = sd(height_cm),
             se = ((sd(height_cm))/sqrt(length((height_cm))))) %>% 
   print(standheight_siterep_meanSD) # prints: standtype - site_rep - mean... 
+
+```
+
+```{r COV by transects, include=TRUE}
+#add mean height to site_rep
+
+transect_prepCOV <- standheight_siterep_meanSD %>% 
+  dplyr::select('site_rep', 'mean_height')
+
+transectCOV <- standheight_full %>% 
+  left_join(transect_prepCOV, by = 'site_rep') %>% 
+   dplyr::select(!c('standtype.y')) %>% 
+  rename('standtype' = 'standtype.x') %>% 
+  mutate(dist_from_mean = height_cm - mean_height)
+
+print(transectCOV)
+```
+
+```{r}
+shapiro.test(standheight_full$height_cm)
+# 	Shapiro-Wilk normality test
+# data:  standheight_full$height_cm
+# W = 0.90732, p-value < 2.2e-16 <-- not normally distributed
+
+kruskal.test(height_cm ~ standtype, data = standheight_full)
+# 	Kruskal-Wallis rank sum test
+# data:  height_cm by standtype
+# Kruskal-Wallis chi-squared = 37.914, df = 2, p-value = 5.85e-09
+
+pairwise.wilcox.test(standheight_full$height_cm, standheight_full$standtype,
+                 p.adjust.method = "BH")
+# Pairwise comparisons using Wilcoxon rank sum test with continuity correction 
+# data:  standheight_full$height_cm and standheight_full$standtype 
+#          Intact  Matrix 
+# Matrix   9.7e-07 -      
+# Degraded 9.7e-07 0.00042 <-- all are significantly different
+# P value adjustment method: BH 
+```
+
+
+```{r extra code - mean canopy height by stand type, include=FALSE}
 
 # mean SD by stand type - 3 stand types
 standheight_standtype_meanSD <- standheight_full %>%
@@ -2209,7 +2256,8 @@ standheight_standtype_meanSD <- standheight_full %>%
 
 ```
 
-```{r stand height - stats, include=TRUE}
+```{r canopy height by stand type - stats, include=FALSE}
+
 
 shapiro.test(standheight_full$height_cm)
 # 	Shapiro-Wilk normality test
