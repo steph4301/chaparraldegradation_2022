@@ -2205,20 +2205,26 @@ ggplot(standheight_full,
 
 # mean SD by transect - 15 rows
 standheight_siterep_meanSD <- standheight_full %>% 
+  left_join(nncover, by = 'site_rep') %>% 
   group_by(standtype, site_rep) %>%
   summarize(mean_height = mean(height_cm),
             n = length((height_cm)),
             sd = sd(height_cm),
-            se = ((sd(height_cm))/sqrt(length((height_cm))))) %>% 
+            se = ((sd(height_cm))/sqrt(length((height_cm)))), 
+            mean_nngrasscover = mean(nonnative_grass), 
+            mean_nativeshrubcover = mean(native_shrub)) %>% 
   print(standheight_siterep_meanSD) # prints: standtype - site_rep - mean... 
 
 # mean SD by transect - 15 rows
 standheight_site_meanSD <- standheight_full %>% 
+   left_join(nncover, by = 'site_rep') %>% 
   group_by(standtype, site) %>%
   summarize(mean_height = mean(height_cm),
             n = length((height_cm)),
             sd = sd(height_cm),
-            se = ((sd(height_cm))/sqrt(length((height_cm))))) %>% 
+            se = ((sd(height_cm))/sqrt(length((height_cm)))), 
+            mean_nngrasscover = mean(nonnative_grass), 
+            mean_nativeshrubcover = mean(native_shrub)) %>% 
   print(standheight_site_meanSD) # prints: standtype - site_rep - mean... 
 ```
 
@@ -2244,6 +2250,29 @@ ggplot(standheight_site_meanSD,
   labs(x = "Hillslope", 
    y = "Mean canopy height (cm)", 
        title = "Mean canopy height (cm) by hillslope")
+
+# columnn plot - mean height x nngrass
+ggplot(standheight_siterep_meanSD, 
+       aes(x = mean_nngrasscover, y = mean_height, color = site)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = mean_height - se, ymax = mean_height + se)) +
+  # theme(axis.text.x.bottom = element_text(angle = 90)) +
+  labs(x = "Non-native grass cover (%)", 
+   y = "Mean canopy height (cm)", 
+       title = "Mean canopy height (cm) by non-native grass cover (%)")
+
+# columnn plot x site
+ggplot(standheight_site_meanSD, 
+       aes(x = mean_nngrasscover, y = mean_height, color = site)) +
+  geom_point()+
+  geom_errorbar(aes(ymin = mean_height - se, ymax = mean_height + se)) +
+   #theme(axis.text.x.bottom = element_text(angle = 90)) +
+  labs(x = "Hillslope", 
+   y = "Mean canopy height (cm)", 
+       title = "Mean canopy height (cm) by hillslope")
+
+
+
 ```
 
 
