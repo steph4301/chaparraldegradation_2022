@@ -284,10 +284,10 @@ abcover_vegcover_plot_2 <- ggplot(abcover_vegcover, aes(x = site_rep, y = percen
 abcover_vegcover_plot_2
 
 #  column plot - by SITE
-abcover_vegcover_plot <- ggplot(abcover_vegcover_meanSD, aes(x = site, y = mean_cover, fill = covertype)) +
+abcover_vegcover_plot <- ggplot(abcover_vegcover_meanSD, aes(x = standtype, y = mean_cover, fill = standtype)) +
   geom_col(position = "dodge", width = 0.8) +
   geom_errorbar(
-    aes(ymin=mean_cover-se, ymax=mean_cover+se), # mean +- SE
+    aes(ymin = mean_cover-se, ymax=mean_cover+se), # mean +- SE
                 width=.2, position=position_dodge(.9)) +
   labs(
     title = "Percent Canopy Cover", 
@@ -302,7 +302,7 @@ abcover_vegcover_plot <- ggplot(abcover_vegcover_meanSD, aes(x = site, y = mean_
  #   limits=c("intact", "matrix", "degraded"),
  #   labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded")
  #   )
-# abcover_vegcover_plot
+abcover_vegcover_plot
 ```
 
 
@@ -413,7 +413,7 @@ pairwise.wilcox.test(abcover_bylf_bystatus_nonnative$percentcover, abcover_bylf_
 
 ```
 
-```{r scatterplot native cover by nn grass cover, include=TRUE}
+```{r data prep for cover by status, include = TRUE}
 
 abcover_nativecover <- abcover_full_v %>% 
   na.omit() %>%  
@@ -424,10 +424,50 @@ abcover_nativecover <- abcover_full_v %>%
                   )
 view(abcover_nativecover)
 
-cover_statuslf_matrix <- read.csv("percentcover_bystatus_bylifeform_matrix.csv", header = TRUE) %>% mutate(lifeform = case_when(lifeform == "herb" ~ "forb", TRUE ~ lifeform))
+abcover_nncover <- abcover_full_v %>% 
+  na.omit() %>%  
+  filter(status == "nonnative") %>% 
+  group_by(standtype, site_rep) %>% 
+  dplyr::summarize(count_per_transect = length(unique(distance)), 
+                  percentcover_nonnative = length(unique(distance))/41
+                  )
+view(abcover_nncover)
+
+abcover_bystatus <- abcover_nativecover %>% 
+  left_join(abcover_nncover, by = 'site_rep')
+view(abcover_bystatus)
+
+# copy/paste data, edited in Excel, saved as csv in 2022b folder
+abcover_bystatus_edited <- read.csv("abcover_bystatus.csv", header = TRUE, na.strings=c("","NA"))
+print(abcover_bystatus_edited)
+  
+```
+
+```{r}
+ggplot(abcover_bystatus_edited, aes(fill = status, y=percentcover*100, x=site_rep)) + 
+    geom_bar(position="stack", stat="identity") +
+    theme(axis.text.x.bottom = element_text(angle = 90)) +
+  labs(x = "Transect ID", 
+       y = "Percent cover (%)", 
+       title = "Percent cover by vegetation status per Trasect")
+```
+
+
+```{r scatterplot native cover by nn grass cover, include=TRUE}
+
+
+cover_statuslf_matrix <- read.csv("percentcover_bystatus_bylifeform_matrix.csv", header = TRUE) %>% 
+  mutate(lifeform = case_when(lifeform == "herb" ~ "forb", 
+                              TRUE ~ lifeform))
 cover_statuslf_matrix <- cover_statuslf_matrix %>% 
   mutate(standtype = fct_relevel(standtype, 
             "intact", "matrix", "degraded"))
+
+#from chunk: SHRUB scatterplot 
+cover_statuslf_matrix$status_lifeform <- paste(cover_statuslf_matrix$status, cover_statuslf_matrix$lifeform, sep="_") # combine status and life form to one column
+cover_statuslf_matrix_long <- cover_statuslf_matrix %>%
+ dplyr::select(standtype, site_rep, percentcover, status_lifeform)
+view(cover_statuslf_matrix_long)
 
 cover_statuslf_matrix_wide1 <- cover_statuslf_matrix_long %>%
   spread(status_lifeform, percentcover)
