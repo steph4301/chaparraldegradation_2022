@@ -452,9 +452,7 @@ ggplot(abcover_bystatus_edited, aes(fill = status, y=percentcover*100, x=site_re
        title = "Percent cover by vegetation status per Trasect")
 ```
 
-
 ```{r scatterplot native cover by nn grass cover, include=TRUE}
-
 
 cover_statuslf_matrix <- read.csv("percentcover_bystatus_bylifeform_matrix.csv", header = TRUE) %>% 
   mutate(lifeform = case_when(lifeform == "herb" ~ "forb", 
@@ -471,6 +469,7 @@ view(cover_statuslf_matrix_long)
 
 cover_statuslf_matrix_wide1 <- cover_statuslf_matrix_long %>%
   spread(status_lifeform, percentcover)
+write.csv(cover_statuslf_matrix_long,"processed/coverstatus.csv")
 
 view(cover_statuslf_matrix_wide1)
 
@@ -801,6 +800,7 @@ print(nngrass_nativeshrub)
 
 ```
 
+#breakpoints
 ```{r segmented scatterplot nonnative cover by nn grass cover, include=TRUE}
 abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$nonnative_grass),]
 
@@ -917,7 +917,6 @@ modelgraph <- p2 +
     inherit.aes = FALSE)
 
 p2
-
 ```
 
 ```{r segmented nonnative grass/all}
@@ -1087,7 +1086,7 @@ model <- lm(nonnative_forb ~ nonnative_grass, data = abcover_nonnativecover_nngr
 # have to provide estimates for breakpoints.
 # after looking a the data, 
 my.seg <- segmented(model,
-                    npsi = 2)
+                    npsi = 1)
 
 bp <- as.data.frame(my.seg$psi)
 bp <- as.list(bp$Est.)
@@ -1396,7 +1395,7 @@ model <- lm(percentcover_nonnative ~ native_shrub, data = abcover_nonnativecover
 #analyze breakpoints
 # have to provide estimates for breakpoints.
 # after looking a the data, 
-my.seg <- segmented(model)
+my.seg <- segmented(model, npsi = 2)
 
 plot(fitted(my.seg))
 
@@ -1476,7 +1475,7 @@ model <- lm(percentcover_native ~ native_shrub, data = abcover_nativecover_nngra
 # after looking a the data, 
 my.seg <- segmented(model, 
                     seg.Z = ~ native_shrub,
-                    npsi = 1
+                    npsi = 2
                     )
 
 bp <- as.data.frame(my.seg$psi)
@@ -1522,7 +1521,7 @@ segment_data = data.frame(
 my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
 r2 <- round(summary(my.seg)$adj.r.squared, digits = 4)
 
-modelgraph_nngrass <- p1 + 
+modelgraph_nnngrass <- p1 + 
   geom_point(aes(shape = standtype.x, color = standtype.x)) + 
   scale_color_manual(values = c("salmon2", "green4", "lightblue3"),
                      name = "Stand Type",
@@ -1546,14 +1545,13 @@ modelgraph_nnngrass
 ```{r segmented native forbes/n shrub}
 abcover_nativecover_nngrasscover2 <- abcover_nativecover_nngrasscover[order(abcover_nativecover_nngrasscover$native_forb, decreasing = TRUE),]
 tail <- max(abcover_nativecover_nngrasscover2$native_forb, n = 1)
-p1 <- ggplot(abcover_nativecover_nngrasscover2, aes(y = native_forb, x = native_shrub)) +
-  geom_point()
+p1 <- ggplot(abcover_nativecover_nngrasscover2, aes(y = native_forb, x = native_shrub)) 
 model <- lm(native_forb ~ native_shrub, data = abcover_nativecover_nngrasscover2)
 
 #analyze breakpoints
 # have to provide estimates for breakpoints.
 # after looking a the data, 
-my.seg <- segmented(model)
+my.seg <- segmented(model, npsi = 2)
 
 plot(fitted(my.seg))
 
@@ -1620,6 +1618,8 @@ modelgraph_nngrass <- p1 +
 
 modelgraph_nngrass
 ```
+#end
+
 
 ```{r}
 library(strucchange)
@@ -2595,7 +2595,7 @@ head(shrubdensity) # look at new column site_rep, last column
 
 shrubdensity %>% 
   group_by(site_rep, status) %>% 
-  summarize(length_count = length(count)) %>% 
+  summarize(length_count = length(count))
   print(shrubdensity_sum_bysiterep_meanSD)
 # all site_rep have 5 status categories: dead, immature, mature, resprout, seedling 
 # all status have 13 length_count --> 13 species per status
@@ -2621,7 +2621,7 @@ shrubdensity_sum_bysiterep <- shrubdensity %>% # call tibble
   filter(status != "dead") %>% #omit dead shrubs
   group_by(standtype, site_rep) %>%  # lump immature, mature, resprout shrubs and seedlings
   summarize(aliveshrubdensity_80m2 = sum(count), 
-            aliveshrubdensity_1m2 = aliveshrubdensity_80m2/80) %>% # 4m x 20 m belt transect
+            aliveshrubdensity_1m2 = aliveshrubdensity_80m2/80)  # 4m x 20 m belt transect
   print(shrubdensity_sum_bysiterep) 
 ```
 
@@ -2755,7 +2755,7 @@ shrubdensity_sum_bysiterep_mature <- shrubdensity %>%
   filter(status == "mature") %>% #select only mature shrubs
   group_by(standtype, site_rep) %>%  
   summarize(matureshrubdensity_80m2 = sum(count), 
-            matureshrubdensity_1m2 = matureshrubdensity_80m2/80) %>% # 4m x 20 m belt transect
+            matureshrubdensity_1m2 = matureshrubdensity_80m2/80) # 4m x 20 m belt transect
   print(shrubdensity_sum_bysiterep_mature) 
 
 shrubdensity_sum_bysiterep_mature_meanSD <- shrubdensity_sum_bysiterep_mature %>%
@@ -2796,7 +2796,7 @@ shrubdensity_sum_bysiterep_immature <- shrubdensity %>%
   filter(status == "immature") %>% #select only mature shrubs
   group_by(standtype, site_rep) %>%  
   summarize(immatureshrubdensity_80m2 = sum(count), 
-            immatureshrubdensity_1m2 = immatureshrubdensity_80m2/80) %>% # 4m x 20 m belt transect
+            immatureshrubdensity_1m2 = immatureshrubdensity_80m2/80)  # 4m x 20 m belt transect
   print(shrubdensity_sum_bysiterep_immature) 
 
 shrubdensity_sum_bysiterep_immature_meanSD <- shrubdensity_sum_bysiterep_immature %>%
@@ -2825,7 +2825,7 @@ shrubdensity_sum_bysiterep_seedling <- shrubdensity %>%
   filter(status == "seedling") %>% #select only mature shrubs
   group_by(standtype, site_rep) %>%  
   summarize(seedlingdensity_80m2 = sum(count), 
-            seedlingdensity_1m2 = seedlingdensity_80m2/80) %>% # 4m x 20 m belt transect
+            seedlingdensity_1m2 = seedlingdensity_80m2/80)  # 4m x 20 m belt transect
   print(shrubdensity_sum_bysiterep_seedling) 
 
 shrubdensity_sum_bysiterep_seedling_meanSD <- shrubdensity_sum_bysiterep_seedling %>%
@@ -2853,7 +2853,7 @@ shrubdensity_sum_bysiterep_respt <- shrubdensity %>%
   filter(status == "resprout") %>% #select only mature shrubs
   group_by(standtype, site_rep) %>%  
   summarize(resptdensity_80m2 = sum(count), 
-            resptdensity_1m2 = resptdensity_80m2/80) %>% # 4m x 20 m belt transect
+            resptdensity_1m2 = resptdensity_80m2/80) # 4m x 20 m belt transect
   print(shrubdensity_sum_bysiterep_respt) 
 
 shrubdensity_sum_bysiterep_respt_meanSD <- shrubdensity_sum_bysiterep_respt %>%
@@ -2903,6 +2903,47 @@ summary(aov((deaddensity_1m2 ~ standtype) , data = shrubdensity_sum_bysiterep_de
 ```
 
 # END 
+
+##Density Segmented
+```{r shrub density}
+abcover_nativecover_nngrasscover[1:3,2] <- c("Intact1_1", "Intact2_2", "Intact3_3")
+
+shrubdensity_sum_bysiterep_all <- shrubdensity_sum_bysiterep %>% 
+  left_join(shrubdensity_sum_bysiterep_seedling, by = c("site_rep", "standtype")) %>%
+  left_join(shrubdensity_sum_bysiterep_immature, by = c("site_rep", "standtype")) %>%
+  left_join(shrubdensity_sum_bysiterep_mature, by = c("site_rep", "standtype")) %>%
+  left_join(shrubdensity_sum_bysiterep_respt, by = c("site_rep", "standtype")) %>%
+  left_join(abcover_nativecover_nngrasscover, by = c("site_rep")) %>%
+  dplyr::select("site_rep", "aliveshrubdensity_1m2", "seedlingdensity_1m2", "immatureshrubdensity_1m2", "matureshrubdensity_1m2", "resptdensity_1m2", "nonnative_grass", "native_shrub")
+
+shrub_density <- ggplot(data = shrubdensity_sum_bysiterep_all, aes(x = site_rep)) +
+  geom_point(aes(y = aliveshrubdensity_1m2, color = "alive")) +
+  geom_point(aes(y = seedlingdensity_1m2, color = "seedling")) +
+  geom_point(aes(y = immatureshrubdensity_1m2, color = "immature")) +
+  geom_point(aes(y = matureshrubdensity_1m2, color = "mature")) +
+  geom_point(aes(y = resptdensity_1m2, color = "resprout")) +
+  scale_color_manual(values = c("red3", "yellow3", "green3", "blue3", "purple3"))
+
+shrub_density1 <- ggplot(data = shrubdensity_sum_bysiterep_all, aes(x = nonnative_grass)) +
+  geom_point(aes(y = aliveshrubdensity_1m2, color = "alive")) +
+  geom_point(aes(y = seedlingdensity_1m2, color = "seedling")) +
+  geom_point(aes(y = immatureshrubdensity_1m2, color = "immature")) +
+  geom_point(aes(y = matureshrubdensity_1m2, color = "mature")) +
+  geom_point(aes(y = resptdensity_1m2, color = "resprout")) +
+  scale_color_manual(values = c("red3", "yellow3", "green3", "blue3", "purple3"))
+shrub_density1
+
+shrub_density2 <- ggplot(data = shrubdensity_sum_bysiterep_all, aes(x = native_shrub)) +
+  geom_point(aes(y = aliveshrubdensity_1m2, color = "alive")) +
+  geom_point(aes(y = seedlingdensity_1m2, color = "seedling")) +
+  geom_point(aes(y = immatureshrubdensity_1m2, color = "immature")) +
+  geom_point(aes(y = matureshrubdensity_1m2, color = "mature")) +
+  geom_point(aes(y = resptdensity_1m2, color = "resprout")) +
+  scale_color_manual(values = c("red3", "yellow3", "green3", "blue3", "purple3"))
+shrub_density2
+
+ggplotly(shrub_density)
+```
 
 
 ```{r above ground - species richness - native richness, include = FALSE}
