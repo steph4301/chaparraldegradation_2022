@@ -213,6 +213,73 @@ ggplot(seedbank_byfamilystatus_proportion %>%
   facet_wrap(~ status)
 ```
 
+#Stacked Germination by family with shrub -- Kit
+```{r}
+abcover_sum <- read.csv("processed/coverstatus.csv")
+abcover_sum[,12] <- c("INT1", "INT2", "INT3", "ENH1", "ENH1", "ENH1", "ENH2", "ENH2", "ENH2", "DEG1", "DEG1", "DEG1", "DEG2", "DEG2", "DEG2") 
+
+abcover_sum <- abcover_sum %>%
+  rename(hill = V12) %>%
+  dplyr::select(!c(X, standtype, site_rep, native_fern, native_forb, nonnative_fern, nonnative_forb, nonnative_shrub, native_grass)) %>%
+  group_by(hill) %>%
+  summarise(across(nonnative_grass:native_shrub, mean)) 
+
+abcover_sum <- cbind(abcover_sum[1], stack(abcover_sum[2:3])) %>%
+  rename(proportion = values,
+         type = ind) %>%
+  mutate(proportion = 100*proportion)
+
+
+seedbank_byfamilystatus_proportion_1 <- seedbank_byfamilystatus_proportion %>%
+  group_by(site, family, status) %>%
+  summarize(across(proportion_germination, mean))
+
+
+seedbank_byfamilystatus_proportion_hill <- seedbank_byfamily_status %>%
+  left_join(seedbank_byfamily_count, by = c("stand_core")) %>%
+  group_by(family, site) %>%
+  summarise(across(totalgerm_family:totalgerm_family_bystandcore, mean)) %>%
+  mutate(proportion_germination = (totalgerm_family/totalgerm_family_bystandcore)*100)
+
+
+
+# %>%
+  # dplyr::select(!c(totalgerm_family, totalgerm_family_bystandcore))
+
+
+
+
+
+
+ggplot(seedbank_byfamilystatus_proportion %>%  
+         dplyr::filter(status == "native" | status == "nonnative"), 
+       aes(fill=family, y=proportion_germination, x=stand_core)) + 
+  geom_bar(position="stack", stat="identity") +
+  ggtitle("Relative Germination by Family and Status") +
+  labs(x="Soil Core", y="Relative Germination") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  facet_wrap(~ status)
+
+barwidth <- 0.35
+
+ggplot() + 
+    geom_bar(data = abcover_sum, 
+             mapping = aes(x = as.numeric(interaction(hill)) + barwidth, y = proportion, fill = type), 
+             stat="identity", 
+             position='stack', 
+             width = barwidth) + 
+    scale_fill_manual(values = c("green3", "pink2")) +
+    new_scale_fill() +
+    geom_bar(data = subset(seedbank_byfamilystatus_proportion_1, status == "nonnative"), 
+             mapping = aes(x = as.numeric(interaction(site)), y = proportion_germination, fill = family), 
+             stat="identity", 
+             position='stack' , 
+             width = barwidth) +
+    ggtitle("Nonnative") +
+    xlab("site")
+    scale_x_continuous(breaks=c(1.25,2.25,3.25,4.25,5.25,6.25,7.25),labels=c("Deg1","Deg2","Enh1", "Enh1", "Int1", "Int2", "Int3")) 
+```
+
 # Total germination by stand_core
 ```{r Total germination by stand_core, include=TRUE}
 seedbank_load_v_omitpretreatment %>% 
@@ -225,7 +292,7 @@ seedbank_load_v_omitpretreatment_1 <- seedbank_load_v_omitpretreatment %>%
 seedbank_sppr <- seedbank_load_v_omitpretreatment %>% # <-- this is species richness
   dplyr::filter(count > 0) %>% 
    group_by(stand, stand_core) %>% 
-   dplyr::summarize(total_germination = n_distinct(species_diversity)) %>% 
+   dplyr::summarize(total_germination = n_distinct(species_diversity))
  print(seedbank_sppr)
 
 seedbank_sppr_bystand <- seedbank_sppr %>% 
