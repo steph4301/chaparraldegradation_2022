@@ -800,7 +800,7 @@ print(nngrass_nativeshrub)
 
 ```
 
-#breakpoints
+# Breakpoints
 ```{r segmented scatterplot nonnative cover by nn grass cover, include=TRUE}
 abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$nonnative_grass),]
 
@@ -995,6 +995,7 @@ modelgraph_nngrass <- p1 +
   geom_text(mapping = aes(x = 0.3, y = 0.8, hjust = 1, label=paste("Adjusted R Squared:", "\n", r2)), inherit.aes = FALSE)
 
 modelgraph_nngrass
+
 ```
 
 ```{r segmented nonnative grass/native}
@@ -1617,6 +1618,88 @@ modelgraph_nngrass <- p1 +
   geom_text(mapping = aes(x = 0.3, y = 0.8, hjust = 1, label=paste("Adjusted R Squared:", "\n", r2)), inherit.aes = FALSE)
 
 modelgraph_nngrass
+```
+
+```{r segmented nnforb /n shrub}
+
+# KIT - here is where I tried to make a y = nonnative_orb by x = native_shrub figure, and got stuck... 
+
+abcover_nativecover_nngrasscover2 <- abcover_nativecover_nngrasscover[order(abcover_nativecover_nngrasscover$percentcover_native, decreasing = TRUE),]
+tail <- max(abcover_nativecover_nngrasscover2$percentcover_native, n = 1)
+p1 <- ggplot(abcover_nativecover_nngrasscover2, aes(y = nonnative_forb, x = native_shrub)) +
+  geom_point()
+model <- lm(nonnative_forb ~ native_shrub, data = abcover_nativecover_nngrasscover2)
+
+#analyze breakpoints
+# have to provide estimates for breakpoints.
+# after looking a the data, 
+my.seg <- segmented(model, 
+                    seg.Z = ~ native_shrub,
+                    npsi = 2
+                    )
+
+bp <- as.data.frame(my.seg$psi)
+bp <- as.list(bp$Est.)
+bpcount <- length(bp) + 1
+bpcount1 <- length(bp) - 1
+
+modelxbeg <- rep(NaN, times = bpcount)
+modelxend <- rep(NaN, times = bpcount)
+modelybeg <- rep(NaN, times = bpcount)
+modelyend <- rep(NaN, times = bpcount)
+intercept <- rep(NaN, times = bpcount)
+slope1 <- rep(NaN, times = bpcount)
+break1 <- rep(NaN, times = bpcount)
+
+for (i in 1:bpcount) { # <-- I got stuck here
+  break1[i] <- my.seg$psi[[i+bpcount1]]
+  if (i == 1) {
+    slope1[i] <- coef(my.seg)[[2]] 
+    intercept[i] <- coef(my.seg)[[1]]
+    break1[i] <- min(abcover_nativecover_nngrasscover2$nonnative_forb, n = 1)
+  }
+  else {
+    slope1[i] <- slope1[i-1] + coef(my.seg)[[i+1]]
+    intercept[i] <- (intercept[i-1] + slope1[i-1]*break1[i]) - (slope1[i]*break1[i])
+  }
+}
+
+modelxend <- c(tail(break1, n = length(break1)-1), tail)
+
+for (i in 1:bpcount) {
+  modelybeg[i] <- slope1[i]*break1[i] + intercept[i] 
+  modelyend[i] <- slope1[i]*modelxend[i] + intercept[i] 
+}
+
+segment_data = data.frame(
+    x = break1,
+    xend = modelxend,
+    y = modelybeg,
+    yend = modelyend)
+
+# second row of the psi-matrix
+my.lines <- data.frame(psi = my.seg$psi[, 2], label = round(my.seg$psi[, 2], digits = 3))
+r2 <- round(summary(my.seg)$adj.r.squared, digits = 4)
+
+modelgraph_nnngrass <- p1 + 
+  geom_point(aes(shape = standtype.x, color = standtype.x)) + 
+  scale_color_manual(values = c("salmon2", "green4", "lightblue3"),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) +
+  geom_vline(xintercept = my.lines$psi, linetype = "dashed") +
+  geom_segment(
+    data = segment_data, 
+    mapping = aes(x=x, y=y, xend=xend, yend=yend), 
+    inherit.aes = FALSE) +
+  geom_text(data = my.lines,
+              mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
+              inherit.aes = FALSE,
+              hjust = 1) +
+  geom_text(mapping = aes(x = 0.3, y = 0.8, hjust = 1, label=paste("Adjusted R Squared:", "\n", r2)), inherit.aes = FALSE)
+
+modelgraph_nnngrass
 ```
 #end
 
@@ -2595,7 +2678,7 @@ head(shrubdensity) # look at new column site_rep, last column
 
 shrubdensity %>% 
   group_by(site_rep, status) %>% 
-  summarize(length_count = length(count))
+  summarize(length_count = length(count)) %>% 
   print(shrubdensity_sum_bysiterep_meanSD)
 # all site_rep have 5 status categories: dead, immature, mature, resprout, seedling 
 # all status have 13 length_count --> 13 species per status
@@ -2605,7 +2688,7 @@ sort(unique(shrubdensity$site_rep))
 sort(unique(shrubdensity$site_rep_species))
 sort(unique(shrubdensity$species))
 
-write.csv(shrubdensity,"processed/shrubdensity.csv")
+# write.csv(shrubdensity,"processed/shrubdensity.csv")
 
 # shrubdensityspp_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_byspecies.csv")
 # shrubdensityalive_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_beltdensity_seperatealive.csv")
@@ -2644,7 +2727,7 @@ shrubdensity_sum_bysiterep_nat <- shrubdensity_sum_bysiterep %>%
  left_join(nativecover, by = "site_rep") 
 shrubdensity_sum_bysiterep_nat_nn <- shrubdensity_sum_bysiterep_nat %>% # join above ground species diversity with non-native transect percent cover
   left_join(nncover, by = "site_rep")
-view(shrubdensity_sum_bysiterep_nat_nn)
+print(shrubdensity_sum_bysiterep_nat_nn)
 
 shrubdensity_sum_bysiterep_regression <- ggplot(data = shrubdensity_sum_bysiterep_nat_nn, 
        aes(x = nonnative_grass*100, y = aliveshrubdensity_1m2, shape = standtype, color = standtype)) + #color = standtype
