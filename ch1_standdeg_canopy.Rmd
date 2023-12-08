@@ -203,7 +203,7 @@ ggplot(data = abcover_vegcover_long, aes(x = site, y = percentcover, color = cov
 ```
 
 ```{r normality abcover total veg cover, include=TRUE}
-shapiro.test(abcover_vegcover_long$percentcover)
+shapiro.test(abcover_vegcover_long$percentcover) # veg cover and ground cover
 # Shapiro-Wilk normality test
 # data:  abcover_vegcover_long$percentcover
 # W = 0.67222, p-value = 6.305e-07 <-- not normally distributed...
@@ -242,8 +242,8 @@ pairwise.wilcox.test(abcover_vegcover_long_vegonly$percentcover, abcover_vegcove
 
 ```{r mean sd of abcover by site, include=TRUE}
 # min / max percent cover of veg only
-min(abcover_vegcover_long_vegonly$percentcover)*100
-max(abcover_vegcover_long_vegonly$percentcover)*100
+min(abcover_vegcover_long_vegonly$percentcover)*100 # 92.68%
+max(abcover_vegcover_long_vegonly$percentcover)*100 # 100%
 
 # mean SD by stand type
 abcover_vegcover_meanSD <- abcover_vegcover_long_vegonly %>%
