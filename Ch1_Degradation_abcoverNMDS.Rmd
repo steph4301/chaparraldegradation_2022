@@ -29,7 +29,7 @@ if (!require(devtools)) {
 }
 devtools::install_github("gavinsimpson/ggvegan")
 library(here)
-
+library(ggpmisc)
 ```
 
 # Point-intercept transect data
@@ -271,6 +271,7 @@ ab_diversity_totalsppr_regression <- ggplot(data = summary_table_pttrans_sppr_to
   theme_bw() +  
   stat_poly_line() +
  stat_poly_eq(use_label(c("eq", "R2")))
+
 print(ab_diversity_totalsppr_regression)
 
 # I made another figure in excel sheet: sppr_pointintercept.xlsx
