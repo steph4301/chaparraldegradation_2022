@@ -1845,9 +1845,11 @@ cover_statuslf_matrix <- cover_statuslf_matrix %>%
 
 ### STACKED proportion of Family by Transect
 ```{r proportion cover by family, include=TRUE}
+
+
 # data prep
 abcover_byfamily <- abcover_full_v_omitground %>% 
-  group_by(standtype, site, rep, site_rep, family) %>% 
+  group_by(standtype, site, rep, site_rep, family, status) %>% 
   #group_by(standtype, site, rep, site_rep, family, lifeform, status) %>% 
   dplyr::summarize(
     count_per_transect = n_distinct(site_rep_dist))
@@ -1873,7 +1875,28 @@ ggplot(abcover_byfamily, aes(fill=family, y=count_per_transect, x=site_rep)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 #this is the percents we calculated
-ggplot(abcover_byfamily_percent, aes(fill=family, y=percent_cover, x=site_rep)) + 
+ggplot(abcover_byfamily_percent %>% 
+         dplyr::filter(status == "native" | status == "nonnative"),
+       aes(fill=family, y=percent_cover, x=site_rep)) + 
+  geom_bar(position="stack", stat="identity") +
+  ggtitle("Relative Percent Cover by Count") +
+  labs(x="Transect", y="Percent Cover") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  facet_wrap(~ status)
+
+#this is the percents we calculated - native
+ggplot(abcover_byfamily_percent %>% 
+         dplyr::filter(status == "native"),
+       aes(fill=family, y=percent_cover, x=site_rep)) + 
+  geom_bar(position="stack", stat="identity") +
+  ggtitle("Relative Percent Cover by Count") +
+  labs(x="Transect", y="Percent Cover") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+#this is the percents we calculated - nonnative
+ggplot(abcover_byfamily_percent %>% 
+         dplyr::filter(status == "nonnative"),
+       aes(fill=family, y=percent_cover, x=site_rep)) + 
   geom_bar(position="stack", stat="identity") +
   ggtitle("Relative Percent Cover by Count") +
   labs(x="Transect", y="Percent Cover") +
