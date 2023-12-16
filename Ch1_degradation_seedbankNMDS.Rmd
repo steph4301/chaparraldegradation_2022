@@ -141,6 +141,128 @@ unique(seedbank_load_v_omitpretreatment$status) # list unique treatments --> nat
 unique(seedbank_load_v_omitpretreatment$genus_abundance) # list unique species --> 52 species
 unique(seedbank_load_v_omitpretreatment$stand_core) # unique stand_core --> 26 = 7 + 10 + 9
 
+write.csv(seedbank_load_v_omitpretreatment, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/seedbank_load_v_omitpretreatment.csv")
+```
+
+# total germination counts
+```{r}
+germination_m2_raw <- read_xlsx("processed/germination_m2.xlsx")
+germination_m2 <- germination_m2_raw %>%
+  mutate(site = fct_relevel(site, 
+            "INT1", "INT2", "INT3","ENH1", "ENH2", "DEG1", "DEG2")) %>% 
+  mutate(treatment = fct_relevel(treatment, 
+                                 "control", "charate", "oven", "ovenchar"))
+glimpse(germination_m2)
+```
+
+```{r}
+germination_m2 %>%
+   group_by(site) %>% 
+  summarize(total_germ_m2 = sum(n_per_m2))
+# site  total_native_germ_m2
+# INT1	54,298.04			
+# INT2	82,678.43			
+# INT3	72,133.33			
+# ENH1	128,114.29			
+# ENH2	206,848.30			
+# DEG1	26,050.42			
+# DEG2	15,546.22	
+sort(unique(germination_m2$species_diversity))
+
+germination_m2 %>%
+  filter(status == "native") %>% 
+  group_by(site) %>% 
+  summarize(total_native_germ_m2 = sum(n_per_m2))
+# site  total_native_germ_m2
+# INT1	43,862.745			
+# INT2	64,011.765			
+# INT3	46,050.980			
+# ENH1	20,228.571			
+# ENH2	16,228.571			
+# DEG1	3,571.429			
+# DEG2	9,348.739	
+
+germination_m2 %>%
+  filter(status == "nonnative") %>% 
+  group_by(site) %>% 
+  summarize(total_nonnative_germ_m2 = sum(n_per_m2))
+# site  total_nonnative_germ_m2
+# INT1	10,435.294			
+# INT2	18,666.667			
+# INT3	26,082.353			
+# ENH1	107,885.714			
+# ENH2	190,391.154			
+# DEG1	22,478.992			
+# DEG2	6,197.479	
+
+germination_m2 %>%
+  filter(lifeform == "forb" & status == "native") %>% 
+  group_by(site) %>% 
+  summarize(total_forb_germ_m2 = sum(n_per_m2))
+# site  total_forb_germ_m2
+# INT1	25,647
+# INT2	42,169			
+# INT3	23,329			
+# ENH1	23,314		
+# ENH2	22,562			
+# DEG1	15,126			
+# DEG2	14,181	
+#
+# NATIVE forb germination
+# INT1	23,875
+# INT2	35,878			
+# INT3	20,592			
+# ENH1	8,914			
+# ENH2	6,857			
+# DEG1	3,151			
+# DEG2	9,139	
+
+germination_m2 %>%
+  filter(lifeform == "shrub") %>% 
+  group_by(site) %>% 
+  summarize(total_shrub_germ_m2 = sum(n_per_m2))
+# site  total_shrub_germ_m2
+# INT1	11709.8039			
+# INT2	26988.2353			
+# INT3	5184.3137			
+# ENH1	10742.8571			
+# ENH2	8685.7143			
+# DEG1	840.3361			
+# DEG2	315.1261	
+
+```
+# total native germination counts
+```{r}
+seedbank_load_v_omitpretreatment %>%  
+  filter(status == "native") %>% 
+  group_by(site) %>% 
+  summarize(total_germination = sum(count))
+# DEG1	34			
+# DEG2	89			
+# ENH1	139			
+# ENH2	111			
+# INT1	195			
+# INT2	288			
+# INT3	196	
+
+150/34
+
+111/89
+
+```
+# total non-native germination counts
+```{r}
+seedbank_load_v_omitpretreatment %>%  
+  filter(status == "nonnative") %>% 
+  group_by(site) %>% 
+  summarize(total_germination = sum(count))
+# DEG1	214			
+# DEG2	59			
+# ENH1	824			
+# ENH2	1582			
+# INT1	45			
+# INT2	84			
+# INT3	110	
 ```
 
 # stacked germination by family
