@@ -182,6 +182,7 @@ glimpse(ab_diversity_native_nn)
 # Rows: 1,450
 # Columns: 21
 
+unique(ab_diversity_native_nn$species)
 #write.csv(ab_diversity_native_nn, "processed/ab_diversity_native_nn.csv") <-- export data to EXCEL and make graphs there
 
 ```
@@ -711,15 +712,59 @@ view(above_percentcover) # prints to new tab
 unique(abcover_byspecies$standtype)
 unique(abcover_byspecies$site)
 unique(abcover_byspecies$site_rep)
-unique(abcover_byspecies$species)
+sort(unique(abcover_byspecies$species))
 
 ```
 
 # Above ground species richness
 ```{r species richness by stand type}
+
 ab_diversity_2_native_nn %>% 
+  filter(status =="native") %>% 
 distinct(species) %>%
   pull(species)
+#  [1] "Acmispon glaber"            "Acmispon maritimus"        
+#  [3] "Apiastrum angustifolium"    "Artemisia californica"     
+#  [5] "Baccharis pilularis"        "Calochortus clavatus"      
+#  [7] "Cenothus oliganthus"        "Claytonia perfoliata"      
+#  [9] "Dipterostemon capitatus"    "Elymus condensatus"        
+# [11] "Eriodictyon crassifolium"   "Eriogonum fasciculatum"    
+# [13] "Galium porrigens"           "Heteromeles arbutifolia"   
+# [15] "Lupinus spp."               "Malacothamnus fasciculatus"
+# [17] "Marah macrocarpa"           "Pellaea andromedifolia"    
+# [19] "Rhamnus ilicifolia"         "Rhus ovata"                
+# [21] "Salvia apiana"              "Salvia leucophylla"        
+# [23] "Sambucus mexicana"          "Solanum xanti"             
+# [25] "Stephanomeria virgata"      "Stipa lepida"  
+
+ab_diversity_2_native_nn %>% 
+  filter(status =="native") %>% 
+distinct(family) %>%
+  pull(family)
+#  [1] "Fabaceae"             "Apiaceae"             "Asteraceae"          
+#  [4] "Liliaceae"               "Montiaceae"          
+#  [6] "Themidaceae"          "Poaceae"              "Namaceae"            
+#  [9] "Rubiaceae"            "Rosaceae"            
+# [11] "Malvaceae"            "Cucurbitaceae"        "Pteridaceae"         
+# [14] "Rhamnaceae"           "Anacardiaceae"        "Lamiaceae"           
+#  [17] "Solanacaeae" 
+
+ab_diversity_2_native_nn %>% 
+  filter(status =="nonnative") %>% 
+distinct(species) %>%
+  pull(species)
+# [1] "Avena barbata"               "Bromus diandrus"            
+#  [3] "Bromus hordeaceus"           "Bromus madritensis"         
+#  [5] "Bromus rubens"               "Carduus pycnocephalus"      
+#  [7] "Centaurea melitensis"        "Erodium spp."               
+#  [9] "Hirschfeldia incana"         "Pseudognaphalium luteoalbum"
+
+ab_diversity_2_native_nn %>% 
+  filter(status =="nonnative") %>% 
+distinct(family) %>%
+  pull(family
+    )
+# [1] "Poaceae"      "Asteraceae"   "Geraniaceae"  "Brassicaceae"
 
 ab_diversity_2_native_nn <- ab_diversity_2_native_nn %>% 
   dplyr::filter(species != "moss") %>% 
