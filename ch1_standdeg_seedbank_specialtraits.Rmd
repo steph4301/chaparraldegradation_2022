@@ -32,20 +32,27 @@ library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD
 # 3. germination abundance - "genus_abundance" column and "count" column
 # 4. germination of fire followers - ask Rob how he would select for not present in CK but present in treated tray.
 
+#seedbank_load_raw <- read.csv("deg_seedbank_20231007.csv", header = TRUE, na.strings=c("","NA"))
+#seedbank_load_slice <- seedbank_load_raw %>% slice(1:2127) 
 
-seedbank_load_raw <- read.csv("deg_seedbank_20231007.csv", header = TRUE, na.strings=c("","NA"))
+germination_m2_raw <- read_xlsx("processed/germination_m2.xlsx")
 
+germination_m2_raw_edit <- germination_m2_raw %>%
+  mutate(site = fct_relevel(site, 
+            "INT1", "INT2", "INT3","ENH1", "ENH2", "DEG1", "DEG2")) %>% 
+  mutate(treatment = fct_relevel(treatment, 
+                                 "control", "charate", "oven", "ovenchar")) %>% 
+  dplyr::select(c(stand, site, soilcore, depth_name, treatment, rep, species_diversity, genus_abundance, lifeform, status, lifescycle, family, stand_core, stand_core_depth, stand_core_depth_treat, n_per_m2))
 
-seedbank_load_slice <- seedbank_load_raw %>%
-  slice(1:2127) 
-
-seedbank_load_v <- seedbank_load_slice %>%
-  mutate(year = as.character(year),
+glimpse(germination_m2_raw_edit)
+```
+```{r data prep}
+seedbank_load_v <- germination_m2_raw_edit %>%
+  mutate(#year = as.character(year),
                                      stand = as.character(stand), 
                                 site = as.character(site),
                                 soilcore = as.character(soilcore), 
-                                depth_cm = as.character(depth_cm), 
-                                depth_name = as.character(depth_name),
+                                depth_name = as.character(depth_name), 
                                 treatment = as.character(treatment), 
         rep = as.integer(rep),                        
          species_diversity = as.character(species_diversity), 
@@ -55,6 +62,7 @@ seedbank_load_v <- seedbank_load_slice %>%
                                 lifescycle = as.character(lifescycle), 
                                 family = as.character(family), 
                                 count = as.integer(count),
+        n_per_m2 = as.integer(n_per_m2),
                                 NOTES = as.character(NOTES)
                               ) %>% 
   dplyr::select(c("stand", "site", "soilcore", "depth_name", "treatment", "rep", "species_diversity", "genus_abundance", "lifeform", "status", "lifescycle", "family", "count")) %>% 
