@@ -106,7 +106,12 @@ abcover_full <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = T
   rename(speciescode = species.1 ) %>%
   mutate(standtype = fct_relevel(standtype, 
             "intact", "matrix", "degraded")) %>% 
-  dplyr::select(!speciescode)
+  dplyr::select(!speciescode) %>% 
+    mutate(site = case_when(site == "Intact_1" ~ "INT1", 
+                                site == "Intact_2" ~ "INT2",
+                                site == "Intact_3" ~ "INT3", 
+          TRUE ~ site))
+
 glimpse(abcover_full)
 str(abcover_full)
 
@@ -126,13 +131,12 @@ abcover_full_v$site_rep_dist <- paste(abcover_full_v$site_rep, abcover_full_v$di
 abcover_full_v$stand_status <- paste(abcover_full_v$standtype, abcover_full_v$status, sep="_") 
 
 abcover_full_v <- abcover_full_v %>% 
+ %>% 
   mutate(site_rep = fct_relevel(site_rep, 
-                                "Intact_1_1", "Intact_2_2", "Intact_3_3", "ENH1_1", "ENH1_2",    "ENH1_3"  ,   "ENH2_4"  ,   "ENH2_5"    , "ENH2_6"  , "DEG1_1"   ,  "DEG1_2"  ,   "DEG1_3"     ,"DEG2_4" ,    "DEG2_5"    , "DEG2_6" )) #%>%
-  # mutate(standtype = case_when(standtype == "intact" ~ "shrub_dominated", 
-  #                              standtype == "matrix" ~ "matrix",
-  #                              standtype == "degraded" ~ "grass_dominated")) 
+                                "INT1", "INT2", "INT3", "ENH1_1", "ENH1_2",    "ENH1_3"  ,   "ENH2_4"  ,   "ENH2_5"    , "ENH2_6"  , "DEG1_1"   ,  "DEG1_2"  ,   "DEG1_3"     ,"DEG2_4" ,    "DEG2_5"    , "DEG2_6" )) #%>%
+  ) 
 
-glimpse(abcover_full_v) # look at new columns
+view(abcover_full_v) # look at new columns
 
 abcover_full_v %>%  
   na.omit() %>%  
