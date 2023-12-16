@@ -131,12 +131,13 @@ abcover_full_v$site_rep_dist <- paste(abcover_full_v$site_rep, abcover_full_v$di
 abcover_full_v$stand_status <- paste(abcover_full_v$standtype, abcover_full_v$status, sep="_") 
 
 abcover_full_v <- abcover_full_v %>% 
- %>% 
-  mutate(site_rep = fct_relevel(site_rep, 
-                                "INT1", "INT2", "INT3", "ENH1_1", "ENH1_2",    "ENH1_3"  ,   "ENH2_4"  ,   "ENH2_5"    , "ENH2_6"  , "DEG1_1"   ,  "DEG1_2"  ,   "DEG1_3"     ,"DEG2_4" ,    "DEG2_5"    , "DEG2_6" )) #%>%
-  ) 
+  mutate(site_rep = fct_relevel
+         (site_rep, 
+                                "INT1_1", "INT2_2", "INT3_3", "ENH1_1", "ENH1_2",    "ENH1_3"  ,   "ENH2_4"  ,   "ENH2_5"    , "ENH2_6"  , "DEG1_1"   ,  "DEG1_2"  ,   "DEG1_3"     ,"DEG2_4" ,    "DEG2_5"    , "DEG2_6" ))
 
-view(abcover_full_v) # look at new columns
+glimpse(abcover_full_v) # look at new columns
+
+sort(unique(abcover_full_v$species))
 
 abcover_full_v %>%  
   na.omit() %>%  
