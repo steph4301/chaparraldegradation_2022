@@ -117,53 +117,141 @@ glimpse(seedbank_load_w)
 
 ```{r slice by stand type, include=TRUE}
 
-SHRUB_seedbank <- seedbank_load_v %>% 
-  filter(stand == "shrub_dominated")
-unique(SHRUB_seedbank$site)
+INT_seedbank <- seedbank_load_w %>% 
+  filter(stand == "intact")
+unique(INT_seedbank$site)
 
-MATRIX_seedbank <- seedbank_load_v %>% 
-  filter(stand == "matrix")
-unique(MATRIX_seedbank$site)
+ENH_seedbank <- seedbank_load_w %>% 
+  filter(stand == "enhanced")
+unique(ENH_seedbank$site)
 
-GRASS_seedbank <- seedbank_load_v %>% 
-  filter(stand == "grass_dominated")
-unique(GRASS_seedbank$site)
+DEG_seedbank <- seedbank_load_w %>% 
+  filter(stand == "degraded")
+unique(DEG_seedbank$site)
 ```
 
 # Fire following species
 
 ```{r fire followers only, include = TRUE}
 
-control_spp = seedbank_load_v$species_diversity[seedbank_load_v$treatment=="control"]
-unique(control_spp)
+control_spp = seedbank_load_w$species_diversity[seedbank_load_w$treatment=="control"]
+sort(unique(control_spp))
 
-charate_spp = seedbank_load_v$species_diversity[seedbank_load_v$treatment=="charate"]
-unique(charate_spp)
+charate_spp = seedbank_load_w$species_diversity[seedbank_load_w$treatment=="charate"]
+sort(unique(charate_spp))
 
-oven_spp = seedbank_load_v$species_diversity[seedbank_load_v$treatment=="oven"]
-unique(oven_spp)
+oven_spp = seedbank_load_w$species_diversity[seedbank_load_w$treatment=="oven"]
+sort(unique(oven_spp))
 
-ovenchar_spp = seedbank_load_v$species_diversity[seedbank_load_v$treatment=="ovenchar"]
+ovenchar_spp = seedbank_load_w$species_diversity[seedbank_load_w$treatment=="ovenchar"]
+sort(unique(ovenchar_spp))
 
-firefollowers = unique(c(charate_spp, oven_spp, ovenchar_spp))
+germinpretreatmenttray = unique(c(charate_spp, oven_spp, ovenchar_spp))
 
-fire_only = tibble(firefollowers[!firefollowers %in% control_spp])
+fire_only = tibble(germinpretreatmenttray[!germinpretreatmenttray %in% control_spp])
 control_df = tibble(control_spp)
-glimpse(fire_only) #24 species
-names(fire_only)[names(fire_only) == "firefollowers[!firefollowers %in% control_spp]"] <- "species_diversity"
+glimpse(fire_only) #17 species
 
+#rename column header
+names(fire_only)[names(fire_only) == "germinpretreatmenttray[!germinpretreatmenttray %in% control_spp]"] <- "species_diversity"
+
+print(fire_only) # species list
 ```
+
+
 
 ```{r fire followers by site total emergence, include=TRUE}
 
-#left join data frames
-seedbank_fire <- left_join(fire_only, seedbank_load_v, by =  "species_diversity")
+#left join data frames to create complete df of fire following species
+seedbank_fire <- left_join(fire_only, seedbank_load_w, by =  "species_diversity")
 unique(seedbank_fire$species_diversity)
+```
+
+```{r explore fire follwoing seedbanks, include=TRUE}
+seedbank_fire %>% 
+  na.omit() %>%
+  group_by(species_diversity) %>%  # group by species totals
+  summarise(sum_germination_Nperm2 = sum(n_per_m2))
+
+seedbank_fire %>% 
+  na.omit() %>%
+  group_by(depth_name) %>%  # group by soil depth
+  summarise(sum_germination = sum(n_per_m2))
+# depth_name  sum_germination
+# surface	    6,170	
+# deep	      3,255			
+
+seedbank_fire %>% 
+  na.omit() %>%
+  group_by(treatment) %>%  # group by soil depth
+  summarise(sum_germination_Nperm2 = sum(n_per_m2))
+# treatment  sum_germination
+# charate	    3,119			
+# oven	      2,762			
+# ovenchar	  3,544	
+
+seedbank_fire %>% 
+  na.omit() %>%
+  group_by(lifeform) %>%  # group by lifeform
+  summarise(sum_germination_Nperm2 = sum(n_per_m2))
+# lifeform  sum_germination
+# forb	    6,728			
+# shrub	    2,697	
+
+seedbank_fire %>% 
+  na.omit() %>%
+  group_by(site) %>%  # group by site
+  summarise(sum_germination_Nperm2 = sum(n_per_m2))
+# site    sum_germination_perm2
+# INT1  	2,466			
+# INT2	  1,571			
+# INT3	  2,538			
+# ENH1	  1,254			
+# ENH2	  1,596	
+
+seedbank_fire %>% 
+  na.omit() %>%
+  group_by(site, lifeform) %>%  # group by lifeform and site
+  summarise(sum_germination_Nperm2 = sum(n_per_m2))
+# site  lifeform  sum_germination_Nperm2
+# INT1	forb	    767		
+# INT1	shrub	    1,699		
+# INT2	forb	    1,371		
+# INT2	shrub	    200		
+# INT3	forb	    2,538		
+# ENH1	forb    	570		
+# ENH1	shrub	    684		
+# ENH2	forb	    1,482		
+# ENH2	shrub	    114	
+
+seedbank_fire %>% 
+  na.omit() %>%
+  filter(lifeform == "shrub") %>% # only shrubs
+  group_by(site) %>%  # group by site
+  summarise(sum_germination_Nperm2 = sum(n_per_m2))
+#  site     shrub_germ_countperm2
+#  INT1	    1,699			
+#  INT2	    200			
+#  ENH1	    684			
+#  ENH2	    114	
+
+seedbank_fire %>% 
+  na.omit() %>%
+  filter(lifeform == "forb") %>% # only forbs
+  group_by(site) %>%  # group by site
+  summarise(sum_germination_Nperm2 = sum(n_per_m2))
+# site    forb_germ_countperm2
+# INT1	  767			
+# INT2	  1,371			
+# INT3	  2,538			
+# ENH1	  570			
+# ENH2	  1,482	
+
 
 seedbank_fire_totalemerg <- seedbank_fire %>% 
   na.omit() %>%
   group_by(stand, stand_core) %>% 
-  summarise(sum = sum(count))
+  summarise(sum_germination_Nperm2 = sum(n_per_m2))
 
 
 ```
