@@ -27,6 +27,7 @@ library(multcompView)
 library(plotly)
 library(ggvegan)
 library(here)
+library(ggnewscale)
 
 # dune data: https://www.rpubs.com/RGrieger/545184
 
@@ -96,8 +97,8 @@ seedbank_load_v <- seedbank_load %>%
      species_diversity == "Erodium spp. "  ~ "Erodium spp.",
      species_diversity == "Festuca myuros " ~ "Festuca myuros",
      species_diversity == "Lactuca serriola " ~ "Lactuca serriola",
-     species_diversity ==   "Lupinus bicolor "   ~ "Lupinus bicolor", 
-     species_diversity ==  "Salvia leucophylla "   ~ "Salvia leucophylla", 
+     species_diversity == "Lupinus bicolor "   ~ "Lupinus bicolor", 
+     species_diversity == "Salvia leucophylla "   ~ "Salvia leucophylla", 
      species_diversity == "Thysanocarpus spp. " ~ "Thysanocarpus spp.",     
      TRUE ~ as.character(species_diversity)  # Keep other observations unchanged
   )) %>% 
@@ -112,6 +113,10 @@ seedbank_load_v <- seedbank_load %>%
     genus_abundance == "Unknown Phrymaceae  " ~ "Unknown Phrymaceae",
     TRUE ~ as.character(genus_abundance)  # Keep other observations unchanged
   )) 
+
+seedbank_load_sorted <- seedbank_load[order(seedbank_load$species_diversity),]
+unique(seedbank_load_sorted$species_diversity)
+
 ```
 
 (3) Create new columns for SITE_CORE, SITE_CORE_DEPTH, SITE_CORE_DEPTH_TREATMENT, SITE_TREATMENT, SITE_DEPTH for seed bank data. 
@@ -351,27 +356,15 @@ abcover_sum <- cbind(abcover_sum[1], stack(abcover_sum[2:3])) %>%
          type = ind) %>%
   mutate(proportion = 100*proportion)
 
-
 seedbank_byfamilystatus_proportion_1 <- seedbank_byfamilystatus_proportion %>%
   group_by(site, family, status) %>%
   summarize(across(proportion_germination, mean))
-
 
 seedbank_byfamilystatus_proportion_hill <- seedbank_byfamily_status %>%
   left_join(seedbank_byfamily_count, by = c("stand_core")) %>%
   group_by(family, site) %>%
   summarise(across(totalgerm_family:totalgerm_family_bystandcore, mean)) %>%
   mutate(proportion_germination = (totalgerm_family/totalgerm_family_bystandcore)*100)
-
-
-
-# %>%
-  # dplyr::select(!c(totalgerm_family, totalgerm_family_bystandcore))
-
-
-
-
-
 
 ggplot(seedbank_byfamilystatus_proportion %>%  
          dplyr::filter(status == "native" | status == "nonnative"), 
@@ -392,13 +385,13 @@ ggplot() +
              width = barwidth) + 
     scale_fill_manual(values = c("green3", "pink2")) +
     new_scale_fill() +
-    geom_bar(data = subset(seedbank_byfamilystatus_proportion_1, status == "nonnative"), 
+    geom_bar(data = subset(seedbank_byfamilystatus_proportion_1, status == "native"), 
              mapping = aes(x = as.numeric(interaction(site)), y = proportion_germination, fill = family), 
              stat="identity", 
              position='stack' , 
              width = barwidth) +
-    ggtitle("Nonnative") +
-    xlab("site")
+    ggtitle("Native") +
+    xlab("site") +
     scale_x_continuous(breaks=c(1.25,2.25,3.25,4.25,5.25,6.25,7.25),labels=c("Deg1","Deg2","Enh1", "Enh1", "Int1", "Int2", "Int3")) 
 ```
 

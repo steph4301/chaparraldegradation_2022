@@ -474,7 +474,7 @@ view(cover_statuslf_matrix_long)
 
 cover_statuslf_matrix_wide1 <- cover_statuslf_matrix_long %>%
   spread(status_lifeform, percentcover)
-write.csv(cover_statuslf_matrix_long,"processed/coverstatus.csv")
+write.csv(cover_statuslf_matrix_wide1,"processed/coverstatus.csv")
 
 view(cover_statuslf_matrix_wide1)
 
@@ -1092,7 +1092,7 @@ model <- lm(nonnative_forb ~ nonnative_grass, data = abcover_nonnativecover_nngr
 # have to provide estimates for breakpoints.
 # after looking a the data, 
 my.seg <- segmented(model,
-                    npsi = 1)
+                    npsi = 2)
 
 bp <- as.data.frame(my.seg$psi)
 bp <- as.list(bp$Est.)
@@ -1631,8 +1631,7 @@ modelgraph_nngrass
 
 abcover_nativecover_nngrasscover2 <- abcover_nativecover_nngrasscover[order(abcover_nativecover_nngrasscover$nonnative_forb, decreasing = TRUE),]
 tail <- max(abcover_nativecover_nngrasscover2$native_shrub, n = 1)
-p1 <- ggplot(abcover_nativecover_nngrasscover2, aes(y = nonnative_forb, x = native_shrub)) +
-  geom_point()
+p1 <- ggplot(abcover_nativecover_nngrasscover2, aes(y = nonnative_forb, x = native_shrub))
 model <- lm(nonnative_forb ~ native_shrub, data = abcover_nativecover_nngrasscover2)
 
 #analyze breakpoints
@@ -1717,8 +1716,7 @@ model <- lm(native_grass ~ nonnative_grass, data = abcover_nativecover_nngrassco
 # have to provide estimates for breakpoints.
 # after looking a the data, 
 my.seg <- segmented(model, 
-                    seg.Z = ~ nonnative_grass,
-                    npsi = 1
+                    seg.Z = ~ nonnative_grass
                     )
 
 bp <- as.data.frame(my.seg$psi)
