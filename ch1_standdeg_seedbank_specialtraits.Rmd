@@ -35,24 +35,25 @@ library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD
 #seedbank_load_raw <- read.csv("deg_seedbank_20231007.csv", header = TRUE, na.strings=c("","NA"))
 #seedbank_load_slice <- seedbank_load_raw %>% slice(1:2127) 
 
-germination_m2_raw <- read_xlsx("processed/germination_m2.xlsx")
+germination_m2_load <- read_xlsx("processed/germination_m2.xlsx")
+glimpse(germination_m2_load)
 
-germination_m2_raw_edit <- germination_m2_raw %>%
+germination_m2_edit <- germination_m2_load %>%
   mutate(site = fct_relevel(site, 
             "INT1", "INT2", "INT3","ENH1", "ENH2", "DEG1", "DEG2")) %>% 
   mutate(treatment = fct_relevel(treatment, 
                                  "control", "charate", "oven", "ovenchar")) %>% 
-  dplyr::select(c(stand, site, soilcore, depth_name,fieldharvestedsoil_g, subsample_g,treatment, rep, species_diversity, genus_abundance, lifeform, status, lifescycle, family, stand_core, stand_core_depth, stand_core_depth_treat, count))
+  dplyr::select(c(stand, site, soilcore, depth_name, subsample_cm3, subsample_g,treatment, rep, species_diversity, genus_abundance, lifeform, status, lifescycle, family, count, stand_core, stand_core_depth, stand_core_depth_treat, n_per_cm3, n_per_m3, n_per_g, n_per_kg))
 
-glimpse(germination_m2_raw_edit)
+glimpse(germination_m2_edit)
 ```
 ```{r data prep}
-seedbank_load_w <- germination_m2_raw_edit %>%
+seedbank_load_w <- germination_m2_edit %>%
   mutate(#year = as.character(year),
                                 stand = as.character(stand), 
                                 site = as.character(site),
                                 soilcore = as.character(soilcore), 
-                                depth_name = as.character(depth_name), 
+                                depth_name = as.character(depth_name),
                                 treatment = as.character(treatment), 
                                 rep = as.integer(rep),                        
                                 species_diversity = as.character(species_diversity), 
@@ -61,8 +62,7 @@ seedbank_load_w <- germination_m2_raw_edit %>%
                                 status = as.character(status), 
                                 lifescycle = as.character(lifescycle), 
                                 family = as.character(family),
-                                count = as.integer(count),
-                                n_per_m2 = as.integer(n_per_m2)
+                                count = as.integer(count)
                               ) %>%
   mutate(stand = fct_relevel(stand, 
             "intact", "enhanced", "degraded")) %>% 
@@ -73,7 +73,7 @@ seedbank_load_w <- germination_m2_raw_edit %>%
   #                               "matrix" = "enhanced",
   #                               "grass_dominated" = "degraded"))
 
-tail(seedbank_load_w)
+#tail(seedbank_load_w)
 
 # combine SITE and CORE to one column
 seedbank_load_w$stand_core <- paste(seedbank_load_w$site, seedbank_load_w$soilcore, sep="_") 
@@ -100,19 +100,13 @@ unique(seedbank_load_w$soilcore)
 unique(seedbank_load_w$depth_name)
 unique(seedbank_load_w$treatment)
 sort(unique(seedbank_load_w$species_diversity))
+length(unique(seedbank_load_w$species_diversity)) #65 unique species
 unique(seedbank_load_w$status)
 unique(seedbank_load_w$stand_core_depth)
 unique(seedbank_load_w$stand_core_treat) # wrap by treatment instead of ordering
 
-
-#head(seedbank_load_v)
-str(seedbank_load_w)
-glimpse(seedbank_load_w)
-
-
-#seedbank_load_v <- seedbank_load_v %>% 
-#  filter(treatment != "pretreatment") # will OMIT species from pretreatment
-
+#str(seedbank_load_w)
+#glimpse(seedbank_load_w)
 
 ```
 
