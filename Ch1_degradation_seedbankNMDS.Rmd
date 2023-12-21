@@ -27,7 +27,6 @@ library(multcompView)
 library(plotly)
 library(ggvegan)
 library(here)
-library(ggnewscale)
 
 # dune data: https://www.rpubs.com/RGrieger/545184
 
@@ -97,8 +96,8 @@ seedbank_load_v <- seedbank_load %>%
      species_diversity == "Erodium spp. "  ~ "Erodium spp.",
      species_diversity == "Festuca myuros " ~ "Festuca myuros",
      species_diversity == "Lactuca serriola " ~ "Lactuca serriola",
-     species_diversity == "Lupinus bicolor "   ~ "Lupinus bicolor", 
-     species_diversity == "Salvia leucophylla "   ~ "Salvia leucophylla", 
+     species_diversity ==   "Lupinus bicolor "   ~ "Lupinus bicolor", 
+     species_diversity ==  "Salvia leucophylla "   ~ "Salvia leucophylla", 
      species_diversity == "Thysanocarpus spp. " ~ "Thysanocarpus spp.",     
      TRUE ~ as.character(species_diversity)  # Keep other observations unchanged
   )) %>% 
@@ -113,10 +112,6 @@ seedbank_load_v <- seedbank_load %>%
     genus_abundance == "Unknown Phrymaceae  " ~ "Unknown Phrymaceae",
     TRUE ~ as.character(genus_abundance)  # Keep other observations unchanged
   )) 
-
-seedbank_load_sorted <- seedbank_load[order(seedbank_load$species_diversity),]
-unique(seedbank_load_sorted$species_diversity)
-
 ```
 
 (3) Create new columns for SITE_CORE, SITE_CORE_DEPTH, SITE_CORE_DEPTH_TREATMENT, SITE_TREATMENT, SITE_DEPTH for seed bank data. 
@@ -227,14 +222,29 @@ germination_m2 %>%
   group_by(site) %>% 
   summarize(total_shrub_germ_m2 = sum(n_per_m2))
 # site  total_shrub_germ_m2
-# INT1	11709.8039			
-# INT2	26988.2353			
-# INT3	5184.3137			
-# ENH1	10742.8571			
-# ENH2	8685.7143			
-# DEG1	840.3361			
-# DEG2	315.1261	
+# INT1	11,710			
+# INT2	26,988
+# INT3	5,184		
+# ENH1	10,743
+# ENH2	8,686
+# DEG1	840
+# DEG2	315
+germination_m2 %>%
+  filter(lifeform == "shrub") %>% 
+  filter()
+  pull(species_diversity)
 
+
+germination_m2 %>%
+ filter(lifeform == "grass" & status == "native") %>% 
+  group_by(site) %>% 
+  summarize(total_nativegrass_germ_m2 = sum(n_per_m2))
+# site  total_nativegrass_germ_m2
+# INT1	13,063			
+# INT2	2,682		
+# INT3	20,976			
+# ENH1	571			
+# ENH2	686
 ```
 # total native germination counts
 ```{r}
@@ -356,15 +366,27 @@ abcover_sum <- cbind(abcover_sum[1], stack(abcover_sum[2:3])) %>%
          type = ind) %>%
   mutate(proportion = 100*proportion)
 
+
 seedbank_byfamilystatus_proportion_1 <- seedbank_byfamilystatus_proportion %>%
   group_by(site, family, status) %>%
   summarize(across(proportion_germination, mean))
+
 
 seedbank_byfamilystatus_proportion_hill <- seedbank_byfamily_status %>%
   left_join(seedbank_byfamily_count, by = c("stand_core")) %>%
   group_by(family, site) %>%
   summarise(across(totalgerm_family:totalgerm_family_bystandcore, mean)) %>%
   mutate(proportion_germination = (totalgerm_family/totalgerm_family_bystandcore)*100)
+
+
+
+# %>%
+  # dplyr::select(!c(totalgerm_family, totalgerm_family_bystandcore))
+
+
+
+
+
 
 ggplot(seedbank_byfamilystatus_proportion %>%  
          dplyr::filter(status == "native" | status == "nonnative"), 
@@ -385,13 +407,13 @@ ggplot() +
              width = barwidth) + 
     scale_fill_manual(values = c("green3", "pink2")) +
     new_scale_fill() +
-    geom_bar(data = subset(seedbank_byfamilystatus_proportion_1, status == "native"), 
+    geom_bar(data = subset(seedbank_byfamilystatus_proportion_1, status == "nonnative"), 
              mapping = aes(x = as.numeric(interaction(site)), y = proportion_germination, fill = family), 
              stat="identity", 
              position='stack' , 
              width = barwidth) +
-    ggtitle("Native") +
-    xlab("site") +
+    ggtitle("Nonnative") +
+    xlab("site")
     scale_x_continuous(breaks=c(1.25,2.25,3.25,4.25,5.25,6.25,7.25),labels=c("Deg1","Deg2","Enh1", "Enh1", "Int1", "Int2", "Int3")) 
 ```
 
