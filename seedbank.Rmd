@@ -20,6 +20,7 @@ library(ggpubr) # customize ggplot2 for publication
 library(vegan) #community ecology package - includes, MASS, cluster, mgcv
 library(readxl) # for .xls and .xlsx sheets
 library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD, dist{stats}, simint, simtest, csimint, csimtest{multcomp}, friedmanmc, kruskalmc{pgirmess}
+library(skimr)
 ```
 
 # Load data
@@ -38,17 +39,16 @@ library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD
 germination_m2_load <- read_xlsx("processed/germination_m2.xlsx")
 glimpse(germination_m2_load)
 
-germination_m2_edit <- germination_m2_load %>%
+seedbank <- germination_m2_load %>%
   mutate(site = fct_relevel(site, 
             "INT1", "INT2", "INT3","ENH1", "ENH2", "DEG1", "DEG2")) %>% 
   mutate(treatment = fct_relevel(treatment, 
                                  "control", "charate", "oven", "ovenchar")) %>% 
   dplyr::select(c(stand, site, soilcore, depth_name, subsample_cm3, subsample_g,treatment, rep, species_diversity, genus_abundance, lifeform, status, lifescycle, family, count, stand_core, stand_core_depth, stand_core_depth_treat, n_per_cm3, n_per_m3, n_per_g, n_per_kg))
 
-glimpse(germination_m2_edit)
-```
-```{r data prep}
-seedbank_load_w <- germination_m2_edit %>%
+#glimpse(seedbank)
+
+seedbank <- seedbank %>%
   mutate(#year = as.character(year),
                                 stand = as.character(stand), 
                                 site = as.character(site),
@@ -73,54 +73,79 @@ seedbank_load_w <- germination_m2_edit %>%
   #                               "matrix" = "enhanced",
   #                               "grass_dominated" = "degraded"))
 
-#tail(seedbank_load_w)
-
-# combine SITE and CORE to one column
-seedbank_load_w$stand_core <- paste(seedbank_load_w$site, seedbank_load_w$soilcore, sep="_") 
-
-# combine SITE_CORE and DEPT to one column
-seedbank_load_w$stand_core_depth <- paste(seedbank_load_w$stand_core, seedbank_load_w$depth_name, sep="_") 
-
-# combine SITE_CORE_DEPTH and TREATMENT to one column
-seedbank_load_w$stand_core_depth_treat <- paste(seedbank_load_w$stand_core_depth, seedbank_load_w$treatment, sep="_") 
-
-# combine SITE_CORE and TREATMENT to one column
-seedbank_load_w$stand_core_treat <- paste(seedbank_load_w$stand_core, seedbank_load_w$treatment, sep="_") 
-
-seedbank_load_w <- seedbank_load_w %>% 
+seedbank <- seedbank %>% 
   mutate(stand_core = fct_relevel(stand_core, 
                                   "INT1_1", "INT1_2" , "INT1_3" ,"INT2_4"  ,"INT2_5" , "INT2_6",  "INT3_7" , "INT3_8" , "INT3_9",
                                   "ENH1_1" , "ENH1_2" , "ENH1_3" , "ENH1_4" , "ENH1_5" , "ENH2_6" , "ENH2_7" , "ENH2_8"  ,"ENH2_9"  ,"ENH2_10", 
                                  "DEG1_1" , "DEG1_2"  ,"DEG1_3"  ,"DEG1_4" , "DEG2_5" , "DEG2_6" , "DEG2_7" ))  %>% 
   mutate(site = fct_relevel(site, "INT1", "INT2", "INT3", "ENH1", "ENH2", "DEG1", "DEG2"))
 
-unique(seedbank_load_w$stand)
-unique(seedbank_load_w$site)
-unique(seedbank_load_w$soilcore)
-unique(seedbank_load_w$depth_name)
-unique(seedbank_load_w$treatment)
-sort(unique(seedbank_load_w$species_diversity))
-length(unique(seedbank_load_w$species_diversity)) #65 unique species
-unique(seedbank_load_w$status)
-unique(seedbank_load_w$stand_core_depth)
-unique(seedbank_load_w$stand_core_treat) # wrap by treatment instead of ordering
 
-#str(seedbank_load_w)
-#glimpse(seedbank_load_w)
+seedbank$stand_core_treat <- paste(seedbank$stand_core, seedbank$treatment, sep="_") 
+
+
+unique(seedbank$stand)
+unique(seedbank$site)
+unique(seedbank$soilcore)
+unique(seedbank$depth_name)
+unique(seedbank$treatment)
+sort(unique(seedbank$species_diversity))
+length(unique(seedbank$species_diversity)) #65 unique species
+unique(seedbank$status)
+unique(seedbank$stand_core_depth)
+unique(seedbank$stand_core_treat) # wrap by treatment instead of ordering
 
 ```
 
-```{r slice by stand type, include=TRUE}
+# List species diversity
+```{r}
+native_seedbank <- seedbank %>% 
+  filter(status == "native")
+sort(unique(native_seedbank$species_diversity)) # 47 species
+sort(unique(native_seedbank$family)) # 22 families
 
-INT_seedbank <- seedbank_load_w %>% 
-  filter(stand == "intact")
-unique(INT_seedbank$site)
+nonnative_seedbank <- seedbank %>% 
+  filter(status == "nonnative")
+sort(unique(nonnative_seedbank$species_diversity)) #17 species
+sort(unique(nonnative_seedbank$family)) # 6 families
 
-ENH_seedbank <- seedbank_load_w %>% 
-  filter(stand == "enhanced")
-unique(ENH_seedbank$site)
-
-DEG_seedbank <- seedbank_load_w %>% 
-  filter(stand == "degraded")
-unique(DEG_seedbank$site)
+unknown_seedbank <- seedbank %>% 
+  filter(status == "unknown")
+sort(unique(unknown_seedbank$species_diversity)) # 1 species
 ```
+
+# List shrub germination by hillslope
+```{r}
+shrub_seedbank <- seedbank %>% 
+  filter(lifeform == "shrub")
+sort(unique(shrub_seedbank$species_diversity)) # 10 species
+sort(unique(shrub_seedbank$family)) 
+length(unique(shrub_seedbank$family)) # 7 families
+```
+
+
+# Explore seedbank data by germination (#seeds/g sieved soil)
+```{r group germination by tray}
+# total number of germinates per tray
+
+
+germ_tray_prep <- seedbank %>% 
+  group_by(site, soilcore, stand_core, depth_name, stand_core_depth_treat, subsample_g) %>% 
+  summarize(germination_n = sum(count))
+
+germ_tray <- germ_tray_prep %>% 
+            summarize(seeds_per_g = (germination_n/subsample_g))
+
+dim(germ_tray)
+# 104 rows = (7 DEG + 10 ENH + 9 INT) * 4 treatments
+
+#view(germ_tray)
+
+```
+
+```{r}
+plot(data = germ_tray, n_per_g ~ subsample_g)
+boxplot(seedbank$n_per_g)
+histogram(seedbank$n_per_g)
+```
+
