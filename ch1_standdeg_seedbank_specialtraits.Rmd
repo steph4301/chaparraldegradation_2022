@@ -42,7 +42,7 @@ germination_m2_raw_edit <- germination_m2_raw %>%
             "INT1", "INT2", "INT3","ENH1", "ENH2", "DEG1", "DEG2")) %>% 
   mutate(treatment = fct_relevel(treatment, 
                                  "control", "charate", "oven", "ovenchar")) %>% 
-  dplyr::select(c(stand, site, soilcore, depth_name, treatment, rep, species_diversity, genus_abundance, lifeform, status, lifescycle, family, stand_core, stand_core_depth, stand_core_depth_treat, n_per_m2))
+  dplyr::select(c(stand, site, soilcore, depth_name,fieldharvestedsoil_g, subsample_g,treatment, rep, species_diversity, genus_abundance, lifeform, status, lifescycle, family, stand_core, stand_core_depth, stand_core_depth_treat, count))
 
 glimpse(germination_m2_raw_edit)
 ```
@@ -61,6 +61,7 @@ seedbank_load_w <- germination_m2_raw_edit %>%
                                 status = as.character(status), 
                                 lifescycle = as.character(lifescycle), 
                                 family = as.character(family),
+                                count = as.integer(count),
                                 n_per_m2 = as.integer(n_per_m2)
                               ) %>%
   mutate(stand = fct_relevel(stand, 
@@ -165,9 +166,11 @@ print(fire_only) # species list
 #left join data frames to create complete df of fire following species
 seedbank_fire <- left_join(fire_only, seedbank_load_w, by =  "species_diversity")
 unique(seedbank_fire$species_diversity)
+
+write.csv(seedbank_fire, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/seedbank_fire.csv")
 ```
 
-```{r explore fire follwoing seedbanks, include=TRUE}
+```{r explore fire following seedbanks SUM germination, include=TRUE}
 seedbank_fire %>% 
   na.omit() %>%
   group_by(species_diversity) %>%  # group by species totals
@@ -244,14 +247,45 @@ seedbank_fire %>%
 # INT1	  767			
 # INT2	  1,371			
 # INT3	  2,538			
-# ENH1	  570			
+# ENH1	  570		
 # ENH2	  1,482	
 
+```
 
+
+```{r explore fire following seedbanks MEAN germination, include=TRUE}
 seedbank_fire_totalemerg <- seedbank_fire %>% 
   na.omit() %>%
-  group_by(stand, stand_core) %>% 
+  group_by(site, stand_core) %>% 
   summarise(sum_germination_Nperm2 = sum(n_per_m2))
+# site  stand_core sum_germination_Nperm2
+#    <fct> <fct>                       <int>
+#  1 INT1  INT1_1                       1831
+#  2 INT1  INT1_3                        635
+#  3 INT2  INT2_5                        266
+#  4 INT2  INT2_6                       1305
+#  5 INT3  INT3_7                       1740
+#  6 INT3  INT3_8                        266
+#  7 INT3  INT3_9                        532
+#  8 ENH1  ENH1_1                        684
+#  9 ENH1  ENH1_4                        570
+# 10 ENH2  ENH2_6                        228
+# 11 ENH2  ENH2_7                        228
+# 12 ENH2  ENH2_8                        684
+# 13 ENH2  ENH2_9                        342
+# 14 ENH2  ENH2_10                       114
+
+
+
+seedbank_fire_totalemerg %>% 
+  na.omit() %>%
+  group_by(site) %>%  # group by site
+  dplyr::summarise(mean_germination = mean(sum_germination_Nperm2), 
+                    sd = sd(sum_germination_Nperm2),
+                    N = length(sum_germination_Nperm2),
+                    SE = (sd(sum_germination_Nperm2)) / sqrt(sum_germination_Nperm2)
+                    ) 
+
 
 
 ```
