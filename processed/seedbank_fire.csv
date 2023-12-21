@@ -1,0 +1,45 @@
+"","species_diversity","stand","site","soilcore","depth_name","treatment","rep","genus_abundance","lifeform","status","lifescycle","family","stand_core","stand_core_depth","stand_core_depth_treat","count","n_per_m2"
+"1","Eriodictyon crassifolium","enhanced","ENH1","1","surface","charate",1,"Eriodictyon crassifolium","shrub","native","perennial","Namaceae","ENH1_1","ENH1_1_surface","ENH1_1_surface_charate",2,228
+"2","Eriodictyon crassifolium","enhanced","ENH1","1","surface","ovenchar",1,"Eriodictyon crassifolium","shrub","native","perennial","Namaceae","ENH1_1","ENH1_1_surface","ENH1_1_surface_ovenchar",2,228
+"3","Eriodictyon crassifolium","enhanced","ENH1","4","surface","oven",1,"Eriodictyon crassifolium","shrub","native","perennial","Namaceae","ENH1_4","ENH1_4_surface","ENH1_4_surface_oven",1,114
+"4","Lactuca serriola","enhanced","ENH1","1","surface","ovenchar",1,"Lactuca serriola","forb","nonnative","annual","Asteraceae","ENH1_1","ENH1_1_surface","ENH1_1_surface_ovenchar",1,114
+"5","Lactuca serriola","enhanced","ENH1","4","deep","ovenchar",1,"Lactuca serriola","forb","nonnative","annual","Asteraceae","ENH1_4","ENH1_4_deep","ENH1_4_deep_ovenchar",1,228
+"6","Lactuca serriola","enhanced","ENH2","7","surface","charate",1,"Lactuca serriola","forb","nonnative","annual","Asteraceae","ENH2_7","ENH2_7_surface","ENH2_7_surface_charate",1,114
+"7","Trifolium willdenovii","enhanced","ENH2","7","surface","charate",1,"Trifolium spp.","forb","native","annual","Fabaceae","ENH2_7","ENH2_7_surface","ENH2_7_surface_charate",1,114
+"8","Trifolium willdenovii","enhanced","ENH2","8","deep","ovenchar",1,"Trifolium spp.","forb","native","annual","Fabaceae","ENH2_8","ENH2_8_deep","ENH2_8_deep_ovenchar",1,228
+"9","Trifolium willdenovii","enhanced","ENH2","10","surface","charate",1,"Trifolium spp.","forb","native","annual","Fabaceae","ENH2_10","ENH2_10_surface","ENH2_10_surface_charate",1,114
+"10","Lupinus bicolor","enhanced","ENH2","9","surface","charate",1,"Lupinus bicolor","forb","native","annual","Fabaceae","ENH2_9","ENH2_9_surface","ENH2_9_surface_charate",1,114
+"11","Claytonia parviflora","intact","INT1","1","surface","charate",1,"Claytonia spp.","forb","native","annual","Montiaceae","INT1_1","INT1_1_surface","INT1_1_surface_charate",1,266
+"12","Claytonia parviflora","intact","INT1","3","deep","oven",1,"Claytonia spp.","forb","native","annual","Montiaceae","INT1_3","INT1_3_deep","INT1_3_deep_oven",1,235
+"13","Claytonia parviflora","intact","INT3","7","surface","oven",1,"Claytonia spp.","forb","native","annual","Montiaceae","INT3_7","INT3_7_surface","INT3_7_surface_oven",1,200
+"14","Claytonia parviflora","intact","INT3","8","surface","ovenchar",1,"Claytonia spp.","forb","native","annual","Montiaceae","INT3_8","INT3_8_surface","INT3_8_surface_ovenchar",1,266
+"15","Unknown A - shrub","intact","INT1","1","surface","charate",1,"Unknown A - shrub","shrub","native","perennial","Asteraceae","INT1_1","INT1_1_surface","INT1_1_surface_charate",1,266
+"16","Unknown A - shrub","intact","INT1","1","surface","charate",1,"Unknown A - shrub","shrub","native","perennial","Asteraceae","INT1_1","INT1_1_surface","INT1_1_surface_charate",1,266
+"17","Unknown A - shrub","intact","INT1","1","surface","oven",1,"Unknown A - shrub","shrub","native","perennial","Asteraceae","INT1_1","INT1_1_surface","INT1_1_surface_oven",1,266
+"18","Unknown A - shrub","intact","INT1","1","surface","ovenchar",1,"Unknown A - shrub","shrub","native","perennial","Asteraceae","INT1_1","INT1_1_surface","INT1_1_surface_ovenchar",1,266
+"19","Unknown A - shrub","intact","INT1","1","deep","charate",1,"Unknown A - shrub","shrub","native","perennial","Asteraceae","INT1_1","INT1_1_deep","INT1_1_deep_charate",1,235
+"20","Unknown A - shrub","intact","INT1","3","surface","charate",1,"Unknown A - shrub","shrub","native","perennial","Asteraceae","INT1_3","INT1_3_surface","INT1_3_surface_charate",1,200
+"21","Unknown A - shrub","intact","INT1","3","surface","oven",1,"Unknown A - shrub","shrub","native","perennial","Asteraceae","INT1_3","INT1_3_surface","INT1_3_surface_oven",1,200
+"22","Malacothrix saxatilis","intact","INT1","1","surface","ovenchar",1,"Malacothrix saxatilis","forb","native","perennial","Asteraceae","INT1_1","INT1_1_surface","INT1_1_surface_ovenchar",1,266
+"23","Malacothrix saxatilis","intact","INT2","5","surface","charate",1,"Malacothrix saxatilis","forb","native","perennial","Asteraceae","INT2_5","INT2_5_surface","INT2_5_surface_charate",1,266
+"24","Malacothrix saxatilis","intact","INT2","6","deep","oven",1,"Malacothrix saxatilis","forb","native","perennial","Asteraceae","INT2_6","INT2_6_deep","INT2_6_deep_oven",1,235
+"25","Malacothrix saxatilis","intact","INT3","7","surface","charate",1,"Malacothrix saxatilis","forb","native","perennial","Asteraceae","INT3_7","INT3_7_surface","INT3_7_surface_charate",1,200
+"26","Malacothrix saxatilis","intact","INT3","9","surface","charate",1,"Malacothrix saxatilis","forb","native","perennial","Asteraceae","INT3_9","INT3_9_surface","INT3_9_surface_charate",1,266
+"27","Malacothrix saxatilis","intact","INT3","9","surface","ovenchar",1,"Malacothrix saxatilis","forb","native","perennial","Asteraceae","INT3_9","INT3_9_surface","INT3_9_surface_ovenchar",1,266
+"28","Madia gracilis","intact","INT3","7","surface","oven",1,"Madia gracilis","forb","native","annual","Asteraceae","INT3_7","INT3_7_surface","INT3_7_surface_oven",1,200
+"29","Madia gracilis","intact","INT3","7","surface","oven",1,"Madia gracilis","forb","native","annual","Asteraceae","INT3_7","INT3_7_surface","INT3_7_surface_oven",1,200
+"30","Madia gracilis","intact","INT3","7","deep","charate",1,"Madia gracilis","forb","native","annual","Asteraceae","INT3_7","INT3_7_deep","INT3_7_deep_charate",1,235
+"31","Madia gracilis","intact","INT3","7","deep","charate",1,"Madia gracilis","forb","native","annual","Asteraceae","INT3_7","INT3_7_deep","INT3_7_deep_charate",1,235
+"32","Madia gracilis","intact","INT3","7","deep","ovenchar",1,"Madia gracilis","forb","native","annual","Asteraceae","INT3_7","INT3_7_deep","INT3_7_deep_ovenchar",1,235
+"33","Madia gracilis","intact","INT3","7","deep","ovenchar",1,"Madia gracilis","forb","native","annual","Asteraceae","INT3_7","INT3_7_deep","INT3_7_deep_ovenchar",1,235
+"34","Diplacus aurantiacus","enhanced","ENH1","1","surface","oven",1,"Diplacus aurantiacus","shrub","native","perennial","Phrymaceae","ENH1_1","ENH1_1_surface","ENH1_1_surface_oven",1,114
+"35","Unknown D - brown dicot","enhanced","ENH2","6","surface","oven",1,"Unknown Phrymaceae¬†¬†","shrub","native","perennial","Phrymaceae","ENH2_6","ENH2_6_surface","ENH2_6_surface_oven",1,114
+"36","Unknown E - plastic plant","enhanced","ENH2","8","deep","oven",1,"Unknown Asteraceae","forb","native","unknown","Asteraceae","ENH2_8","ENH2_8_deep","ENH2_8_deep_oven",1,228
+"37","Unknown G - fuzzy leaf dicot","enhanced","ENH2","8","deep","oven",1,"Unknown G - fuzzy leaf dicot","forb","unknown","unknown","unknown","ENH2_8","ENH2_8_deep","ENH2_8_deep_oven",1,228
+"38","Phacelia spp.","enhanced","ENH1","4","deep","ovenchar",1,"Phacelia spp.","forb","native","annual","Hydrophyllaceae","ENH1_4","ENH1_4_deep","ENH1_4_deep_ovenchar",1,228
+"39","Phacelia spp.","enhanced","ENH2","9","surface","oven",1,"Phacelia spp.","forb","native","annual","Hydrophyllaceae","ENH2_9","ENH2_9_surface","ENH2_9_surface_oven",2,228
+"40","Ceanothus oliganthus","intact","INT2","6","surface","oven",1,"Ceanothus oliganthus","shrub","native","perennial","Rhamnaceae","INT2_6","INT2_6_surface","INT2_6_surface_oven",1,200
+"41","Unknown C - bright green seedling, small leaves","enhanced","ENH2","6","surface","ovenchar",1,"Unknown Onagraceae","forb","native","annual","Onagraceae","ENH2_6","ENH2_6_surface","ENH2_6_surface_ovenchar",1,114
+"42","Carduus pycnocephalus","intact","INT2","6","surface","ovenchar",1,"Carduus pycnocephalus","forb","nonnative","annual","Asteraceae","INT2_6","INT2_6_surface","INT2_6_surface_ovenchar",1,200
+"43","Phacelia tanacetifolia","intact","INT2","6","surface","ovenchar",1,"Phacelia spp.","forb","native","annual","Hydrophyllaceae","INT2_6","INT2_6_surface","INT2_6_surface_ovenchar",1,200
+"44","Phacelia tanacetifolia","intact","INT2","6","deep","ovenchar",1,"Phacelia spp.","forb","native","annual","Hydrophyllaceae","INT2_6","INT2_6_deep","INT2_6_deep_ovenchar",2,470
