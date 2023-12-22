@@ -21,6 +21,7 @@ library(vegan) #community ecology package - includes, MASS, cluster, mgcv
 library(readxl) # for .xls and .xlsx sheets
 library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD, dist{stats}, simint, simtest, csimint, csimtest{multcomp}, friedmanmc, kruskalmc{pgirmess}
 library(skimr)
+library(mass)
 ```
 
 # Load data
@@ -142,11 +143,12 @@ seedbank_prep <- seedbank %>%
   group_by(stand, site, soilcore, depth_name, treatment, stand_core, stand_core_depth, stand_core_depth_treat) %>% 
   summarize(subsample_g = mean(subsample_g))
 
-germ_tray_prep2 <- germ_tray_prep %>% 
+germ_tray <- germ_tray_prep %>% 
   left_join(seedbank_prep, by = "stand_core_depth_treat") %>% 
-  mutate(seeds_per_g = (germination_n/subsample_g))
+  mutate(seeds_per_g = (germination_n/subsample_g), 
+         seeds_per_g_log = log(seeds_per_g))
 
-dim(germ_tray_prep2)
+dim(germ_tray)
 # 104 rows = (7 DEG + 10 ENH + 9 INT) * 4 treatments
 ```
 
@@ -160,16 +162,28 @@ boxplot(seeds_per_g ~ stand_core, data=germ_tray, main="Seeds/g by hillslope and
 boxplot(seeds_per_g ~ site, data=germ_tray, main="Seeds/g by hillslope and rep",
    xlab="Hillslope", ylab="Seeds per gram")
 
-qplot(germ_tray, pm25, data = pollution, facets = . ~ region)
+boxplot(seeds_per_g ~ subsample_g, data=germ_tray, main="Seeds/g by Subsample weight (g)",
+   xlab="Subsample Weight (g)", ylab="Seeds per gram")
+
+qplot(subsample_g, seeds_per_g, data = germ_tray)
+qplot(subsample_g, seeds_per_g, data = germ_tray, facets = . ~ depth_name)
+qplot(subsample_g, seeds_per_g, data = germ_tray, facets = . ~ treatment)
 ```
 
 ```{r normality}
+ggqqplot(germ_tray$seeds_per_g) 
+
 shapiro.test(germ_tray$seeds_per_g)
 # data:  germ_tray$seeds_per_g
 # W = 0.62208, p-value < 2.2e-16  <-- not normally distributed
 
-ggqqplot(germ_tray$seeds_per_g) 
+ggqqplot(germ_tray$seeds_per_g_log) 
+shapiro.test(germ_tray$seeds_per_g_log)
+# data:  germ_tray$seeds_per_g_log
+# W = 0.98299, p-value = 0.0141 <-- closer to normal!
 
+# poisson distribution?
+plot(germ_tray(poisson.dist[]))
 ```
 
 # seed/g by hillslope
