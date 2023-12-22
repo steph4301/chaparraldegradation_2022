@@ -97,6 +97,11 @@ unique(seedbank$stand_core_treat) # wrap by treatment instead of ordering
 
 ```
 
+# Total germination
+```{r}
+sum(seedbank$count)
+```
+
 # List species diversity
 ```{r}
 native_seedbank <- seedbank %>% 
@@ -130,22 +135,78 @@ length(unique(shrub_seedbank$family)) # 7 families
 
 
 germ_tray_prep <- seedbank %>% 
-  group_by(site, soilcore, stand_core, depth_name, stand_core_depth_treat, subsample_g) %>% 
+  group_by(stand_core_depth_treat) %>% 
   summarize(germination_n = sum(count))
 
-germ_tray <- germ_tray_prep %>% 
-            summarize(seeds_per_g = (germination_n/subsample_g))
+seedbank_prep <- seedbank %>% 
+  group_by(stand, site, soilcore, depth_name, treatment, stand_core, stand_core_depth, stand_core_depth_treat) %>% 
+  summarize(subsample_g = mean(subsample_g))
 
-dim(germ_tray)
+germ_tray_prep2 <- germ_tray_prep %>% 
+  left_join(seedbank_prep, by = "stand_core_depth_treat") %>% 
+  mutate(seeds_per_g = (germination_n/subsample_g))
+
+dim(germ_tray_prep2)
 # 104 rows = (7 DEG + 10 ENH + 9 INT) * 4 treatments
+```
 
-#view(germ_tray)
+```{r explore figures}
+boxplot(germ_tray$seeds_per_g)
+histogram(germ_tray$seeds_per_g)
+
+boxplot(seeds_per_g ~ stand_core, data=germ_tray, main="Seeds/g by hillslope and rep",
+   xlab="Hillslope_rep", ylab="Seeds per gram")
+
+boxplot(seeds_per_g ~ site, data=germ_tray, main="Seeds/g by hillslope and rep",
+   xlab="Hillslope", ylab="Seeds per gram")
+
+qplot(germ_tray, pm25, data = pollution, facets = . ~ region)
+```
+
+```{r normality}
+shapiro.test(germ_tray$seeds_per_g)
+# data:  germ_tray$seeds_per_g
+# W = 0.62208, p-value < 2.2e-16  <-- not normally distributed
+
+ggqqplot(germ_tray$seeds_per_g) 
 
 ```
 
-```{r}
-plot(data = germ_tray, n_per_g ~ subsample_g)
-boxplot(seedbank$n_per_g)
-histogram(seedbank$n_per_g)
+# seed/g by hillslope
+```{r stats - seed/g by hillslope, include = TRUE}
+kruskal.test(seeds_per_g ~ site, data = germ_tray)
+# data:  seeds_per_g by site
+# Kruskal-Wallis chi-squared = 64.181, df = 6, p-value = 6.338e-12 <-- not normally distributed
+
+pairwise.wilcox.test(germ_tray$seeds_per_g, germ_tray$site,
+                 p.adjust.method = "BH")
+# 	Pairwise comparisons using Wilcoxon rank sum test with continuity correction 
+# 
+# data:  germ_tray$seeds_per_g and germ_tray$site 
+# 
+#      INT1    INT2    INT3    ENH1    ENH2    DEG1   
+# INT2 0.06742 -       -       -       -       -      
+# INT3 0.57288 0.53781 -       -       -       -      
+# ENH1 0.09312 0.76696 0.54819 -       -       -      
+# ENH2 0.69734 0.57288 0.76696 0.73886 -       -      
+# DEG1 0.00021 2.7e-07 0.00024 2.7e-07 0.00117 -      
+# DEG2 0.00010 3.1e-07 0.00010 3.0e-07 0.00024 0.10067
+
+# DEG1 - INT1, INT2, INT3, ENH1, ENH2 
+# DEG2 - INT1, INT2, INT3, ENH1, ENH2
+# DEG1 and DEG2 are sig different from INT and ENH hillslopes. No diff between INT and ENH hillslopes.
 ```
 
+# seed/g by soil depth
+```{r stats - seed/g by depth, include = TRUE}
+kruskal.test(seeds_per_g ~ depth_name, data = germ_tray)
+# data:  seeds_per_g by depth_name
+# Kruskal-Wallis chi-squared = 65.903, df = 1, p-value = 4.737e-16
+
+pairwise.wilcox.test(germ_tray$seeds_per_g, germ_tray$depth_name,
+                 p.adjust.method = "BH")
+#         deep   
+# surface 4.8e-16
+
+
+```
