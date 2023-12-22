@@ -21,7 +21,7 @@ library(vegan) #community ecology package - includes, MASS, cluster, mgcv
 library(readxl) # for .xls and .xlsx sheets
 library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD, dist{stats}, simint, simtest, csimint, csimtest{multcomp}, friedmanmc, kruskalmc{pgirmess}
 library(skimr)
-library(mass)
+#library(mass)
 ```
 
 # Load data
@@ -152,9 +152,15 @@ dim(germ_tray)
 # 104 rows = (7 DEG + 10 ENH + 9 INT) * 4 treatments
 ```
 
+```{r group germination by status}
+
+```
+
+
 ```{r explore figures}
 boxplot(germ_tray$seeds_per_g)
 histogram(germ_tray$seeds_per_g)
+histogram(germ_tray$germination_n)
 
 boxplot(seeds_per_g ~ stand_core, data=germ_tray, main="Seeds/g by hillslope and rep",
    xlab="Hillslope_rep", ylab="Seeds per gram")
@@ -190,7 +196,7 @@ plot(germ_tray(poisson.dist[]))
 ```{r stats - seed/g by hillslope, include = TRUE}
 kruskal.test(seeds_per_g ~ site, data = germ_tray)
 # data:  seeds_per_g by site
-# Kruskal-Wallis chi-squared = 64.181, df = 6, p-value = 6.338e-12 <-- not normally distributed
+# Kruskal-Wallis chi-squared = 64.181, df = 6, p-value = 6.338e-12 <-- sig differences
 
 pairwise.wilcox.test(germ_tray$seeds_per_g, germ_tray$site,
                  p.adjust.method = "BH")
@@ -215,12 +221,22 @@ pairwise.wilcox.test(germ_tray$seeds_per_g, germ_tray$site,
 ```{r stats - seed/g by depth, include = TRUE}
 kruskal.test(seeds_per_g ~ depth_name, data = germ_tray)
 # data:  seeds_per_g by depth_name
-# Kruskal-Wallis chi-squared = 65.903, df = 1, p-value = 4.737e-16
+# Kruskal-Wallis chi-squared = 65.903, df = 1, p-value = 4.737e-16 <-- sig differences
 
 pairwise.wilcox.test(germ_tray$seeds_per_g, germ_tray$depth_name,
                  p.adjust.method = "BH")
 #         deep   
 # surface 4.8e-16
 
+germ_tray %>% 
+  group_by(depth_name) %>% 
+  summarize(total_germ = sum(germination_n))
+# depth_name  total_germ
+# deep	      762			
+# surface	    3209	
 
+```
+
+```{r seed/g by depth by status, include=TRUE}
+kruskal.test(seeds_per_g ~ , data = germ_tray)
 ```
