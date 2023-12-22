@@ -1,0 +1,114 @@
+---
+title: "ChapDegNMDS"
+author: "Kit Swift"
+date: "2023-12-19"
+output: pdf_document
+---
+
+```{r Setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#the libraries
+library(here) # similar to set working directory
+library(tidyverse)
+library(gridExtra)
+library(ggthemes)
+library(plotly)
+library(ggpubr)
+library(vegan)
+library(readxl) 
+library(multcompView) 
+library(ggpmisc)
+library(segmented)
+library(ggvegan)
+```
+
+
+```{r Data in}
+#any outside data is pulled in here
+
+germination_raw <- read_xlsx("processed/germination_m2.xlsx")
+density_raw <- read_csv("processed/shrubdensity.csv")
+abcover_raw <- read_csv("processed/abcover_full_omitground.csv")
+
+
+```
+
+
+```{r Unified data frame}
+abcover_byspecies <- abcover_raw %>% 
+  group_by(site, species, lifeform, status, family) %>% 
+  filter(site_rep != "Intact4_4") %>% #omit Intact 4 from data
+  filter(!is.na(species)) %>% # omit blank cells in species 
+  dplyr::summarize(
+    count_per_dist = n_distinct(site_rep_dist), 
+    percentcover = n_distinct(site_rep_dist)/41) %>% 
+  ungroup() %>%
+  dplyr::select(c(site, species, percentcover))
+
+density_byspecies <- density_raw %>% 
+  group_by(site, species) %>% 
+  dplyr::summarize(species_count = mean(count))
+
+germination_byspecies <- germination_raw %>%
+  rename(species = species_diversity) %>%
+  group_by(site, species) %>%
+  dplyr::summarize(seed_density = mean(n_per_cm3))
+
+abcover_nmdsprep <- abcover_byspecies %>%
+  tidyr::spread(species, percentcover) %>% 
+  replace(is.na(.), 0)
+
+density_nmdsprep <- density_byspecies %>%
+  tidyr::spread(species, species_count) %>% 
+  replace(is.na(.), 0)
+
+germination_nmdsprep <- germination_byspecies %>%
+  tidyr::spread(species, seed_density) %>% 
+  replace(is.na(.), 0)
+
+nmds_total <- abcover_nmdsprep %>%
+  left_join(density_nmdsprep, by = "site") %>%
+  left_join(germination_nmdsprep, by = "site") %>% 
+  replace(is.na(.), 0) %>%
+  dplyr::select(!c("site"))
+```
+
+```{r NMDS Prep}
+
+
+nmds_total.hel <- decostand(nmds_total, method = "hellinger")
+
+nmds_total.nmds <- metaMDS(nmds_total, 
+                 autotransform = T,
+                 distance = "bray",
+                 k = 2,
+                 try = 100,
+                 trymax = 100)
+
+ordiplot(nmds_total.nmds, type = "t")
+
+nmds.fort <- fortify(nmds_total.nmds)
+```
+
+```{r NMDS Graphing}
+
+duneplot <- ggplot() + 
+  
+  #putting all the "site" data on the graph, these are the different observations
+  geom_point(data = subset(nmds.fort, score == 'sites'),
+             mapping = aes(x = NMDS1, y = NMDS2),
+             alpha = 0.5,  #transparency (to hide/show)
+             show.legend = F) +
+  
+  #while this is the species data, or abundance based on different observations. 
+  geom_point(data = subset(nmds.fort, score == 'species'), 
+             mapping = aes(x = NMDS1, y = NMDS2),
+             alpha = 0.5, #transparency (to hide/show)
+             color = "blue",
+             show.legend = F) 
+
+duneplot
+
+```
+

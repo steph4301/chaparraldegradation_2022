@@ -95,18 +95,18 @@ autoplot(nmds1)
 fort <- fortify(nmds1)
 
 fortplot <- ggplot() + 
-  geom_point(data = subset(fort, Score == 'sites'),
+  geom_point(data = subset(fort, score == 'sites'),
              mapping = aes(x = NMDS1, y = NMDS2),
              color = 'black',
              alpha = 0.5) +
-  geom_segment(data = subset(fort, Score == 'species'),
+  geom_segment(data = subset(fort, score == 'species'),
                mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
                arrow = arrow(length = unit(0.015, "npc"),
                              type = 'closed'),
                color = 'darkgrey',
                size = 0.8) +
-  geom_text(data = subset(fort, Score == 'species'),
-            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1))+
+  geom_text(data = subset(fort, score == 'species'),
+            mapping = aes(label = label, x = NMDS1*1.1, y = NMDS2*1.1))+
   geom_abline(intercept = 0,slope = 0,linetype = "dashed", size = 0.8,colour = "gray")+
   geom_vline(aes(xintercept = 0), linetype = "dashed", size = 0.8, colour = "gray")+
   theme(panel.grid.major = element_blank(),
@@ -115,18 +115,18 @@ fortplot <- ggplot() +
 
 #only vectors shown
 fortplot1 <- ggplot() + 
-  geom_point(data = subset(fort, Score == 'sites'),
+  geom_point(data = subset(fort, score == 'sites'),
              mapping = aes(x = NMDS1, y = NMDS2),
              color = 'black',
              alpha = 0) +
-  geom_segment(data = subset(fort, Score == 'species'),
+  geom_segment(data = subset(fort, score == 'species'),
                mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
                arrow = arrow(length = unit(0.015, "npc"),
                              type = 'closed'),
                color = 'darkgrey',
                size = 0.8) +
-  geom_text(data = subset(fort, Score == 'species'),
-            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1))+
+  geom_text(data = subset(fort, score == 'species'),
+            mapping = aes(label = label, x = NMDS1*1.1, y = NMDS2*1.1))+
   geom_abline(intercept = 0,slope = 0,linetype = "dashed", size = 0.8,colour = "gray")+
   geom_vline(aes(xintercept = 0), linetype = "dashed", size = 0.8, colour = "gray")+
   theme(panel.grid.major = element_blank(),
@@ -135,19 +135,19 @@ fortplot1 <- ggplot() +
 
 #only measurements shown
 fortplot2 <- ggplot() + 
-  geom_point(data = subset(fort, Score == 'sites'),
+  geom_point(data = subset(fort, score == 'sites'),
              mapping = aes(x = NMDS1, y = NMDS2),
              color = 'black',
              alpha = 0.5) +
-  geom_segment(data = subset(fort, Score == 'species'),
+  geom_segment(data = subset(fort, score == 'species'),
                mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
                arrow = arrow(length = unit(0.015, "npc"),
                              type = 'closed'),
                color = 'darkgrey',
                size = 0.8,
                alpha = 0) +
-  geom_text(data = subset(fort, Score == 'species'),
-            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1),
+  geom_text(data = subset(fort, score == 'species'),
+            mapping = aes(label = label, x = NMDS1*1.1, y = NMDS2*1.1),
             alpha = 0)+
   geom_abline(intercept = 0,slope = 0,linetype = "dashed", size = 0.8,colour = "gray")+
   geom_vline(aes(xintercept = 0), linetype = "dashed", size = 0.8, colour = "gray")+
@@ -238,7 +238,7 @@ Okay so what im learning/have learned is that the actual NMDS itself is easy to 
 
 ```{r kitrun}
 #im choosing the dune data cause the dune books are my favorite fantasy series (in a fun nuanced queer way not in a warmongering incel way)
-data(package = "vegan")
+# data(package = "vegan")
 data(dune)
 data(BCI)
 
@@ -288,13 +288,13 @@ hull.data <- rbind(grp.a, grp.b)  #combine grp.a and grp.b
 duneplot <- ggplot() + 
   
   #putting all the "site" data on the graph, these are the different observations
-  geom_point(data = subset(dune.nmdsf, Score == 'sites'),
+  geom_point(data = subset(dune.nmdsf, score == 'sites'),
              mapping = aes(x = NMDS1, y = NMDS2, color = treatment),
              alpha = 0.5,  #transparency (to hide/show)
              show.legend = F) +
   
   #while this is the species data, or abundance based on different observations. 
-  geom_point(data = subset(dune.nmdsf, Score == 'species'), 
+  geom_point(data = subset(dune.nmdsf, score == 'species'), 
              mapping = aes(x = NMDS1, y = NMDS2),
              alpha = 0.5, #transparency (to hide/show)
              color = "blue",
@@ -307,7 +307,7 @@ duneplot <- ggplot() +
                show.legend = F) +
   
   #these are for an envfit, graphing vectors for environmental variables
-  geom_segment(data = subset(dune.nmdsf, Score == 'species'),
+  geom_segment(data = subset(dune.nmdsf, score == 'species'),
                mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
                arrow = arrow(length = unit(0.015, "npc"),
                              type = 'closed'),
@@ -329,8 +329,8 @@ duneplot <- ggplot() +
   
   
   #this labels each species with its location withing the nmds
-  geom_text(data = subset(dune.nmdsf, Score == 'species'),
-            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1),
+  geom_text(data = subset(dune.nmdsf, score == 'species'),
+            mapping = aes(label = label, x = NMDS1*1.1, y = NMDS2*1.1),
             alpha = 0.5) +  
   
   #lines at 0,0 
