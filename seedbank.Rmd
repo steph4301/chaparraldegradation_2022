@@ -83,7 +83,7 @@ seedbank <- seedbank %>%
 
 
 seedbank$stand_core_treat <- paste(seedbank$stand_core, seedbank$treatment, sep="_") 
-
+seedbank$stand_core_depth_treat_status <- paste(seedbank$stand_core_depth_treat, seedbank$status, sep="_") 
 
 unique(seedbank$stand)
 unique(seedbank$site)
@@ -129,12 +129,9 @@ sort(unique(shrub_seedbank$family))
 length(unique(shrub_seedbank$family)) # 7 families
 ```
 
-
 # Explore seedbank data by germination (#seeds/g sieved soil)
 ```{r group germination by tray}
 # total number of germinates per tray
-
-
 germ_tray_prep <- seedbank %>% 
   group_by(stand_core_depth_treat) %>% 
   summarize(germination_n = sum(count))
@@ -151,11 +148,6 @@ germ_tray <- germ_tray_prep %>%
 dim(germ_tray)
 # 104 rows = (7 DEG + 10 ENH + 9 INT) * 4 treatments
 ```
-
-```{r group germination by status}
-
-```
-
 
 ```{r explore figures}
 boxplot(germ_tray$seeds_per_g)
@@ -174,6 +166,7 @@ boxplot(seeds_per_g ~ subsample_g, data=germ_tray, main="Seeds/g by Subsample we
 qplot(subsample_g, seeds_per_g, data = germ_tray)
 qplot(subsample_g, seeds_per_g, data = germ_tray, facets = . ~ depth_name)
 qplot(subsample_g, seeds_per_g, data = germ_tray, facets = . ~ treatment)
+qplot(site, seeds_per_g, data = germ_tray, facets = . ~ depth_name)
 ```
 
 ```{r normality}
@@ -237,6 +230,73 @@ germ_tray %>%
 
 ```
 
-```{r seed/g by depth by status, include=TRUE}
-kruskal.test(seeds_per_g ~ , data = germ_tray)
+
+# Germination by status
+```{r group germination by status and tray}
+germ_tray_prep_status <- seedbank %>% 
+  group_by(stand_core_depth_treat_status) %>% 
+  summarize(germination_n = sum(count)) %>% 
+  filter(germination_n > 0)
+dim(germ_tray_prep_status) # [1] 371 rows, 2 columns
+
+seedbank_prep_status <- seedbank %>% 
+  group_by(stand, site, soilcore, depth_name, status, treatment, stand_core, stand_core_depth, stand_core_depth_treat, stand_core_depth_treat_status) %>% 
+  summarize(subsample_g = mean(subsample_g)) 
+dim(seedbank_prep_status) # 393 rows
+
+germ_tray_status <- germ_tray_prep_status %>% 
+  left_join(seedbank_prep_status, by = "stand_core_depth_treat_status") %>% 
+  mutate(seeds_per_g = (germination_n/subsample_g), 
+         seeds_per_g_log = log(seeds_per_g))
+dim(germ_tray_status) # 371 rows
+
 ```
+
+```{r}
+ggqqplot(germ_tray_status$seeds_per_g_log) 
+ggqqplot(germ_tray_status$seeds_per_g_log) 
+histogram(germ_tray_status$germination_n)
+
+
+boxplot(seeds_per_g ~ status, data=germ_tray_status, main="Seeds/g by Status",
+   xlab="Status", ylab="Seeds per gram")
+boxplot(germination_n ~ status, data=germ_tray_status, main="Germination by Status",
+   xlab="Status", ylab="Seeds per gram")
+
+qplot(subsample_g, seeds_per_g, data = germ_tray_status, facets = . ~ status)
+qplot(site, seeds_per_g, data = germ_tray_status, facets = . ~ status)
+```
+
+```{r native germination by tray}
+
+# total number of NATIVE germinates per tray
+# #
+# germ_tray_prep_native <- seedbank %>% 
+#   filter(status =="native") %>% 
+#   group_by(stand_core_depth_treat) %>% 
+#   filter(count > 0) %>% 
+#   summarize(germination_n = sum(count))
+# 
+# seedbank_prep_native <- seedbank %>% 
+#    filter(status == "native") %>% 
+#    group_by(stand, site, soilcore, depth_name, treatment, stand_core, stand_core_depth, stand_core_depth_treat) %>% 
+#    filter(count > 0) %>% 
+#   summarize(subsample_g = mean(subsample_g))
+# 
+# germ_tray_native <- germ_tray_prep_native %>% 
+#   left_join(seedbank_prep_native, by = "stand_core_depth_treat") %>% 
+#   mutate(seeds_per_g = (germination_n/subsample_g), 
+#          seeds_per_g_log = log(seeds_per_g))
+# 
+# summary(germ_tray_native)
+# 
+# germ_tray_native %>% 
+#   group_by(stand_core_depth) %>% 
+#   summarise(treatment = length(treatment)) # no values go over 4 so that's good
+```
+
+
+```{r native seed/g by depth by status, include=TRUE}
+kruskal.test(seeds_per_g ~ site, data = germ_tray_native)
+```
+
