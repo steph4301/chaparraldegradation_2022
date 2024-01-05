@@ -105,17 +105,17 @@ sum(seedbank$count)
 
 # List species diversity
 ```{r}
-native_seedbank <- seedbank %>% 
-  filter(status == "native")
+native_seedbank <- seedbank %>%  # native diversity
+  filter(status == "native") 
 sort(unique(native_seedbank$species_diversity)) # 47 species
 sort(unique(native_seedbank$family)) # 22 families
 
-nonnative_seedbank <- seedbank %>% 
+nonnative_seedbank <- seedbank %>%  # non-native diversity
   filter(status == "nonnative")
 sort(unique(nonnative_seedbank$species_diversity)) #17 species
 sort(unique(nonnative_seedbank$family)) # 6 families
 
-unknown_seedbank <- seedbank %>% 
+unknown_seedbank <- seedbank %>%  # unknown spp. diversity
   filter(status == "unknown")
 sort(unique(unknown_seedbank$species_diversity)) # 1 species
 ```
@@ -143,13 +143,13 @@ seedbank_prep <- seedbank %>%
 germ_tray <- germ_tray_prep %>% 
   left_join(seedbank_prep, by = "stand_core_depth_treat") %>% 
   mutate(seeds_per_g = (germination_n/subsample_g), 
-         seeds_per_g_log = log(seeds_per_g))
+         seeds_per_g_log = log(seeds_per_g)) # transform data: log
 
 dim(germ_tray)
-# 104 rows = (7 DEG + 10 ENH + 9 INT) * 4 treatments
+# 205 rows = (7 DEG + 10 ENH + 9 INT) * 4 treatments * 2 depths
 ```
 
-```{r explore figures}
+```{r explore figures - no data transformation}
 boxplot(germ_tray$seeds_per_g)
 histogram(germ_tray$seeds_per_g)
 histogram(germ_tray$germination_n)
@@ -169,14 +169,33 @@ qplot(subsample_g, seeds_per_g, data = germ_tray, facets = . ~ treatment)
 qplot(site, seeds_per_g, data = germ_tray, facets = . ~ depth_name)
 ```
 
+```{r explore figures - with data transformation}
+boxplot(germ_tray$seeds_per_g_log)
+histogram(germ_tray$seeds_per_g_log)
+
+boxplot(seeds_per_g_log ~ stand_core, data=germ_tray, main="Seeds/g by hillslope and rep",
+   xlab="Hillslope_rep", ylab="Seeds per gram")
+
+boxplot(seeds_per_g_log ~ site, data=germ_tray, main="Seeds/g by hillslope and rep",
+   xlab="Hillslope", ylab="Seeds per gram")
+
+boxplot(seeds_per_g_log ~ subsample_g, data=germ_tray, main="Seeds/g by Subsample weight (g)",
+   xlab="Subsample Weight (g)", ylab="Seeds per gram")
+
+qplot(subsample_g, seeds_per_g_log, data = germ_tray)
+qplot(subsample_g, seeds_per_g_log, data = germ_tray, facets = . ~ depth_name)
+qplot(subsample_g, seeds_per_g_log, data = germ_tray, facets = . ~ treatment)
+qplot(site, seeds_per_g_log, data = germ_tray, facets = . ~ depth_name)
+```
+
 ```{r normality}
 ggqqplot(germ_tray$seeds_per_g) 
 
-shapiro.test(germ_tray$seeds_per_g)
+shapiro.test(germ_tray$seeds_per_g) # not transformed
 # data:  germ_tray$seeds_per_g
 # W = 0.62208, p-value < 2.2e-16  <-- not normally distributed
 
-ggqqplot(germ_tray$seeds_per_g_log) 
+ggqqplot(germ_tray$seeds_per_g_log) # log transformed
 shapiro.test(germ_tray$seeds_per_g_log)
 # data:  germ_tray$seeds_per_g_log
 # W = 0.98299, p-value = 0.0141 <-- closer to normal!
@@ -187,11 +206,11 @@ plot(germ_tray(poisson.dist[]))
 
 # seed/g by hillslope
 ```{r stats - seed/g by hillslope, include = TRUE}
-kruskal.test(seeds_per_g ~ site, data = germ_tray)
+kruskal.test(seeds_per_g_log ~ site, data = germ_tray)
 # data:  seeds_per_g by site
 # Kruskal-Wallis chi-squared = 64.181, df = 6, p-value = 6.338e-12 <-- sig differences
 
-pairwise.wilcox.test(germ_tray$seeds_per_g, germ_tray$site,
+pairwise.wilcox.test(germ_tray$seeds_per_g_log, germ_tray$site,
                  p.adjust.method = "BH")
 # 	Pairwise comparisons using Wilcoxon rank sum test with continuity correction 
 # 
@@ -212,8 +231,8 @@ pairwise.wilcox.test(germ_tray$seeds_per_g, germ_tray$site,
 
 # seed/g by soil depth
 ```{r stats - seed/g by depth, include = TRUE}
-kruskal.test(seeds_per_g ~ depth_name, data = germ_tray)
-# data:  seeds_per_g by depth_name
+kruskal.test(seeds_per_g_log ~ depth_name, data = germ_tray)
+# data:  seeds_per_g_log by depth_name
 # Kruskal-Wallis chi-squared = 65.903, df = 1, p-value = 4.737e-16 <-- sig differences
 
 pairwise.wilcox.test(germ_tray$seeds_per_g, germ_tray$depth_name,
@@ -230,6 +249,12 @@ germ_tray %>%
 
 ```
 
+# seed/g by treatment
+```{r stats - seed/g by depth, include = TRUE}
+kruskal.test(seeds_per_g_log ~ treatment, data = germ_tray)
+# data:  seeds_per_g_log by treatment
+# Kruskal-Wallis chi-squared = 2.3083, df = 3, p-value = 0.5109 <-- no sig diff
+```
 
 # Germination by status
 ```{r group germination by status and tray}
