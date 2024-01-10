@@ -40,6 +40,8 @@ library(skimr)
 germination_m2_load <- read_xlsx("processed/germination_m2.xlsx")
 glimpse(germination_m2_load)
 
+average_cover <- read.csv("nat_nn_cover.csv", header = TRUE, na.strings=c("","NA"))
+
 seedbank <- germination_m2_load %>%
   mutate(site = fct_relevel(site, 
             "INT1", "INT2", "INT3","ENH1", "ENH2", "DEG1", "DEG2")) %>% 
@@ -79,8 +81,8 @@ seedbank <- seedbank %>%
                                   "INT1_1", "INT1_2" , "INT1_3" ,"INT2_4"  ,"INT2_5" , "INT2_6",  "INT3_7" , "INT3_8" , "INT3_9",
                                   "ENH1_1" , "ENH1_2" , "ENH1_3" , "ENH1_4" , "ENH1_5" , "ENH2_6" , "ENH2_7" , "ENH2_8"  ,"ENH2_9"  ,"ENH2_10", 
                                  "DEG1_1" , "DEG1_2"  ,"DEG1_3"  ,"DEG1_4" , "DEG2_5" , "DEG2_6" , "DEG2_7" ))  %>% 
-  mutate(site = fct_relevel(site, "INT1", "INT2", "INT3", "ENH1", "ENH2", "DEG1", "DEG2"))
-
+  mutate(site = fct_relevel(site, "INT1", "INT2", "INT3", "ENH1", "ENH2", "DEG1", "DEG2")) %>% 
+  left_join(average_cover, by = 'site')
 
 seedbank$stand_core_treat <- paste(seedbank$stand_core, seedbank$treatment, sep="_") 
 seedbank$stand_core_depth_treat_status <- paste(seedbank$stand_core_depth_treat, seedbank$status, sep="_") 
@@ -96,7 +98,10 @@ unique(seedbank$status)
 unique(seedbank$stand_core_depth)
 unique(seedbank$stand_core_treat) # wrap by treatment instead of ordering
 
+
 ```
+
+
 
 # Total germination
 ```{r}
