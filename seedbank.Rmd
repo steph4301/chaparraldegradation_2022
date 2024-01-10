@@ -84,6 +84,7 @@ seedbank <- seedbank %>%
   mutate(site = fct_relevel(site, "INT1", "INT2", "INT3", "ENH1", "ENH2", "DEG1", "DEG2")) %>% 
   left_join(average_cover, by = 'site')
 
+
 seedbank$stand_core_treat <- paste(seedbank$stand_core, seedbank$treatment, sep="_") 
 seedbank$stand_core_depth_treat_status <- paste(seedbank$stand_core_depth_treat, seedbank$status, sep="_") 
 
@@ -98,7 +99,7 @@ unique(seedbank$status)
 unique(seedbank$stand_core_depth)
 unique(seedbank$stand_core_treat) # wrap by treatment instead of ordering
 
-
+#view(seedbank)
 ```
 
 
@@ -142,7 +143,7 @@ germ_tray_prep <- seedbank %>%
   summarize(germination_n = sum(count))
 
 seedbank_prep <- seedbank %>% 
-  group_by(stand, site, soilcore, depth_name, treatment, stand_core, stand_core_depth, stand_core_depth_treat) %>% 
+  group_by(stand, site, soilcore, depth_name, treatment, stand_core, stand_core_depth, stand_core_depth_treat, nonnative_grass, native_shrub) %>% 
   summarize(subsample_g = mean(subsample_g))
 
 germ_tray <- germ_tray_prep %>% 
@@ -168,10 +169,16 @@ boxplot(seeds_per_g ~ site, data=germ_tray, main="Seeds/g by hillslope and rep",
 boxplot(seeds_per_g ~ subsample_g, data=germ_tray, main="Seeds/g by Subsample weight (g)",
    xlab="Subsample Weight (g)", ylab="Seeds per gram")
 
+boxplot(seeds_per_g ~ nonnative_grass, data=germ_tray, main="Seeds/g by Non-native grass cover (%)",
+   xlab="Non-native grass cover ()", ylab="Seeds per gram")
+
 qplot(subsample_g, seeds_per_g, data = germ_tray)
 qplot(subsample_g, seeds_per_g, data = germ_tray, facets = . ~ depth_name)
 qplot(subsample_g, seeds_per_g, data = germ_tray, facets = . ~ treatment)
 qplot(site, seeds_per_g, data = germ_tray, facets = . ~ depth_name)
+qplot(nonnative_grass, seeds_per_g, data = germ_tray, facets = . ~ depth_name)
+qplot(native_shrub, seeds_per_g, data = germ_tray, facets = . ~ depth_name)
+
 ```
 
 ```{r explore figures - with data transformation}
