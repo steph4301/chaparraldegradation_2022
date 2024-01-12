@@ -137,28 +137,38 @@ length(unique(shrub_seedbank$family)) # 7 families
 
 # Explore seedbank data by germination (#seeds/g sieved soil)
 ```{r group germination by tray}
-# total number of germinates per tray
-germ_tray_prep <- seedbank %>% 
+
+germ_tray_prep <- seedbank %>% # 2 columns of data
   group_by(stand_core_depth_treat) %>% 
-  summarize(germination_n = sum(count))
+  summarize(germination_n_per_tray = sum(count)) # total number of germinates per tray
 
 seedbank_prep <- seedbank %>% 
   group_by(stand, site, soilcore, depth_name, treatment, stand_core, stand_core_depth, stand_core_depth_treat, nonnative_grass, native_shrub) %>% 
   summarize(subsample_g = mean(subsample_g))
+#dim(seedbank_prep)
+# 205 rows 
+# 11 columns
 
+# left join, log transform
 germ_tray <- germ_tray_prep %>% 
   left_join(seedbank_prep, by = "stand_core_depth_treat") %>% 
-  mutate(seeds_per_g = (germination_n/subsample_g), 
+  mutate(seeds_per_g = (germination_n_per_tray/subsample_g), 
          seeds_per_g_log = log(seeds_per_g)) # transform data: log
 
 dim(germ_tray)
-# 205 rows = (7 DEG + 10 ENH + 9 INT) * 4 treatments * 2 depths
+# 205 rows = [(7 DEG + 10 ENH + 9 INT) * 4 treatments * 2 depths] - 3 trays with no data
+# no data for ENH1_5_deep_oven, ENH2_8_surface_control, ENH2_8_surface_char 
+### Omit three trays as NA or include as 0 germinants per tray? 
+# 14 columns - 3 additional columns: seeds_per_g, seeds_per_g_log, germination_n
+ 
+glimpse(germ_tray)
+head(germ_tray)
 ```
 
 ```{r explore figures - no data transformation}
 boxplot(germ_tray$seeds_per_g)
 histogram(germ_tray$seeds_per_g)
-histogram(germ_tray$germination_n)
+histogram(germ_tray$germination_n_per_tray)
 
 boxplot(seeds_per_g ~ stand_core, data=germ_tray, main="Seeds/g by hillslope and rep",
    xlab="Hillslope_rep", ylab="Seeds per gram")
@@ -169,11 +179,19 @@ boxplot(seeds_per_g ~ site, data=germ_tray, main="Seeds/g by hillslope and rep",
 boxplot(seeds_per_g ~ subsample_g, data=germ_tray, main="Seeds/g by Subsample weight (g)",
    xlab="Subsample Weight (g)", ylab="Seeds per gram")
 
-boxplot(seeds_per_g ~ nonnative_grass, data=germ_tray, main="Seeds/g by Non-native grass cover (%)",
-   xlab="Non-native grass cover ()", ylab="Seeds per gram")
+boxplot(seeds_per_g ~ native_shrub, data=germ_tray, main="Seeds/g by Native shrub cover (%)",
+   xlab="Average native cover (%)", ylab="Seeds per gram")
 
-qplot(subsample_g, seeds_per_g, data = germ_tray)
-qplot(subsample_g, seeds_per_g, data = germ_tray, facets = . ~ depth_name)
+boxplot(seeds_per_g ~ nonnative_grass, data=germ_tray, main="Seeds/g by Non-native grass cover (%)",
+   xlab="Non-native grass cover (%)", ylab="Seeds per gram")
+
+qplot(subsample_g, seeds_per_g, data = germ_tray) # by seeds/g
+qplot(native_shrub, seeds_per_g, data = germ_tray) # by native shrub cover
+qplot(nonnative_grass, seeds_per_g, data = germ_tray) # by nonnative grass cover
+qplot(depth_name, seeds_per_g, data = germ_tray) # by soil depth
+qplot(treatment, seeds_per_g, data = germ_tray) # by treatment
+
+qplot(native_shrub, seeds_per_g, data = germ_tray, facets = . ~ depth_name)
 qplot(subsample_g, seeds_per_g, data = germ_tray, facets = . ~ treatment)
 qplot(site, seeds_per_g, data = germ_tray, facets = . ~ depth_name)
 qplot(nonnative_grass, seeds_per_g, data = germ_tray, facets = . ~ depth_name)
@@ -200,6 +218,7 @@ qplot(subsample_g, seeds_per_g_log, data = germ_tray, facets = . ~ treatment)
 qplot(site, seeds_per_g_log, data = germ_tray, facets = . ~ depth_name)
 ```
 
+### Normality
 ```{r normality}
 ggqqplot(germ_tray$seeds_per_g) 
 
@@ -240,6 +259,16 @@ pairwise.wilcox.test(germ_tray$seeds_per_g_log, germ_tray$site,
 # DEG2 - INT1, INT2, INT3, ENH1, ENH2
 # DEG1 and DEG2 are sig different from INT and ENH hillslopes. No diff between INT and ENH hillslopes.
 ```
+
+# seed/g by native shrub cover
+```{r visualize seed per g by native shrub cover}
+qplot(native_shrub, seeds_per_g, data = germ_tray) # by native shrub cover
+boxplot(seeds_per_g ~ native_shrub, data=germ_tray, main="Seeds/g by Native shrub cover (%)",
+   xlab="Average native cover (%)", ylab="Seeds per gram")
+
+ggplot
+```
+
 
 # seed/g by soil depth
 ```{r stats - seed/g by depth, include = TRUE}
