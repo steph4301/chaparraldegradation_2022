@@ -324,7 +324,7 @@ abcover_bylf_bystatus <- abcover_full_v_omitground %>%
     percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect, lifeform, and status
     )
 view(abcover_bylf_bystatus) # prints to new tab
-
+#write.csv(abcover_bylf_bystatus,"processed/abcover_bylf_bystatus.csv")
 # visualizing data
 
 ## histogram 
@@ -449,6 +449,7 @@ print(abcover_bystatus_edited)
 ```
 
 ```{r}
+
 ggplot(abcover_bystatus_edited, aes(fill = status, y=percentcover*100, x=site_rep)) + 
     geom_bar(position="stack", stat="identity") +
     theme(axis.text.x.bottom = element_text(angle = 90)) +
