@@ -365,7 +365,8 @@ kruskal.test(seeds_per_g_log ~ treatment, data = germ_tray)
 # Kruskal-Wallis chi-squared = 2.3083, df = 3, p-value = 0.5109 <-- no sig diff
 ```
 
-# Germination by status
+# STATUS - seed density
+
 ```{r group germination by status and tray}
 germ_tray_prep_status <- seedbank %>% 
   group_by(stand_core_depth_treat_status) %>% 
@@ -447,6 +448,8 @@ summary(nativegermination_nativeshrub.lm)
 # Residual standard error: 1.106 on 203 degrees of freedom
 # Multiple R-squared:  0.09099,	Adjusted R-squared:  0.08651 
 # F-statistic: 20.32 on 1 and 203 DF,  p-value: 1.106e-05 <-- significant regression
+length(germ_tray_NAT$status) 
+#168
 ```
 
 ```{r native germination x nonnative grass cover}
@@ -501,6 +504,9 @@ summary(nngermination_nativeshrub.lm)
 # Residual standard error: 1.315 on 200 degrees of freedom
 # Multiple R-squared:  0.004608,	Adjusted R-squared:  -0.0003692 
 # F-statistic: 0.9258 on 1 and 200 DF,  p-value: 0.3371 <-- NOT significant
+
+length(germ_tray_NN$status)
+#202
 ```
 
 
@@ -529,11 +535,74 @@ summary(nngermination_nngrass.lm)
 # Multiple R-squared:  0.008333,	Adjusted R-squared:  0.003375 
 # F-statistic: 1.681 on 1 and 200 DF,  p-value: 0.1963 <-- NOT sig
 ```
+# native and non-native seed density (seeds/g) by hillslope
+```{r}
+germ_tray_NAT <- germ_tray_status %>% filter(status == "native")
+germ_tray_NN <- germ_tray_status %>% filter(status == "nonnative")
+
+boxplot(seeds_per_g ~ site, data=germ_tray_NAT, main="Native seed density (seeds/g) by Hillslope",
+   xlab="Hillslope", ylab="Native Seeds per gram")
+
+boxplot(seeds_per_g ~ site, data=germ_tray_NN, main="Non-native seed density (seeds/g) by Hillslope",
+   xlab="Hillslope", ylab="Non-native Seeds per gram")
+```
+
+```{r native seed density x hillslope}
+
+shapiro.test(germ_tray_NAT$seeds_per_g_log)
+# data:  germ_tray_NAT$seeds_per_g_log
+# W = 0.95871, p-value = 7.193e-05 <-- not normally distributed
+
+kruskal.test(seeds_per_g_log ~ site, data = germ_tray_NAT)
+# data:  seeds_per_g_log by site
+# Kruskal-Wallis chi-squared = 75.613, df = 6, p-value = 2.87e-14 <-- significant diff
+pairwise.wilcox.test(germ_tray_NAT$seeds_per_g_log, germ_tray_NAT$site,
+                 p.adjust.method = "BH")
+# 
+#      DEG1    DEG2    ENH1    ENH2    INT1    INT2   
+# DEG2 0.06559 -       -       -       -       -      
+# ENH1 0.00250 0.76057 -       -       -       -      
+# ENH2 0.00334 0.84515 0.88832 -       -       -      
+# INT1 6.7e-07 0.00036 3.2e-05 6.3e-05 -       -      
+# INT2 6.7e-07 2.5e-05 6.7e-07 3.4e-06 0.14178 -      
+# INT3 3.7e-06 0.00250 0.00159 0.00236 0.84515 0.13795
+# 
+# DEG1 is sig different than ENH and INT hillslopes
+# DEG 2 is sig different than INT hillslopes
+# ENH 1 and ENH2 are sig diff than INT 
+# 
+# --> INT hill slopes sig diff from ENH and DEG hill slopes
+# --> DEG 1 sig diff from ENH and INT 
+
+```
+```{r nn seed density x hillslope}
+
+shapiro.test(germ_tray_NN$seeds_per_g_log)
+# data:  germ_tray_NN$seeds_per_g_log 
+# W = 0.95122, p-value = 2.228e-06 <-- not normally distributed
+
+kruskal.test(seeds_per_g_log ~ site, data = germ_tray_NN)
+# data:  seeds_per_g_log by site
+# Kruskal-Wallis chi-squared = 78.136, df = 6, p-value = 8.665e-15
+
+pairwise.wilcox.test(germ_tray_NN$seeds_per_g_log, germ_tray_NN$site,
+                 p.adjust.method = "BH")
+#      DEG1    DEG2    ENH1    ENH2    INT1    INT2   
+# DEG2 7.1e-06 -       -       -       -       -      
+# ENH1 2.0e-06 2.9e-09 -       -       -       -      
+# ENH2 0.00660 7.1e-07 0.63831 -       -       -      
+# INT1 0.02518 0.09225 7.1e-07 0.00012 -       -      
+# INT2 0.87482 9.5e-05 2.5e-05 0.00654 0.04974 -      
+# INT3 0.87482 0.00355 0.00037 0.01340 0.06445 0.87482
+# 
+# DEG1-similar to INT2 and INT3
+# DEG2 and INT1 are similar
+# ENH1 and ENH2 are similar
+# INT3 is similar to INT1 and INT2
+```
 
 # native density (seeds/g) by depth
 ```{r native density x depth}
-germ_tray_NAT <- germ_tray_status %>% filter(status == "native")
-germ_tray_NN <- germ_tray_status %>% filter(status == "nonnative")
 
 kruskal.test(seeds_per_g_log ~ depth_name, data = germ_tray_NAT)
 # data:  seeds_per_g_log by depth_name
@@ -545,11 +614,14 @@ pairwise.wilcox.test(germ_tray_NAT$seeds_per_g_log, germ_tray_NAT$depth_name,
 
 germ_tray_NAT %>% 
   group_by(depth_name) %>% 
-  summarize(mean_NATseeddensity = mean(seeds_per_g), 
-            SD = ) ##### STEPHANIE START HERE by calculating SD for your mean native seed density/g of soil, you stopped here on January 12, 2024
-# depth_name  mean_NATseeddensity
-# deep	      0.01190290			
-# surface	    0.03344313	
+   summarize(mean_NATseeddensity = mean(seeds_per_g), 
+            sd = sd(seeds_per_g),
+            N = length(seeds_per_g), 
+            se = ((sd(seeds_per_g))/sqrt(length((seeds_per_g)))))
+
+# depth_name  mean_NATseeddensity   SD          N   SE
+# surface	    0.03344313	          0.030364873	86	0.003274328
+# deep	      0.01190290	          0.009405198	82	0.001038630
 ```
 
 ```{r nonnative density x depth, include=TRUE}
@@ -564,9 +636,17 @@ pairwise.wilcox.test(germ_tray_NN$seeds_per_g_log, germ_tray_NN$depth_name,
 
 germ_tray_NN %>% 
   group_by(depth_name) %>% 
-  summarize(mean_NNseeddensity = mean(seeds_per_g))
-# depth_name  mean_NNseeddensity
-# deep	      0.009844989			
-# surface	    0.074631569	
+     summarize(mean_NNseeddensity = mean(seeds_per_g), 
+            sd = sd(seeds_per_g),
+            N = length(seeds_per_g), 
+            se = ((sd(seeds_per_g))/sqrt(length((seeds_per_g)))))
+
+# depth_name  mean_NNseeddensity  SE          N   SE
+# surface	    0.074631569	      	0.109261371	101	0.0108719127
+# deep	      0.009844989			    0.007540058	101	0.0007502638
 ```
 
+# LIFEFORM - seed density (log seed density/g soil)
+```{r}
+
+```
