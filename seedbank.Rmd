@@ -89,6 +89,7 @@ seedbank <- seedbank %>%
 
 seedbank$stand_core_treat <- paste(seedbank$stand_core, seedbank$treatment, sep="_") 
 seedbank$stand_core_depth_treat_status <- paste(seedbank$stand_core_depth_treat, seedbank$status, sep="_") 
+seedbank$stand_core_depth_treat_lifeform <- paste(seedbank$stand_core_depth_treat, seedbank$lifeform, sep="_") 
 
 unique(seedbank$stand)
 unique(seedbank$site)
@@ -647,6 +648,196 @@ germ_tray_NN %>%
 ```
 
 # LIFEFORM - seed density (log seed density/g soil)
-```{r}
+```{r lifeform seed density}
+germ_tray_prep_lifeform <- seedbank %>% 
+  group_by(stand_core_depth_treat_lifeform) %>% 
+  summarize(germination_n = sum(count)) %>% 
+  filter(germination_n > 0)
+dim(germ_tray_prep_lifeform) #476 rows
+
+seedbank_prep_lifeform <- seedbank %>% 
+  group_by(stand, site, soilcore, depth_name, status, treatment, lifeform, stand_core, stand_core_depth, stand_core_depth_treat, stand_core_depth_treat_lifeform, native_shrub, nonnative_grass) %>% 
+  summarize(subsample_g = mean(subsample_g)) 
+dim(seedbank_prep_lifeform) # 546 rows
+
+germ_tray_lifeform <- germ_tray_prep_lifeform %>% 
+  left_join(seedbank_prep_lifeform, by = "stand_core_depth_treat_lifeform") %>% 
+  mutate(seeds_per_g = (germination_n/subsample_g), 
+         seeds_per_g_log = log(seeds_per_g))
+dim(germ_tray_lifeform) 
+# 476 rows 
+#  476 rows = [(7 DEG + 10 ENH + 9 INT) * 4 treatments * 2 depths * 4 lifeforms] - minus a lot of lifeforms/tray
+view(germ_tray_lifeform)
+
+germ_tray_lifeform %>% 
+  group_by(lifeform, status) %>% 
+  summarize(total_germ = sum(germination_n),
+            mean_seeddensity_lifeform = mean(seeds_per_g))
+
+
+qplot(site, seeds_per_g, data = germ_tray_lifeform, facets = . ~ lifeform)
+qplot(site, seeds_per_g, data = germ_tray_lifeform %>%  filter(status == "native"), facets = . ~ lifeform)
+qplot(site, seeds_per_g, data = germ_tray_lifeform %>%  filter(status == "nonnative"), facets = . ~ lifeform)
+qplot(native_shrub, seeds_per_g, data = germ_tray_lifeform, facets = . ~ lifeform)
+qplot(nonnative_grass, seeds_per_g, data = germ_tray_lifeform, facets = . ~ lifeform)
+
+boxplot(seeds_per_g ~ site, data=germ_tray_NN, main="Non-native seed density (seeds/g) by Hillslope",
+   xlab="Hillslope", ylab="Non-native Seeds per gram")
+```
+## nn grass density
+```{r nn grass seed density visualize}
+
+germ_tray_lifeform_nngrass <- germ_tray_lifeform %>% 
+  filter(status == "nonnative") %>% 
+  filter(lifeform == "grass")
+
+boxplot(seeds_per_g ~ site, data=germ_tray_lifeform_nngrass, main="Non-native Grass density (seeds/g) by Hillslope",
+   xlab="Hillslope", ylab="Non-native Grass seeds per gram")
+```
+
+```{r nn grass seed density linear regression}
+ggplot(data = germ_tray_lifeform_nngrass, 
+       aes(x = nonnative_grass*100, y = seeds_per_g_log, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(-10,0)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  labs(x = "Non-native grass cover (%)", 
+       y = "Non-native grass density (log(#/g))", 
+       title = "Non-native grass density by Non-native Grass Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+   stat_poly_eq(
+    aes(label = paste(after_stat(eq.label), after_stat(adj.rr.label), sep = "~~~~")),
+    formula = formula1, 
+    parse=TRUE
+ )
+
+nngrass_nngrass.lm = lm(seeds_per_g_log ~ native_shrub, 
+                                      data = germ_tray_lifeform_nngrass)
+summary(nngrass_nngrass.lm)
+# Residual standard error: 1.38 on 161 degrees of freedom
+# Multiple R-squared:  0.02668,	Adjusted R-squared:  0.02063 
+# F-statistic: 4.413 on 1 and 161 DF,  p-value: 0.03722 <-- sig
+```
+
+```{r nn grass seed density hillslope}
+
+kruskal.test(seeds_per_g_log ~ site, data = germ_tray_lifeform_nngrass)
+# data:  seeds_per_g_log by site
+# Kruskal-Wallis chi-squared = 52.09, df = 6, p-value = 1.789e-09 <-- significant
+
+pairwise.wilcox.test(germ_tray_lifeform_nngrass$seeds_per_g_log, germ_tray_lifeform_nngrass$site,
+                 p.adjust.method = "BH")
+# data:  germ_tray_lifeform_nngrass$seeds_per_g_log and germ_tray_lifeform_nngrass$site 
+# 
+#      DEG1    DEG2    ENH1    ENH2    INT1    INT2   
+# DEG2 0.17049 -       -       -       -       -      
+# ENH1 4.5e-07 0.00089 -       -       -       -      
+# ENH2 0.00065 0.00378 0.69839 -       -       -      
+# INT1 0.00885 0.00205 0.00845 0.21904 -       -      
+# INT2 0.02445 0.00205 0.00011 0.02737 0.29222 -      
+# INT3 0.00130 0.00287 0.11585 0.30848 0.30848 0.08059
+
+germ_tray_lifeform_nngrass%>% 
+  group_by(site) %>% 
+       summarize(mean_NNgrassseeddensity = mean(seeds_per_g), 
+            sd = sd(seeds_per_g),
+            N = length(seeds_per_g), 
+            se = ((sd(seeds_per_g))/sqrt(length((seeds_per_g)))))
 
 ```
+
+
+
+
+
+## nat shrub density
+```{r native shrub density visualize}
+germ_tray_lifeform_natshrub <- germ_tray_lifeform %>% 
+  filter(status == "native") %>% 
+  filter(lifeform == "shrub")
+
+length(germ_tray_lifeform_natshrub$status) #106
+
+boxplot(seeds_per_g ~ site, data=germ_tray_lifeform_natshrub, main="Native Shrub density (seeds/g) by Hillslope",
+   xlab="Hillslope", ylab="Native Shrub seeds per gram")
+boxplot(seeds_per_g ~ native_shrub, data=germ_tray_lifeform_natshrub, main="Native Shrub density (seeds/g) by Hillslope",
+   xlab="Native shrub cover", ylab="Native Shrub seeds per gram")
+boxplot(seeds_per_g ~ nonnative_grass, data=germ_tray_lifeform_natshrub, main="Native Shrub density (seeds/g) by Hillslope",
+   xlab="Nonnative grass cover", ylab="Native Shrub seeds per gram")
+```
+
+```{r nn grass seed density linear regression}
+ggplot(data = germ_tray_lifeform_natshrub, 
+       aes(x = nonnative_grass*100, y = seeds_per_g_log, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(-10,0)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  labs(x = "Non-native grass cover (%)", 
+       y = "Native shrub seed density (log(#/g))", 
+       title = "Native shrub seed density by Non-native Grass Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+   stat_poly_eq(
+    aes(label = paste(after_stat(eq.label), after_stat(adj.rr.label), sep = "~~~~")),
+    formula = formula1, 
+    parse=TRUE
+ )
+
+ggplot(data = germ_tray_lifeform_natshrub, 
+       aes(x = native_shrub*100, y = seeds_per_g_log, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(-10,0)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  labs(x = "Native shrub cover (%)", 
+       y = "Native shrub seed density (log(#/g))", 
+       title = "Native shrub seed density by Native Shrub Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+   stat_poly_eq(
+    aes(label = paste(after_stat(eq.label), after_stat(adj.rr.label), sep = "~~~~")),
+    formula = formula1, 
+    parse=TRUE
+ )
+```
+```{r nn grass seed density linear regression stats}
+natshrub_nngrass.lm = lm(seeds_per_g_log ~ nonnative_grass, 
+                                      data = germ_tray_lifeform_natshrub)
+summary(natshrub_nngrass.lm)
+# Residual standard error: 0.8994 on 104 degrees of freedom
+# Multiple R-squared:  0.1561,	Adjusted R-squared:  0.148 
+# F-statistic: 19.23 on 1 and 104 DF,  p-value: 2.778e-05 <-- sig
+```
+
+```{r native shrub seed density hillslope}
+
+kruskal.test(seeds_per_g_log ~ site, data = germ_tray_lifeform_natshrub)
+
+pairwise.wilcox.test(germ_tray_lifeform_natshrub$seeds_per_g_log, germ_tray_lifeform_natshrub$site,
+                 p.adjust.method = "BH")
+# data:  germ_tray_lifeform_natshrub$seeds_per_g_log and germ_tray_lifeform_natshrub$site 
+#      DEG1    DEG2    ENH1    ENH2    INT1    INT2   
+# DEG2 -       -       -       -       -       -      
+# ENH1 0.00025 0.01308 -       -       -       -      
+# ENH2 0.00032 0.01685 0.33942 -       -       -      
+# INT1 0.00034 0.01741 0.75709 0.72624 -       -      
+# INT2 0.00032 0.01685 0.01901 0.09168 0.08204 -      
+# INT3 0.00057 0.01901 0.59751 0.25826 0.56245 0.02368
+
+germ_tray_lifeform_natshrub%>% 
+  group_by(site) %>% 
+       summarize(mean_NATgrassseeddensity = mean(seeds_per_g), 
+            sd = sd(seeds_per_g),
+            N = length(seeds_per_g), 
+            se = ((sd(seeds_per_g))/sqrt(length((seeds_per_g)))))
+
+```
+
+
+```{r hold notes here}
+
+```
+
