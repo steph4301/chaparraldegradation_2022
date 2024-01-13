@@ -22,6 +22,8 @@ library(readxl) # for .xls and .xlsx sheets
 library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD, dist{stats}, simint, simtest, csimint, csimtest{multcomp}, friedmanmc, kruskalmc{pgirmess}
 library(skimr)
 #library(mass)
+library(ggpmisc)
+library(segmented)
 ```
 
 # Load data
@@ -163,6 +165,7 @@ dim(germ_tray)
  
 glimpse(germ_tray)
 head(germ_tray)
+# write.csv(germ_tray,"processed/germ_tray.csv")
 ```
 
 ```{r explore figures - no data transformation}
@@ -265,10 +268,75 @@ pairwise.wilcox.test(germ_tray$seeds_per_g_log, germ_tray$site,
 qplot(native_shrub, seeds_per_g, data = germ_tray) # by native shrub cover
 boxplot(seeds_per_g ~ native_shrub, data=germ_tray, main="Seeds/g by Native shrub cover (%)",
    xlab="Average native cover (%)", ylab="Seeds per gram")
-
-ggplot
 ```
 
+```{r plot seed density per g x native shrub cover}
+
+# scatterplot - seed density x native shrub 
+formula1 <- germ_tray$seeds_per_g_log ~ germ_tray$native_shrub
+seeddensity_nativeshrub <- ggplot(data = germ_tray, 
+       aes(x = native_shrub*100, y = seeds_per_g_log, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(0, -10)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  # scale_color_manual(values = c(standcolors),
+  #                     name = "Hillslope",
+  #                     # labels = c("DEG2" = "shrub dominated", 
+  #                     #            "matrix" = "matrix", 
+  #                     #            "degraded" = "grass dominated")
+  #                     ) + #rename standtypes labels
+  labs(x = "Native shrub cover (%)", 
+       y = "Seed density (log(#/g))", 
+       title = "Seed density by Native Shrub Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
+
+seeddensity_nativeshrub_print <- seeddensity_nativeshrub + theme(legend.position = c(0.1, 0.7)) # Key location offset from (0,0)
+
+seeddensity_nativeshrub.lm = lm(seeds_per_g_log ~ native_shrub, data=germ_tray)
+summary(seeddensity_nativeshrub.lm)
+# Residual standard error: 1.086 on 203 degrees of freedom
+# Multiple R-squared:  0.124,	Adjusted R-squared:  0.1197 
+# F-statistic: 28.73 on 1 and 203 DF,  p-value: 2.245e-07 <-- significant regression
+```
+
+# seed/g by native shrub cover
+```{r seed density per g x non-native grass cover}
+# scatterplot - seed density x nn grass cover
+seeddensity_nngrass <- ggplot(data = germ_tray, 
+       aes(x = nonnative_grass*100, y = seeds_per_g_log, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(-10,0)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  # scale_color_manual(values = c(standcolors),
+  #                     name = "Hillslope",
+  #                     # labels = c("DEG2" = "shrub dominated", 
+  #                     #            "matrix" = "matrix", 
+  #                     #            "degraded" = "grass dominated")
+  #                     ) + #rename standtypes labels
+  labs(x = "Non-native grass cover (%)", 
+       y = "Seed density (log(#/g))", 
+       title = "Seed density by Non-native Grass Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+   stat_poly_eq(
+    aes(label = paste(after_stat(eq.label), after_stat(adj.rr.label), sep = "~~~~")),
+    formula = formula1, 
+    parse=TRUE
+ )
+  stat_poly_eq(use_label(c("eq", "R2")))
+
+seeddensity_nativeshrub_print <- seeddensity_nngrass + theme(legend.position = c(0.1, 0.2)) # Key location offset from (0,0)
+
+seeddensity_nngrass.lm = lm(seeds_per_g_log ~ nonnative_grass, data=germ_tray)
+# summary(seeddensity_nngrass.lm)
+# Residual standard error: 1.106 on 203 degrees of freedom
+# Multiple R-squared:  0.09099,	Adjusted R-squared:  0.08651 
+# F-statistic: 20.32 on 1 and 203 DF,  p-value: 1.106e-05 <-- significant regression
+```
 
 # seed/g by soil depth
 ```{r stats - seed/g by depth, include = TRUE}
@@ -303,10 +371,10 @@ germ_tray_prep_status <- seedbank %>%
   group_by(stand_core_depth_treat_status) %>% 
   summarize(germination_n = sum(count)) %>% 
   filter(germination_n > 0)
-dim(germ_tray_prep_status) # [1] 371 rows, 2 columns
+glimpse(germ_tray_prep_status) # [1] 371 rows, 2 columns: stand_core_depth_treat_status, germination_n_per_tray
 
 seedbank_prep_status <- seedbank %>% 
-  group_by(stand, site, soilcore, depth_name, status, treatment, stand_core, stand_core_depth, stand_core_depth_treat, stand_core_depth_treat_status) %>% 
+  group_by(stand, site, soilcore, depth_name, status, treatment, stand_core, stand_core_depth, stand_core_depth_treat, stand_core_depth_treat_status, native_shrub, nonnative_grass) %>% 
   summarize(subsample_g = mean(subsample_g)) 
 dim(seedbank_prep_status) # 393 rows
 
@@ -314,55 +382,191 @@ germ_tray_status <- germ_tray_prep_status %>%
   left_join(seedbank_prep_status, by = "stand_core_depth_treat_status") %>% 
   mutate(seeds_per_g = (germination_n/subsample_g), 
          seeds_per_g_log = log(seeds_per_g))
-dim(germ_tray_status) # 371 rows
-
+dim(germ_tray_status) 
+# 371 rows = 205 rows * 2 status
+#  205 rows = [(7 DEG + 10 ENH + 9 INT) * 4 treatments * 2 depths] - 3 trays with no data
+view(germ_tray_status)
 ```
 
 ```{r}
-ggqqplot(germ_tray_status$seeds_per_g_log) 
+ggqqplot(germ_tray_status$seeds_per_g) 
 ggqqplot(germ_tray_status$seeds_per_g_log) 
 histogram(germ_tray_status$germination_n)
 
+boxplot(germination_n ~ status, data=germ_tray_status, 
+        main="Germination by Status",
+   xlab="Status", ylab="Seeds per tray")
 
-boxplot(seeds_per_g ~ status, data=germ_tray_status, main="Seeds/g by Status",
+boxplot(seeds_per_g ~ status, data=germ_tray_status, 
+        main="Seeds/g by Status",
    xlab="Status", ylab="Seeds per gram")
-boxplot(germination_n ~ status, data=germ_tray_status, main="Germination by Status",
-   xlab="Status", ylab="Seeds per gram")
+
+boxplot(seeds_per_g_log ~ status, data=germ_tray_status, 
+        main="Seeds/g (log) by Status",
+   xlab="Status", ylab="Seeds per gram (log)")
 
 qplot(subsample_g, seeds_per_g, data = germ_tray_status, facets = . ~ status)
-qplot(site, seeds_per_g, data = germ_tray_status, facets = . ~ status)
-```
-
-```{r native germination by tray}
-
-# total number of NATIVE germinates per tray
-# #
-# germ_tray_prep_native <- seedbank %>% 
-#   filter(status =="native") %>% 
-#   group_by(stand_core_depth_treat) %>% 
-#   filter(count > 0) %>% 
-#   summarize(germination_n = sum(count))
-# 
-# seedbank_prep_native <- seedbank %>% 
-#    filter(status == "native") %>% 
-#    group_by(stand, site, soilcore, depth_name, treatment, stand_core, stand_core_depth, stand_core_depth_treat) %>% 
-#    filter(count > 0) %>% 
-#   summarize(subsample_g = mean(subsample_g))
-# 
-# germ_tray_native <- germ_tray_prep_native %>% 
-#   left_join(seedbank_prep_native, by = "stand_core_depth_treat") %>% 
-#   mutate(seeds_per_g = (germination_n/subsample_g), 
-#          seeds_per_g_log = log(seeds_per_g))
-# 
-# summary(germ_tray_native)
-# 
-# germ_tray_native %>% 
-#   group_by(stand_core_depth) %>% 
-#   summarise(treatment = length(treatment)) # no values go over 4 so that's good
+qplot(native_shrub, seeds_per_g, data = germ_tray_status, facets = . ~ status)
+qplot(nonnative_grass, seeds_per_g, data = germ_tray_status, facets = . ~ status)
 ```
 
 
-```{r native seed/g by depth by status, include=TRUE}
-kruskal.test(seeds_per_g ~ site, data = germ_tray_native)
+# NATIVE and NON-NATIVE seed/g by cover 
+```{r visualize seed per g by native shrub cover}
+qplot(native_shrub, seeds_per_g, data = germ_tray_status) # by native shrub cover
+qplot(native_shrub, seeds_per_g, data = germ_tray_status, facets = . ~ status)
+
+boxplot(seeds_per_g ~ native_shrub, data=germ_tray_status, main="Seeds/g by Native shrub cover (%)",
+   xlab="Average native cover (%)", ylab="Seeds per gram")
+```
+
+```{r native germination x native shrub cover}
+# scatterplot - native seed density x native shrub cover
+nativedensity_nativeshrub <- ggplot(data = germ_tray_status %>% filter(status == "native"), 
+       aes(x = native_shrub*100, y = seeds_per_g_log, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(-10,0)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  labs(x = "Native shrub cover (%)", 
+       y = "Native seed density (log(#/g))", 
+       title = "Native seed density by Native Shrub Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+   stat_poly_eq(
+    aes(label = paste(after_stat(eq.label), after_stat(adj.rr.label), sep = "~~~~")),
+    formula = formula1, 
+    parse=TRUE
+ )
+  
+nativedensity_nativeshrub_print <- nativedensity_nativeshrub + theme(legend.position = c(0.1, 0.35)) # Key location offset from (0,0)
+
+nativegermination_nativeshrub.lm = lm(seeds_per_g_log ~ native_shrub, 
+                                      data = (germ_tray_status %>% filter(status =="native")))
+summary(nativegermination_nativeshrub.lm)
+# Residual standard error: 1.106 on 203 degrees of freedom
+# Multiple R-squared:  0.09099,	Adjusted R-squared:  0.08651 
+# F-statistic: 20.32 on 1 and 203 DF,  p-value: 1.106e-05 <-- significant regression
+```
+
+```{r native germination x nonnative grass cover}
+# scatterplot - native seed density x native shrub cover
+nativedensity_nngrass <- ggplot(data = germ_tray_status %>% filter(status == "native"), 
+       aes(x = nonnative_grass*100, y = seeds_per_g_log, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(-10,0)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  labs(x = "Non-native grass cover (%)", 
+       y = "Native seed density (log(#/g))", 
+       title = "Native seed density by Non-native Grass Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+   stat_poly_eq(
+    aes(label = paste(after_stat(eq.label), after_stat(adj.rr.label), sep = "~~~~")),
+    formula = formula1, 
+    parse=TRUE
+ )
+
+
+nativedensity_nngrass.lm = lm(seeds_per_g_log ~ nonnative_grass, 
+                                      data = (germ_tray_status %>% filter(status =="native")))
+summary(nativedensity_nngrass.lm)
+# Residual standard error: 0.8465 on 166 degrees of freedom
+# Multiple R-squared:  0.4276,	Adjusted R-squared:  0.4242 
+# F-statistic:   124 on 1 and 166 DF,  p-value: < 2.2e-16 <-- sig
+```
+
+```{r nonnative germination x native shrub cover}
+nndensity_nativeshrub <- ggplot(data = germ_tray_status %>% filter(status == "nonnative"), 
+       aes(x = native_shrub*100, y = seeds_per_g_log, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(-10,0)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  labs(x = "Native shrub cover (%)", 
+       y = "Non-native seed density (log(#/g))", 
+       title = "Non-native seed density by Native Shrub Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+   stat_poly_eq(
+    aes(label = paste(after_stat(eq.label), after_stat(adj.rr.label), sep = "~~~~")),
+    formula = formula1, 
+    parse=TRUE
+ )
+
+nngermination_nativeshrub.lm = lm(seeds_per_g_log ~ native_shrub, 
+                                      data = (germ_tray_status %>% filter(status =="nonnative")))
+summary(nngermination_nativeshrub.lm)
+# Residual standard error: 1.315 on 200 degrees of freedom
+# Multiple R-squared:  0.004608,	Adjusted R-squared:  -0.0003692 
+# F-statistic: 0.9258 on 1 and 200 DF,  p-value: 0.3371 <-- NOT significant
+```
+
+
+```{r nonnative germination x nonnative grass cover}
+nndensity_nngrass <- ggplot(data = germ_tray_status %>% filter(status == "nonnative"), 
+       aes(x = nonnative_grass*100, y = seeds_per_g_log, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(-10,0)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  labs(x = "Non-native grass cover (%)", 
+       y = "Non-native seed density (log(#/g))", 
+       title = "Non-native seed density by Non-native Grass Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+   stat_poly_eq(
+    aes(label = paste(after_stat(eq.label), after_stat(adj.rr.label), sep = "~~~~")),
+    formula = formula1, 
+    parse=TRUE
+ )
+
+nngermination_nngrass.lm = lm(seeds_per_g_log ~ nonnative_grass, 
+                                      data = (germ_tray_status %>% filter(status =="nonnative")))
+summary(nngermination_nngrass.lm)
+# Residual standard error: 1.313 on 200 degrees of freedom
+# Multiple R-squared:  0.008333,	Adjusted R-squared:  0.003375 
+# F-statistic: 1.681 on 1 and 200 DF,  p-value: 0.1963 <-- NOT sig
+```
+
+# native density (seeds/g) by depth
+```{r native density x depth}
+germ_tray_NAT <- germ_tray_status %>% filter(status == "native")
+germ_tray_NN <- germ_tray_status %>% filter(status == "nonnative")
+
+kruskal.test(seeds_per_g_log ~ depth_name, data = germ_tray_NAT)
+# data:  seeds_per_g_log by depth_name
+# Kruskal-Wallis chi-squared = 21.28, df = 1, p-value = 3.969e-06
+pairwise.wilcox.test(germ_tray_NAT$seeds_per_g_log, germ_tray_NAT$depth_name,
+                 p.adjust.method = "BH")
+#         deep   
+# surface 4.8e-16
+
+germ_tray_NAT %>% 
+  group_by(depth_name) %>% 
+  summarize(mean_NATseeddensity = mean(seeds_per_g), 
+            SD = ) ##### STEPHANIE START HERE by calculating SD for your mean native seed density/g of soil, you stopped here on January 12, 2024
+# depth_name  mean_NATseeddensity
+# deep	      0.01190290			
+# surface	    0.03344313	
+```
+
+```{r nonnative density x depth, include=TRUE}
+
+kruskal.test(seeds_per_g_log ~ depth_name, data = germ_tray_NN)
+# data:  seeds_per_g_log by depth_name
+# Kruskal-Wallis chi-squared = 58.4, df = 1, p-value = 2.139e-14
+pairwise.wilcox.test(germ_tray_NN$seeds_per_g_log, germ_tray_NN$depth_name,
+                 p.adjust.method = "BH")
+#         deep   
+# surface 2.2e-14
+
+germ_tray_NN %>% 
+  group_by(depth_name) %>% 
+  summarize(mean_NNseeddensity = mean(seeds_per_g))
+# depth_name  mean_NNseeddensity
+# deep	      0.009844989			
+# surface	    0.074631569	
 ```
 
