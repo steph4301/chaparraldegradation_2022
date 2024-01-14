@@ -1030,6 +1030,45 @@ summary(famdiv_NNgrass.lm)
 # F-statistic: 80.02 on 1 and 203 DF,  p-value: 2.336e-16
 ```
 
+### familly diversity - how common?
+```{r common families}
+
+view(seedbank %>% 
+  group_by(family) %>% 
+  summarize(total = sum(count)))
+
+seedbank %>% 
+  group_by(status) %>% 
+  summarize(total = sum(count))
+# status    total
+# native	  1052			
+# nonnative	2918			
+# unknown	  1
+
+# NATIVE
+view(seedbank %>% 
+  filter(status == "native") %>% 
+   group_by(family) %>% 
+  summarize(NAT_total = sum(count)))
+seedbank %>% 
+  filter(status == "native") %>% 
+    filter(family == "Asteraceae") %>% 
+   group_by(site) %>% 
+  summarize(NAT_total = sum(count))
+
+# NON-NATIVE
+view(seedbank %>% 
+  filter(status == "nonnative") %>% 
+   group_by(family) %>% 
+  summarize(NN_total = sum(count)))
+view(seedbank %>% 
+  filter(status == "nonnative") %>% 
+      filter(family == "Poaceae") %>% 
+   group_by(site) %>% 
+  summarize(NN_total = sum(count)))
+
+```
+
 # Supplementary Germination Table
 ```{r supplementary table}
 # average total germination (N/g soil)
