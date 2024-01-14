@@ -90,6 +90,7 @@ seedbank <- seedbank %>%
 seedbank$stand_core_treat <- paste(seedbank$stand_core, seedbank$treatment, sep="_") 
 seedbank$stand_core_depth_treat_status <- paste(seedbank$stand_core_depth_treat, seedbank$status, sep="_") 
 seedbank$stand_core_depth_treat_lifeform <- paste(seedbank$stand_core_depth_treat, seedbank$lifeform, sep="_") 
+seedbank$stand_core_depth_treat_familydiversity <- paste(seedbank$stand_core_depth_treat, seedbank$family, sep="_") 
 
 unique(seedbank$stand)
 unique(seedbank$site)
@@ -225,7 +226,6 @@ qplot(site, seeds_per_g_log, data = germ_tray, facets = . ~ depth_name)
 ### Normality
 ```{r normality}
 ggqqplot(germ_tray$seeds_per_g) 
-
 shapiro.test(germ_tray$seeds_per_g) # not transformed
 # data:  germ_tray$seeds_per_g
 # W = 0.62208, p-value < 2.2e-16  <-- not normally distributed
@@ -836,8 +836,109 @@ germ_tray_lifeform_natshrub%>%
 
 ```
 
+# FAMILY diversity
+```{r family diversity}
+germ_tray_prep_famdiv <- seedbank %>% 
+  group_by(stand_core_depth_treat) %>% 
+  filter(count > 0) %>% 
+  summarize(unique_Families = length(unique(family)))
+glimpse(germ_tray_prep_famdiv) # 205 rows
+# stand_core_depth_treat, unique_Families
 
-```{r hold notes here}
+seedbank_prep_famdiv <-  seedbank %>% 
+  group_by(stand, site, soilcore, depth_name, treatment, stand_core, subsample_g, stand_core_depth, stand_core_depth_treat, native_shrub, nonnative_grass) %>% 
+  summarize(subsample_g = mean(subsample_g)) 
+dim(seedbank_prep_famdiv) #205 rows, 11 columns
+
+germ_tray_famdiv <- germ_tray_prep_famdiv %>% 
+  left_join(seedbank_prep_famdiv, by = "stand_core_depth_treat") %>% 
+  mutate(Families_per_g = unique_Families/subsample_g,
+         Families_per_g_log = log(Families_per_g))
+glimpse(germ_tray_famdiv) 
+```
+
+
+```{r Family diversity visualization}
+
+germ_tray_famdiv %>% # NOT TRANSFORMED
+  group_by(site) %>% 
+  summarize(mean_FamDiv = mean(Families_per_g),
+            sd = sd(Families_per_g),
+            N = length(Families_per_g), 
+            se = ((sd(Families_per_g))/sqrt(length((Families_per_g)))))
+# site  mean      SD        N   SE
+# DEG1	0.006657593	0.002492672	32	0.0004406464
+# DEG2	0.004849358	0.001536726	24	0.0003136828
+# ENH1	0.009606148	0.003873929	39	0.0006203252
+# ENH2	0.010415403	0.005492513	38	0.0008910032
+# INT1	0.016646125	0.008903032	24	0.0018173238
+# INT2	0.015518207	0.007406685	24	0.0015118832
+# INT3	0.014718954	0.008784949	24	0.0017932202
+germ_tray_famdiv %>% # LOG DATA
+  group_by(site) %>% 
+  summarize(mean_FamDiv = mean(Families_per_g_log),
+            sd = sd(Families_per_g_log),
+            N = length(Families_per_g_log), 
+            se = ((sd(Families_per_g_log))/sqrt(length((Families_per_g_log)))))
+# DEG1	-5.095020	0.4430368	32	0.07831859
+# DEG2	-5.383196	0.3518011	24	0.07181111
+# ENH1	-4.729448	0.4252415	39	0.06809314
+# ENH2	-4.711422	0.5781949	38	0.09379559
+# INT1	-4.239527	0.5775924	24	0.11790056
+# INT2	-4.267890	0.4560354	24	0.09308783
+# INT3	-4.401013	0.6434983	24	0.13135354
+
+qplot(site, Families_per_g, data = germ_tray_famdiv)
+qplot(native_shrub, Families_per_g, data = germ_tray_famdiv)
+qplot(nonnative_grass, Families_per_g, data = germ_tray_famdiv)
+
+qplot(site, Families_per_g, data = germ_tray_famdiv, facets = . ~ depth_name)
+qplot(site, Families_per_g, data = germ_tray_famdiv, facets = . ~ treatment)
+
+qplot(native_shrub, Families_per_g, data = germ_tray_famdiv, facets = . ~ depth_name)
+qplot(nonnative_grass, Families_per_g, data = germ_tray_famdiv, facets = . ~ depth_name)
+
+boxplot(Families_per_g ~ site, data=germ_tray_famdiv, main="Average Family diversity by Hillslope",
+   xlab="Hillslope", ylab="Average Family Diversity (Families/g soil)")
+boxplot(Families_per_g_log ~ site, data=germ_tray_famdiv, main="Average Family diversity by Hillslope",
+   xlab="Hillslope", ylab="Log Average Family Diversity (Families/g soil)")
+```
+
+```{r family diversity by site}
+ggqqplot(germ_tray_famdiv$Families_per_g) 
+shapiro.test(germ_tray_famdiv$Families_per_g) # not transformed
+# data:  germ_tray_famdiv$Families_per_g
+# W = 0.86159, p-value = 1.075e-12 <-- not normally distributed
+
+ggqqplot(germ_tray_famdiv$Families_per_g_log) 
+shapiro.test(germ_tray_famdiv$Families_per_g_log) 
+# data:  germ_tray_famdiv$Families_per_g_log
+# W = 0.98409, p-value = 0.0206 <-- better but still not normally distributed
+
+kruskal.test(Families_per_g_log ~ site, data = germ_tray_famdiv)
+# data:  Families_per_g_log by site
+# Kruskal-Wallis chi-squared = 75.364, df = 6, p-value = 3.229e-14
+pairwise.wilcox.test(germ_tray_famdiv$Families_per_g_log, 
+                     germ_tray_famdiv$site,
+                 p.adjust.method = "BH")
+# data:  germ_tray_famdiv$Families_per_g_log and germ_tray_famdiv$site 
+# 
+#      DEG1    DEG2    ENH1   ENH2   INT1   INT2  
+# DEG2 0.0061  -       -      -      -      -     
+# ENH1 0.0065  4.5e-05 -      -      -      -     
+# ENH2 0.0020  6.0e-05 0.6815 -      -      -     
+# INT1 1.7e-07 1.7e-07 0.0033 0.0093 -      -     
+# INT2 4.5e-08 4.3e-08 0.0049 0.0255 0.6815 -     
+# INT3 4.5e-05 5.4e-06 0.0677 0.1463 0.4160 0.6429
+# 
+# DEG1 - sig diff from other hillslopes
+# DEG2 - sig diff from other hillslopes
+# ENH1 and ENH2 are similar
+# INT1 INT2 and INT3 are similar
+# INT3 is similar to ENH1 and ENH2
+```
+
+```{r}
 
 ```
 
