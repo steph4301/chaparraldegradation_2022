@@ -888,6 +888,10 @@ germ_tray_famdiv %>% # LOG DATA
 # INT2	-4.267890	0.4560354	24	0.09308783
 # INT3	-4.401013	0.6434983	24	0.13135354
 
+min(germ_tray_famdiv$unique_Families) #1
+max(germ_tray_famdiv$unique_Families) #8
+length(germ_tray_famdiv$unique_Families) #205
+
 qplot(site, Families_per_g, data = germ_tray_famdiv)
 qplot(native_shrub, Families_per_g, data = germ_tray_famdiv)
 qplot(nonnative_grass, Families_per_g, data = germ_tray_famdiv)
@@ -904,7 +908,7 @@ boxplot(Families_per_g_log ~ site, data=germ_tray_famdiv, main="Average Family d
    xlab="Hillslope", ylab="Log Average Family Diversity (Families/g soil)")
 ```
 
-```{r family diversity by site}
+```{r family diversity by site stats}
 ggqqplot(germ_tray_famdiv$Families_per_g) 
 shapiro.test(germ_tray_famdiv$Families_per_g) # not transformed
 # data:  germ_tray_famdiv$Families_per_g
@@ -938,7 +942,70 @@ pairwise.wilcox.test(germ_tray_famdiv$Families_per_g_log,
 # INT3 is similar to ENH1 and ENH2
 ```
 
-```{r}
+```{r family diversity by soil depth} 
+kruskal.test(Families_per_g_log ~ depth_name, data = germ_tray_famdiv)
+# data:  Families_per_g_log by depth_name
+# Kruskal-Wallis chi-squared = 33.281, df = 1, p-value = 7.974e-09
+pairwise.wilcox.test(germ_tray_famdiv$Families_per_g_log, 
+                     germ_tray_famdiv$depth_name,
+                 p.adjust.method = "BH")
+#         deep 
+# surface 8e-09
 
+boxplot(Families_per_g_log ~ depth_name, data=germ_tray_famdiv, main="Average Family diversity by Soil Depth",
+   xlab="Soil Depth", ylab="Log Average Family Diversity (Families/g soil)")
 ```
 
+### family diversity x native shrub
+```{r family diversity native shrub linear regressions} 
+ggplot(data = germ_tray_famdiv, 
+       aes(x = native_shrub*100, y = Families_per_g_log, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(-10,0)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  labs(x = "Native shrub cover (%)", 
+       y = "Family Diversity (log(#/g soil))", 
+       title = "Family Diversity by Native Shrub Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+   stat_poly_eq(
+    aes(label = paste(after_stat(eq.label), after_stat(adj.rr.label), sep = "~~~~")),
+    formula = formula1, 
+    parse=TRUE
+ )
+
+famdiv_NATshrub.lm = lm(Families_per_g_log ~ native_shrub, 
+                                      data = germ_tray_famdiv)
+summary(famdiv_NATshrub.lm)
+# Residual standard error: 0.536 on 203 degrees of freedom
+# Multiple R-squared:  0.2532,	Adjusted R-squared:  0.2495 
+# F-statistic: 68.81 on 1 and 203 DF,  p-value: 1.489e-14
+
+```
+### family diversity x non-native grass
+```{r family diversity nonnative grass linear regressions} 
+ggplot(data = germ_tray_famdiv, 
+       aes(x = nonnative_grass*100, y = Families_per_g_log, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(-10,0)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  labs(x = "Non-native grass cover (%)", 
+       y = "Family Diversity (log(#/g soil))", 
+       title = "Family Diversity by Non-native Grass Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+   stat_poly_eq(
+    aes(label = paste(after_stat(eq.label), after_stat(adj.rr.label), sep = "~~~~")),
+    formula = formula1, 
+    parse=TRUE
+ )
+
+famdiv_NNgrass.lm = lm(Families_per_g_log ~ nonnative_grass, 
+                                      data = germ_tray_famdiv)
+summary(famdiv_NNgrass.lm)       
+# Residual standard error: 0.5253 on 203 degrees of freedom
+# Multiple R-squared:  0.2827,	Adjusted R-squared:  0.2792 
+# F-statistic: 80.02 on 1 and 203 DF,  p-value: 2.336e-16
+```
