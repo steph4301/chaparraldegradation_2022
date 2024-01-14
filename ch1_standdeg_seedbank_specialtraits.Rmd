@@ -46,6 +46,9 @@ germination_m2_edit <- germination_m2_load %>%
   dplyr::select(c(stand, site, soilcore, depth_name, subsample_cm3, subsample_g,treatment, rep, species_diversity, genus_abundance, lifeform, status, lifescycle, family, count, stand_core, stand_core_depth, stand_core_depth_treat, n_per_cm3, n_per_m3, n_per_g, n_per_kg))
 
 glimpse(germination_m2_edit)
+
+average_cover <- read.csv("nat_nn_cover.csv", header = TRUE, na.strings=c("","NA"))
+
 ```
 ```{r data prep}
 seedbank_load_w <- germination_m2_edit %>%
@@ -64,10 +67,10 @@ seedbank_load_w <- germination_m2_edit %>%
                                 family = as.character(family),
                                 count = as.integer(count)
                               ) %>%
-  mutate(stand = fct_relevel(stand, 
-            "intact", "enhanced", "degraded")) %>% 
-  mutate(treatment = fct_relevel(treatment, 
-                                 "control", "charate", "oven", "ovenchar"))
+  mutate(stand = fct_relevel(stand, "intact", "enhanced", "degraded"), 
+         site = fct_relevel(site,  "INT1", "INT2", "INT3", "ENH1", "ENH2", "DEG1", "DEG2"), 
+         treatment = fct_relevel(treatment, "control", "charate", "oven", "ovenchar")
+         )
   # #mutate(stand = fct_recode(stand, 
   #                               "shrub_dominated" = "intact", # rename stand types
   #                               "matrix" = "enhanced",
@@ -150,7 +153,7 @@ glimpse(fire_only) #17 species
 #rename column header
 names(fire_only)[names(fire_only) == "germinpretreatmenttray[!germinpretreatmenttray %in% control_spp]"] <- "species_diversity"
 
-print(fire_only) # species list
+print(fire_only) # species list of 17 species
 ```
 
 
@@ -158,8 +161,13 @@ print(fire_only) # species list
 ```{r fire followers by site total emergence, include=TRUE}
 
 #left join data frames to create complete df of fire following species
-seedbank_fire <- left_join(fire_only, seedbank_load_w, by =  "species_diversity")
-unique(seedbank_fire$species_diversity)
+seedbank_fire <- fire_only %>% 
+  left_join(seedbank_load_w, by =  "species_diversity") %>% 
+  left_join(average_cover, by = 'site') %>% 
+  dplyr::select(!c(n_per_cm3, n_per_m3, percentcover_native, percentcover_nonnative, native_fern, native_grass, native_forb, nonnative_fern, nonnative_forb, nonnative_shrub))
+
+view(seedbank_fire)
+sort(unique(seedbank_fire$species_diversity))
 
 write.csv(seedbank_fire, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/seedbank_fire.csv")
 ```
