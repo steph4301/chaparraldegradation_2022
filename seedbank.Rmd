@@ -1032,11 +1032,20 @@ summary(famdiv_NNgrass.lm)
 
 ### familly diversity - how common?
 ```{r common families}
-
+# abundance of each family
 view(seedbank %>% 
   group_by(family) %>% 
   summarize(total = sum(count)))
 
+# number of hill slopes (n = 1-7) where each family was observed
+view(seedbank %>% 
+  group_by(family) %>% 
+  summarize(Sites_withfamily = length(unique(site))))
+# families found at all seven hill slopes:
+# Asteraceae, Fabaceae, Hydrophyllaceae, Poaceae
+
+# number of germ by status
+# A)
 seedbank %>% 
   group_by(status) %>% 
   summarize(total = sum(count))
@@ -1045,27 +1054,85 @@ seedbank %>%
 # nonnative	2918			
 # unknown	  1
 
+# B) Can also use df: native_seedbank, nonnative_seedbank
+nat_tot_germ <- native_seedbank %>% 
+  summarize(total_NATgerm = sum(count)) # = 1052		
+
+nn_tot_germ <- nonnative_seedbank %>% 
+  summarize(total_NNgerm = sum(count)) # = 2918
+```
+
+```{r native family diversity}
 # NATIVE
+# total native germ by family
 view(seedbank %>% 
   filter(status == "native") %>% 
    group_by(family) %>% 
-  summarize(NAT_total = sum(count)))
+  summarize(NATgerm_total = sum(count),
+            NATgerm_percent = round((NATgerm_total/nat_tot_germ*100), 1))
+  )
+
+view(seedbank %>% 
+        filter(status == "native") %>% 
+       group_by(family) %>% 
+       summarize(Sites_withNATfamily = length(unique(site))))
+
+
+# total native Asters germinated by site
+native_seedbank %>% 
+    filter(family == "Asteraceae" | family == "Poaceae") %>% #300 germinants
+   #group_by(site) %>% 
+  summarize(NAT_total = sum(count))) 
+  / nat_tot_germ) * 100
+
 seedbank %>% 
   filter(status == "native") %>% 
-    filter(family == "Asteraceae") %>% 
+    filter(family == "Poaceae") %>%  # 168 germinants
    group_by(site) %>% 
   summarize(NAT_total = sum(count))
 
+# native	  1052			
+# nonnative	2918	
+```
+
+```{r non-native family diversity}
 # NON-NATIVE
 view(seedbank %>% 
   filter(status == "nonnative") %>% 
    group_by(family) %>% 
+  summarize(NNgerm_total = sum(count),
+            NNgerm_percent = round((NNgerm_total/nn_tot_germ*100), 1))
+  )
+# 2466/2918 = 84.5% nonnativegerm were grasses
+view(seedbank %>% 
+  filter(status == "nonnative") %>% 
+   group_by(family) %>% 
+ summarize(Sites_withNNfamily = length(unique(site))))
+
+totalNNgerm <- seedbank %>%  
+  filter(status == "non-native") %>%  
+  sum(count)
+
+(seedbank %>% 
+  filter(status == "nonnative") %>% 
+   group_by(family) %>% 
   summarize(NN_total = sum(count)))
+
+
+
 view(seedbank %>% 
   filter(status == "nonnative") %>% 
       filter(family == "Poaceae") %>% 
    group_by(site) %>% 
   summarize(NN_total = sum(count)))
+
+view(seedbank %>% 
+  filter(status == "nonnative") %>% 
+      filter(family == "Poaceae") %>% 
+   group_by(site) %>% 
+  summarize(NN_total = sum(count)))
+
+totalNNgerm <- sum(nonnative_seedbank$count) #2918
 
 ```
 
