@@ -157,7 +157,11 @@ seedbank_prep <- seedbank %>%
 germ_tray <- germ_tray_prep %>% 
   left_join(seedbank_prep, by = "stand_core_depth_treat") %>% 
   mutate(seeds_per_g = (germination_n_per_tray/subsample_g), 
-         seeds_per_g_log = log(seeds_per_g)) # transform data: log
+         seeds_per_g_log = log(seeds_per_g)) %>%  # transform data: log
+   mutate(site = fct_relevel(site, 
+            "INT1", "INT2", "INT3","ENH1", "ENH2", "DEG1", "DEG2")) %>% 
+  mutate(treatment = fct_relevel(treatment, 
+                                 "control", "charate", "oven", "ovenchar"))
 
 dim(germ_tray)
 # 205 rows = [(7 DEG + 10 ENH + 9 INT) * 4 treatments * 2 depths] - 3 trays with no data
@@ -383,7 +387,11 @@ dim(seedbank_prep_status) # 393 rows
 germ_tray_status <- germ_tray_prep_status %>% 
   left_join(seedbank_prep_status, by = "stand_core_depth_treat_status") %>% 
   mutate(seeds_per_g = (germination_n/subsample_g), 
-         seeds_per_g_log = log(seeds_per_g))
+         seeds_per_g_log = log(seeds_per_g)) %>% 
+   mutate(site = fct_relevel(site, 
+            "INT1", "INT2", "INT3","ENH1", "ENH2", "DEG1", "DEG2")) %>% 
+  mutate(treatment = fct_relevel(treatment, 
+                                 "control", "charate", "oven", "ovenchar")) 
 dim(germ_tray_status) 
 # 371 rows = 205 rows * 2 status
 #  205 rows = [(7 DEG + 10 ENH + 9 INT) * 4 treatments * 2 depths] - 3 trays with no data
@@ -449,8 +457,7 @@ summary(nativegermination_nativeshrub.lm)
 # Residual standard error: 1.106 on 203 degrees of freedom
 # Multiple R-squared:  0.09099,	Adjusted R-squared:  0.08651 
 # F-statistic: 20.32 on 1 and 203 DF,  p-value: 1.106e-05 <-- significant regression
-length(germ_tray_NAT$status) 
-#168
+
 ```
 
 ```{r native germination x nonnative grass cover}
@@ -538,8 +545,21 @@ summary(nngermination_nngrass.lm)
 ```
 # native and non-native seed density (seeds/g) by hillslope
 ```{r}
-germ_tray_NAT <- germ_tray_status %>% filter(status == "native")
-germ_tray_NN <- germ_tray_status %>% filter(status == "nonnative")
+germ_tray_NAT <- germ_tray_status %>% 
+  filter(status == "native") %>% 
+  mutate(site = fct_relevel(site, 
+            "INT1", "INT2", "INT3","ENH1", "ENH2", "DEG1", "DEG2")) %>% 
+  mutate(treatment = fct_relevel(treatment, 
+                                 "control", "charate", "oven", "ovenchar")) 
+germ_tray_NN <- germ_tray_status %>% filter(status == "nonnative") %>% 
+  mutate(site = fct_relevel(site, 
+            "INT1", "INT2", "INT3","ENH1", "ENH2", "DEG1", "DEG2")) %>% 
+  mutate(treatment = fct_relevel(treatment, 
+                                 "control", "charate", "oven", "ovenchar")) 
+length(germ_tray_NAT$status) 
+#168
+length(germ_tray_NN$status) 
+# 202
 
 boxplot(seeds_per_g ~ site, data=germ_tray_NAT, main="Native seed density (seeds/g) by Hillslope",
    xlab="Hillslope", ylab="Native Seeds per gram")
@@ -1009,3 +1029,33 @@ summary(famdiv_NNgrass.lm)
 # Multiple R-squared:  0.2827,	Adjusted R-squared:  0.2792 
 # F-statistic: 80.02 on 1 and 203 DF,  p-value: 2.336e-16
 ```
+
+# Supplementary Germination Table
+```{r supplementary table}
+# average total germination (N/g soil)
+sup1 <- germ_tray %>%  
+  group_by(site) %>% 
+  summarize(mean_nativeshrubcover = round(mean(native_shrub)*100, 0),
+            mean_nonnativegrasscover = round(mean(nonnative_grass)*100, 0),
+            average_germ = round(mean(seeds_per_g),3),
+            avggerm_SE = round(((sd(seeds_per_g))/sqrt(length((seeds_per_g)))),3
+            ))
+
+# average native germination (N/g soil)
+sup2 <- germ_tray_NAT %>% 
+  group_by(site) %>% 
+   summarize(mean_NATseeddensity = round(mean(seeds_per_g), 3), 
+            NAT_se = round(((sd(seeds_per_g))/sqrt(length((seeds_per_g)))),3)
+            )
+
+# average nonnative germination (N/g soil)
+sup3 <- germ_tray_NN %>% 
+  group_by(site) %>% 
+   summarize(mean_NNseeddensity = round(mean(seeds_per_g), 3), 
+            NN_se = round(((sd(seeds_per_g))/sqrt(length((seeds_per_g)))),3)
+            )
+view(sup1 %>% 
+  left_join(sup2, by = "site") %>% 
+  left_join(sup3, by = "site"))
+```
+
