@@ -164,8 +164,8 @@ print(fire_only) # species list of 17 species
 seedbank_fire <- fire_only %>% 
   left_join(seedbank_load_w, by =  "species_diversity") %>% 
   left_join(average_cover, by = 'site') %>% 
-  mutate(site = fct_relevel(site, 
-                                "INT1", "INT2", "INT3", "ENH1", "ENH2", "DEG1"    , "DEG2" )) %>% 
+  mutate(site = fct_relevel(site, "INT1", "INT2", "INT3", "ENH1", "ENH2")) %>% # no DEG1 or DEG2   
+  mutate(n_per_g_log = log(n_per_g)) %>% 
   dplyr::select(!c(n_per_cm3, n_per_m3, percentcover_native, percentcover_nonnative, native_fern, native_grass, native_forb, nonnative_fern, nonnative_forb, nonnative_shrub))
 
 view(seedbank_fire)
@@ -175,25 +175,31 @@ write.csv(seedbank_fire, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chapa
 ```
 
 # Total germ of firefollowing
-```{r explore - total germination, include=TRUE}
+```{r total germination, include=TRUE}
 view(seedbank_fire %>% 
   na.omit() %>%
-  group_by(status, species_diversity) %>%  # group by status and species 
+  group_by(status, species_diversity, family) %>%  # group by status and species 
   summarise(total_germination = sum(count), 
             average_germ_pergsoil = round(mean(n_per_g), 3))
   )
 
 seedbank_fire %>% 
   na.omit() %>%
-  group_by(status) %>%  # group by status
+  #group_by(status) %>%  # group by status
+    group_by(status, family) %>%  # group by status and family
   summarise(total_germination = sum(count), 
             average_germ_pergsoil = round(mean(n_per_g), 3))
+
+
 
 seedbank_fire %>% 
   na.omit() %>%
   group_by(site) %>%  # group by site 
   summarise(total_germination = sum(count), 
-            average_germ_pergsoil = round(mean(n_per_g), 3))
+            average_germ_pergsoil = round(mean(n_per_g), 4), 
+            SE = round(((sd(n_per_g))/sqrt(length((n_per_g)))),4)
+            )
+
 
 # site    total_germination   average_germ_pergsoil
 # INT1	    10    	            0.005		
@@ -201,6 +207,19 @@ seedbank_fire %>%
 # INT3    	11	                0.004		
 # ENH1	    9	                  0.004		
 # ENH2    	11	                0.003	
+```
+```{r total germination visualization}
+boxplot(n_per_g ~ site, data=seedbank_fire, main="Seeds/g by site",
+   xlab="Site", ylab="Fire Following seeds per gram")
+
+qplot(site, n_per_g, data = seedbank_fire, facets = . ~ depth_name)
+
+```
+
+
+```{r total germination stats}
+
+
 ```
 
 ```{r explore germ by treatment}
