@@ -176,6 +176,7 @@ write.csv(seedbank_fire, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chapa
 
 # Total germ of firefollowing
 ```{r total germination, include=TRUE}
+
 view(seedbank_fire %>% 
   na.omit() %>%
   group_by(status, species_diversity, family) %>%  # group by status and species 
@@ -190,8 +191,13 @@ seedbank_fire %>%
   summarise(total_germination = sum(count), 
             average_germ_pergsoil = round(mean(n_per_g), 3))
 
+#lifeform
+seedbank_fire %>% 
+  na.omit() %>%
+ group_by(lifeform) %>%  # group by lifeform
+  summarise(total_germination = sum(count))
 
-
+# site
 seedbank_fire %>% 
   na.omit() %>%
   group_by(site) %>%  # group by site 
@@ -218,7 +224,9 @@ qplot(site, n_per_g, data = seedbank_fire, facets = . ~ depth_name)
 
 
 ```{r total germination stats}
+### STEPHANIE START HERE (jan 14) --> check data for normality. If not normally distributed, run KW and post-hoc comparison. To determine: do ENH and INT hillslopes have sig different fire following seed densities? or are they the same?
 
+### copy normality test from seedbank.Rmd
 
 ```
 
