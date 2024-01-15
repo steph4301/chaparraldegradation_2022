@@ -128,7 +128,7 @@ DEG_seedbank <- seedbank_load_w %>%
 unique(DEG_seedbank$site)
 ```
 
-# Fire following species
+# Isolate the fire following species
 
 ```{r fire followers only, include = TRUE}
 
@@ -164,6 +164,8 @@ print(fire_only) # species list of 17 species
 seedbank_fire <- fire_only %>% 
   left_join(seedbank_load_w, by =  "species_diversity") %>% 
   left_join(average_cover, by = 'site') %>% 
+  mutate(site = fct_relevel(site, 
+                                "INT1", "INT2", "INT3", "ENH1", "ENH2", "DEG1"    , "DEG2" )) %>% 
   dplyr::select(!c(n_per_cm3, n_per_m3, percentcover_native, percentcover_nonnative, native_fern, native_grass, native_forb, nonnative_fern, nonnative_forb, nonnative_shrub))
 
 view(seedbank_fire)
@@ -172,19 +174,37 @@ sort(unique(seedbank_fire$species_diversity))
 write.csv(seedbank_fire, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/seedbank_fire.csv")
 ```
 
-```{r explore fire following seedbanks SUM germination, include=TRUE}
-seedbank_fire %>% 
+# Total germ of firefollowing
+```{r explore - total germination, include=TRUE}
+view(seedbank_fire %>% 
   na.omit() %>%
-  group_by(species_diversity) %>%  # group by species totals
-  summarise(sum_germination_Nperm2 = sum(n_per_m2))
+  group_by(status, species_diversity) %>%  # group by status and species 
+  summarise(total_germination = sum(count), 
+            average_germ_pergsoil = round(mean(n_per_g), 3))
+  )
 
 seedbank_fire %>% 
   na.omit() %>%
-  group_by(depth_name) %>%  # group by soil depth
-  summarise(sum_germination = sum(n_per_m2))
-# depth_name  sum_germination
-# surface	    6,170	
-# deep	      3,255			
+  group_by(status) %>%  # group by status
+  summarise(total_germination = sum(count), 
+            average_germ_pergsoil = round(mean(n_per_g), 3))
+
+seedbank_fire %>% 
+  na.omit() %>%
+  group_by(site) %>%  # group by site 
+  summarise(total_germination = sum(count), 
+            average_germ_pergsoil = round(mean(n_per_g), 3))
+
+# site    total_germination   average_germ_pergsoil
+# INT1	    10    	            0.005		
+# INT2    	7	                  0.005		
+# INT3    	11	                0.004		
+# ENH1	    9	                  0.004		
+# ENH2    	11	                0.003	
+```
+
+```{r explore germ by treatment}
+		
 
 seedbank_fire %>% 
   na.omit() %>%
