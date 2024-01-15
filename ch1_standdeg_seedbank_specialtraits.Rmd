@@ -202,33 +202,59 @@ seedbank_fire %>%
   na.omit() %>%
   group_by(site) %>%  # group by site 
   summarise(total_germination = sum(count), 
+            total_species = length(unique(species_diversity)),
             average_germ_pergsoil = round(mean(n_per_g), 4), 
             SE = round(((sd(n_per_g))/sqrt(length((n_per_g)))),4)
             )
 
 
-# site    total_germination   average_germ_pergsoil
-# INT1	    10    	            0.005		
-# INT2    	7	                  0.005		
-# INT3    	11	                0.004		
-# ENH1	    9	                  0.004		
-# ENH2    	11	                0.003	
+# site    total_germination   total_species   average_germ_pergsoil
+# INT1	    10    	          3                 0.005		
+# INT2    	7	                4                 0.005		
+# INT3    	11	              3                 0.004		
+# ENH1	    9	                4                 0.004		
+# ENH2    	11	              8                 0.003	
 ```
 ```{r total germination visualization}
 boxplot(n_per_g ~ site, data=seedbank_fire, main="Seeds/g by site",
    xlab="Site", ylab="Fire Following seeds per gram")
+histogram(seedbank_fire$n_per_g)
+length(seedbank_fire$n_per_g) #44 
 
 qplot(site, n_per_g, data = seedbank_fire, facets = . ~ depth_name)
 
 ```
 
 
-```{r total germination stats}
-### STEPHANIE START HERE (jan 14) --> check data for normality. If not normally distributed, run KW and post-hoc comparison. To determine: do ENH and INT hillslopes have sig different fire following seed densities? or are they the same?
+```{r total germination normality}
+ggqqplot(seedbank_fire$n_per_g) 
+shapiro.test(seedbank_fire$n_per_g) # not transformed
+# data:  seedbank_fire$n_per_g
+# W = 0.78652, p-value = 1.505e-06  <-- not normally distributed
 
-### copy normality test from seedbank.Rmd
+ggqqplot(seedbank_fire$n_per_g_log) 
+shapiro.test(seedbank_fire$n_per_g_log) # log transformed
+# data:  seedbank_fire$n_per_g_log
+# W = 0.78523, p-value = 1.414e-06 <-- both aren't great :/
+
+# To determine: do ENH and INT hillslopes have sig different fire following seed densities? or are they the same?
 
 ```
+### differences seed density by site
+```{r seed density by site normality}
+kruskal.test(n_per_g ~ site, data = seedbank_fire)
+# data:  n_per_g by site
+# Kruskal-Wallis chi-squared = 6.4651, df = 4, p-value =
+# 0.167
+pairwise.wilcox.test(seedbank_fire$n_per_g, seedbank_fire$site,
+                 p.adjust.method = "BH")
+#      INT1 INT2 INT3 ENH1
+# INT2 0.55 -    -    -   
+# INT3 0.47 0.75 -    -   
+# ENH1 0.32 0.55 0.85 -   
+# ENH2 0.27 0.31 0.55 0.55
+```
+
 
 ```{r explore germ by treatment}
 		
