@@ -156,8 +156,6 @@ names(fire_only)[names(fire_only) == "germinpretreatmenttray[!germinpretreatment
 print(fire_only) # species list of 17 species
 ```
 
-
-
 ```{r fire followers by site total emergence, include=TRUE}
 
 #left join data frames to create complete df of fire following species
@@ -174,9 +172,8 @@ sort(unique(seedbank_fire$species_diversity))
 write.csv(seedbank_fire, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/seedbank_fire.csv")
 ```
 
-# Total germ of firefollowing
-```{r total germination, include=TRUE}
-
+# Germination of fire following species
+```{r exploration germination, include=TRUE}
 view(seedbank_fire %>% 
   na.omit() %>%
   group_by(status, species_diversity, family) %>%  # group by status and species 
@@ -206,17 +203,34 @@ seedbank_fire %>%
             average_germ_pergsoil = round(mean(n_per_g), 4), 
             SE = round(((sd(n_per_g))/sqrt(length((n_per_g)))),4)
             )
-
-
 # site    total_germination   total_species   average_germ_pergsoil
 # INT1	    10    	          3                 0.005		
 # INT2    	7	                4                 0.005		
 # INT3    	11	              3                 0.004		
 # ENH1	    9	                4                 0.004		
 # ENH2    	11	              8                 0.003	
+
+seedbank_fire %>% 
+  na.omit() %>%
+  group_by(treatment) %>%  # group by treatment
+  summarise(tot_germ_bytreat = sum(count))
+# treatment   tot_germ_bytreat
+# charate	      16			
+# oven	        15			
+# ovenchar	    17	
+
+seedbank_fire %>% 
+  na.omit() %>%
+  group_by(lifeform) %>%  # group by lifeform
+  summarise(tot_species = length(unique(species_diversity)),
+    tot_germ_bylifeform = sum(count))
+# lifeform sum_germination
+# forb	    33			
+# shrub	    15	
 ```
-```{r total germination visualization}
-boxplot(n_per_g ~ site, data=seedbank_fire, main="Seeds/g by site",
+# Seed density 
+```{r seed density visualization}
+boxplot(n_per_g ~ site, data=seedbank_fire, main="Fire following seeds/g by site",
    xlab="Site", ylab="Fire Following seeds per gram")
 histogram(seedbank_fire$n_per_g)
 length(seedbank_fire$n_per_g) #44 
@@ -225,8 +239,8 @@ qplot(site, n_per_g, data = seedbank_fire, facets = . ~ depth_name)
 
 ```
 
-
-```{r total germination normality}
+### normality
+```{r seed density normality}
 ggqqplot(seedbank_fire$n_per_g) 
 shapiro.test(seedbank_fire$n_per_g) # not transformed
 # data:  seedbank_fire$n_per_g
@@ -236,16 +250,14 @@ ggqqplot(seedbank_fire$n_per_g_log)
 shapiro.test(seedbank_fire$n_per_g_log) # log transformed
 # data:  seedbank_fire$n_per_g_log
 # W = 0.78523, p-value = 1.414e-06 <-- both aren't great :/
-
-# To determine: do ENH and INT hillslopes have sig different fire following seed densities? or are they the same?
-
 ```
-### differences seed density by site
+
+### differences by site - cat
 ```{r seed density by site normality}
 kruskal.test(n_per_g ~ site, data = seedbank_fire)
 # data:  n_per_g by site
-# Kruskal-Wallis chi-squared = 6.4651, df = 4, p-value =
-# 0.167
+# Kruskal-Wallis chi-squared = 6.4651, df = 4, p-value = 0.167 <-- seed density by site is not sig different
+
 pairwise.wilcox.test(seedbank_fire$n_per_g, seedbank_fire$site,
                  p.adjust.method = "BH")
 #      INT1 INT2 INT3 ENH1
@@ -254,143 +266,153 @@ pairwise.wilcox.test(seedbank_fire$n_per_g, seedbank_fire$site,
 # ENH1 0.32 0.55 0.85 -   
 # ENH2 0.27 0.31 0.55 0.55
 ```
+### differences by native shrub
+```{r}
+ggplot(data = seedbank_fire, 
+       aes(x = native_shrub*100, y = n_per_g, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(0, 0.01)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  # scale_color_manual(values = c(standcolors),
+  #                     name = "Hillslope",
+  #                     # labels = c("DEG2" = "shrub dominated", 
+  #                     #            "matrix" = "matrix", 
+  #                     #            "degraded" = "grass dominated")
+  #                     ) + #rename standtypes labels
+  labs(x = "Native shrub cover (%)", 
+       y = "Seed density (#/g))", 
+       title = "Fire following seed density by Native Shrub Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
 
-
-```{r explore germ by treatment}
-		
-
-seedbank_fire %>% 
-  na.omit() %>%
-  group_by(treatment) %>%  # group by soil depth
-  summarise(sum_germination_Nperm2 = sum(n_per_m2))
-# treatment  sum_germination
-# charate	    3,119			
-# oven	      2,762			
-# ovenchar	  3,544	
-
-seedbank_fire %>% 
-  na.omit() %>%
-  group_by(lifeform) %>%  # group by lifeform
-  summarise(sum_germination_Nperm2 = sum(n_per_m2))
-# lifeform  sum_germination
-# forb	    6,728			
-# shrub	    2,697	
-
-seedbank_fire %>% 
-  na.omit() %>%
-  group_by(site) %>%  # group by site
-  summarise(sum_germination_Nperm2 = sum(n_per_m2))
-# site    sum_germination_perm2
-# INT1  	2,466			
-# INT2	  1,571			
-# INT3	  2,538			
-# ENH1	  1,254			
-# ENH2	  1,596	
-
-seedbank_fire %>% 
-  na.omit() %>%
-  group_by(site, lifeform) %>%  # group by lifeform and site
-  summarise(sum_germination_Nperm2 = sum(n_per_m2))
-# site  lifeform  sum_germination_Nperm2
-# INT1	forb	    767		
-# INT1	shrub	    1,699		
-# INT2	forb	    1,371		
-# INT2	shrub	    200		
-# INT3	forb	    2,538		
-# ENH1	forb    	570		
-# ENH1	shrub	    684		
-# ENH2	forb	    1,482		
-# ENH2	shrub	    114	
-
-seedbank_fire %>% 
-  na.omit() %>%
-  filter(lifeform == "shrub") %>% # only shrubs
-  group_by(site) %>%  # group by site
-  summarise(sum_germination_Nperm2 = sum(n_per_m2))
-#  site     shrub_germ_countperm2
-#  INT1	    1,699			
-#  INT2	    200			
-#  ENH1	    684			
-#  ENH2	    114	
-
-seedbank_fire %>% 
-  na.omit() %>%
-  filter(lifeform == "forb") %>% # only forbs
-  group_by(site) %>%  # group by site
-  summarise(sum_germination_Nperm2 = sum(n_per_m2))
-# site    forb_germ_countperm2
-# INT1	  767			
-# INT2	  1,371			
-# INT3	  2,538			
-# ENH1	  570		
-# ENH2	  1,482	
-
+fire_seeddensity_nativeshrub.lm = lm(n_per_g ~ native_shrub, data=seedbank_fire)
+summary(fire_seeddensity_nativeshrub.lm)
+# Residual standard error: 0.001361 on 42 degrees of freedom
+# Multiple R-squared:  0.09764,	Adjusted R-squared:  0.07616 
+# F-statistic: 4.545 on 1 and 42 DF,  p-value: 0.03892 <-- sig dif
 ```
 
+### differences by non-native grass
+```{r seed density by nn grass cover}
+ggplot(data = seedbank_fire, 
+       aes(x = nonnative_grass*100, y = n_per_g, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(0, 0.01)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  # scale_color_manual(values = c(standcolors),
+  #                     name = "Hillslope",
+  #                     # labels = c("DEG2" = "shrub dominated", 
+  #                     #            "matrix" = "matrix", 
+  #                     #            "degraded" = "grass dominated")
+  #                     ) + #rename standtypes labels
+  labs(x = "Non-native grass cover (%)", 
+       y = "Seed density (#/g))", 
+       title = "Fire following seed density by Non-native Grass Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
 
+fire_seeddensity_nngrass.lm = lm(n_per_g ~ nonnative_grass, data=seedbank_fire)
+summary(fire_seeddensity_nngrass.lm)
+# Residual standard error: 0.001296 on 42 degrees of freedom
+# Multiple R-squared:  0.182,	Adjusted R-squared:  0.1625  <-- loss of fire following speices more strongly correlated with nngrass cover
+# F-statistic: 9.344 on 1 and 42 DF,  p-value: 0.003881 <-- sig diff
+```
+
+# site differences combining surface and below germination data
 ```{r explore fire following seedbanks MEAN germination, include=TRUE}
 seedbank_fire_totalemerg <- seedbank_fire %>% 
   na.omit() %>%
-  group_by(site, stand_core) %>% 
-  summarise(sum_germination_Nperm2 = sum(n_per_m2))
-# site  stand_core sum_germination_Nperm2
-#    <fct> <fct>                       <int>
-#  1 INT1  INT1_1                       1831
-#  2 INT1  INT1_3                        635
-#  3 INT2  INT2_5                        266
-#  4 INT2  INT2_6                       1305
-#  5 INT3  INT3_7                       1740
-#  6 INT3  INT3_8                        266
-#  7 INT3  INT3_9                        532
-#  8 ENH1  ENH1_1                        684
-#  9 ENH1  ENH1_4                        570
-# 10 ENH2  ENH2_6                        228
-# 11 ENH2  ENH2_7                        228
-# 12 ENH2  ENH2_8                        684
-# 13 ENH2  ENH2_9                        342
-# 14 ENH2  ENH2_10                       114
+  group_by(site, soilcore) %>% 
+  summarise(sum_germination_g = round(sum(n_per_g),4)) %>% 
+  mutate(sum_germ_g_log = log(sum_germination_g))
+#  site  stand_core sum_germination_g
+#    <fct> <fct>                  <dbl>
+#  1 INT1  INT1_1                0.0393
+#  2 INT1  INT1_3                0.0118
+#  3 INT2  INT2_5                0.0061
+#  4 INT2  INT2_6                0.0218
+#  5 INT3  INT3_7                0.029 
+#  6 INT3  INT3_8                0.0061
+#  7 INT3  INT3_9                0.0122
+#  8 ENH1  ENH1_1                0.0173
+#  9 ENH1  ENH1_4                0.0086
+# 10 ENH2  ENH2_6                0.0058
+# 11 ENH2  ENH2_7                0.0058
+# 12 ENH2  ENH2_8                0.0086
+# 13 ENH2  ENH2_9                0.0086
+# 14 ENH2  ENH2_10               0.0029
 
-
-
+# calculating avergerge germination by combining surface and deep soil cores
 seedbank_fire_totalemerg %>% 
   na.omit() %>%
   group_by(site) %>%  # group by site
-  dplyr::summarise(mean_germination = mean(sum_germination_Nperm2), 
-                    sd = sd(sum_germination_Nperm2),
-                    N = length(sum_germination_Nperm2),
-                    SE = (sd(sum_germination_Nperm2)) / sqrt(sum_germination_Nperm2)
-                    ) 
+  dplyr::summarise(mean_germination = mean(sum_germination_g), 
+                    sd = sd(sum_germination_g),
+                    N = length(sum_germination_g),
+                    SE = (sd(sum_germination_g)) / sqrt(length(sum_germination_g))
+                   )
 
+# site  mean_germination  sd          N SE
+# INT1	0.02555000	0.019445436	2	0.013750000
+# INT2	0.01395000	0.011101576	2	0.007850000
+# INT3	0.01576667	0.011859314	3	0.006846978
+# ENH1	0.01295000	0.006151829	2	0.004350000
+# ENH2	0.00634000	0.002378655	5	0.001063767
 
+ggqqplot(seedbank_fire_totalemerg$sum_germination_g) 
+shapiro.test(seedbank_fire_totalemerg$sum_germination_g) # not transformed
+# data:  seedbank_fire_totalemerg$sum_germination_g
+# W = 0.81117, p-value = 0.006883
+
+ggqqplot(seedbank_fire_totalemerg$sum_germ_g_log) 
+shapiro.test(seedbank_fire_totalemerg$sum_germ_g_log) # log transformed
+# data:  seedbank_fire_totalemerg$sum_germ_g_log
+# W = 0.95804, p-value = 0.6908 <-- Normally distributed! WHAT!?!?!
+
+aov(sum_germ_g_log ~ site, seedbank_fire_totalemerg)
+summary(aov(sum_germ_g_log ~ site, seedbank_fire_totalemerg))
+#    Df Sum Sq Mean Sq F value Pr(>F)
+# site         4  2.867  0.7167   1.703  0.233
+# Residuals    9  3.788  0.4209 
+```
+
+# Species diversity
+```{r spp diversity}
+#### STEPHANIE - START HERE ---> calculate the number of speices per soil_core, then average by A) hillslope (categorical) and then B) by native shrub cover and non-native grass cover
 
 ```
 
-```{r fire followers plot, include = TRUE}
-# bar plot
-seedbank_fire_plot <- ggplot(seedbank_fire_totalemerg, aes(x = stand_core, y = sum, fill = stand)) +
-  geom_col(position = "dodge", width = 0.8) +
-  labs(
-    title = "Total emergence of species following fire", 
-    x = "Site", 
-    y = "Total emergence (N)") + # title, axes titles
-  scale_fill_manual(values = c(standcolors)) + # manual colors
-  # scale_fill_manual(values = cal_palette('chaparral2')) +  # continuous colors
-  #                  limits = c("intact", "matrix", "degraded"), # "limits" reorders the x-axis
-  #                  labels = c("Intact", "Matrix", "Degraded")) + # "labels" changes the name
-  theme_bw() +
- # scale_x_discrete(
- #   limits=c("intact", "matrix", "degraded"),
- #   labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded")
- #   )
-  scale_y_continuous(breaks = seq(0, max(seedbank_fire_totalemerg$sum), by = 1))
- 
-seedbank_fire_plot +
-  theme(axis.text.x = element_text(angle = 45
-                                  , hjust = 1))
 
-seedbank_fire %>% 
-  group_by(stand_core) %>% 
-  summarise(sum = sum(count))
+```{r fire followers plot, include = TRUE}
+# # bar plot
+# seedbank_fire_plot <- ggplot(seedbank_fire_totalemerg, aes(x = stand_core, y = sum, fill = stand)) +
+#   geom_col(position = "dodge", width = 0.8) +
+#   labs(
+#     title = "Total emergence of species following fire", 
+#     x = "Site", 
+#     y = "Total emergence (N)") + # title, axes titles
+#   scale_fill_manual(values = c(standcolors)) + # manual colors
+#   # scale_fill_manual(values = cal_palette('chaparral2')) +  # continuous colors
+#   #                  limits = c("intact", "matrix", "degraded"), # "limits" reorders the x-axis
+#   #                  labels = c("Intact", "Matrix", "Degraded")) + # "labels" changes the name
+#   theme_bw() +
+#  # scale_x_discrete(
+#  #   limits=c("intact", "matrix", "degraded"),
+#  #   labels=c("intact" = "Intact", "matrix" = "Matrix", "degraded" = "Degraded")
+#  #   )
+#   scale_y_continuous(breaks = seq(0, max(seedbank_fire_totalemerg$sum), by = 1))
+#  
+# seedbank_fire_plot +
+#   theme(axis.text.x = element_text(angle = 45
+#                                   , hjust = 1))
+# 
+# seedbank_fire %>% 
+#   group_by(stand_core) %>% 
+#   summarise(sum = sum(count))
 ```
 
 # SHRUB - species diversity
