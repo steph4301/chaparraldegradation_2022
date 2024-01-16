@@ -282,7 +282,7 @@ formula1 <- germ_tray$seeds_per_g_log ~ germ_tray$native_shrub
 seeddensity_nativeshrub <- ggplot(data = germ_tray, 
        aes(x = native_shrub*100, y = seeds_per_g_log, color = site)) + #color = standtype
   geom_point(size = 3, alpha = 0.8) +
-  ylim(0, -10)+
+  ylim(-10, 0)+
   xlim(0,100) +
   geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
   # scale_color_manual(values = c(standcolors),
