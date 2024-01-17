@@ -558,15 +558,85 @@ pairwise.wilcox.test(seedbank_fire_totalemerg$sum_germination_g, seedbank_fire_t
                  p.adjust.method = "BH")
 ```
 
+# 3. Diversity
 
-# Species diversity
-```{r spp diversity by native shrub}
+```{r seedbank_fire_diversity df}
 
+# calculate number of species per site_core
+#  ==> combine soil depth and tray treatment
 
-#### STEPHANIE - START HERE ---> calculate the number of speices per soil_core, then average by A) hillslope (categorical) and then B) by native shrub cover and non-native grass cover
-
+seedbank_fire_diversity <- seedbank_fire %>% 
+  group_by(stand_core, stand, site, soilcore, native_shrub, nonnative_grass) %>% 
+  dplyr::summarise(N_species = length(unique(species_diversity)),
+                   N_family = length(unique(family)),
+                   total_count = sum(count)
+                   )
 ```
 
+## a) species diversity
+
+### - visualize 
+```{r spp diversity explore data}
+histogram(seedbank_fire_diversity$N_species)
+
+qplot(stand_core, N_species, data = seedbank_fire_diversity)
+qplot(native_shrub, N_species, data = seedbank_fire_diversity)
+qplot(nonnative_grass, N_species, data = seedbank_fire_diversity)
+
+boxplot(N_species ~ site, data=seedbank_fire_diversity, main="Species Diversity by site",
+   xlab="Site", ylab="Number of Species")
+
+qplot(site, n_per_g, data = seedbank_fire)
+qplot(site, n_per_g, data = seedbank_fire, facets = . ~ depth_name)
+
+```
+### - normality
+```{r spp diversity normality}
+ggqqplot(seedbank_fire_diversity$N_species) 
+shapiro.test(seedbank_fire_diversity$N_species) 
+# data:  seedbank_fire_diversity$N_species
+# W = 0.87482, p-value = 0.04906 <-- not normally distributed
+```
+
+### - differences by site - cat
+```{r spp diversity by site cat}
+kruskal.test(N_species ~ site, data = seedbank_fire_diversity)
+# data:  N_species by site
+# Kruskal-Wallis chi-squared = 2.9373, df = 4, p-value = 0.5684 <-- no diff
+
+pairwise.wilcox.test(seedbank_fire_diversity$N_species, seedbank_fire_diversity$site,
+                 p.adjust.method = "BH")
+```
+
+
+### - differences by native shrub
+### - differences by non-native grass
+
+## b) Family diversity
+
+### - visualize 
+```{r family diversity explore data}
+histogram(seedbank_fire_diversity$N_family)
+qplot(stand_core, N_family, data = seedbank_fire_diversity)
+qplot(native_shrub, N_family, data = seedbank_fire_diversity)
+qplot(nonnative_grass, N_family, data = seedbank_fire_diversity)
+
+boxplot(N_family ~ site, data=seedbank_fire_diversity, main="Family Diversity by site",
+   xlab="Site", ylab="Number of Families")
+```
+
+### - normality
+```{r}
+ggqqplot(seedbank_fire_diversity$N_family) 
+shapiro.test(seedbank_fire_diversity$N_family) 
+# data:  seedbank_fire_diversity$N_family
+# W = 0.82293, p-value = 0.009727 <-- not norm dist
+```
+### - differences by site - cat
+### - differences by native shrub
+### - differences by non-native grass
+
+# END OF CODE
 
 ```{r fire followers plot, include = TRUE}
 # # bar plot
