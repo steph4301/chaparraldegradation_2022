@@ -410,6 +410,18 @@ shapiro.test(seedbank_fire_totalemerg$sum_germ_g_log) # log transformed
 # W = 0.95804, p-value = 0.6908 <---------------------- Normally distributed! WHAT!?!?!
 ```
 
+### - differences site - cat
+```{r seed density by site combining soil depths logged}
+
+# using LOGGED data
+
+aov(sum_germ_g_log ~ site, seedbank_fire_totalemerg)
+summary(aov(sum_germ_g_log ~ site, seedbank_fire_totalemerg))
+#             Df  Sum Sq  Mean Sq   F value   Pr(>F)
+# site         4  2.867   0.7167    1.703     0.233 <-- no sig diff between sites
+# Residuals    9  3.788   0.4209 
+```
+
 ### - differences by native shrub
 ```{r seed density by native shrub cover combining soil depths}
 
@@ -535,17 +547,6 @@ summary(fire_seeddensity_nngrass.lm)
 # F-statistic: 3.407 on 1 and 12 DF,  p-value: 0.08972 <-- not sig
 ```
 
-### - differences site - cat
-```{r seed density by site combining soil depths logged}
-
-# using LOGGED data
-
-aov(sum_germ_g_log ~ site, seedbank_fire_totalemerg)
-summary(aov(sum_germ_g_log ~ site, seedbank_fire_totalemerg))
-#             Df  Sum Sq  Mean Sq   F value   Pr(>F)
-# site         4  2.867   0.7167    1.703     0.233 <-- no sig diff between sites
-# Residuals    9  3.788   0.4209 
-```
 
 ```{r seed density by site combining soil depths}
 # using not logged data
@@ -583,13 +584,22 @@ qplot(stand_core, N_species, data = seedbank_fire_diversity)
 qplot(native_shrub, N_species, data = seedbank_fire_diversity)
 qplot(nonnative_grass, N_species, data = seedbank_fire_diversity)
 
-boxplot(N_species ~ site, data=seedbank_fire_diversity, main="Species Diversity by site",
+boxplot(N_species ~ site, data=seedbank_fire_diversity, main="Species Diversity by hillslope",
    xlab="Site", ylab="Number of Species")
 
 qplot(site, n_per_g, data = seedbank_fire)
 qplot(site, n_per_g, data = seedbank_fire, facets = . ~ depth_name)
 
 ```
+### - absolute
+```{r absolute spp and fam diversity by hillslope}
+seedbank_fire_absolute <- seedbank_fire %>% 
+  group_by(site, native_shrub, nonnative_grass) %>% 
+  summarize(total_spp_N = length(unique(species_diversity)), 
+            total_family_N = length(unique(family))
+            )
+```
+
 ### - normality
 ```{r spp diversity normality}
 ggqqplot(seedbank_fire_diversity$N_species) 
@@ -608,9 +618,124 @@ pairwise.wilcox.test(seedbank_fire_diversity$N_species, seedbank_fire_diversity$
                  p.adjust.method = "BH")
 ```
 
-
 ### - differences by native shrub
+```{r species diversity by native shrub cover}
+
+ggplot(data = seedbank_fire_diversity, 
+       aes(x = native_shrub*100, y = N_species, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+#  geom_jitter() +
+  ylim(0, 5)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  # scale_color_manual(values = c(standcolors),
+  #                     name = "Hillslope",
+  #                     # labels = c("DEG2" = "shrub dominated", 
+  #                     #            "matrix" = "matrix", 
+  #                     #            "degraded" = "grass dominated")
+  #                     ) + #rename standtypes labels
+  labs(x = "Native shrub cover (%)", 
+       y = "Number of fire following species (#)", 
+       title = "Number of fire following species by Native Shrub Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
+
+seedbank_fire_diversity_natshrub.lm = lm(N_species ~ native_shrub, data=seedbank_fire_diversity)
+summary(seedbank_fire_diversity_natshrub.lm)
+# Residual standard error: 1.013 on 12 degrees of freedom
+# Multiple R-squared:  0.003473,	Adjusted R-squared:  -0.07957  <-- weak correlation
+# F-statistic: 0.04182 on 1 and 12 DF,  p-value: 0.8414 <-- not sig by native shrub cover
+```
+
+```{r absolute species diversity by native shrub cover}
+# ABSOLUTE x native shrub cover
+
+ggplot(data = seedbank_fire_absolute, 
+       aes(x = native_shrub*100, y = total_spp_N, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(0, 10)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  # scale_color_manual(values = c(standcolors),
+  #                     name = "Hillslope",
+  #                     # labels = c("DEG2" = "shrub dominated", 
+  #                     #            "matrix" = "matrix", 
+  #                     #            "degraded" = "grass dominated")
+  #                     ) + #rename standtypes labels
+  labs(x = "Native shrub cover (%)", 
+       y = "Number of fire following species (#)", 
+       title = "Number of unique fire following species by Native Shrub Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
+
+seedbank_fire_absppdiv_natshrub.lm = lm(total_spp_N ~ native_shrub, data=seedbank_fire_absolute)
+summary(seedbank_fire_absppdiv_natshrub.lm)
+# Residual standard error: 1.15 on 3 degrees of freedom
+# Multiple R-squared:  0.7692,	Adjusted R-squared:  0.6923 
+# F-statistic: 9.999 on 1 and 3 DF,  p-value: 0.05079
+
+```
+
 ### - differences by non-native grass
+```{r species diversity by nonnative grass cover}
+ggplot(data = seedbank_fire_diversity, 
+       aes(x = nonnative_grass*100, y = N_species, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  geom_jitter() +
+  ylim(0, 5)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  # scale_color_manual(values = c(standcolors),
+  #                     name = "Hillslope",
+  #                     # labels = c("DEG2" = "shrub dominated", 
+  #                     #            "matrix" = "matrix", 
+  #                     #            "degraded" = "grass dominated")
+  #                     ) + #rename standtypes labels
+  labs(x = "Non-native grass cover (%)", 
+       y = "Number of fire following species (#)", 
+       title = "Number of fire following species by Non-native Grass Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
+
+seedbank_fire_diversity_nngrass.lm = lm(N_species ~ nonnative_grass, data=seedbank_fire_diversity)
+summary(seedbank_fire_diversity_nngrass.lm)
+# Residual standard error: 1.015 on 12 degrees of freedom
+# Multiple R-squared:  0.0001815,	Adjusted R-squared:  -0.08314  <-- no correlation with nn grass
+# F-statistic: 0.002179 on 1 and 12 DF,  p-value: 0.9635 <-- not sig
+```
+
+```{r absolute species diversity by nn grass cover}
+# ABSOLUTE x nn grass cover
+
+ggplot(data = seedbank_fire_absolute, 
+       aes(x = nonnative_grass*100, y = total_spp_N, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(0, 10)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  # scale_color_manual(values = c(standcolors),
+  #                     name = "Hillslope",
+  #                     # labels = c("DEG2" = "shrub dominated", 
+  #                     #            "matrix" = "matrix", 
+  #                     #            "degraded" = "grass dominated")
+  #                     ) + #rename standtypes labels
+  labs(x = "Non-native grass cover (%)", 
+       y = "Number of fire following species (#)", 
+       title = "Number of unique fire following species by non-native grass cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
+
+seedbank_fire_absppdiv_nngrass.lm = lm(total_spp_N ~ nonnative_grass, data=seedbank_fire_absolute)
+summary(seedbank_fire_absppdiv_nngrass.lm)
+# Residual standard error: 1.425 on 3 degrees of freedom
+# Multiple R-squared:  0.646,	Adjusted R-squared:  0.5279 
+# F-statistic: 5.474 on 1 and 3 DF,  p-value: 0.1013 <-- not sig
+
+```
 
 ## b) Family diversity
 
@@ -625,16 +750,121 @@ boxplot(N_family ~ site, data=seedbank_fire_diversity, main="Family Diversity by
    xlab="Site", ylab="Number of Families")
 ```
 
-### - normality
+### - absolute
 ```{r}
+seedbank_fire_absolute
+```
+
+### - normality
+```{r family diversity normality}
 ggqqplot(seedbank_fire_diversity$N_family) 
 shapiro.test(seedbank_fire_diversity$N_family) 
 # data:  seedbank_fire_diversity$N_family
 # W = 0.82293, p-value = 0.009727 <-- not norm dist
 ```
+
 ### - differences by site - cat
+```{r family diversity diff by site}
+kruskal.test(N_family ~ site, data = seedbank_fire_diversity)
+# data:  N_family by site
+# Kruskal-Wallis chi-squared = 5.4167, df = 4, p-value = 0.2472 <-- not sig diff 
+
+pairwise.wilcox.test(seedbank_fire_diversity$N_family, seedbank_fire_diversity$site,
+                 p.adjust.method = "BH")
+```
+
 ### - differences by native shrub
+```{r average family diversity diff by native shrub cover}
+
+### STEPHANIE - START HERE - calculate p-values for linear regressions of 
+### a1) average Family diversity x native shrub cover
+### a2) average Family diversity x nonnative grass cover
+### b1) absolute Family diversity x native shrub cover
+### b2) absolute Family diversity x nonnative grass cover
+
+ggplot(data = seedbank_fire_diversity, 
+       aes(x = native_shrub*100, y = N_species, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+#  geom_jitter() +
+  ylim(0, 5)+
+  xlim(0,100) +
+  geom_jitter() +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  # scale_color_manual(values = c(standcolors),
+  #                     name = "Hillslope",
+  #                     # labels = c("DEG2" = "shrub dominated", 
+  #                     #            "matrix" = "matrix", 
+  #                     #            "degraded" = "grass dominated")
+  #                     ) + #rename standtypes labels
+  labs(x = "Native shrub cover (%)", 
+       y = "Number of fire following species (#)", 
+       title = "Average number of fire following species by Native Shrub Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
+
+seedbank_fire_avgfamdiv_natshrub.lm = lm(N_species ~ native_shrub, data=seedbank_fire_diversity)
+summary(seedbank_fire_avgfamdiv_natshrub.lm)
+```
+
+```{r absolute family diversity diff by native shrub cover}
+
+ggplot(data = seedbank_fire_absolute, 
+       aes(x = native_shrub*100, y = total_family_N, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+#  geom_jitter() +
+  ylim(0, 10)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  # scale_color_manual(values = c(standcolors),
+  #                     name = "Hillslope",
+  #                     # labels = c("DEG2" = "shrub dominated", 
+  #                     #            "matrix" = "matrix", 
+  #                     #            "degraded" = "grass dominated")
+  #                     ) + #rename standtypes labels
+  labs(x = "Native shrub cover (%)", 
+       y = "Number of fire following families (#)", 
+       title = "Absolute number of fire following families by Native Shrub Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
+
+seedbank_fire_absolutefamdiv_natshrub.lm = lm(total_family_N ~ native_shrub, data=seedbank_fire_absolute)
+summary(seedbank_fire_absolutefamdiv_natshrub.lm)
+# Residual standard error: 0.8468 on 3 degrees of freedom
+# Multiple R-squared:  0.8079,	Adjusted R-squared:  0.7439 
+# F-statistic: 12.62 on 1 and 3 DF,  p-value: 0.03803 <-- sig diff
+
+```
+
 ### - differences by non-native grass
+```{r average family diversity diff by nonnative grass cover}
+
+ggplot(data = seedbank_fire_diversity, 
+       aes(x = native_shrub*100, y = N_species, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+#  geom_jitter() +
+  ylim(0, 5)+
+  xlim(0,100) +
+  geom_jitter() +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  # scale_color_manual(values = c(standcolors),
+  #                     name = "Hillslope",
+  #                     # labels = c("DEG2" = "shrub dominated", 
+  #                     #            "matrix" = "matrix", 
+  #                     #            "degraded" = "grass dominated")
+  #                     ) + #rename standtypes labels
+  labs(x = "Native shrub cover (%)", 
+       y = "Number of fire following species (#)", 
+       title = "Average number of fire following species by Native Shrub Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
+
+seedbank_fire_avgfamdiv_natshrub.lm = lm(N_species ~ native_shrub, data=seedbank_fire_diversity)
+summary(seedbank_fire_avgfamdiv_natshrub.lm)
+```
+
 
 # END OF CODE
 
