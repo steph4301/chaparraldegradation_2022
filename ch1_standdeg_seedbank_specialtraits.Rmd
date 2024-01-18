@@ -499,9 +499,9 @@ seedbank_fire_diversity <- seedbank_fire %>%
   group_by(stand_core, site, native_shrub, nonnative_grass) %>% # stand, soilcore
   dplyr::summarise(N_species = length(unique(species_diversity)),
                    N_family = length(unique(family)),
-                   total_germination_count = sum(count), 
-                   total_n_per_g = sum(n_per_g),
-                   log_total_n_per_g = log(total_n_per_g)#,
+                   total_germination_count = sum(count)#, 
+                   #total_n_per_g = sum(n_per_g),
+                  # log_total_n_per_g = log(total_n_per_g)#,
                    #sppdiv_per_g = N_species/subsample_g,
                    #famdiv_per_g = N_family/subsample_g
                    )
@@ -512,6 +512,19 @@ max(seedbank_fire_diversity$N_species) # 4
 min(seedbank_fire_diversity$N_family) # 1
 max(seedbank_fire_diversity$N_family) # 3
 
+# testing things out...
+soil_g <- seedbank_fire %>% 
+  group_by(stand_core, stand_core_depth) %>% 
+  summarize(soil_g = mean(subsample_g)) %>% 
+  group_by(stand_core) %>% 
+  summarize(total_soil_g = sum(soil_g))
+  
+seedbank_fire_diversity_soil <- seedbank_fire_diversity %>% 
+  left_join(soil_g, by = "stand_core") %>% 
+  mutate(spp_per_g = N_species/total_soil_g,
+         fam_per_g = N_family/total_soil_g, 
+         total_germ_per_g = total_germination_count/total_soil_g)
+
 ```
 
 ## a) species diversity
@@ -519,13 +532,21 @@ max(seedbank_fire_diversity$N_family) # 3
 ### - visualize 
 ```{r spp diversity explore data}
 histogram(seedbank_fire_diversity$N_species)
+histogram(seedbank_fire_diversity_soil$N_species)
+
 
 qplot(stand_core, N_species, data = seedbank_fire_diversity)
 qplot(native_shrub, N_species, data = seedbank_fire_diversity)
 qplot(nonnative_grass, N_species, data = seedbank_fire_diversity)
 
-boxplot(N_species ~ site, data=seedbank_fire_diversity, main="Species Diversity by hillslope",
-   xlab="Site", ylab="Number of Species")
+boxplot(N_species ~ site, 
+        data=seedbank_fire_diversity, 
+        main="Species Diversity by hillslope",
+        xlab="Site", ylab="Number of Species")
+boxplot(spp_per_g ~ site, 
+        data = seedbank_fire_diversity_soil,
+        main="Species Density by hillslope",
+        xlab="Site", ylab="Species Density (#/g soil)")
 
 qplot(site, n_per_g, data = seedbank_fire)
 qplot(site, n_per_g, data = seedbank_fire, facets = . ~ depth_name)
@@ -546,6 +567,12 @@ ggqqplot(seedbank_fire_diversity$N_species)
 shapiro.test(seedbank_fire_diversity$N_species) 
 # data:  seedbank_fire_diversity$N_species
 # W = 0.87482, p-value = 0.04906 <-- not normally distributed
+
+ggqqplot(seedbank_fire_diversity_soil$spp_per_g) 
+shapiro.test(seedbank_fire_diversity_soil$spp_per_g) 
+# data:  seedbank_fire_diversity_soil$spp_per_g
+# W = 0.9234, p-value = 0.2461 <--- normally distributed
+histogram(seedbank_fire_diversity_soil$spp_per_g)
 ```
 
 ### - differences by site - cat
@@ -553,7 +580,10 @@ shapiro.test(seedbank_fire_diversity$N_species)
 kruskal.test(N_species ~ site, data = seedbank_fire_diversity)
 # data:  N_species by site
 # Kruskal-Wallis chi-squared = 2.9373, df = 4, p-value = 0.5684 <-- no diff
-
+```
+```{r}
+aov(spp_per_g ~ site, data = seedbank_fire_diversity_soil)
+summary(aov(spp_per_g ~ site, data = seedbank_fire_diversity_soil))
 ```
 
 ### - differences by native shrub
@@ -586,6 +616,33 @@ summary(seedbank_fire_diversity_natshrub.lm)
 # F-statistic: 0.04182 on 1 and 12 DF,  p-value: 0.8414 <-- not sig by native shrub cover
 ```
 
+```{r spp density per g x native shrub cover}
+
+ggplot(data = seedbank_fire_diversity_soil, 
+       aes(x = native_shrub*100, y = spp_per_g, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+#  geom_jitter() +
+  ylim(0, 0.05)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  # scale_color_manual(values = c(standcolors),
+  #                     name = "Hillslope",
+  #                     # labels = c("DEG2" = "shrub dominated", 
+  #                     #            "matrix" = "matrix", 
+  #                     #            "degraded" = "grass dominated")
+  #                     ) + #rename standtypes labels
+  labs(x = "Native shrub cover (%)", 
+       y = "Density of fire following species (#/g of soil)", 
+       title = "Density of fire following species by Native Shrub Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
+
+seedbank_fire_spp_soil_natshrub.lm = lm(spp_per_g ~ native_shrub, data=seedbank_fire_diversity_soil)
+summary(seedbank_fire_spp_soil_natshrub.lm)
+```
+
+
 ### - differences by non-native grass
 ```{r species diversity by nonnative grass cover}
 ggplot(data = seedbank_fire_diversity, 
@@ -614,6 +671,34 @@ summary(seedbank_fire_diversity_nngrass.lm)
 # Multiple R-squared:  0.0001815,	Adjusted R-squared:  -0.08314  <-- no correlation with nn grass
 # F-statistic: 0.002179 on 1 and 12 DF,  p-value: 0.9635 <-- not sig
 ```
+```{r}
+ggplot(data = seedbank_fire_diversity_soil, 
+       aes(x = nonnative_grass*100, y = spp_per_g, color = site)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  geom_jitter() +
+  ylim(0, 0.05)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  # scale_color_manual(values = c(standcolors),
+  #                     name = "Hillslope",
+  #                     # labels = c("DEG2" = "shrub dominated", 
+  #                     #            "matrix" = "matrix", 
+  #                     #            "degraded" = "grass dominated")
+  #                     ) + #rename standtypes labels
+  labs(x = "Non-native grass cover (%)", 
+       y = "Density of fire following species (#/g of soil)", 
+       title = "Density of fire following species by Non-native Grass Cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
+
+seedbank_fire_spp_soil_nngrass.lm = lm(spp_per_g ~ nonnative_grass, data=seedbank_fire_diversity_soil)
+summary(seedbank_fire_spp_soil_nngrass.lm)
+# Residual standard error: 0.001694 on 12 degrees of freedom
+# Multiple R-squared:  0.00145,	Adjusted R-squared:  -0.08176 
+# F-statistic: 0.01743 on 1 and 12 DF,  p-value: 0.8972
+```
+
 
 ## b) Family diversity
 ```{r}
