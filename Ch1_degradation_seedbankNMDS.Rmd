@@ -27,7 +27,6 @@ library(multcompView)
 library(plotly)
 library(ggvegan)
 library(here)
-library(gridExtra)
 library(cowplot)
 library(ggthemes)
 library(ggpubr) # customize ggplot2 for publication
@@ -166,9 +165,9 @@ germination_depthtreat <- germination_m2_raw %>%
 
 glimpse(germination_depthtreat)
 ```
-# UPDATED CODE: Stacked germination by family (January 2024)
+# UPDATED STACKED FIGURE: Stacked germination by family (January 2024)
 ### - germination (n/g soil) by family
-```{r}
+```{r germination (n/g soil) by family}
 
 # updated code on jan 21, 2024
 seedbank_byfamily_new <- germination_depthtreat %>% # prior df: seedbank_load_v_omitpretreatment
@@ -183,7 +182,9 @@ head(seedbank_byfamily_new)
 sort(unique(seedbank_byfamily_new$family)) # df before transpose - use for ellipses
 # N = 25 families
 n_distinct(seedbank_byfamily_new$family) # 25 
+```
 
+```{r FIGURE germination (n/g soil) by family}
 family_native <- ggplot(seedbank_byfamily_new %>%  
          dplyr::filter(status == "native"),   
        aes(fill=family, y=germ_nperg_family, x=stand_core)) + 
@@ -221,6 +222,191 @@ ggdraw() +
   draw_plot_label(label = c("A", "B"), size = 10,
                   x = c(0, 0), y = c(1, .5))
 ```
+# UPDATED NMDS FIGURE: NMDS by genus (January 2024)
+### - data prep
+```{r updated nmds data prep}
+# species in columns
+# sites or observations in rows
+
+seedbank_nperg_bysamplocation <- germination_depthtreat %>% 
+  group_by(stand, site, stand_core, genus_abundance) %>% # lifeform, status, lifescycle, family
+  filter(count > 0) %>% 
+  filter(!is.na(genus_abundance)) %>% # omit blank cells in species 
+  dplyr::summarize(totalgerm_nperg_genus = sum(n_per_g)) 
+
+head(seedbank_nperg_bysamplocation) # df before transpose - use for ellipses
+dim(seedbank_nperg_bysamplocation) #330   5
+```
+
+### - transpose data 
+```{r updated transpose data by species for nmds, include=TRUE}
+
+# species in columns down
+# observations or sites in rows across
+
+seedbank_nperg_bysamplocation_nmdsprep <- seedbank_nperg_bysamplocation %>% 
+ tidyr::spread(genus_abundance, totalgerm_nperg_genus) %>% # transpose data so columns are stand_core
+  replace(is.na(.), 0) # replace NA with zeros --> isn't compatible with character columns
+
+view(seedbank_nperg_bysamplocation_nmdsprep)
+
+# write.csv(seedbank_nperg_bysamplocation_nmdsprep, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/seedbank_NMDS_202401.csv")
+```
+
+### - replace NAs with zeros
+```{r updated replace NAs with zeros}
+seedbank_nperg_bysamplocation_nmdsprep_num <- seedbank_nperg_bysamplocation_nmdsprep %>% 
+    ungroup() %>% 
+  dplyr::select(!c('stand', 'site', 'stand_core')) %>% 
+  replace(is.na(.), 0)
+  
+head(seedbank_nperg_bysamplocation_nmdsprep_num) # only numbers
+dim(seedbank_nperg_bysamplocation_nmdsprep_num) # 26 55
+```
+
+### - stress tests
+```{r updated stress tests}
+# USE THIS ONE!
+
+# str(seedbank_nperg_bysamplocation_nmdsprep)
+# stand_core_depth -->  tibble [89 × 52]
+
+# the AUTOTRANSFORM = F skips the automatic data transformations and uses the input data as is
+# - when the raw data contains the information you need (e.g., abundance)
+# - when you have a small number of samples or small number of variables
+# - when you want to preseve the original scale of the data (e.g., interested in the absolute differences between two sets of measurements)
+seedbank_nperg_bysamplocation_nmds <- metaMDS(seedbank_nperg_bysamplocation_nmdsprep_num, autotransform = F)
+
+# uses the RAUP-CRICK dissimilarity index to calculate pairwise dissimilarities
+# - adjusts for spp richness
+# - downweights importance of rare spp 
+# - more useful when interested in community STRUCTURE rather than individual species
+# - takes into account differences in species evenness
+#seedbank_nperg_bysamplocation_nmds <- metaMDS(seedbank_nperg_bysamplocation_nmdsprep_num, distance = "raup")
+# stress tests are really low ==> I may have insufficient data. :/
+```
+### - scores
+```{r updated scores nmds}
+scores(seedbank_nperg_bysamplocation_nmds)
+```
+### - stressplot
+```{r updated stress test}
+
+stressplot(seedbank_nperg_bysamplocation_nmds)
+# if stress tests are really low ==> I may have insufficient data. :/
+
+#plot_df <- scores(seedbank_bysitecore_nmds, display = "sites") %>% # from An's code
+#  as.data.frame() %>% 
+#  rownames_to_column("stand_core") %>% 
+#  full_join(seedbank_bysitecore, by = "stand_core")
+
+nmds_df_nperg <- data.frame(seedbank_nperg_bysamplocation_nmds$points, seedbank_nperg_bysamplocation_nmdsprep) # from chatgpt
+
+```
+
+### - ggplot color
+```{r updated ggplot bw}
+colnames(nmds_df_nperg)[colnames(nmds_df_nperg) == 'site'] <- 'hillslope' # rename "site" to "hillslope"
+
+seedbank_nperg_nmds_color <- ggplot(nmds_df_nperg, 
+       aes(x = MDS1, y = MDS2, color = hillslope, shape = hillslope)) + # shape = site, color = site
+  geom_point(size = 3, alpha = 0.8) +
+  scale_color_manual(values = c("orange", "brown", "green", "darkgreen", "lightblue", "blue", "navy")) + #"gray0", "gray30", "gray60"
+  scale_shape_manual(values = c(16,16, 15, 15, 17, 17, 17)) + 
+  theme_bw() +
+  #stat_ellipse(linetype = 2, size = 1) +
+  labs(title = "NMDS: by germination (#/g soil)")
+```
+### - ggplot color vectors
+```{r updated nmds color and vectors with envfit function}
+# code from An Bui: https://rpubs.com/an-bui/vegan-cheat-sheet 
+
+nmds_nperg_df <- data.frame(seedbank_nperg_bysamplocation_nmds$points, seedbank_nperg_bysamplocation_nmdsprep) # code from chatgpt. Adds NMDS1 and NMDS2 values to dataframe.
+
+seedbank_nperg_bysamplocation_nmdsprep <- seedbank_nperg_bysamplocation_nmdsprep %>% 
+  mutate(standtype_ID = 1)
+seedbank_nperg_bysamplocation_nmdsprep$standtype_ID <- 1:26 #shorten df to first 26 rows
+
+plot_below_df_nperg <- scores(seedbank_nperg_bysamplocation_nmds, display = "sites") %>% 
+  as.data.frame() %>% 
+  rownames_to_column("standtype_ID") %>% 
+  mutate_at(c('standtype_ID'), as.numeric) %>% 
+  full_join(seedbank_nperg_bysamplocation_nmdsprep, by = "standtype_ID") %>%  
+  select(!c(standtype_ID))
+
+ dim(plot_below_df_nperg) # 26 rows
+```
+
+```{r updated extract pvalues}
+
+# envfit() takes the output of metaMDS() and the species matrix you created
+fit_below_nperg <- envfit(seedbank_nperg_bysamplocation_nmds, seedbank_nperg_bysamplocation_nmdsprep, perm = 999) # pvalues for spp and stand, site, stand_core
+
+# extract p-values for each species
+fit_below_pvals_nperg <- fit_below_nperg$vectors$pvals %>% 
+  as.data.frame() %>% 
+  rownames_to_column("species") %>% 
+  dplyr::rename("pvals" = ".") %>% 
+  filter(!species == 'standtype_ID')
+view(fit_below_pvals_nperg)
+```
+
+```{r updated extract coordinates for genus_abundance}
+# extract coordinates for species, only keep species with p-val = 0.05
+fit_below_spp_nperg <- fit_below_nperg %>% 
+  scores(., display = "vectors") %>% 
+  as.data.frame() %>% 
+  rownames_to_column("species") %>% 
+  full_join(., fit_below_pvals_nperg, by = "species") %>% 
+  filter(pvals <= 0.002) %>% # limited number for visual clarity
+  filter(!species == 'standtype_ID')
+dim(fit_below_spp_nperg)
+```
+
+```{r updated nmds plot with vectors }
+# by standtype
+nmdsbelow_plot_new_nperg <- ggplot(plot_below_df_nperg, 
+                                   aes(x = NMDS1, y = NMDS2)) +
+  coord_equal() +
+  geom_point(aes(color = stand, shape = stand), size = 3, alpha = 0.8) + #shape = stand_core
+  stat_ellipse(aes(color = stand)) +
+   scale_color_manual(values = c("darkgreen", "darkmagenta", "darkgoldenrod1")) +
+  geom_segment(data = fit_below_spp_nperg, aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
+               arrow = arrow(length = unit(0.25, "cm")),
+               col = "black") +
+  geom_text(data = fit_below_spp_nperg, aes(label = species),  
+            position = position_jitter(width = 0.4, height = 0.5))
+nmdsbelow_plot_new_nperg + theme_bw()
+
+# by hillslope
+colnames(plot_below_df_nperg)[colnames(plot_below_df_nperg) == 'site'] <- 'hillslope' # rename "site" to "hillslope"
+
+nmdsbelow_plot_new_nperg <- ggplot(plot_below_df_nperg, 
+                                   aes(x = NMDS1, y = NMDS2)) +
+  coord_equal() +
+  geom_point(aes(color = hillslope, shape = hillslope), size = 3, alpha = 0.8) + #shape = stand_core
+ # stat_ellipse(aes(color = stand)) +
+ scale_color_manual(values = c("orange", "brown", "green", "darkgreen", "lightblue", "cornflowerblue", "blue")) + #"gray0",
+   scale_shape_manual(values = c(16,16, 15, 15, 17, 17, 17)) + 
+  theme_bw() +
+  geom_segment(data = fit_below_spp_nperg, aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
+               arrow = arrow(length = unit(0.25, "cm")),
+               col = "black") +
+  geom_text(data = fit_below_spp_nperg, aes(label = species),  
+            position = position_jitter(width = 0.0, height = 0.4)
+            )
+nmdsbelow_plot_new_nperg + theme_bw()
+nmdsbelow_plot_new_nperg + theme_bw()
+nmdsbelow_plot_new_nperg + theme_bw()
+nmdsbelow_plot_new_nperg + theme_bw()
+nmdsbelow_plot_new_nperg + theme_bw()
+nmdsbelow_plot_new_nperg + theme_bw()
+nmdsbelow_plot_new_nperg + theme_bw()
+nmdsbelow_plot_new_nperg + theme_bw()
+```
+
+
+
 
 
 # OG CODE: Stacked germination by family (2023)
@@ -481,7 +667,7 @@ write.csv(seedbank_bysitecore_nmdsprep_num, "~/Dropbox/GRADSCHOOL/Dissertation/R
 ```{r stress tests}
 # USE THIS ONE!
 
-# str(seedbank_bysitecore_nmdsprep_num)
+str(seedbank_bysitecore_nmdsprep_num)
 # stand_core_depth -->  tibble [89 × 52]
 
 # the AUTOTRANSFORM = F skips the automatic data transformations and uses the input data as is
@@ -551,7 +737,7 @@ seedbank_nmds_plot_color
 ```{r nmds color and vectors with envfit function}
 # code from An Bui: https://rpubs.com/an-bui/vegan-cheat-sheet 
 
-nmds_above_df <- data.frame(abcover_byspecies_NMDS$points, abcover_byspecies_nmdsprep) # code from chatgpt. Adds NMDS1 and NMDS2 values to dataframe.
+nmds_below_df <- data.frame(seedbank_bysitecore_nmds$points, seedbank_bysitecore_nmdsprep) # code from chatgpt. Adds NMDS1 and NMDS2 values to dataframe.
 
 seedbank_bysitecore_nmdsprep <- seedbank_bysitecore_nmdsprep %>% 
   mutate(standtype_ID = 1)
@@ -565,7 +751,7 @@ plot_below_df <- scores(seedbank_bysitecore_nmds, display = "sites") %>%
   full_join(seedbank_bysitecore_nmdsprep, by = "standtype_ID") %>%  
   select(!c(standtype_ID))
 
-# view(plot_below_df)
+ view(plot_below_df)
 
 # envfit() takes the output of metaMDS() and the species matrix you created
 fit_below <- envfit(seedbank_bysitecore_nmds, seedbank_bysitecore_nmdsprep, perm = 999) # pvalues for spp and stand, site, stand_core
