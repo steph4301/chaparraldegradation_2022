@@ -133,10 +133,38 @@ sort(unique(unknown_seedbank$species_diversity)) # 1 species
 # List shrub germination by hillslope
 ```{r}
 shrub_seedbank <- seedbank %>% 
-  filter(lifeform == "shrub")
+  filter(lifeform == "shrub") %>% 
+  filter(count > 0) %>% 
+   mutate(site = fct_relevel(site, 
+            "INT1", "INT2", "INT3","ENH1", "ENH2", "DEG1", "DEG2"))
+
 sort(unique(shrub_seedbank$species_diversity)) # 10 species
+#  [1] "Artemisia californica"      "Ceanothus oliganthus"       "Diplacus aurantiacus"      
+#  [4] "Eriodictyon crassifolium"   "Malacothamnus fasciculatus" "Nicotiana glauca"          
+#  [7] "Ribes spp."                 "Salvia leucophylla"         "Unknown A - shrub"         
+# [10] "Unknown D - brown dicot"   
 sort(unique(shrub_seedbank$family)) 
 length(unique(shrub_seedbank$family)) # 7 families
+ 
+glimpse(shrub_seedbank)
+
+shrub_seedbank %>% 
+  filter(species_diversity == "Malacothamnus fasciculatus") %>% 
+  group_by(site) %>% 
+  summarize(total_count = sum(count))
+# Ceanothus oliganthus = INT2_6
+# Ribes spp. = INT
+# Unknown A - shrub = INT1, INT3
+# 
+# Salvia leucophylla = INT, ENH
+# Diplacus aurantiacus = ENH1_1
+# Eriodictyon crassifolium = ENH1_1, ENH1_4
+# Unknown D - brown dicot = ENH2_6
+# 
+# Nicotiana glauca = DEG, INT
+# Artemisia californica = DEG, ENH, INT
+# Malacothamnus fasciculatus = DEG, ENH, INT
+
 ```
 
 # Explore seedbank data by germination (#seeds/g sieved soil)
