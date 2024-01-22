@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# libraries
+# Load libraries
 ```{r install libraries, message=FALSE}
 
 library(tidyverse) # includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
@@ -27,12 +27,16 @@ library(multcompView)
 library(plotly)
 library(ggvegan)
 library(here)
+library(gridExtra)
+library(cowplot)
+library(ggthemes)
+library(ggpubr) # customize ggplot2 for publication
 
 # dune data: https://www.rpubs.com/RGrieger/545184
 
 ```
 
-# load csv
+# Initial data prep
 ```{r load deg_seedbank csv}
 # 
 seedbank_load_raw <- read.csv("deg_seedbank_20231007.csv", header = TRUE, na.strings=c("","NA"))
@@ -56,7 +60,7 @@ sort(unique(seedbank_load$family))
 sort(unique(seedbank_load$lifeform))
 sort(unique(seedbank_load$lifescycle))
 ```
-# data prep
+
 (1) Organize the seed bank data by converting the df into a tibble.
 ```{r preparing df, include = TRUE}
 
@@ -86,7 +90,7 @@ seedbank_load_v <- seedbank_load %>%
     family ==  "Liliaceae  " ~ "Liliaceae",
     family ==  "Namaceae  " ~ "Namaceae",
     family ==  "Phrymaceae  " ~ "Phrymaceae",
-    family == "Phrymaceae  "  ~ "Phrymaceae",
+  #  family == "Phrymaceae  "  ~ "Phrymaceae",
     family ==  "Poaceae  " ~ "Poaceae",
     family == "Themidaceae  " ~ "Themidaceae", 
      TRUE ~ as.character(family)  # Keep other observations unchanged
@@ -140,161 +144,107 @@ unique(seedbank_load_v_omitpretreatment$treatment) # list unique treatments --> 
 unique(seedbank_load_v_omitpretreatment$status) # list unique treatments --> native, nonnative
 unique(seedbank_load_v_omitpretreatment$genus_abundance) # list unique species --> 52 species
 unique(seedbank_load_v_omitpretreatment$stand_core) # unique stand_core --> 26 = 7 + 10 + 9
+sort(unique(seedbank_load_v_omitpretreatment$family))
 
-write.csv(seedbank_load_v_omitpretreatment, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/seedbank_load_v_omitpretreatment.csv")
+# write.csv(seedbank_load_v_omitpretreatment, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/seedbank_load_v_omitpretreatment.csv")
 ```
 
-# total germination counts
-```{r}
+# Load clean data 
+
+### - germination by depth and treatment
+```{r load standardized germination data, inlude = TRUE}
 germination_m2_raw <- read_xlsx("processed/germination_m2.xlsx")
-germination_m2 <- germination_m2_raw %>%
+average_cover <- read.csv("nat_nn_cover.csv", header = TRUE, na.strings=c("","NA"))
+
+germination_depthtreat <- germination_m2_raw %>%
   mutate(site = fct_relevel(site, 
             "INT1", "INT2", "INT3","ENH1", "ENH2", "DEG1", "DEG2")) %>% 
   mutate(treatment = fct_relevel(treatment, 
-                                 "control", "charate", "oven", "ovenchar"))
-glimpse(germination_m2)
-```
+                                 "control", "charate", "oven", "ovenchar")) %>% 
+  left_join(average_cover, by = 'site') %>% 
+  dplyr::select(stand, site, depth_name, subsample_g, treatment, species_diversity, genus_abundance, lifeform, status, lifescycle, family, count, stand_core, stand_core_depth, stand_core_depth_treat, n_per_g, native_shrub, nonnative_grass)
 
+glimpse(germination_depthtreat)
+```
+# UPDATED CODE: Stacked germination by family (January 2024)
+### - germination (n/g soil) by family
 ```{r}
-germination_m2 %>%
-   group_by(site) %>% 
-  summarize(total_germ_m2 = sum(n_per_m2))
-# site  total_native_germ_m2
-# INT1	54,298.04			
-# INT2	82,678.43			
-# INT3	72,133.33			
-# ENH1	128,114.29			
-# ENH2	206,848.30			
-# DEG1	26,050.42			
-# DEG2	15,546.22	
-sort(unique(germination_m2$species_diversity))
 
-germination_m2 %>%
-  filter(status == "native") %>% 
-  group_by(site) %>% 
-  summarize(total_native_germ_m2 = sum(n_per_m2))
-# site  total_native_germ_m2
-# INT1	43,862.745			
-# INT2	64,011.765			
-# INT3	46,050.980			
-# ENH1	20,228.571			
-# ENH2	16,228.571			
-# DEG1	3,571.429			
-# DEG2	9,348.739	
+# updated code on jan 21, 2024
+seedbank_byfamily_new <- germination_depthtreat %>% # prior df: seedbank_load_v_omitpretreatment
+ filter(count > 0) %>% 
+   group_by(stand, site, stand_core, family, status) %>%  
+  # This will give a data point for every species based on germination numbers per species
+  dplyr::summarize(germ_nperg_family = sum(n_per_g), 
+                   N_species = length(unique(species_diversity)), 
+                   total_count = sum(count))
+  
+head(seedbank_byfamily_new)
+sort(unique(seedbank_byfamily_new$family)) # df before transpose - use for ellipses
+# N = 25 families
+n_distinct(seedbank_byfamily_new$family) # 25 
 
-germination_m2 %>%
-  filter(status == "nonnative") %>% 
-  group_by(site) %>% 
-  summarize(total_nonnative_germ_m2 = sum(n_per_m2))
-# site  total_nonnative_germ_m2
-# INT1	10,435.294			
-# INT2	18,666.667			
-# INT3	26,082.353			
-# ENH1	107,885.714			
-# ENH2	190,391.154			
-# DEG1	22,478.992			
-# DEG2	6,197.479	
+family_native <- ggplot(seedbank_byfamily_new %>%  
+         dplyr::filter(status == "native"),   
+       aes(fill=family, y=germ_nperg_family, x=stand_core)) + 
+  geom_bar(position="stack", stat="identity") +
+  ylim(0, 2)+
+  #ggtitle("Germination (#/g soil) by Family and Status") +
+  labs(x="Sampling Location", y="Germination (#/g soil)") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  facet_wrap(~ status)
 
-germination_m2 %>%
-  filter(lifeform == "forb" & status == "native") %>% 
-  group_by(site) %>% 
-  summarize(total_forb_germ_m2 = sum(n_per_m2))
-# site  total_forb_germ_m2
-# INT1	25,647
-# INT2	42,169			
-# INT3	23,329			
-# ENH1	23,314		
-# ENH2	22,562			
-# DEG1	15,126			
-# DEG2	14,181	
-#
-# NATIVE forb germination
-# INT1	23,875
-# INT2	35,878			
-# INT3	20,592			
-# ENH1	8,914			
-# ENH2	6,857			
-# DEG1	3,151			
-# DEG2	9,139	
+family_native_print <- family_native + theme(legend.position = c(0.1, 0.2)) # Key location offset from (0,0)
 
-germination_m2 %>%
-  filter(lifeform == "shrub") %>% 
-  group_by(site) %>% 
-  summarize(total_shrub_germ_m2 = sum(n_per_m2))
-# site  total_shrub_germ_m2
-# INT1	11,710			
-# INT2	26,988
-# INT3	5,184		
-# ENH1	10,743
-# ENH2	8,686
-# DEG1	840
-# DEG2	315
-germination_m2 %>%
-  filter(lifeform == "shrub") %>% 
-  filter()
-  pull(species_diversity)
+family_nn <- ggplot(seedbank_byfamily_new %>%  
+         dplyr::filter(status == "nonnative"),   
+       aes(fill=family, y=germ_nperg_family, x=stand_core)) + 
+  geom_bar(position="stack", stat="identity") +
+  ylim(0, 2)+
+  #ggtitle("Germination (#/g soil) by Family and Status") +
+  labs(x="Sampling Location", y="Germination (#/g soil)") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  facet_wrap(~ status)
 
+# With the par( ) function, you can include the option mfrow=c(nrows, ncols) to create a matrix of nrows x ncols plots that are filled in by row. mfcol=c(nrows, ncols) fills in the matrix by columns.
 
-germination_m2 %>%
- filter(lifeform == "grass" & status == "native") %>% 
-  group_by(site) %>% 
-  summarize(total_nativegrass_germ_m2 = sum(n_per_m2))
-# site  total_nativegrass_germ_m2
-# INT1	13,063			
-# INT2	2,682		
-# INT3	20,976			
-# ENH1	571			
-# ENH2	686
-```
-# total native germination counts
-```{r}
-seedbank_load_v_omitpretreatment %>%  
-  filter(status == "native") %>% 
-  group_by(site) %>% 
-  summarize(total_germination = sum(count))
-# DEG1	34			
-# DEG2	89			
-# ENH1	139			
-# ENH2	111			
-# INT1	195			
-# INT2	288			
-# INT3	196	
-
-150/34
-
-111/89
-
-```
-# total non-native germination counts
-```{r}
-seedbank_load_v_omitpretreatment %>%  
-  filter(status == "nonnative") %>% 
-  group_by(site) %>% 
-  summarize(total_germination = sum(count))
-# DEG1	214			
-# DEG2	59			
-# ENH1	824			
-# ENH2	1582			
-# INT1	45			
-# INT2	84			
-# INT3	110	
+# option 1
+# ggarrange(family_native, family_nn, 
+#           labels = c("A", "B"),
+#           ncol = 1, nrow = 2)
+# 
+# option 2
+ggdraw() +
+  draw_plot(family_native, x = 0.02, y = .5, width = 1, height = .5) +
+  draw_plot(family_nn, x = 0.02, y = 0, width = 1, height = .5) +
+ # draw_plot(bp, x = 0, y = 0, width = 1, height = 0.5) +
+  draw_plot_label(label = c("A", "B"), size = 10,
+                  x = c(0, 0), y = c(1, .5))
 ```
 
-# stacked germination by family
+
+# OG CODE: Stacked germination by family (2023)
 ```{r stacked germination by family, include=TRUE}
 # data prep 
-
 # this is the df you'll call to set GROUPS: seedbank_bysitecore
+
+# original code written by Kit in 2023
 seedbank_byfamily <- seedbank_load_v_omitpretreatment %>% 
-   #filter(!is.na(genus_abundance)) %>% # omit blank cells 
-  group_by(stand, site, rep, stand_core, family) %>% # by stand_core and species 
-  # This will give a data point for every species based on germination numbers per species
-  #group_by(stand_core_depth, species) %>% # by stand_core_depth - DOES NOT CONSIDER TREATMENT
-  #group_by(stand_core_detph_treat, species) %>% # by stand_core_depth_treat
-  dplyr::summarize(totalgerm_family = sum(count)) 
-
+    #filter(!is.na(genus_abundance)) %>% # omit blank cells 
+   group_by(stand, site, rep, stand_core, family) %>% # by stand_core and species 
+   # This will give a data point for every species based on germination numbers per species
+   #group_by(stand_core_depth, species) %>% # by stand_core_depth - DOES NOT CONSIDER TREATMENT
+   #group_by(stand_core_detph_treat, species) %>% # by stand_core_depth_treat
+   dplyr::summarize(totalgerm_family = sum(count)) 
+head(seedbank_byfamily)
 sort(unique(seedbank_byfamily$family)) # df before transpose - use for ellipses
+# N = 26 families
+# "Phrymaceae" and "Phrymaceae  "
+```
 
+### - Figure: proportion of germination
+
+```{r calculate proportion of germination, include = FALSE}
 seedbank_byfamily_count <- seedbank_byfamily %>% # calculate the total number of hits to then calculate proportion 
   group_by(stand_core) %>%
   dplyr::summarize(totalgerm_family_bystandcore = sum(totalgerm_family))
@@ -319,7 +269,8 @@ ggplot(seedbank_byfamily_proportion, aes(fill=family, y=proportion_germination, 
   labs(x="Soil Core", y="Relative Germination") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
-# stacked germination by family and status
+
+### - Figure: stacked germination by family and status
 ```{r tacked germination by family and status FIGURE, include=TRUE}
 
 seedbank_byfamily_status <- seedbank_load_v_omitpretreatment %>% 
@@ -350,7 +301,7 @@ ggplot(seedbank_byfamilystatus_proportion %>%
   facet_wrap(~ status)
 ```
 
-#Stacked Germination by family with shrub -- Kit
+### Figure: stacked Germination by family with shrub -- Kit
 ```{r}
 abcover_sum <- read.csv("processed/coverstatus.csv")
 abcover_sum[,12] <- c("INT1", "INT2", "INT3", "ENH1", "ENH1", "ENH1", "ENH2", "ENH2", "ENH2", "DEG1", "DEG1", "DEG1", "DEG2", "DEG2", "DEG2") 
@@ -455,18 +406,18 @@ seedbank_sppr_regression <- ggplot(data = seedbank_sppr,
                       labels = c("intact" = "shrub dominated", 
                                  "matrix" = "matrix", 
                                  "degraded" = "grass dominated")) + #rename standtypes labels
-#   labs(x = "Non-native grass cover (%)", 
-#        y = "Native cover (%)", 
-#        title = "Total Native Cover by Non-native Grass Cover") +
-#   theme_bw() +  
-#   stat_poly_line() +
-# #  stat_poly_eq(use_label(c("eq", "R2")))
-#  stat_poly_eq(
-#     aes(label = paste(after_stat(eq.label), stat(adj.rr.label), sep = "~~~~")),
-#     formula = formula6, 
-#     parse=TRUE
-#  )
-# print(native_by_nngrass_regression)
+   labs(x = "Non-native grass cover (%)", 
+        y = "Native cover (%)", 
+        title = "Total Native Cover by Non-native Grass Cover") +
+   theme_bw() +  
+   stat_poly_line() +
+ #  stat_poly_eq(use_label(c("eq", "R2")))
+    stat_poly_eq(
+     aes(label = paste(after_stat(eq.label), stat(adj.rr.label), sep = "~~~~")),
+   #  formula = formula6, 
+     parse=TRUE
+  ) +
+ print(seedbank_sppr_regression)
 
 ```
 
