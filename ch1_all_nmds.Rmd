@@ -45,7 +45,7 @@ abcover_byspecies <- abcover_raw %>%
     percentcover = n_distinct(site_rep_dist)/41) %>% 
   ungroup() %>%
   dplyr::select(c(site, species, percentcover)) %>% 
-  mutate(datatype = as.character("c")) %>% 
+  mutate(datatype = as.character("c")) %>% # adding "percent cover" identifier to species name
   mutate(species_datatype = paste(species, datatype, sep="_"))
 
 density_byspecies <- density_raw %>% 
