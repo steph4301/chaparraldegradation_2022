@@ -44,7 +44,9 @@ abcover_byspecies <- abcover_raw %>%
     count_per_dist = n_distinct(site_rep_dist), 
     percentcover = n_distinct(site_rep_dist)/41) %>% 
   ungroup() %>%
-  dplyr::select(c(site, species, percentcover))
+  dplyr::select(c(site, species, percentcover)) %>% 
+  mutate(datatype = as.character("c")) %>% 
+  mutate(species_datatype = paste(species, datatype, sep="_"))
 
 density_byspecies <- density_raw %>% 
   group_by(site, species) %>% 
@@ -99,6 +101,7 @@ duneplot <- ggplot() +
   geom_point(data = subset(nmds.fort, score == 'sites'),
              mapping = aes(x = NMDS1, y = NMDS2),
              alpha = 0.5,  #transparency (to hide/show)
+             color = "darkorange",
              show.legend = F) +
   
   #while this is the species data, or abundance based on different observations. 
@@ -109,6 +112,10 @@ duneplot <- ggplot() +
              show.legend = F) 
 
 duneplot
+
+
+
+
 
 ```
 
