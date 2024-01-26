@@ -148,7 +148,8 @@ length(unique(shrub_seedbank$family)) # 7 families
  
 glimpse(shrub_seedbank)
 
-shrub_seedbank %>% 
+
+shrub_seedbank %>%  # <---  run this code or... 
   filter(species_diversity == "Malacothamnus fasciculatus") %>% 
   group_by(site) %>% 
   summarize(total_count = sum(count))
@@ -164,6 +165,11 @@ shrub_seedbank %>%
 # Nicotiana glauca = DEG, INT
 # Artemisia californica = DEG, ENH, INT
 # Malacothamnus fasciculatus = DEG, ENH, INT
+
+shrub_seedbank %>% # <--- ... you can also run this code
+  filter(species_diversity == "Ceanothus oliganthus") %>% 
+  distinct(stand_core) %>%
+  pull(stand_core)
 
 ```
 
