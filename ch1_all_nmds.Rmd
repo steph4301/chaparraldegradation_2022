@@ -118,6 +118,7 @@ nmds2_df <- data.frame(nmds_total.nmds2$points, nmds_total_prep) # adds NMDS1 an
 
 # plot: nmds x hillslopes
 colnames(nmds2_df)[colnames(nmds2_df) == 'site'] <- 'hillslope' # rename "site" to "hillslope"
+
 total_nmds2_hillslope <- ggplot(nmds2_df, 
        aes(x = MDS1, y = MDS2, color = hillslope, shape = hillslope)) + # shape = site, color = site
   geom_point(size = 3, alpha = 0.8) +
@@ -137,7 +138,7 @@ nmds_total.nmds2_plot <- scores(nmds_total.nmds2, display = "sites") %>%
   rownames_to_column("standtype_ID") %>% 
   mutate_at(c('standtype_ID'), as.numeric) %>% 
   full_join(nmds_total_prep, by = "standtype_ID") %>%  
-  dplyr::select(!c(standtype_ID))
+  dplyr::select(!c(standtype_ID)) 
 
 dim(nmds_total.nmds2_plot)
 
@@ -161,7 +162,32 @@ nmds_total.nmds2_coord <- nmds_total.nmds2_fit %>%
   filter(!species == 'standtype_ID')
 dim(nmds_total.nmds2_coord) # <-- limit number of vectors to <7 for clarity
 
-
+# plot: nmds x hillslopes + labels 
+total_nmds2_hillslope_vectors <- ggplot(nmds_total.nmds2_plot %>% # output of scores()
+                                          rename(hillslope = site), 
+                                   aes(x = NMDS1, y = NMDS2)) +
+  coord_equal() +
+  xlim(-1, 1) +
+  geom_point(aes(color = hillslope, shape = hillslope), 
+             size = 3, alpha = 0.8, position = position_jitter(width = 0.1, height = 0.1)) + 
+  #stat_ellipse(aes(color = hillslope)) +
+ scale_color_manual(values = c("orange", "brown", "green", "darkgreen", "lightblue", "cornflowerblue", "blue")) + #"gray0",
+   scale_shape_manual(values = c(16,16, 15, 15, 17, 17, 17)) + 
+  theme_bw() +
+  geom_segment(data = nmds_total.nmds2_coord, aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
+               arrow = arrow(length = unit(0.25, "cm")),
+                col = "black") +
+   geom_text(data = nmds_total.nmds2_coord, aes(label = species),  
+             position = position_jitter(width = 0.0, height = 0.4)
+             )
+total_nmds2_hillslope_vectors + theme_bw()
+total_nmds2_hillslope_vectors + theme_bw()
+total_nmds2_hillslope_vectors + theme_bw()
+total_nmds2_hillslope_vectors + theme_bw()
+total_nmds2_hillslope_vectors + theme_bw()
+total_nmds2_hillslope_vectors + theme_bw()
+total_nmds2_hillslope_vectors + theme_bw()
+total_nmds2_hillslope_vectors + theme_bw()
 ```
 
 ```{r NMDS Graphing}
