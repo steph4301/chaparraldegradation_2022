@@ -178,7 +178,7 @@ total_nmds2_hillslope_vectors <- ggplot(nmds_total.nmds2_plot %>% # output of sc
                arrow = arrow(length = unit(0.25, "cm")),
                 col = "black") +
    geom_text(data = nmds_total.nmds2_coord, aes(label = species),  
-             position = position_jitter(width = 0.0, height = 0.4)
+             position = position_jitter(width = 0.4, height = 0.4)
              )
 total_nmds2_hillslope_vectors + theme_bw()
 total_nmds2_hillslope_vectors + theme_bw()
