@@ -30,6 +30,7 @@ library(here)
 library(cowplot)
 library(ggthemes)
 library(ggpubr) # customize ggplot2 for publication
+library(ggnewscale)
 
 # dune data: https://www.rpubs.com/RGrieger/545184
 
@@ -300,7 +301,7 @@ stressplot(seedbank_nperg_bysamplocation_nmds)
 #  rownames_to_column("stand_core") %>% 
 #  full_join(seedbank_bysitecore, by = "stand_core")
 
-nmds_df_nperg <- data.frame(seedbank_nperg_bysamplocation_nmds$points, seedbank_nperg_bysamplocation_nmdsprep) # from chatgpt
+nmds_df_nperg <- data.frame(seedbank_nperg_bysamplocation_nmds$points, seedbank_nperg_bysamplocation_nmdsprep) # code from chatgpt. Adds NMDS1 and NMDS2 values to dataframe.
 
 ```
 
@@ -321,8 +322,6 @@ seedbank_nperg_nmds_color <- ggplot(nmds_df_nperg,
 ```{r updated nmds color and vectors with envfit function}
 # code from An Bui: https://rpubs.com/an-bui/vegan-cheat-sheet 
 
-nmds_nperg_df <- data.frame(seedbank_nperg_bysamplocation_nmds$points, seedbank_nperg_bysamplocation_nmdsprep) # code from chatgpt. Adds NMDS1 and NMDS2 values to dataframe.
-
 seedbank_nperg_bysamplocation_nmdsprep <- seedbank_nperg_bysamplocation_nmdsprep %>% 
   mutate(standtype_ID = 1)
 seedbank_nperg_bysamplocation_nmdsprep$standtype_ID <- 1:26 #shorten df to first 26 rows
@@ -332,7 +331,7 @@ plot_below_df_nperg <- scores(seedbank_nperg_bysamplocation_nmds, display = "sit
   rownames_to_column("standtype_ID") %>% 
   mutate_at(c('standtype_ID'), as.numeric) %>% 
   full_join(seedbank_nperg_bysamplocation_nmdsprep, by = "standtype_ID") %>%  
-  select(!c(standtype_ID))
+  dplyr::select(!c(standtype_ID))
 
  dim(plot_below_df_nperg) # 26 rows
 ```
