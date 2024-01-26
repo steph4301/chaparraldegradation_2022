@@ -116,9 +116,8 @@ stressplot(nmds_total.nmds2)
 
 nmds2_df <- data.frame(nmds_total.nmds2$points, nmds_total_prep) # adds NMDS1 and NMDS2 values
 
-# plot
+# plot: nmds x hillslopes
 colnames(nmds2_df)[colnames(nmds2_df) == 'site'] <- 'hillslope' # rename "site" to "hillslope"
-
 total_nmds2_hillslope <- ggplot(nmds2_df, 
        aes(x = MDS1, y = MDS2, color = hillslope, shape = hillslope)) + # shape = site, color = site
   geom_point(size = 3, alpha = 0.8) +
@@ -128,6 +127,7 @@ total_nmds2_hillslope <- ggplot(nmds2_df,
   #stat_ellipse(linetype = 2, size = 1) +
   labs(title = "NMDS: all data")
 
+# adding vectors to the dataframe
 nmds_total_prep <- nmds_total_prep %>% 
   mutate(standtype_ID = 1)
 nmds_total_prep$standtype_ID <- 1:7 #shorten df to first 7 rows
@@ -141,16 +141,27 @@ nmds_total.nmds2_plot <- scores(nmds_total.nmds2, display = "sites") %>%
 
 dim(nmds_total.nmds2_plot)
 
-# envfit() takes the output of metaMDS() and the species matrix you created
-fit_below_nperg <- envfit(seedbank_nperg_bysamplocation_nmds, seedbank_nperg_bysamplocation_nmdsprep, perm = 999) # pvalues for spp and stand, site, stand_core
+# extracting pvalues
+nmds_total.nmds2_fit <- envfit(nmds_total.nmds2, # envfit() takes the output of metaMDS() and the species matrix you created
+                          nmds_total_prep, perm = 999) # pvalues for spp and stand, site, stand_core
 
-# extract p-values for each species
-fit_below_pvals_nperg <- fit_below_nperg$vectors$pvals %>% 
+nmds_total.nmds2_pvals <- nmds_total.nmds2_fit$vectors$pvals %>% 
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   dplyr::rename("pvals" = ".") %>% 
   filter(!species == 'standtype_ID')
-view(fit_below_pvals_nperg)
+
+# extracting coordinates for hillslopes
+nmds_total.nmds2_coord <- nmds_total.nmds2_fit %>% 
+  scores(., display = "vectors") %>% 
+  as.data.frame() %>% 
+  rownames_to_column("species") %>% 
+  full_join(., nmds_total.nmds2_pvals, by = "species") %>% 
+  filter(pvals <= 0.02) %>% # <-- set p-value level here
+  filter(!species == 'standtype_ID')
+dim(nmds_total.nmds2_coord) # <-- limit number of vectors to <7 for clarity
+
+
 ```
 
 ```{r NMDS Graphing}
