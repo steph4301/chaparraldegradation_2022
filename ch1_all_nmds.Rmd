@@ -75,6 +75,9 @@ density_byspecies <- density_raw %>%
 sort(unique(germination_raw$genus_abundance))
 germination_byspecies <- germination_raw %>%
   group_by(site, species_diversity) %>%
+  mutate(species_diversity = case_when(
+    species_diversity == "Bromus madritensis" ~ "Bromus rubens", # old name ~ new name
+                              TRUE ~ species_diversity)) %>%
   rename(species = species_diversity) %>%
   dplyr::summarize(seed_density = mean(n_per_cm3)) %>% 
   mutate(datatype = as.character("sd")) %>% # adding "seed bank" identifier to species name
