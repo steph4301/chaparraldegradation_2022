@@ -2917,7 +2917,17 @@ shrubdensity_sum_bysiterep <- shrubdensity %>% # call tibble
   group_by(standtype, site_rep) %>%  # lump immature, mature, resprout shrubs and seedlings
   summarize(aliveshrubdensity_80m2 = sum(count), 
             aliveshrubdensity_1m2 = aliveshrubdensity_80m2/80)  # 4m x 20 m belt transect
-  print(shrubdensity_sum_bysiterep) 
+print(shrubdensity_sum_bysiterep) 
+
+shrubdensity_alive_byspp <- shrubdensity %>% # call tibble
+  filter(status != "dead") %>% #omit dead shrubs
+  group_by(species, site_rep) %>%  # lump immature, mature, resprout shrubs and seedlings
+  summarize(aliveshrubdensity_80m2 = sum(count), 
+            aliveshrubdensity_1m2 = aliveshrubdensity_80m2/80)  %>% # 4m x 20 m belt transect
+  filter(aliveshrubdensity_1m2 > 0)
+print(shrubdensity_alive_byspp) 
+
+# write.csv(shrubdensity_alive_byspp, "Ch1_Degradation_figures/shrubdensity_alive_byspp.csv")
 ```
 
 ```{r}
