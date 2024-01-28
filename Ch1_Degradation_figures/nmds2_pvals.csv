@@ -1,0 +1,123 @@
+"","species","pvals"
+"1","Acmispon glaber_ab",0.128
+"2","Acmispon maritimus_ab",0.276
+"3","Apiastrum angustifolium_ab",0.844
+"4","Artemisia californica_ab",0.999
+"5","Avena barbata dead_ab",0.112
+"6","Avena barbata_ab",0.005
+"7","Baccharis pilularis_ab",0.593
+"8","Bromus diandrus dead_ab",0.257
+"9","Bromus diandrus_ab",0.444
+"10","Bromus hordeaceus_ab",0.449
+"11","Bromus rubens dead_ab",0.417
+"12","Bromus rubens_ab",0.134
+"13","Bromus spp. dead_ab",0.518
+"14","Bromus spp._ab",0.128
+"15","Calochortus clavatus_ab",0.593
+"16","Carduus pycnocephalus_ab",0.699
+"17","Centaurea melitensis dead_ab",0.096
+"18","Centaurea melitensis_ab",0.096
+"19","Claytonia perfoliata_ab",0.593
+"20","Dipterostemon capitatus_ab",0.5
+"21","Elymus condensatus dead_ab",0.949
+"22","Elymus condensatus_ab",0.733
+"23","Eriodictyon crassifolium_ab",0.593
+"24","Erodium cicutarium_ab",0.008
+"25","Erodium spp._ab",0.276
+"26","Galium porrigens_ab",0.319
+"27","Heteromeles arbutifolia dead_ab",0.192
+"28","Heteromeles arbutifolia_ab",0.112
+"29","Hirschfeldia incana dead_ab",0.006
+"30","Hirschfeldia incana_ab",0.003
+"31","Lupinus spp._ab",0.023
+"32","Malacothamnus fasciculatus dead_ab",0.001
+"33","Malacothamnus fasciculatus_ab",0.036
+"34","Marah macrocarpa_ab",0.593
+"35","Pellaea andromedifolia_ab",0.699
+"36","Pseudognaphalium luteoalbum_ab",0.593
+"37","Rhamnus ilicifolia_ab",0.844
+"38","Rhus ovata_ab",0.802
+"39","Salvia leucophylla dead_ab",0.494
+"40","Salvia leucophylla_ab",0.479
+"41","Solanum xanti_ab",0.096
+"42","Stephanomeria virgata_ab",0.593
+"43","Stipa lepida dead_ab",0.699
+"44","Stipa lepida_ab",0.072
+"45","Artemisia californica_dn",0.06
+"46","Baccharis pilularis_dn",0.445
+"47","Cenothus oliganthus_dn",1
+"48","Eriodictyon crassifolium_dn",0.593
+"49","Eriogonum fasciculatum_dn",0.437
+"50","Heteromeles arbutifolia_dn",1
+"51","Malacothamnus fasciculatus_dn",0.036
+"52","Rhamnus ilicifolia_dn",1
+"53","Rhus ovata_dn",0.593
+"54","Salvia apiana_dn",0.325
+"55","Salvia leucophylla_dn",0.167
+"56","Sambucus mexicana_dn",0.593
+"57","unknown5 shrub_dn",0.128
+"58","Acmispon glaber_sd",0.008
+"59","Acmispon maritimus_sd",0.22
+"60","Acmispon strigosus_sd",0.128
+"61","Apiastrum angustifolium_sd",0.041
+"62","Artemisia californica_sd",0.024
+"63","Asclepias fascicularis_sd",0.593
+"64","Astragalus trichopodus_sd",0.058
+"65","Avena barbara_sd",0.128
+"66","Bromus diandrus_sd",0.556
+"67","Bromus hordeaceus_sd",0.096
+"68","Bromus madritensis_sd",0.009
+"69","Calochortus clavatus_sd",0.023
+"70","Carduus pycnocephalus_sd",0.844
+"71","Ceanothus oliganthus_sd",0.844
+"72","Centaurea melitensis_sd",0.118
+"73","Claytonia parviflora_sd",0.185
+"74","Claytonia perfoliata_sd",0.006
+"75","Croton setiger_sd",0.276
+"76","Cryptantha spp._sd",0.779
+"77","Diplacus aurantiacus_sd",0.593
+"78","Dipterostemon capitatus_sd",0.128
+"79","Emmenanthe penduliflora_sd",0.324
+"80","Erigeron canadensis_sd",0.021
+"81","Eriodictyon crassifolium_sd",0.593
+"82","Erodium cicutarium_sd",0.054
+"83","Erodium moschatum_sd",0.054
+"84","Erodium spp._sd",0.096
+"85","Eucrypta chrysanthemifolia_sd",0.003
+"86","Festuca myuros_sd",0.002
+"87","Fragaria vesca_sd",0.437
+"88","Galium porrigens_sd",0.276
+"89","Hirschfeldia incana_sd",0.008
+"90","Juncus bufonius_sd",0.096
+"91","Lactuca serriola_sd",0.096
+"92","Laennecia coulteri_sd",0.844
+"93","Logfia filaginoides_sd",0.096
+"94","Lupinus bicolor_sd",0.128
+"95","Madia gracilis_sd",1
+"96","Malacothamnus fasciculatus_sd",0.075
+"97","Malacothrix saxatilis_sd",0.013
+"98","Melica imperfecta_sd",0.844
+"99","Nicotiana glauca_sd",0.001
+"100","Oxalis corniculata_sd",0.244
+"101","Phacelia spp._sd",0.023
+"102","Phacelia tanacetifolia_sd",0.844
+"103","Phacelia viscida_sd",0.193
+"104","Polypogon monspeliensis_sd",0.166
+"105","Pseudognaphalium californicum_sd",0.006
+"106","Pseudognaphalium luteoalbum_sd",0.047
+"107","Ribes spp._sd",0.185
+"108","Salvia leucophylla_sd",0.215
+"109","Solanum xanti_sd",0.577
+"110","Sonchus oleraceus_sd",0.299
+"111","Stephanomeria virgata_sd",0.889
+"112","Stipa lepida_sd",0.101
+"113","Thysanocarpus spp._sd",0.128
+"114","Trifolium gracelentum_sd",0.276
+"115","Trifolium willdenovii_sd",0.128
+"116","Typha domingensis_sd",0.273
+"117","Unknown A - shrub_sd",0.699
+"118","Unknown C - bright green seedling, small leaves_sd",0.128
+"119","Unknown D - brown dicot_sd",0.128
+"120","Unknown E - plastic plant_sd",0.128
+"121","Unknown G - fuzzy leaf dicot_sd",0.128
+"122","Uropappus lindleyi_sd",0.378
