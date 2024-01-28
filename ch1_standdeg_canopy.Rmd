@@ -155,7 +155,7 @@ glimpse(abcover_full_v_omitground)
 ### 1.1 Percent cover (horizontal variation)
 
 ```{r percent cover - abcover_vegcover, include = TRUE}
-abcover_vegcover <- abcover_full_v %>% 
+abcover_vegcover <- abcover_full_v %>% # total above veg
   filter(vertical == "1") %>% 
   group_by(standtype, site, rep) %>% 
   dplyr::summarize(count_per_transect = length(vertical), 
@@ -475,7 +475,11 @@ cover_statuslf_matrix_long <- cover_statuslf_matrix %>%
 head(cover_statuslf_matrix_long)
 
 cover_statuslf_matrix_wide1 <- cover_statuslf_matrix_long %>%
-  spread(status_lifeform, percentcover)
+  spread(status_lifeform, percentcover) %>% 
+ mutate(site_rep = case_when(site_rep == "Intact_1_1" ~ "INT1_1", # old name ~ new name
+                            site_rep ==  "Intact_2_2" ~ "INT2_2",
+                            site_rep ==  "Intact_3_3" ~ "INT3_3",
+                              TRUE ~ site_rep))
 #write.csv(cover_statuslf_matrix_wide1,"processed/coverstatus.csv")
 
 head(cover_statuslf_matrix_wide1)
@@ -2641,13 +2645,21 @@ transectCOV <- standheight_full %>%
   left_join(transect_prepCOV, by = 'site_rep') %>% 
   dplyr::select(!c("standtype.y")) %>% 
   rename(standtype = standtype.x) %>% 
+  mutate(site = case_when(site == "Intact_1" ~ "INT1", # old name ~ new name
+                          site == "Intact_2" ~ "INT2",
+                          site == "Intact_3" ~ "INT3",
+                              TRUE ~ site)) %>%
   mutate(dist_from_mean = height_cm - mean_height) %>% 
-  left_join(nativecover, by = "site_rep")
+  left_join(nativecover, by = "site_rep")  %>% 
+  mutate(site_rep = case_when(site_rep == "Intact_1_1" ~ "INT1_1", # old name ~ new name
+                          site_rep == "Intact_2_2" ~ "INT2_2",
+                          site_rep == "Intact_3_3" ~ "INT3_3",
+                              TRUE ~ site_rep)) 
   #dplyr::select(!c("standtype", "standtype.y", "X")) %>% 
  # rename(standtype = standtype.x)
   
 
-head(transectCOV)
+print(transectCOV)
 ```
 
 ```{r graph distance from mean canopy height, include=FALSE}
@@ -2714,15 +2726,33 @@ standheight_cov <- standheight_siterep_meanSD %>% # Intact n = 3, Matrix and Deg
 
 # grouped by standtype
 standheight_cov %>% 
-  group_by(standtype) %>% 
+  group_by(site_rep) %>% # standtype
   summarize(mean_cov = mean(cov),
             n = length((cov)),
             sd = sd(cov),
             se = ((sd(cov))/sqrt(length((cov)))))
+# standtype
 #         mean_COV  N SD          SE
 #Intact	  0.6187625	3	0.12556945	0.07249755 <-- larger number = more variation
 #Matrix	  0.6668496	6	0.09217907	0.03763195 
 #Degraded	0.3218140	6	0.11316173	0.04619808 <-- smaller number = less variation
+
+# site_rep   mean_cov     n    sd    se
+#  1 DEG1_1        0.268     1    NA    NA
+#  2 DEG1_2        0.236     1    NA    NA
+#  3 DEG1_3        0.181     1    NA    NA
+#  4 DEG2_4        0.409     1    NA    NA
+#  5 DEG2_5        0.481     1    NA    NA
+#  6 DEG2_6        0.356     1    NA    NA
+#  7 ENH1_1        0.609     1    NA    NA
+#  8 ENH1_2        0.777     1    NA    NA
+#  9 ENH1_3        0.533     1    NA    NA
+# 10 ENH2_4        0.760     1    NA    NA
+# 11 ENH2_5        0.671     1    NA    NA
+# 12 ENH2_6        0.652     1    NA    NA
+# 13 Intact_1_1    0.754     1    NA    NA
+# 14 Intact_2_2    0.596     1    NA    NA
+# 15 Intact_3_3    0.506     1    NA    NA
 
 shapiro.test(standheight_cov$cov)
 # Shapiro-Wilk normality test
@@ -2733,7 +2763,7 @@ summary(aov((cov ~ standtype) , data = standheight_cov))
 #            Df Sum Sq Mean Sq F value   Pr(>F)    
 #standtype    2 0.3943  0.1971   17.14 0.000304 *** <-- cov is significantly different by standtype
 
-TukeyHSD(aov((cov ~ standtype) , data = standheight_cov), conf.level=.95) 
+TukeyHSD(aov((cov ~ site_rep) , data = standheight_cov), conf.level=.95) 
 #$standtype
 #                       diff        lwr         upr     p adj
 #Matrix-Intact    0.04808716 -0.1542489  0.25042324 0.8045742
@@ -2741,10 +2771,70 @@ TukeyHSD(aov((cov ~ standtype) , data = standheight_cov), conf.level=.95)
 #Degraded-Matrix -0.34503560 -0.5102423 -0.17982888 0.0003305 <-- Deg and Mat
 
 # Degraded sites are significantly more homogeneous than the INT and MAT standtypes
+
+shapiro.test(standheight_cov_cover)
 ```
 
 ```{r canopy COV linear regression}
+transectCOV_prep <- transectCOV %>% 
+  dplyr::select(c(site_rep, native_shrub, nonnative_grass)) %>% 
+  group_by(site_rep) %>% 
+  summarize(native_shrub = mean(native_shrub),
+            nonnative_grass = mean(nonnative_grass))
 
+standheight_cov_cover <- standheight_cov %>% 
+  mutate(site_rep = case_when(site_rep == "Intact_1_1" ~ "INT1_1", # old name ~ new name
+                              site_rep == "Intact_2_2" ~ "INT2_2",
+                              site_rep == "Intact_3_3" ~ "INT3_3",
+                              TRUE ~ site_rep)) %>%
+  left_join(transectCOV_prep , by = "site_rep") 
+
+# stand cov x native shrub cover
+ggplot(data = standheight_cov_cover, 
+       aes(x = native_shrub*100, y = cov, color = site_rep)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(0, 1)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  labs(x = "Native shrub cover (%)", 
+       y = "Canopy Heterogeneity (COV)", 
+       title = "Canopy Heterogeneity (COV) by Native Shrub cover (%)") +
+  theme_bw() +  
+  stat_poly_line() +
+   stat_poly_eq(
+    aes(label = paste(after_stat(eq.label), after_stat(adj.rr.label), sep = "~~~~")),
+    formula = formula1, 
+    parse=TRUE
+ )
+summary(lm(cov ~ native_shrub, data = standheight_cov_cover))
+# Residual standard error: 0.1821 on 13 degrees of freedom
+# Multiple R-squared:  0.1904,	Adjusted R-squared:  0.1281 
+# F-statistic: 3.057 on 1 and 13 DF,  p-value: 0.1039
+
+# stand COV x non-native grass cover
+ggplot(data = standheight_cov_cover, 
+       aes(x = nonnative_grass*100, y = cov, color = site_rep)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  ylim(0, 1)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  labs(x = "Non-native grass cover (%)", 
+       y = "Canopy Heterogeneity (COV)", 
+       title = "Canopy Heterogeneity (COV) by Non-native grass cover (%)") +
+  theme_bw() +  
+  stat_poly_line() +
+   stat_poly_eq(
+    aes(label = paste(after_stat(eq.label), after_stat(adj.rr.label), sep = "~~~~")),
+    formula = formula1, 
+    parse=TRUE
+ )
+
+cov_nngrass.lm = lm(cov ~ nonnative_grass, 
+                                      data = standheight_cov_cover)
+summary(cov_nngrass.lm)
+# Residual standard error: 0.183 on 13 degrees of freedom
+# Multiple R-squared:  0.1826,	Adjusted R-squared:  0.1197 
+# F-statistic: 2.903 on 1 and 13 DF,  p-value: 0.112
 ```
 
 ### 1.3 Shrub density 
