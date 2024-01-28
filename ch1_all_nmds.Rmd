@@ -4,6 +4,11 @@ author: "Kit Swift"
 date: "2023-12-19"
 output: pdf_document
 ---
+```{r R citation}
+R.Version() # R
+RStudio.Version() # RStudio
+```
+
 
 ```{r Setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -131,7 +136,7 @@ nmds.fort <- fortify(nmds_total.nmds)
 
 nmds_total.nmds2 <- metaMDS(nmds_total, 
                             autotransform = T,
-                             distance = "bray",
+                             distance = "raup", # raup, bray
                  k = 2,
                  try = 100,
                  trymax = 100)
@@ -195,7 +200,7 @@ nmds_total.nmds2_coord <- nmds_total.nmds2_fit %>%
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   full_join(., nmds_total.nmds2_pvals, by = "species") %>% 
-  filter(pvals <= 1) %>% # <-- set p-value level here: 0.05, 0.008
+  filter(pvals <= 0.05) %>% # <-- set p-value level here: 0.05, 0.008
   filter(!species == 'standtype_ID')
 dim(nmds_total.nmds2_coord) # <-- limit number of vectors to <7 for clarity
 #write.csv(nmds_total.nmds2_coord,"Ch1_Degradation_figures/nmds2_pval.1.csv")
