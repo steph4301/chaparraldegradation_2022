@@ -38,16 +38,19 @@ abcover_raw <- read_csv("processed/abcover_full_omitground.csv")
 ```{r Unified data frame}
 sort(unique(abcover_raw$species))
 abcover_byspecies <- abcover_raw %>% 
+  mutate(species = case_when(species == "Bromus madritensis" ~ "Bromus rubens", # old name ~ new name
+                              TRUE ~ species)) %>%
+   #                            species ==  "Bromus diandrus dead" ~ "Brom)
    # mutate(species = case_when(species == "Bromus diandrus" ~ "Bromus spp.", # old name ~ new name
    #                            species ==  "Bromus diandrus dead" ~ "Bromus spp. dead",
    #                              species == "Bromus hordeaceus" ~ "Bromus spp.",
    #                            species == "Bromus madritensis" ~ "Bromus spp.",
-   #                              species == "Bromus rubens" ~ "Bromus spp.", 
-   #                            species == "Bromus rubens dead" ~ "Bromus spp. dead", 
+   #                              species == "Bromus rubens" ~ "Bromus spp.",
+   #                            species == "Bromus rubens dead" ~ "Bromus spp. dead",
    #                             species == "Bromus hordeaceus" ~ "Bromus spp.",
    #                            species == "Centaurea melitensis dead" ~ "Centaurea melitensis",
    #                            species == "Hirschfeldia incana dead" ~ "Hirschfeldia incana",
-   #        TRUE ~ species)) %>% 
+   #        TRUE ~ species)) %>%
   group_by(site, species, lifeform, status, family) %>% 
   filter(site_rep != "Intact4_4") %>% #omit Intact 4 from data
   filter(!is.na(species)) %>% # omit blank cells in species 
@@ -84,7 +87,7 @@ abcover_nmdsprep <- abcover_byspecies %>%
   replace(is.na(.), 0)
 
 density_nmdsprep <- density_byspecies %>%
-  tidyr::spread(species, species_count) %>% 
+  tidyr::spread(species, species_count) %>%
   replace(is.na(.), 0)
 
 germination_nmdsprep <- germination_byspecies %>%
@@ -112,7 +115,11 @@ nmds_total.nmds <- metaMDS(nmds_total,
                  try = 100,
                  trymax = 100)
 
-ordiplot(nmds_total.nmds, type = "t")
+stressplot(nmds_total.nmds)
+plot(nmds_total.nmds)
+
+ordiplot(nmds_total.nmds, type = "p")
+
 
 nmds.fort <- fortify(nmds_total.nmds)
 ```
@@ -129,6 +136,15 @@ nmds_total.nmds2 <- metaMDS(nmds_total,
 scores(nmds_total.nmds2)
 
 stressplot(nmds_total.nmds2)
+plot(nmds_total.nmds2)
+
+nmds2.fort <- fortify(nmds_total.nmds2)
+#write.csv(nmds2.fort, "Ch1_Degradation_figures/nmds2.fort.csv")
+
+ordiplot(nmds_total.nmds2, type = "p") # run together 
+orditorp(nmds_total.nmds2,display="sites",cex=1.25,air=0.01) # sites aka. hillslopes
+orditorp(nmds_total.nmds2,display="species",col="red",air=0.01) # species 
+
 
 nmds2_df <- data.frame(nmds_total.nmds2$points, nmds_total_prep) # adds NMDS1 and NMDS2 values
 
@@ -167,6 +183,8 @@ nmds_total.nmds2_pvals <- nmds_total.nmds2_fit$vectors$pvals %>%
   rownames_to_column("species") %>% 
   dplyr::rename("pvals" = ".") %>% 
   filter(!species == 'standtype_ID')
+nmds_total.nmds2_pvals.fort <- fortify(nmds_total.nmds2_pvals)
+#write.csv(nmds_total.nmds2_pvals.fort,"Ch1_Degradation_figures/nmds2_pvals.csv")
 
 # extracting coordinates for hillslopes
 nmds_total.nmds2_coord <- nmds_total.nmds2_fit %>% 
@@ -174,10 +192,10 @@ nmds_total.nmds2_coord <- nmds_total.nmds2_fit %>%
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   full_join(., nmds_total.nmds2_pvals, by = "species") %>% 
-  filter(pvals <= 0.008) %>% # <-- set p-value level here
+  filter(pvals <= 1) %>% # <-- set p-value level here: 0.05, 0.008
   filter(!species == 'standtype_ID')
 dim(nmds_total.nmds2_coord) # <-- limit number of vectors to <7 for clarity
-#write.csv(nmds_total.nmds2_coord,"Ch1_Degradation_figures/nmds2_all_pval")
+#write.csv(nmds_total.nmds2_coord,"Ch1_Degradation_figures/nmds2_pval.1.csv")
 
 # plot: nmds x hillslopes + labels 
 total_nmds2_hillslope_vectors <- ggplot(nmds_total.nmds2_plot %>% # output of scores()
