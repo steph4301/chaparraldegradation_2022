@@ -2451,7 +2451,7 @@ nativecover <- nativecover_load %>%
 # mean SD by transect - 15 rows
 standheight_siterep_meanSD <- standheight_full %>% 
   left_join(nativecover, by = 'site_rep') %>% 
-  group_by(standtype, site_rep) %>%
+  group_by(standtype, site, site_rep) %>%
   summarize(mean_height = mean(height_cm),
             n = length((height_cm)),
             sd = sd(height_cm),
@@ -2643,8 +2643,9 @@ transect_prepCOV <- standheight_siterep_meanSD %>%
 
 transectCOV <- standheight_full %>% 
   left_join(transect_prepCOV, by = 'site_rep') %>% 
-  dplyr::select(!c("standtype.y")) %>% 
+  dplyr::select(!c("standtype.y", "site.y")) %>% 
   rename(standtype = standtype.x) %>% 
+  rename(site = site.x) %>% 
   mutate(site = case_when(site == "Intact_1" ~ "INT1", # old name ~ new name
                           site == "Intact_2" ~ "INT2",
                           site == "Intact_3" ~ "INT3",
@@ -2720,7 +2721,7 @@ pairwise.wilcox.test(transectCOV$dist_from_mean, transectCOV$site_rep,
 
 ```{r COV - stand height by standtype, include=TRUE}
 standheight_cov <- standheight_siterep_meanSD %>% # Intact n = 3, Matrix and Deg n = 6
-  group_by(standtype, site_rep) %>% 
+  group_by(standtype, site, site_rep) %>% 
   dplyr::summarize(cov = sd/mean_height) %>% # COV = SD / mean
   print(standheight_cov)
 
@@ -2763,7 +2764,7 @@ summary(aov((cov ~ standtype) , data = standheight_cov))
 #            Df Sum Sq Mean Sq F value   Pr(>F)    
 #standtype    2 0.3943  0.1971   17.14 0.000304 *** <-- cov is significantly different by standtype
 
-TukeyHSD(aov((cov ~ site_rep) , data = standheight_cov), conf.level=.95) 
+TukeyHSD(aov((cov ~ site) , data = standheight_cov), conf.level=.95) 
 #$standtype
 #                       diff        lwr         upr     p adj
 #Matrix-Intact    0.04808716 -0.1542489  0.25042324 0.8045742
