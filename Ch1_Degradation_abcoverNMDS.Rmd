@@ -177,13 +177,13 @@ ab_diversity_native <- ab_diversity %>% # join above ground species diversity wi
 ab_diversity_native_nn <- ab_diversity_native %>% # join above ground species diversity with non-native transect percent cover
   left_join(nncover, by = "site_rep")
 
-view(ab_diversity_native_nn)
+# view(ab_diversity_native_nn)
 glimpse(ab_diversity_native_nn)
 # Rows: 1,450
 # Columns: 21
 
-unique(ab_diversity_native_nn$species)
-#write.csv(ab_diversity_native_nn, "processed/ab_diversity_native_nn.csv") <-- export data to EXCEL and make graphs there
+sort(unique(ab_diversity_native_nn$species))
+write.csv(ab_diversity_native_nn, "processed/ab_diversity_native_nn.csv") # <-- export data to EXCEL and make graphs there
 
 ```
 
@@ -382,7 +382,7 @@ belttrans_sppr_native <- belttrans_sppr %>% # join above ground species diversit
 belttrans_sppr_native_nn <- belttrans_sppr_native %>% # join above ground species diversity with non-native transect percent cover
   left_join(nncover, by = "site_rep")
 
-view(belttrans_sppr_native_nn)
+#view(belttrans_sppr_native_nn)
 glimpse(belttrans_sppr_native_nn)
 # Rows: 904
 # Columns: 21 
@@ -522,7 +522,7 @@ belttrans_sppr_native_nn %>%
 ### belt transect sppr - total sppr x nngrass
 ```{r belt transect sppr figure - total sppr by nngrass, include = TRUE}
 
-belttrans_sppr_totalsppr_regression <- ggplot(data = belttrans_sppr_native_nn, 
+belttrans_sppr_totalsppr_regression <- ggplot(data = belttrans_sppr_native_nn_sppr_tot,  #belttrans_sppr_native_nn
                                             aes(x = nonnative_grass*100, 
                                                 y = total_sppr, 
                                                 shape = standtype, 
@@ -645,6 +645,9 @@ unique(abcover_full_v$site)
 ```{r ab percent cover filter for native and non-native only}
 abcover_full_v_omitground <- filter(abcover_full_v, status !="ground")
 head(abcover_full_v_omitground)
+sort(unique(abcover_full_v_omitground$site))
+# "DEG1" "DEG2" "ENH1" "ENH2" "INT1" "INT2" "INT3"
+glimpse(abcover_full_v_omitground)
 ```
 
 ### (5) Identify the unique species at each site_rep_dist to get rid of duplicate species recordings. (e.g., Present at one distance = 1/41 to get percent cover) 
@@ -687,11 +690,11 @@ str(abcover_byspecies_nmdsprep)
 abcover_byspecies_nmdsprep_num <- abcover_byspecies_nmdsprep %>% 
   # use the ungroup() function to take out grouping
   ungroup() %>% 
-  dplyr::select(!c(standtype, site, site_rep))
+  dplyr::select(!c(standtype, site_rep, site)) # standtype, site_rep
 # 15 sites (rows) by 33 species (columns)
 # DEG 1-6, ENH 1-6, INT 1-3 = 15 transects
          
-#view(abcover_byspecies_nmdsprep_num) # only numbers
+view(abcover_byspecies_nmdsprep_num) # only numbers
 write.csv(abcover_byspecies_nmdsprep_num, "processed/nmds_aboveground.csv")
 ```
 
@@ -717,6 +720,8 @@ sort(unique(abcover_byspecies$species))
 ```
 
 # Above ground species richness
+
+### load 
 ```{r species richness by stand type}
 
 ab_diversity_2_native_nn %>% 
@@ -795,28 +800,37 @@ ab_diversity_2_native_nn %>%
   
 ```
 
+### normal
 ```{r}
 shapiro.test(ab_div_bysiterep$num_species)
+# data:  ab_div_bysiterep$num_species
+# W = 0.96712, p-value = 0.742 <-- normally distrubuted
 ```
 
-
+### figure regressions by Kit
 ```{r scatterplot species diversity by nn grass cover, include=TRUE} 
 
-### NEED TO FIX CODE - KIT
+# KIT's code: this section
 
 ab_diversity_2_native_nn_plot <- ab_diversity_2_native_nn %>%
   group_by(site_rep) %>%
-  summarize(richness = n_distinct(species))0
+  summarize(richness = n_distinct(species))
 
 hold <- rep(c("DEG1_1", "DEG1_2", "DEG1_3", "DEG2_4", "DEG2_5", "DEG2_6", "ENH1_1", "ENH1_2", "ENH1_3", "ENH2_4", "ENH2_5", "ENH2_6", "Intact_1_1", "Intact_2_2", "Intact_3_3"), times = 3)
+
 hold5 <- rep(c("DEG", "DEG", "DEG", "DEG", "DEG", "DEG", "ENH", "ENH", "ENH", "ENH", "ENH", "ENH", "Intact", "Intact", "Intact"), times = 3)
+
 hold2 <- rep(c("total", "native", "nn"), each = 15)
+
 hold3 <- rep(c(90,98,98,98,90,100,83,83,88,46,66,76,12,7,24), times = 3)
+
 hold4 <- c(10,6,7,7,7,9,8,8,10,14,10,12,6,12,9,5,2,2,3,3,5,3,3,5,10,6,6,5,10,6,5,4,5,4,4,4,5,5,5,4,3,6,1,1,3)
+
 abcover_diversity_plot <- data.frame(site_rep = hold, standtype = hold5, richness = hold4, nngrass = hold3, type = hold2)
   
-ab_diversity_2_native_nn_2 <- ab_diversity_2_native_nn %>%
-  left_join(ab_diversity_2_native_nn_plot, by = "site_rep")
+# Stephanie isn't sure what this code is about... ?
+# ab_diversity_2_native_nn_2 <- ab_diversity_2_native_nn %>%
+#   left_join(ab_diversity_2_native_nn_plot, by = "site_rep")
 
 
 ab_sppr_nngrass <- ggplot(data = abcover_diversity_plot, 
@@ -840,22 +854,11 @@ ab_sppr_nngrass <- ggplot(data = abcover_diversity_plot,
 
 print(ab_sppr_nngrass)
 ```
-
-
-
-```{r species richness figure from An code}
-view(abcover_byspecies_nmdsprep_num_sppr)
-
+### stats
+```{r species richness df from An code}
 sppr <- specnumber(abcover_byspecies_nmdsprep_num)
 sppr
 # 11 15  7 15 13 16 11 13 13 10  8  9 12 10 12
-
-summary(aov(sppr ~ standtype, data = abcover_byspecies_nmdsprep)) # by stand type
-#             Df Sum Sq Mean Sq F value Pr(>F)
-#standtype    2  17.40   8.700   1.921  0.189
-#Residuals   12  54.33   4.528
-
-summary(aov(sppr ~ site_rep, data = abcover_byspecies_nmdsprep)) # by stand type
 
 abcover_byspecies_nmdsprep <- abcover_byspecies_nmdsprep %>% 
   mutate(standtype_ID = 1)
@@ -864,15 +867,42 @@ abcover_byspecies_nmdsprep$standtype_ID <- 1:15
 
 sppr_df <- sppr %>% 
   enframe() %>% 
-  full_join(abcover_byspecies_nmdsprep, by = c("name" = "standtype_ID"))
+  full_join(abcover_byspecies_nmdsprep, by = c("name" = "standtype_ID")) %>% 
+    rename(spp_rich = value)
+view(sppr_df)
+```
 
+```{r stats spp richness }
 
+shapiro.test(sppr_df$spp_rich)
+# data:  sppr_df$spp_rich
+# W = 0.97374, p-value = 0.9091 <-- normally distributed
+
+summary(aov(spp_rich ~ standtype, data = sppr_df)) # by stand type
+
+#             Df Sum Sq Mean Sq F value Pr(>F)  
+# standtype    2  35.00  17.500   3.481 0.0643 .
+# Residuals   12  60.33   5.028  
+
+summary(aov(spp_rich ~ site, data = sppr_df)) # by hillslope (aka. site)
+#             Df Sum Sq Mean Sq F value  Pr(>F)   
+# site         6  83.33   13.89   9.259 0.00305 **
+# Residuals    8  12.00    1.50 
+
+TukeyHSD(aov(spp_rich ~ site, data = sppr_df))
+histogram(sppr_df$spp_rich)
+
+boxplot(spp_rich~site,data=sppr_df, main="Species richness by Hillslope",
+   xlab="Hillslope", ylab="Species Richness (N)")
+```
+
+```{r species richness figure from An code}
 pal <- c("lightsalmon1", "gold1", "palegreen4")
 
-plot_sppr <- ggplot(sppr_df, aes(x = standtype, y = value, fill = standtype)) +
+plot_sppr <- ggplot(sppr_df, aes(x = site, y = spp_rich, fill = site)) +
   geom_boxplot() +
-  scale_fill_manual(values = pal) +
-  scale_x_discrete(labels = c("Intact \n (n = 9)", "Matrix \n (n = 6)", "Degraded \n (n = 6)")) +
+  #scale_fill_manual(spp_rich = pal) +
+#  scale_x_discrete(labels = c("Intact \n (n = 9)", "Matrix \n (n = 6)", "Degraded \n (n = 6)")) +
   theme(legend.position = "none",
         plot.background = element_rect("white"),
         panel.background = element_rect("white"),
@@ -881,8 +911,8 @@ plot_sppr <- ggplot(sppr_df, aes(x = standtype, y = value, fill = standtype)) +
         axis.text = element_text(size = 12, color = "gray25"),
         axis.title = element_text(color = "gray25"),
         legend.text = element_text(size = 12)) + 
-  labs(x = "Stand Type",
-       y = "Number of species per site",
+  labs(x = "Hillslope",
+       y = "Number of species per hillslope",
        title = "Above ground species richness")
 plot_sppr
 
@@ -904,14 +934,16 @@ summary(sppdiv_aov)
 
 ```
 
-NMDS 
+# NMDS 
 ```{r nmds by species percent cover}
 
 # the AUTOTRANSFORM = F skips the automatic data transformations and uses the input data as is
 # - when the raw data contains the information you need (e.g., abundance)
 # - when you have a small number of samples or small number of variables
 # - when you want to preseve the original scale of the data (e.g., interested in the absolute differences betwen two sets of measurements)
-abcover_byspecies_NMDS <- metaMDS(abcover_byspecies_nmdsprep_num, autotransform = F) # this is more appropriate for my data
+abcover_byspecies_NMDS <- metaMDS(abcover_byspecies_nmdsprep_num, autotransform = F, distance = "bray",   k = 2,
+                 try = 100,
+                 trymax = 100) # this is more appropriate for my data
 
 
 # uses the RAUP-CRICK dissimilarity index to calculate pairwise dissimilarities
