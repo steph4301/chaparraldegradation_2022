@@ -897,7 +897,7 @@ boxplot(spp_rich~site,data=sppr_df, main="Species richness by Hillslope",
 ```
 
 ```{r species richness figure from An code}
-pal <- c("lightsalmon1", "gold1", "palegreen4")
+#pal <- c("lightsalmon1", "gold1", "palegreen4")
 
 plot_sppr <- ggplot(sppr_df, aes(x = site, y = spp_rich, fill = site)) +
   geom_boxplot() +
@@ -918,7 +918,7 @@ plot_sppr
 
 ```
 
-
+# Shannon Diversity
 
 ```{r shannon diversity}
 # this doesn't make sense for % cover, but I could run it on shrub density. I could also run it on the seedbank data. 
@@ -935,14 +935,19 @@ summary(sppdiv_aov)
 ```
 
 # NMDS 
+### load
 ```{r nmds by species percent cover}
 
 # the AUTOTRANSFORM = F skips the automatic data transformations and uses the input data as is
 # - when the raw data contains the information you need (e.g., abundance)
 # - when you have a small number of samples or small number of variables
 # - when you want to preseve the original scale of the data (e.g., interested in the absolute differences betwen two sets of measurements)
-abcover_byspecies_NMDS <- metaMDS(abcover_byspecies_nmdsprep_num, autotransform = F, distance = "bray",   k = 2,
-                 try = 100,
+
+abcover_byspecies_NMDS <- metaMDS(abcover_byspecies_nmdsprep_num,
+                                  autotransform = F, # or T
+                                  distance = "bray",   # bray or raup
+                  k = 2, #dimentions
+                 try = 100, #runs
                  trymax = 100) # this is more appropriate for my data
 
 
@@ -953,33 +958,38 @@ abcover_byspecies_NMDS <- metaMDS(abcover_byspecies_nmdsprep_num, autotransform 
 # - takes into account differences in species evenness
 # abcover_byspecies_NMDS <- metaMDS(abcover_byspecies_nmdsprep_num, distance = "raup") 
 
-#stressplot(abcover_byspecies_NMDS)
-#plot(abcover_byspecies_NMDS)
 ```
 
+### stress
+```{r stress tests nmds}
+stressplot(abcover_byspecies_NMDS)
+# if stress tests are really low ==> I may have insufficient data. :/
+
+plot(abcover_byspecies_NMDS)
+ordiplot(abcover_byspecies_NMDS, type = "p")
+ordiplot(abcover_byspecies_NMDS, type = "t")
+ab_nmds.fort <- fortify(abcover_byspecies_NMDS)
+```
 
 ```{r scores nmds}
 
 scores(abcover_byspecies_NMDS)
-```
 
-```{r stress test}
+# the below code is from seedbank nmds
 
-stressplot(abcover_byspecies_NMDS)
-# if stress tests are really low ==> I may have insufficient data. :/
-
-#plot_df <- scores(seedbank_bysitecore_nmds, display = "sites") %>% # from An's code
+#plot_df <- scores(abcover_byspecies_NMDS, display = "sites") %>% # from An's code
 #  as.data.frame() %>% 
 #  rownames_to_column("stand_core") %>% 
 #  full_join(seedbank_bysitecore, by = "stand_core")
 
 nmds_above_df <- data.frame(abcover_byspecies_NMDS$points, abcover_byspecies_nmdsprep) # code from chatgpt
 
-
 ```
 
-
+### figure 
 ```{r ggplot above ground}
+head(nmds_above_df)
+
 nmds_above_df_plotcolor <- ggplot(nmds_above_df, aes(x = MDS1, y = MDS2, color = standtype, shape = standtype)) +
   geom_point(size = 3, alpha = 0.8) +
   scale_color_manual(values = c("darkgreen", "darkmagenta", "darkgoldenrod1")) + # in color
@@ -993,16 +1003,12 @@ nmds_above_df_plotcolor
 ```
 
 
-
-
+### p values
 ```{r nmds color and vectors with envfit function}
 # code from An Bui: https://rpubs.com/an-bui/vegan-cheat-sheet 
 
-nmds_above_df <- data.frame(abcover_byspecies_NMDS$points, abcover_byspecies_nmdsprep) # code from chatgpt
-
 abcover_byspecies_nmdsprep <- abcover_byspecies_nmdsprep %>% 
   mutate(standtype_ID = 1)
-
 abcover_byspecies_nmdsprep$standtype_ID <- 1:15
 
 plot_above_df <- scores(abcover_byspecies_NMDS, display = "sites") %>% 
@@ -1010,7 +1016,7 @@ plot_above_df <- scores(abcover_byspecies_NMDS, display = "sites") %>%
   rownames_to_column("standtype_ID") %>% 
   mutate_at(c('standtype_ID'), as.numeric) %>% 
   full_join(abcover_byspecies_nmdsprep, by = "standtype_ID") %>% 
-  select(!c(standtype_ID))
+  dplyr::select(!c(standtype_ID))
 view(plot_above_df)
 
 # envfit() takes the output of metaMDS() and the species matrix you created
@@ -1030,10 +1036,13 @@ fit_above_spp <- fit_above %>%
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   full_join(., fit_above_pvals, by = "species") %>% 
-  filter(pvals < 0.01) %>%  # limited number for visual clarity
+  filter(pvals < 0.01) %>%  # <-- p-value
   filter(!species == 'standtype_ID')
-view(fit_above_spp)
+length(fit_above_spp$species) #  <- limited number for visual clarity
+#7
+```
 
+```{r}
 # new plot - stand type
 nmdsabove_plot_new <- ggplot(plot_above_df, aes(x = NMDS1, y = NMDS2)) +
   #coord_fixed() +
@@ -1055,12 +1064,16 @@ nmds_above_print <- nmdsabove_plot_new + theme_bw() + theme(legend.position = c(
 
 ggsave("Ch1_Degradation_figures/nmds_above_print.png", nmds_above_print, width = 8, height = 6)
 
-# nmds - by site_rep
-nmdsabove_plot_site_rep <- ggplot(plot_above_df, aes(x = NMDS1, y = NMDS2)) +
-  #coord_fixed() +
-  geom_point(aes(color = standtype), size = 3, alpha = 0.8) +
-  stat_ellipse(aes(color = site_rep)) +
-#  scale_color_manual(values = c("darkgreen", "darkmagenta", "darkgoldenrod1")) +#,
+# nmds - by site_rep (aka. hillslope)
+nmdsabove_plot_site_rep <- ggplot(plot_above_df, 
+                                  aes(x = NMDS1, y = NMDS2)) +
+  coord_fixed() +
+  #xlim(-1.5,1.5) +
+ # ylim(-1.5,1.5) +
+  geom_point(aes(color = site, shape = site), size = 3, alpha = 0.8) +
+  #stat_ellipse(aes(color = site_rep)) +
+  scale_color_manual(values = c("orange", "brown", "green", "darkgreen", "lightblue", "cornflowerblue", "blue")) + #"gray0",
+   scale_shape_manual(values = c(16,16, 15, 15, 17, 17, 17)) + 
                    #  name = "Stand Type",
                    #  labels = c("Intact" = "Shrub dominated", 
                     #            "Matrix" = "Matrix", 
@@ -1069,8 +1082,16 @@ nmdsabove_plot_site_rep <- ggplot(plot_above_df, aes(x = NMDS1, y = NMDS2)) +
                arrow = arrow(length = unit(0.25, "cm")),
                col = "black") +
   geom_text(data = fit_above_spp, aes(label = species),  
-            position = position_jitter(width = 0.1, height = 0.2)) +
+            position = position_jitter(width = 0.0, height = 0.0)) +
   theme_bw()
+nmdsabove_plot_site_rep
+nmdsabove_plot_site_rep
+nmdsabove_plot_site_rep
+nmdsabove_plot_site_rep
+nmdsabove_plot_site_rep
+nmdsabove_plot_site_rep
+nmdsabove_plot_site_rep
+nmdsabove_plot_site_rep
 nmdsabove_plot_site_rep
 ```
 
