@@ -276,7 +276,12 @@ dim(seedbank_nperg_bysamplocation_nmdsprep_num) # 26 55
 # - when the raw data contains the information you need (e.g., abundance)
 # - when you have a small number of samples or small number of variables
 # - when you want to preseve the original scale of the data (e.g., interested in the absolute differences between two sets of measurements)
-seedbank_nperg_bysamplocation_nmds <- metaMDS(seedbank_nperg_bysamplocation_nmdsprep_num, autotransform = F)
+seedbank_nperg_bysamplocation_nmds <- metaMDS(seedbank_nperg_bysamplocation_nmdsprep_num,
+                                              autotransform = F, # or T
+                                  distance = "bray",   # bray or raup
+                  k = 2, #dimentions
+                 try = 100, #runs
+                 trymax = 100) # this is more appropriate for my data)
 
 # uses the RAUP-CRICK dissimilarity index to calculate pairwise dissimilarities
 # - adjusts for spp richness
@@ -357,8 +362,13 @@ fit_below_spp_nperg <- fit_below_nperg %>%
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   full_join(., fit_below_pvals_nperg, by = "species") %>% 
-  filter(pvals <= 0.002) %>% # limited number for visual clarity
+  filter(pvals <= 0.005) %>% # <-- limited number for visual clarity
   filter(!species == 'standtype_ID')
+
+#write.csv(fit_below_spp_nperg, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/seedbank_nmds_pvalues.csv")
+# p = 1 --> n = 35 spp
+# 
+
 dim(fit_below_spp_nperg)
 ```
 
@@ -392,7 +402,7 @@ nmdsbelow_plot_new_nperg <- ggplot(plot_below_df_nperg,
                arrow = arrow(length = unit(0.25, "cm")),
                col = "black") +
   geom_text(data = fit_below_spp_nperg, aes(label = species),  
-            position = position_jitter(width = 0.0, height = 0.4)
+            position = position_jitter(width = 0.0, height = 0.2)
             )
 nmdsbelow_plot_new_nperg + theme_bw()
 nmdsbelow_plot_new_nperg + theme_bw()
@@ -673,7 +683,12 @@ str(seedbank_bysitecore_nmdsprep_num)
 # - when the raw data contains the information you need (e.g., abundance)
 # - when you have a small number of samples or small number of variables
 # - when you want to preseve the original scale of the data (e.g., interested in the absolute differences betwen two sets of measurements)
-seedbank_bysitecore_nmds <- metaMDS(seedbank_bysitecore_nmdsprep_num, autotransform = F)
+seedbank_bysitecore_nmds <- metaMDS(seedbank_bysitecore_nmdsprep_num, 
+                                    autotransform = F, # or T
+                                  distance = "bray",   # bray or raup
+                  k = 2, #dimentions
+                 try = 100, #runs
+                 trymax = 100) # this is more appropriate for my data)
 
 # uses the RAUP-CRICK dissimilarity index to calculate pairwise dissimilarities
 # - adjusts for spp richness
@@ -748,7 +763,7 @@ plot_below_df <- scores(seedbank_bysitecore_nmds, display = "sites") %>%
   rownames_to_column("standtype_ID") %>% 
   mutate_at(c('standtype_ID'), as.numeric) %>% 
   full_join(seedbank_bysitecore_nmdsprep, by = "standtype_ID") %>%  
-  select(!c(standtype_ID))
+  dplyr::select(!c(standtype_ID))
 
  view(plot_below_df)
 
