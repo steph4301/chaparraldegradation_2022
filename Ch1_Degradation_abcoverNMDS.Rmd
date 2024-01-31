@@ -1036,10 +1036,13 @@ fit_above_spp <- fit_above %>%
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   full_join(., fit_above_pvals, by = "species") %>% 
-  filter(pvals < 0.01) %>%  # <-- p-value
+  filter(pvals <= 0.005) %>%  # <-- p-value
   filter(!species == 'standtype_ID')
 length(fit_above_spp$species) #  <- limited number for visual clarity
 #7
+
+#write.csv(fit_above_spp, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/percentcover_nmds_pvalues.csv")
+# P = 1 --> n = 45 species
 ```
 
 ```{r}
