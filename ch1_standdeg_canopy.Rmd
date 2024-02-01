@@ -2615,21 +2615,22 @@ summary(lm(mean_height ~ native_shrub, data = standheight_withcover))
 ```{r stand height lm nn grass}
 
 height_nn <- ggplot(standheight_withcover,
-       aes(x = nonnative_grass, y = height_cm, color = site)) +
+       aes(x = nonnative_grass, y = mean_height, color = site)) +
   geom_point() +
-  geom_jitter() +
-  theme(axis.text.x.bottom = element_text(angle = 90)) +
+  #geom_jitter() +
+ # theme(axis.text.x.bottom = element_text(angle = 90)) +
   labs(x = "Non-native Grass Cover (%)", 
        y = "Canopy height (cm)", 
        title = "Canopy height (cm) by Non-native Grass cover (%)") +
    geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black")   # lm, loess, glm
+height_nn
 
-ggsave(height_nn, )
+ggsave("Ch1_Degradation_figures/height_nngrasscover.png", height_nn, width = 8, height = 6)
 
-summary(lm(height_cm ~ nonnative_grass, data = standheight_withcover))
-# Residual standard error: 67.34 on 613 degrees of freedom
-# Multiple R-squared:  0.1138,	Adjusted R-squared:  0.1123 
-# F-statistic: 78.68 on 1 and 613 DF,  p-value: < 2.2e-16
+summary(lm(mean_height ~ nonnative_grass, data = standheight_withcover))
+# Residual standard error: 30.86 on 13 degrees of freedom
+# Multiple R-squared:  0.4127,	Adjusted R-squared:  0.3675 
+# F-statistic: 9.136 on 1 and 13 DF,  p-value: 0.009805
 
 ```
 
