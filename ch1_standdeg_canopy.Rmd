@@ -2437,19 +2437,24 @@ ggplot(standheight_full,
 
 ```{r combine columns - canopy height, include = TRUE}
 nativecover_load <- read.csv("processed/abcover_nativecover_nngrasscover.csv")
-nativecover <- nativecover %>% 
-  mutate(site_rep = case_when(
-    site_rep == "Intact_1_1" ~ "Intact1_1", # old name ~ new name
-      site_rep == "Intact_2_2" ~ "Intact2_2",
-      site_rep == "Intact_3_3" ~ "Intact3_3",
-    TRUE ~ as.character(site_rep)  # Keep other observations unchanged
-  )) 
+#nativecover <- nativecover %>% 
+  # mutate(site_rep = case_when(
+  #   site_rep == "Intact_1_1" ~ "Intact1_1", # old name ~ new name
+  #     site_rep == "Intact_2_2" ~ "Intact2_2",
+  #     site_rep == "Intact_3_3" ~ "Intact3_3",
+  #   TRUE ~ as.character(site_rep)  # Keep other observations unchanged
+  # )) 
 nativecover <- nativecover_load %>% 
   dplyr::select(!c(X, standtype.x, standtype.y)) 
 
 
 # mean SD by transect - 15 rows
 standheight_siterep_meanSD <- standheight_full %>% 
+ # mutate(site_rep = case_when(
+ #   site_rep == "Intact_2_2" ~ "Intact2_2",
+ #    site_rep == "Intact_2_2" ~ "Intact2_2",
+ #   site_rep == "Intact_2_2" ~ "Intact2_2",TRUE ~ as.character(site_rep)  # Keep other observations unchanged
+ #  )) %>% 
   left_join(nativecover, by = 'site_rep') %>% 
   group_by(standtype, site, site_rep) %>%
   summarize(mean_height = mean(height_cm),
@@ -2457,20 +2462,20 @@ standheight_siterep_meanSD <- standheight_full %>%
             sd = sd(height_cm),
             se = ((sd(height_cm))/sqrt(length((height_cm)))), 
             mean_nngrasscover = mean(nonnative_grass), 
-            mean_nativeshrubcover = mean(native_shrub)) %>% 
+            mean_nativeshrubcover = mean(native_shrub))
   print(standheight_siterep_meanSD) # prints: standtype - site_rep - mean... 
 
-# mean SD by transect - 15 rows
-standheight_site_meanSD <- standheight_full %>% 
-   left_join(nativecover, by = 'site_rep') %>% 
-  group_by(standtype, site) %>%
-  summarize(mean_height = mean(height_cm),
-            n = length((height_cm)),
-            sd = sd(height_cm),
-            se = ((sd(height_cm))/sqrt(length((height_cm)))), 
-            mean_nngrasscover = mean(nonnative_grass), 
-            mean_nativeshrubcover = mean(native_shrub)) %>% 
-  print(standheight_site_meanSD) # prints: standtype - site_rep - mean... 
+# # mean SD by transect - 15 rows
+# standheight_site_meanSD <- standheight_full %>% 
+#    left_join(nativecover, by = 'site_rep') %>% 
+#   group_by(standtype, site) %>%
+#   summarize(mean_height = mean(height_cm),
+#             n = length((height_cm)),
+#             sd = sd(height_cm),
+#             se = ((sd(height_cm))/sqrt(length((height_cm)))), 
+#             mean_nngrasscover = mean(nonnative_grass), 
+#             mean_nativeshrubcover = mean(native_shrub)) %>% 
+#   print(standheight_site_meanSD) # prints: standtype - site_rep - mean... 
 ```
 
 ```{r}
@@ -2485,18 +2490,34 @@ ggplot(standheight_siterep_meanSD,
    y = "Mean canopy height (cm)", 
        title = "Mean canopy height (cm) by transect")
 
-# columnn plot x site
-ggplot(standheight_site_meanSD, 
-       aes(x = site, y = mean_height, fill = standtype)) +
+# columnn plot x site (aka. hillslope)
+canopyheight_bar <- ggplot(standheight_site_meanSD %>% 
+          mutate(site = case_when(
+    site == "Intact_1" ~ "SD1", # old name ~ new name
+      site == "Intact_2" ~ "SD2",
+      site == "Intact_3" ~ "SD3",
+    site == "ENH1" ~ "MX1",
+      site == "ENH2" ~ "MX2",
+      site == "DEG1" ~ "GD1",
+      site == "DEG2" ~ "GD2",
+    TRUE ~ as.character(site)  # Keep other observations unchanged
+  )) %>% 
+  rename(Hillslope = site) %>% # old name = new name
+  mutate(Hillslope = fct_relevel(Hillslope, 
+            "SD1", "SD2", "SD3", "MX1", "MX2", "GD1", "GD2"))
+         , 
+       aes(x = Hillslope, y = mean_height)) + #fill = standtype
   geom_col(color = "black") +
-  scale_fill_manual(values = standcolors) +
+  #scale_fill_manual(values = standcolors) +
   geom_errorbar(aes(ymin = mean_height - se, ymax = mean_height + se), width = 0.5) +
    #theme(axis.text.x.bottom = element_text(angle = 90)) +
   labs(x = "Hillslope", 
    y = "Mean canopy height (cm)", 
        title = "Mean canopy height (cm) by hillslope")
+canopyheight_bar
+ggsave("Ch1_Degradation_figures/canopyheight_bar.png", canopyheight_bar, width = 8, height = 6)
 
-# columnn plot - mean height x nngrass
+# point with error bars - mean height x nngrass
 ggplot(standheight_siterep_meanSD, 
        aes(x = mean_nngrasscover, y = mean_height, color = standtype)) +
   geom_point() +
@@ -2506,7 +2527,7 @@ ggplot(standheight_siterep_meanSD,
    y = "Mean canopy height (cm)", 
        title = "Mean canopy height (cm) per transect by non-native grass cover (%)")
 
-# columnn plot x site
+# point with error bars x site
 ggplot(standheight_site_meanSD, 
        aes(x = mean_nngrasscover, y = mean_height, color = site)) +
   geom_point()+
@@ -2515,59 +2536,40 @@ ggplot(standheight_site_meanSD,
   labs(x = "Hillslope", 
    y = "Mean canopy height (cm)", 
        title = "Mean canopy height (cm) by hillslope")
-
-
-
+# standtype site     mean_height     n    sd    se mean_nngrasscover mean_nativeshrubcover
+#   <fct>     <chr>          <dbl> <int> <dbl> <dbl>             <dbl>                 <dbl>
+# 1 Intact    Intact_1       146.     41 110.  17.2             0.244                  0.707
+# 2 Intact    Intact_2        89.4    41  53.3  8.32            0.0732                 0.707
+# 3 Intact    Intact_3       215.     41 109.  17.0             0.122                  0.951
+# 4 Matrix    ENH1           116.    123  78.6  7.09            0.626                  0.642
+# 5 Matrix    ENH2            64.5   123  44.6  4.02            0.846                  0.390
+# 6 Degraded  DEG1            96.2   123  23.3  2.10            0.959                  0.325
+# 7 Degraded  DEG2            91.8   123  38.0  3.43            0.951                  0.220
 ```
 
 
 ```{r stand height stats, include = TRUE}
+histogram(standheight_full$height_cm)
+
 shapiro.test(standheight_full$height_cm)
 # 	Shapiro-Wilk normality test
 # data:  standheight_full$height_cm
 # W = 0.90732, p-value < 2.2e-16 <-- not normally distributed
 
-kruskal.test(height_cm ~ site_rep, data = standheight_full)
+kruskal.test(height_cm ~ site, data = standheight_full)
 # Kruskal-Wallis rank sum test
 # 
-# data:  height_cm by site_rep
+# data:  height_cm by SITE
+# Kruskal-Wallis chi-squared = 98.456, df = 6, p-value
+# < 2.2e-16
+
+# Kruskal-Wallis rank sum test
+# 
+# data:  height_cm by SITE_REP
 # Kruskal-Wallis chi-squared = 108.21, df = 14, p-value < 2.2e-16 <-- there are sig differences
-
-pairwise.wilcox.test(standheight_full$height_cm, standheight_full$site_rep,
-                 p.adjust.method = "BH")
-# 	Pairwise comparisons using Wilcoxon rank sum test with continuity correction <-- error message Warning: cannot compute exact p-value with ties
-# 
-# data:  standheight_full$height_cm and standheight_full$site_rep 
-# 
-#            DEG1_1  DEG1_2  DEG1_3  DEG2_4  DEG2_5  DEG2_6  ENH1_1  ENH1_2  ENH1_3  ENH2_4  ENH2_5  ENH2_6  Intact_1_1 Intact_2_2
-# DEG1_2     0.04716 -       -       -       -       -       -       -       -       -       -       -       -          -         
-# DEG1_3     0.00793 0.58907 -       -       -       -       -       -       -       -       -       -       -          -         
-# DEG2_4     0.41016 0.45869 0.11792 -       -       -       -       -       -       -       -       -       -          -         
-# DEG2_5     0.09542 0.72119 0.91270 0.61011 -       -       -       -       -       -       -       -       -          -         
-# DEG2_6     0.63898 0.28765 0.10600 0.44577 0.17387 -       -       -       -       -       -       -       -          -         
-# ENH1_1     0.07404 0.27538 0.25829 0.56390 0.88053 0.41016 -       -       -       -       -       -       -          -         
-# ENH1_2     0.54994 0.42863 0.40877 0.29792 0.19663 0.35502 0.31081 -       -       -       -       -       -          -         
-# ENH1_3     0.26132 0.05340 0.03912 0.09197 0.02673 0.10600 0.05315 0.77211 -       -       -       -       -          -         
-# ENH2_4     8.6e-05 0.00048 0.00060 0.00462 0.03918 0.00098 0.02173 0.03976 0.00032 -       -       -       -          -         
-# ENH2_5     2.8e-06 2.2e-05 2.2e-05 0.00169 0.02360 0.00011 0.01594 0.04716 0.00020 0.79009 -       -       -          -         
-# ENH2_6     0.00046 0.00716 0.00983 0.02527 0.11387 0.00401 0.08484 0.05187 0.00095 0.49368 0.58907 -       -          -         
-# Intact_1_1 0.10762 0.07438 0.06278 0.05290 0.04193 0.07902 0.12226 0.72467 0.43908 0.01229 0.01594 0.01594 -          -         
-# Intact_2_2 0.43529 0.81915 0.56431 0.91873 0.63838 0.63898 0.85178 0.16836 0.05208 0.06034 0.04788 0.13437 0.05187    -         
-# Intact_3_3 1.0e-05 5.8e-07 1.9e-07 4.9e-06 1.3e-06 3.2e-06 1.4e-06 0.00524 0.00034 4.2e-08 2.4e-08 5.2e-08 0.03621    3.2e-06 
-
-
-kruskal.test(height_cm ~ site, data = standheight_full)
-# 	Kruskal-Wallis rank sum test
-# 
-# data:  height_cm by site
-# Kruskal-Wallis chi-squared = 98.456, df = 6, p-value < 2.2e-16 <-- ther are sig differences
 
 pairwise.wilcox.test(standheight_full$height_cm, standheight_full$site,
                  p.adjust.method = "BH")
-# Pairwise comparisons using Wilcoxon rank sum test with continuity correction <-- error message Warning: cannot compute exact p-value with ties
-# 
-# data:  standheight_full$height_cm and standheight_full$site 
-# 
 #          DEG1    DEG2    ENH1    ENH2    Intact_1 Intact_2
 # DEG2     0.7707  -       -       -       -        -       
 # ENH1     0.5132  0.1258  -       -       -        -       
@@ -2575,31 +2577,45 @@ pairwise.wilcox.test(standheight_full$height_cm, standheight_full$site,
 # Intact_1 0.0223  0.0139  0.2486  0.0012  -        -       
 # Intact_2 0.9924  0.9924  0.1258  0.0218  0.0363   -       
 # Intact_3 2.2e-10 1.1e-09 8.5e-07 6.5e-13 0.0223   8.5e-07 
+# 
+# INT3 = taller than all other hillslopes
+# INT2 = similar to DEG and ENH1
+# INT1 = taller than DEG and ENH2
+# ENH2 = shorter than all other hillslopes
 ```
 
 
 
 ```{r extra code - mean canopy height by stand type, include=FALSE}
-
-# mean SD by stand type - 3 stand types
-standheight_standtype_meanSD <- standheight_full %>%
-  group_by(standtype, rep) %>%
-  summarize(mean_height_byrep = mean(height_cm),
-            n = length((height_cm)),
-            sd = sd(height_cm),
-            se = ((sd(height_cm))/sqrt(length((height_cm))))) %>% # equivalent to: standheight_siterep_meanSD
-  group_by(standtype) %>% 
-   summarize(mean_height_bystandtype_cm = mean(mean_height_byrep),
-             n = length((mean_height_byrep)),
-             sd_cm = sd(mean_height_byrep),
-             se_cm = ((sd(mean_height_byrep))/sqrt(length((mean_height_byrep))))) %>% # summarizes by standtype
-  print(standheight_standtype_meanSD)
+# 
+# # mean SD by site_rep - 3 stand types
+# standheight_standtype_meanSD <- standheight_full %>%
+#   group_by(standtype, site, site_rep) %>%
+#   summarize(mean_height_byrep = mean(height_cm),
+#             n = length((height_cm)),
+#             sd = sd(height_cm),
+#             se = ((sd(height_cm))/sqrt(length((height_cm))))) %>% # equivalent to: standheight_siterep_meanSD
+#   group_by(site) %>% 
+#    summarize(mean_height_bysiterep_cm = mean(mean_height_byrep),
+#              n = length((mean_height_byrep)),
+#              sd_cm = sd(mean_height_byrep),
+#              se_cm = ((sd(mean_height_byrep))/sqrt(length((mean_height_byrep))))) %>% # summarizes by standtype
+#   print(standheight_standtype_meanSD)
 
 # standtype mean_height_bystandtype N SD SE
 #Intact	  150.29268	3	62.942199	36.339695
 #Matrix	  90.17480	6	30.885894	12.609114
 #Degraded	94.00813	6	6.593106	2.691624
 
+
+# site  mean_height_bysiterep_cm  n sd_cm
+# DEG1	96.17073	3	7.511680	
+# DEG2	91.84553	3	6.181969	
+# ENH1	115.81301	3	20.023623	
+# ENH2	64.53659	3	3.456451	
+# Intact_1	146.43902	1	NA	
+# Intact_2	89.36585	1	NA	
+# Intact_3	215.07317	1	NA	
 ```
 
 ```{r canopy height by stand type - stats, include=FALSE}
@@ -2625,13 +2641,20 @@ pairwise.wilcox.test(standheight_full$height_cm, standheight_full$standtype,
 # P value adjustment method: BH 
 ```
 
-```{r COV - stand height by transect line, include=TRUE}
+```{r COV - by transect , include=TRUE}
+
 standheight_cov_transect <- standheight_siterep_meanSD %>% # Intact n = 3, Matrix and Deg n = 6
   mutate(cov_bytransect = sd/mean_height) %>% # COV = SD / mean
   print(standheight_cov_transect)
 
 standheight_cov_transect[order(standheight_cov_transect$cov_bytransect), ]
 
+transectCOV %>% 
+  group_by(site_rep) %>% 
+  summarize(COV = (sd(mean_height))/(mean(mean_height)),
+            n = length((dist_from_mean)),
+            sd = sd(dist_from_mean),
+            se = ((sd(dist_from_mean))/sqrt(length((dist_from_mean)))))
 ```
 
 
@@ -2662,11 +2685,11 @@ transectCOV <- standheight_full %>%
 
 print(transectCOV)
 ```
-
+# COV figures
 ```{r graph distance from mean canopy height, include=FALSE}
 
 # distance from mean canopy height x transect
-# - scatterplot
+# - scatterplot - site_rep
 ggplot(data = transectCOV, # standheight_cov_transect
        aes(x = site_rep, y = dist_from_mean)) +
   geom_point() +
@@ -2674,6 +2697,16 @@ ggplot(data = transectCOV, # standheight_cov_transect
   labs(x = "Transect ID", 
        y = "Distance from mean canopy cover (cm)", 
        title = "Distance from mean canopy height (cm) by Transect ID")
+
+# - scatterplot - site
+ggplot(data = transectCOV, # standheight_cov_transect
+       aes(x = site, y = dist_from_mean)) +
+  geom_point() +
+  theme(axis.text.x.bottom = element_text(angle = 90)) +
+  labs(x = "Hillslope", 
+       y = "Distance from mean canopy cover (cm)", 
+       title = "Distance from mean canopy height (cm) by Hillslope")
+
 # - box plot
 ggplot(transectCOV, 
        aes(x = site_rep, y = dist_from_mean)) +
@@ -2692,8 +2725,19 @@ labs(x = "Average non-native grass cover (%)",
        y = "Distance from mean canopy height (cm)", 
        title = "Distance from mean canopy height (cm) by average non-native cover (%)")
 
+
+# distance from mean canopy height x nn grass cover
+ggplot(transectCOV, 
+       aes(x = nonnative_grass, y = dist_from_mean)) +
+  geom_point(aes(fill = site), colour = "black", size = 3, pch = 21) +
+ # theme(axis.text.x.bottom = element_text(angle = 90)) +
+labs(x = "Average non-native grass cover (%)", 
+       y = "Distance from mean canopy height (cm)", 
+       title = "Distance from mean canopy height (cm) by average non-native cover (%)")
+
 ```
 
+### stats
 ```{r stats for COV, include=FALSE}
 
 histogram(transectCOV$dist_from_mean)
@@ -2704,7 +2748,10 @@ shapiro.test(transectCOV$dist_from_mean)
 # data:  transectCOV$dist_from_mean
 # W = 0.98131, p-value = 4.462e-07 <-- not normally distributed
 
-kruskal.test(dist_from_mean ~ site_rep, data = transectCOV)
+kruskal.test(dist_from_mean ~ site, data = transectCOV)
+# data:  dist_from_mean by site
+# Kruskal-Wallis chi-squared = 1.5734, df = 6, p-value = 0.9545
+
 # Kruskal-Wallis rank sum test
 # 
 # data:  dist_from_mean by site_rep
@@ -2717,14 +2764,33 @@ pairwise.wilcox.test(transectCOV$dist_from_mean, transectCOV$site_rep,
 ```
 
 
+```{r COV - COV by hillslop, include=TRUE}
+# standheight_cov <- standheight_siterep_meanSD %>% # Intact n = 3, Matrix and Deg n = 6
+#    group_by(standtype, site, site_rep) %>% 
+#    dplyr::summarize(cov = sd/mean_height) %>% # COV = SD / mean
+#    print(standheight_cov)
+# 
+# view(standheight_cov)
+# # standtype site  site_rep  cov
+# # Intact	Intact_1	Intact_1_1	0.7541507	
+# # Intact	Intact_2	Intact_2_2	0.5960149	
+# # Intact	Intact_3	Intact_3_3	0.5061217	
+# # Matrix	ENH1	ENH1_1	        0.6085122	
+# # Matrix	ENH1	ENH1_2	        0.7766659	
+# # Matrix	ENH1	ENH1_3	        0.5325727	
+# # Matrix	ENH2	ENH2_4	        0.7603237	
+# # Matrix	ENH2	ENH2_5	        0.6714455	
+# # Matrix	ENH2	ENH2_6	        0.6515777	
+# # Degraded	DEG1	DEG1_1      	0.2678440	
+# # Degraded	DEG1	DEG1_2	      0.2364431	
+# # Degraded	DEG1	DEG1_3	      0.1810220	
+# # Degraded	DEG2	DEG2_4	      0.4092023	
+# # Degraded	DEG2	DEG2_5	      0.4806065	
+# # Degraded	DEG2	DEG2_6	      0.3557661	
 
+```
 
-```{r COV - stand height by standtype, include=TRUE}
-standheight_cov <- standheight_siterep_meanSD %>% # Intact n = 3, Matrix and Deg n = 6
-  group_by(standtype, site, site_rep) %>% 
-  dplyr::summarize(cov = sd/mean_height) %>% # COV = SD / mean
-  print(standheight_cov)
-
+```{r}
 # grouped by standtype
 standheight_cov %>% 
   group_by(site_rep) %>% # standtype
@@ -2776,7 +2842,8 @@ TukeyHSD(aov((cov ~ site) , data = standheight_cov), conf.level=.95)
 shapiro.test(standheight_cov_cover)
 ```
 
-```{r canopy COV linear regression}
+```{r canopy COV linear regression - native shrub, include=TRUE}
+
 transectCOV_prep <- transectCOV %>% 
   dplyr::select(c(site_rep, native_shrub, nonnative_grass)) %>% 
   group_by(site_rep) %>% 
@@ -2790,31 +2857,59 @@ standheight_cov_cover <- standheight_cov %>%
                               TRUE ~ site_rep)) %>%
   left_join(transectCOV_prep , by = "site_rep") 
 
+
 # stand cov x native shrub cover
-ggplot(data = standheight_cov_cover, 
-       aes(x = native_shrub*100, y = cov, color = site_rep)) + #color = standtype
-  geom_point(size = 3, alpha = 0.8) +
-  ylim(0, 1)+
+cov_shrubcover <- ggplot(data = standheight_cov_cover %>% 
+          mutate(site = case_when(
+    site == "Intact_1" ~ "SD1", # old name ~ new name
+      site == "Intact_2" ~ "SD2",
+      site == "Intact_3" ~ "SD3",
+    site == "ENH1" ~ "MX1",
+      site == "ENH2" ~ "MX2",
+      site == "DEG1" ~ "GD1",
+      site == "DEG2" ~ "GD2",
+    TRUE ~ as.character(site)  # Keep other observations unchanged
+  )) %>% 
+  rename(Hillslope = site), # %>% # new name = old name
+  # dplyr::mutate(Hillslope = fct_relevel(Hillslope, 
+  #           "SD1", "SD2", "SD3", "MX1", "MX2", "GD1", "GD2")), 
+       aes(x = native_shrub*100, y = cov, color = Hillslope)) + #color = standtype
+  geom_point(size = 3, alpha = 0.8) + # color = Hillslope
+  ylim(0, 1) +
   xlim(0,100) +
   geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
   labs(x = "Native shrub cover (%)", 
        y = "Canopy Heterogeneity (COV)", 
        title = "Canopy Heterogeneity (COV) by Native Shrub cover (%)") +
-  theme_bw() +  
-  stat_poly_line() +
-   stat_poly_eq(
-    aes(label = paste(after_stat(eq.label), after_stat(adj.rr.label), sep = "~~~~")),
-    formula = formula1, 
-    parse=TRUE
- )
+  theme_bw() 
+cov_shrubcover
+
+ggsave("Ch1_Degradation_figures/cov_shrubcover.png", cov_shrubcover, width = 8, height = 6)
+
 summary(lm(cov ~ native_shrub, data = standheight_cov_cover))
 # Residual standard error: 0.1821 on 13 degrees of freedom
 # Multiple R-squared:  0.1904,	Adjusted R-squared:  0.1281 
 # F-statistic: 3.057 on 1 and 13 DF,  p-value: 0.1039
+```
 
+```{r canopy COV linear regression - nn grass, include=TRUE}
 # stand COV x non-native grass cover
-ggplot(data = standheight_cov_cover, 
-       aes(x = nonnative_grass*100, y = cov, color = site_rep)) + #color = standtype
+
+cov_nngrasscover <- ggplot(standheight_cov_cover %>%
+                             dplyr::mutate(site = case_when(
+                               site == "Intact_1" ~ "SD1", # old name ~ new name
+      site == "Intact_2" ~ "SD2",
+      site == "Intact_3" ~ "SD3",
+      site == "ENH1" ~ "MX1",
+      site == "ENH2" ~ "MX2",
+      site == "DEG1" ~ "GD1",
+      site == "DEG2" ~ "GD2",
+    TRUE ~ as.character(site)  # Keep other observations unchanged
+  )) %>%
+  rename(Hillslope = site), #%>% # old name = new name
+  # mutate(Hillslope = fct_relevel(Hillslope,
+  #           "SD1", "SD2", "SD3", "MX1", "MX2", "GD1", "GD2")),
+  aes(x = nonnative_grass*100, y = cov, color = Hillslope)) + #color = site
   geom_point(size = 3, alpha = 0.8) +
   ylim(0, 1)+
   xlim(0,100) +
@@ -2822,20 +2917,23 @@ ggplot(data = standheight_cov_cover,
   labs(x = "Non-native grass cover (%)", 
        y = "Canopy Heterogeneity (COV)", 
        title = "Canopy Heterogeneity (COV) by Non-native grass cover (%)") +
-  theme_bw() +  
-  stat_poly_line() +
-   stat_poly_eq(
-    aes(label = paste(after_stat(eq.label), after_stat(adj.rr.label), sep = "~~~~")),
-    formula = formula1, 
-    parse=TRUE
- )
+  theme_bw() 
+#+  
+ #  stat_poly_line() +
+ #   stat_poly_eq(
+ #    aes(label = paste(after_stat(eq.label), after_stat(adj.rr.label), sep = "~~~~")),
+ #    formula = formula1, 
+ #    parse=TRUE
+ # )
+cov_nngrasscover
+ggsave("Ch1_Degradation_figures/cov_nncover.png", cov_nngrasscover, width = 8, height = 6)
 
-cov_nngrass.lm = lm(cov ~ nonnative_grass, 
+cov_nngrass.lm <- lm(cov ~ nonnative_grass, 
                                       data = standheight_cov_cover)
 summary(cov_nngrass.lm)
 # Residual standard error: 0.183 on 13 degrees of freedom
 # Multiple R-squared:  0.1826,	Adjusted R-squared:  0.1197 
-# F-statistic: 2.903 on 1 and 13 DF,  p-value: 0.112
+# F-statistic: 2.903 on 1 and 13 DF,  p-value: 0.1122
 ```
 
 ### 1.3 Shrub density 
