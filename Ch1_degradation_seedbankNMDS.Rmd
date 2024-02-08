@@ -404,14 +404,15 @@ nmdsbelow_plot_new_nperg <- ggplot(plot_below_df_nperg,
   geom_text(data = fit_below_spp_nperg, aes(label = species),  
             position = position_jitter(width = 0.0, height = 0.2)
             )
-nmdsbelow_plot_new_nperg + theme_bw()
-nmdsbelow_plot_new_nperg + theme_bw()
-nmdsbelow_plot_new_nperg + theme_bw()
-nmdsbelow_plot_new_nperg + theme_bw()
-nmdsbelow_plot_new_nperg + theme_bw()
-nmdsbelow_plot_new_nperg + theme_bw()
-nmdsbelow_plot_new_nperg + theme_bw()
-nmdsbelow_plot_new_nperg + theme_bw()
+nmdsbelow_plot_new_nperg 
+nmdsbelow_plot_new_nperg 
+nmdsbelow_plot_new_nperg 
+nmdsbelow_plot_new_nperg 
+nmdsbelow_plot_new_nperg 
+
+
+
+ggsave("Ch1_Degradation_figures/nmds_seedbank_vectors.png", nmdsbelow_plot_new_nperg, width = 8, height = 6)
 ```
 
 
