@@ -72,10 +72,10 @@ glimpse(abcover_full_raw %>%  na.omit())
 # Columns: 10
 
 # Renaming observations
-ab_diversity <- abcover_full_raw %>%
+ab_diversity_load <- abcover_full_raw %>%
   #dplyr::select(!c(species == "bare_ground")) 
    mutate(species = case_when(
-    species == "Avena barbata dead" ~ "Avena barbata",
+    species == "Avena barbata dead" ~ "Avena barbata", # old name ~ new name
         species == "Bromus diandrus dead" ~ "Bromus diandrus", 
            species == "Bromus rubens dead" ~ "Bromus rubens", 
        species == "Bromus spp." ~ "Bromus rubens", 
@@ -83,12 +83,12 @@ ab_diversity <- abcover_full_raw %>%
           species == "Bromus madritensis" ~ "Bromus rubens",
      species == "Centaurea melitensis dead" ~ "Centaurea melitensis",
     species == "Erodium cicutarium" ~ "Erodium spp.", 
-    species == "Elymus condensatus dead" ~ "Elymus condensatus",
-    species == "Heteromeles arbutifolia dead" ~ "Heteromeles arbutifolia",
+ #   species == "Elymus condensatus dead" ~ "Elymus condensatus",
+ #   species == "Heteromeles arbutifolia dead" ~ "Heteromeles arbutifolia",
     species == "Hirschfeldia incana dead" ~ "Hirschfeldia incana",
-    species == "Malacothamnus fasciculatus dead" ~ "Malacothamnus fasciculatus",
-           species == "Salvia leucophylla dead" ~ "Salvia leucophylla",
-      species == "Stipa lepida dead" ~ "Stipa lepida",
+ #   species == "Malacothamnus fasciculatus dead" ~ "Malacothamnus fasciculatus",
+      #     species == "Salvia leucophylla dead" ~ "Salvia leucophylla",
+     # species == "Stipa lepida dead" ~ "Stipa lepida",
     TRUE ~ as.character(species)  # Keep other observations unchanged
   )) %>% 
   mutate(site = case_when(
@@ -105,28 +105,28 @@ ab_diversity <- abcover_full_raw %>%
   filter(species != "nonnative_thatch") %>% 
   filter(species != "bare_ground") 
 
-sort(unique(ab_diversity$species))
-sort(unique(ab_diversity$site))
-glimpse(ab_diversity)
+sort(unique(ab_diversity_load$species))
+sort(unique(ab_diversity_load$site))
+glimpse(ab_diversity_load)
 #Rows: 1,450
 #Columns: 10
 
 # combine site and rep to one column
-ab_diversity$site_rep <- paste(ab_diversity$site, ab_diversity$rep, sep="_") 
-ab_diversity$site_rep_species <- paste(ab_diversity$site_rep, ab_diversity$species, sep="_") 
-sort(unique(ab_diversity$site_rep)) 
+ab_diversity_load$site_rep <- paste(ab_diversity_load$site, ab_diversity_load$rep, sep="_") 
+ab_diversity_load$site_rep_species <- paste(ab_diversity_load$site_rep, ab_diversity_load$species, sep="_") 
+sort(unique(ab_diversity_load$site_rep)) 
 #"DEG1_1"    "DEG1_2"    "DEG1_3"    "DEG2_4"    "DEG2_5"    "DEG2_6"    
 #"ENH1_1"    "ENH1_2"    "ENH1_3"    "ENH2_4"    "ENH2_5"    "ENH2_6"    
 #"Intact1_1" "Intact2_2" "Intact3_3"
 
-glimpse(ab_diversity)  # species diversity from point-line intercept transect
+glimpse(ab_diversity_load)  # species diversity from point-line intercept transect
 # Rows: 1,445
 #Columns: 10
 
-ab_diversity <- ab_diversity %>% 
+ab_diversity <- ab_diversity_load %>% 
   dplyr::select(!c(distance, vertical))
 
-# write.csv(ab_diversity, "processed/ab_diversity.csv")
+#write.csv(ab_diversity, "processed/ab_diversity.csv")
 ```
 
 ```{r join point intercept sppr with native and non-native percent cover, include=TRUE}
@@ -145,13 +145,7 @@ sort(unique(nativecover$site_rep))
 # "ENH2_6"     "Intact_1_1" "Intact_2_2" "Intact_3_3"
 glimpse(nativecover)
 
-nncover <- read.csv("processed/abcover_nonnativecover_nngrasscover.csv") # non-native percent cover from ch1_standdeg_canopy.Rmd
-sort(unique(nncover$site_rep))
-# "DEG1_1"     "DEG1_2"     "DEG1_3"     "DEG2_4"     "DEG2_5"     "DEG2_6"     "ENH1_1"     "ENH1_2"     "ENH1_3"     "ENH2_4"     "ENH2_5"    
-# "ENH2_6"     "Intact_1_1" "Intact_2_2" "Intact_3_3"
-glimpse(nncover)
-
-nativecover <- nativecover %>% 
+nativecover2 <- nativecover %>% 
   mutate(site_rep = case_when(
     site_rep == "Intact_1_1" ~ "Intact1_1", # old name ~ new name
       site_rep == "Intact_2_2" ~ "Intact2_2",
@@ -159,28 +153,16 @@ nativecover <- nativecover %>%
     TRUE ~ as.character(site_rep)  # Keep other observations unchanged
   )) 
 
-nncover <- nncover %>% 
-  mutate(site_rep = case_when(
-    site_rep == "Intact_1_1" ~ "Intact1_1", # old name ~ new name
-      site_rep == "Intact_2_2" ~ "Intact2_2",
-      site_rep == "Intact_3_3" ~ "Intact3_3",
-    TRUE ~ as.character(site_rep)  # Keep other observations unchanged
-  )) 
 
-nativecover <- nativecover %>% 
+nativecover3 <- nativecover2 %>% 
   dplyr::select(!c(X, standtype.x, standtype.y ))
-nncover <- nncover %>% 
-  dplyr::select(c(site_rep, percentcover_nonnative))
 
-ab_diversity_native <- ab_diversity %>% # join above ground species diversity with native transect percent cover
-  left_join(nativecover, by = "site_rep") 
-ab_diversity_native_nn <- ab_diversity_native %>% # join above ground species diversity with non-native transect percent cover
-  left_join(nncover, by = "site_rep")
+ab_diversity_native_nn <- ab_diversity %>% # join above ground species diversity with native transect percent cover
+  left_join(nativecover3, by = "site_rep") 
 
-# view(ab_diversity_native_nn)
 glimpse(ab_diversity_native_nn)
 # Rows: 1,450
-# Columns: 21
+# Columns: 20
 
 sort(unique(ab_diversity_native_nn$species))
 write.csv(ab_diversity_native_nn, "processed/ab_diversity_native_nn.csv") # <-- export data to EXCEL and make graphs there
@@ -190,32 +172,43 @@ write.csv(ab_diversity_native_nn, "processed/ab_diversity_native_nn.csv") # <-- 
 ```{r summary tables for point intercept transect figure, include=TRUE}
 
 summary_table_pttrans_sppr_tot <- ab_diversity_native_nn %>%
-  group_by(standtype, site_rep, nonnative_grass, native_shrub, percentcover_native, percentcover_nonnative) %>%
+  group_by(standtype, site_rep, nonnative_grass, native_shrub) %>%
+    mutate(species = case_when(
+    species == "Elymus condensatus dead" ~ "Elymus condensatus", # old name ~ new name
+        species == "Heteromeles arbutifolia dead" ~ "Heteromeles arbutifolia", 
+    species == "Malacothamnus fasciculatus dead" ~ "Malacothamnus fasciculatus",
+    species == "Salvia leucophylla dead" ~ "Salvia leucophylla", 
+    species == "Stipa lepida dead" ~ "Stipa lepida",
+    TRUE ~ as.character(species)  # Keep other observations unchanged
+  )) %>% 
   summarize(total_sppr = n_distinct(species))
-# Intact_1 = 9
-# I_2 = 12
-# I_3 = 6
-# ENH_1 = 12
-# E_2 = 10
-# E_3 = 14
-# E_4 = 10
-# E_5 = 8
-# E_6 = 8
-# DEG_1 = 9
-# D_2 = 7
-# D_3 = 7
-# D_4 = 7
-# D_5 = 6
-# D_6 = 10
+
+#  standtype site_rep  nonnative_grass native_shrub total_sppr
+#    <fct>     <chr>               <dbl>        <dbl>      <int>
+#  1 intact    Intact1_1          0.244         0.707          9
+#  2 intact    Intact2_2          0.0732        0.707         12
+#  3 intact    Intact3_3          0.122         0.951          6
+#  4 matrix    ENH1_1             0.756         0.537         12
+#  5 matrix    ENH1_2             0.659         0.585         10
+#  6 matrix    ENH1_3             0.463         0.805         14
+#  7 matrix    ENH2_4             0.878         0.415         10
+#  8 matrix    ENH2_5             0.829         0.293          8
+#  9 matrix    ENH2_6             0.829         0.463          8
+# 10 degraded  DEG1_1             1             0.390          9
+# 11 degraded  DEG1_2             0.902         0.390          7
+# 12 degraded  DEG1_3             0.976         0.195          7
+# 13 degraded  DEG2_4             0.976         0.268          7
+# 14 degraded  DEG2_5             0.976         0.220          6
+# 15 degraded  DEG2_6             0.902         0.171         10
 
 summary_table_pttrans_nat <- ab_diversity_native_nn %>%
   filter(status == "native") %>% 
- group_by(standtype, site_rep, nonnative_grass, native_shrub, percentcover_native, percentcover_nonnative) %>%
+ group_by(standtype, site_rep, nonnative_grass, native_shrub) %>%
   summarize(native_sppr = n_distinct(species))
 
 summary_table_pttrans_nn <- ab_diversity_native_nn %>%
   filter(status == "nonnative") %>% 
- group_by(standtype, site_rep, nonnative_grass, native_shrub, percentcover_native, percentcover_nonnative) %>%
+ group_by(standtype, site_rep, nonnative_grass, native_shrub) %>%
   summarize(nn_sppr = n_distinct(species))
 
 #checking the data
@@ -224,30 +217,6 @@ ab_diversity_native_nn %>%
    # filter(status == "native") %>%
    filter(status == "nonnative") %>%  
   distinct(species)
-
-# SPECIES = 9
-# Avena barbata				
-# Hirschfeldia incana				
-# Lupinus spp.				
-# Bromus rubens				
-# Salvia leucophylla				
-# Erodium spp.				
-# Dipterostemon capitatus				
-# Artemisia californica				
-# Acmispon maritimus
-
-# NATIVE SPECEIS = 5
-# # Lupinus spp.				
-# Salvia leucophylla				
-# Dipterostemon capitatus				
-# Artemisia californica				
-# Acmispon maritimus
-
-# NONNATIVE SPECIES = 4
-# Avena barbata				
-# Hirschfeldia incana				
-# Bromus rubens				
-# Erodium spp.
 
 
 ```
@@ -351,10 +320,11 @@ belttrans_sppr <- belttrans_byspecies %>%
      TRUE ~ as.character(lifespan))) %>% 
     rename(rep = transectstand, #rename(new_name = old_name) 
            status = origin) %>% 
-   filter(site != "ENH2") 
+   filter(site != "ENH2") # why am I omitting ENH2? (feb 7, 2024) <-- STEPHANIE
 
 belttrans_sppr$site <- factor(belttrans_sppr$site, levels=c("Intact1", "Intact2", "Intact3", "ENH1", "DEG1", "DEG2"))
 unique(belttrans_sppr$site)
+unique(belttrans_sppr$species)
   
 # combine site and rep to one column
 belttrans_sppr$site_rep <- paste(belttrans_sppr$site, belttrans_sppr$rep, sep="_") 
@@ -366,21 +336,18 @@ sort(unique(belttrans_sppr$site))
 
 glimpse(belttrans_sppr)
 sort(unique(belttrans_sppr$site_rep))
+sort(unique(belttrans_sppr$site))
 sort(unique(belttrans_sppr$species))
 
-belttrans_sppr %>% 
-  filter(site_rep == "DEG2_6") %>%
-  distinct(species)
 
-#write.csv(belttrans_sppr, "processed/belttrans_sppr.csv")
+
+write.csv(belttrans_sppr, "processed/belttrans_sppr.csv")
 ```
 
 ```{r belt transect join percent cover, include=TRUE}
 belttrans_sppr_native <- belttrans_sppr %>% # join above ground species diversity with native transect percent cover
-  left_join(nativecover, by = "site_rep") 
-
-belttrans_sppr_native_nn <- belttrans_sppr_native %>% # join above ground species diversity with non-native transect percent cover
-  left_join(nncover, by = "site_rep")
+  left_join(nativecover3, by = "site_rep") 
+sort(unique(belttrans_sppr_native$site_rep))
 
 #view(belttrans_sppr_native_nn)
 glimpse(belttrans_sppr_native_nn)
@@ -1050,7 +1017,7 @@ fit_above_spp <- fit_above %>%
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   full_join(., fit_above_pvals, by = "species") %>% 
-  filter(pvals <= 0.005) %>%  # <-- p-value
+  filter(pvals <= 0.005) %>%  # <-- p-value = 0.005
   filter(!species == 'standtype_ID')
 length(fit_above_spp$species) #  <- limited number for visual clarity
 #7
