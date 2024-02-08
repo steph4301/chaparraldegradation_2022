@@ -5,29 +5,6 @@ date: "2023-07-24"
 output: html_document
 ---
 
-### NOTES 
-
-```{r adam sandler message, include=FALSE}
-
-# jul31 
-# You've figured out how to visualize the raw data with a histogram, jitter plot, and box plots
-# and how to test for normality with the shapiro.test(df$responsevariable).
-# None of the above ground percent cover data are normally distributed.
-# Leave it and MOVE ON to your seedbank data. 
-# 1. complete data collection of Bay 6 tray
-# 2. open seedbank NMDS file 
-# 3. add the INT seed bank data
-# 4. open the file in R and 
-# 5. look at hist(seedbank$abundance)
-# From talking with Rob - get rid of the zeros in abundance data because you don't know if the seeds were there or not... just calculate means and stats on germination counts. If there was only one tray with Sp. A, you can't run stats on it because you only have one rep with Sp. A present. 
-
-# October 11, 20203
-# you need to rerun above ground data by transect, not grouped by stand type
-# model = model_type(dependent_variable ~ independent_variable + covariate, data = dataset_name),
-
-
-```
-
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -1394,7 +1371,9 @@ modelgraph_nngrass <- p1 +
               mapping = aes(x = psi, y = rep(0.85, length(my.lines$psi)), label = label),
               inherit.aes = FALSE,
               hjust = 1) +
-  geom_text(mapping = aes(x = 0.3, y = 0.8, hjust = 1, label=paste("Adjusted R Squared:", "\n", r2)), inherit.aes = FALSE)
+  geom_text(mapping = aes(x = 0.3, y = 0.8, hjust = 1, label=paste("Adjusted R Squared:", "\n", r2)), inherit.aes = FALSE) +
+  ylim(0,1) +
+  xlim(0,1)
 
 modelgraph_nngrass
 ```
