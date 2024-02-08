@@ -1016,7 +1016,21 @@ plot_above_df <- scores(abcover_byspecies_NMDS, display = "sites") %>%
   rownames_to_column("standtype_ID") %>% 
   mutate_at(c('standtype_ID'), as.numeric) %>% 
   full_join(abcover_byspecies_nmdsprep, by = "standtype_ID") %>% 
-  dplyr::select(!c(standtype_ID))
+  dplyr::select(!c(standtype_ID)) %>% 
+  mutate(site = case_when(
+    site == "INT1" ~ "SD1",
+      site == "INT2" ~ "SD2",
+      site == "INT3" ~ "SD3",
+    site == "ENH1" ~ "MX1",
+      site == "ENH2" ~ "MX2",
+      site == "DEG1" ~ "GD1",
+      site == "DEG2" ~ "GD2",
+    TRUE ~ as.character(site)  # Keep other observations unchanged
+  )) %>% 
+  rename(Hillslope = site) %>% # old name = new name
+  mutate(Hillslope = fct_relevel(Hillslope, 
+            "SD1", "SD2", "SD3", "MX1", "MX2", "GD1", "GD2"))
+  
 view(plot_above_df)
 
 # envfit() takes the output of metaMDS() and the species matrix you created
@@ -1073,14 +1087,18 @@ nmdsabove_plot_site_rep <- ggplot(plot_above_df,
   coord_fixed() +
   #xlim(-1.5,1.5) +
  # ylim(-1.5,1.5) +
-  geom_point(aes(color = site, shape = site), size = 3, alpha = 0.8) +
+  geom_point(aes(color = Hillslope, shape = Hillslope), size = 3, alpha = 0.8) +
   #stat_ellipse(aes(color = site_rep)) +
-  scale_color_manual(values = c("orange", "brown", "green", "darkgreen", "lightblue", "cornflowerblue", "blue")) + #"gray0",
-   scale_shape_manual(values = c(16,16, 15, 15, 17, 17, 17)) + 
-                   #  name = "Stand Type",
-                   #  labels = c("Intact" = "Shrub dominated", 
-                    #            "Matrix" = "Matrix", 
-                   #             "Degraded" = "Grass dominated")) + #rename standtypes labels
+  scale_color_manual(values = c( "lightblue", "cornflowerblue", "blue","green", "darkgreen", "orange", "brown")) + #"gray0",
+   scale_shape_manual(values = c(17, 17, 17, 15, 15, 16,16)) + 
+  # labs(name = "Hillslope",
+  #                    labels = c("DEG1" = "Shrub dominated", 
+  #                               "DEG2" = "Matrix", 
+  #                               "ENH1" = "Grass dominated", 
+  #                               "ENH2" = "Shrub dominated", 
+  #                               "INT1" = "Matrix", 
+  #                               "INT2" = "Grass dominated", 
+  #                               "INT3" = "SH3")) + #rename standtypes labels
   geom_segment(data = fit_above_spp, aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
                arrow = arrow(length = unit(0.25, "cm")),
                col = "black") +
@@ -1088,14 +1106,15 @@ nmdsabove_plot_site_rep <- ggplot(plot_above_df,
             position = position_jitter(width = 0.0, height = 0.0)) +
   theme_bw()
 nmdsabove_plot_site_rep
-nmdsabove_plot_site_rep
-nmdsabove_plot_site_rep
-nmdsabove_plot_site_rep
-nmdsabove_plot_site_rep
-nmdsabove_plot_site_rep
-nmdsabove_plot_site_rep
-nmdsabove_plot_site_rep
-nmdsabove_plot_site_rep
+# nmdsabove_plot_site_rep
+# nmdsabove_plot_site_rep
+# nmdsabove_plot_site_rep
+# nmdsabove_plot_site_rep
+# nmdsabove_plot_site_rep
+# nmdsabove_plot_site_rep
+# nmdsabove_plot_site_rep
+# nmdsabove_plot_site_rep
+ggsave("Ch1_Degradation_figures/nmds_above_vectors.png", nmdsabove_plot_site_rep, width = 8, height = 6)
 ```
 
 
