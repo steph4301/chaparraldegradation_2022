@@ -200,7 +200,7 @@ nmds_total.nmds2_coord <- nmds_total.nmds2_fit %>%
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   full_join(., nmds_total.nmds2_pvals, by = "species") %>% 
-  filter(pvals <= 0.008) %>% # <-- set p-value level here: 0.05, 0.008
+  filter(pvals <= 0.05) %>% # <-- set p-value level here: 0.05, 0.008
   filter(!species == 'standtype_ID')
 dim(nmds_total.nmds2_coord) # <-- limit number of vectors to <7 for clarity
 #write.csv(nmds_total.nmds2_coord,"Ch1_Degradation_figures/nmds2_pval.1.csv")
@@ -209,9 +209,9 @@ dim(nmds_total.nmds2_coord) # <-- limit number of vectors to <7 for clarity
 total_nmds2_hillslope_vectors <- ggplot(nmds_total.nmds2_plot %>% # output of scores()
                                           rename(hillslope = site), 
                                    aes(x = NMDS1, y = NMDS2)) +
-  coord_equal() +
-  xlim(-2, 2) +
-  ylim(-2, 2) +
+  coord_cartesian(xlim = c(-1.6, 1.6), ylim = c(-1.6, 1.6)) +
+   scale_x_continuous(breaks = seq(-1.6, 1.6, by = 0.4)) +  # Add tick marks 
+   scale_y_continuous(breaks = seq(-1.6, 1.6, by = 0.4)) +   # Add tick marks
   geom_point(aes(color = hillslope, shape = hillslope), 
              size = 3, alpha = 0.8, position = position_jitter(width = 0.1, height = 0.1)) + 
   #stat_ellipse(aes(color = hillslope)) +
