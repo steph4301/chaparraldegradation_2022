@@ -1,0 +1,938 @@
+---
+title: "canopy_NMDS"
+author: "Stephanie Ma Lucero"
+date: "2024-02-18"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## library
+```{r install libraries, message=FALSE}
+
+library(tidyverse) # includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
+library(ggplot2) # data visualization
+library(readr)
+library(dplyr)
+library(ggpubr) # customize ggplot2 for publication
+library(broom)
+library(AICcmodavg)
+library(vegan)
+library(readxl) # for .xls and .xlsx sheets
+library(janitor)
+library(calecopal) 
+library(multcompView)
+library(plotly)
+if (!require(devtools)) {
+  install.packages("devtools")
+}
+devtools::install_github("gavinsimpson/ggvegan")
+library(here)
+library(ggpmisc)
+```
+
+useful code:
+- names() = column titles
+- head()
+- tail()
+- sort(unique(df$column))
+- class() = tibble or data.frame?
+
+
+## data prep
+```{r data prep, include=FALSE}
+
+abcover_full_load <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA"))
+
+abcover_full_raw <- abcover_full_load %>% 
+  dplyr::select(!c(species.1, standtype)) %>% 
+  mutate(site_rep = paste(site, rep, sep = "_"), 
+         site_rep_dist = paste(site_rep, distance, sep = "_"), 
+         site_rep_status = paste(site_rep, status, sep = "_"), 
+         site_rep_species = paste(site_rep, species, sep = "_")) %>% 
+  as_tibble() %>% 
+  mutate(site_rep = fct_relevel(site_rep, 
+            "intact", "matrix", "degraded")) %>% 
+  na.omit()
+  
+  
+
+
+```
+
+
+### (2) Organize the percent cover data by reordering the classes: Intact, Matrix, Degraded.
+```{r ab percent cover reorder classes to Intact Matrix Degraded}
+abcover_full_v <- abcover_full_raw %>%
+  mutate(standtype = fct_relevel(standtype, 
+            "intact", "matrix", "degraded")) %>% 
+  na.omit()
+unique(abcover_full_v$standtype)
+
+# renaming observations
+abcover_full_v$standtype <- factor(abcover_full_v$standtype, levels=c("intact", "matrix", "degraded"), labels=c("Intact", "Matrix", "Degraded"))
+unique(abcover_full_v$standtype)
+
+```
+
+
+
+### (4) Omit "ground" as a status since I'm interested in only Native and Non-native species.
+```{r ab percent cover filter for native and non-native only}
+abcover_full_v_omitground <- filter(abcover_full_v, status !="ground")
+head(abcover_full_v_omitground)
+sort(unique(abcover_full_v_omitground$site))
+# "DEG1" "DEG2" "ENH1" "ENH2" "INT1" "INT2" "INT3"
+glimpse(abcover_full_v_omitground)
+```
+
+
+### (5) Identify the unique species at each site_rep_dist to get rid of duplicate species recordings. (e.g., Present at one distance = 1/41 to get percent cover) 
+```{r ab percent cover unby species, inclue = TRUE}
+
+abcover_byspecies <- abcover_full_v_omitground %>% 
+  group_by(standtype, site, site_rep, species) %>% 
+  filter(site_rep != "Intact4_4") %>% #omit Intact 4 from data
+  filter(!is.na(species)) %>% # omit blank cells in species 
+  dplyr::summarize(
+    count_per_dist = n_distinct(site_rep_dist), 
+    percentcover = n_distinct(site_rep_dist)/41) %>% 
+   dplyr::select(!c(count_per_dist))
+  
+
+head(abcover_byspecies) # prints to new tab
+
+
+unique(abcover_byspecies$standtype)
+unique(abcover_byspecies$site)
+unique(abcover_byspecies$site_rep)
+unique(abcover_byspecies$species)
+
+```
+
+
+### (6) Prepare data for an NMDS (percent cover x species x standtype)
+```{r transpose percent cover data by species, include=TRUE}
+
+# use this for GROUPS: abcover_byspecies_nmdsprep
+
+abcover_byspecies_nmdsprep <- abcover_byspecies %>% 
+  tidyr::spread(species, percentcover) %>% # transpose data so columns are species
+  replace(is.na(.), 0) # replace NA with zeros
+
+#view(abcover_byspecies_nmdsprep)
+# 15 sites (rows) by 48 columns
+str(abcover_byspecies_nmdsprep)
+
+
+abcover_byspecies_nmdsprep_num <- abcover_byspecies_nmdsprep %>% 
+  # use the ungroup() function to take out grouping
+  ungroup() %>% 
+  dplyr::select(!c(standtype, site_rep, site)) # standtype, site_rep
+# 15 sites (rows) by 33 species (columns)
+# DEG 1-6, ENH 1-6, INT 1-3 = 15 transects
+         
+view(abcover_byspecies_nmdsprep_num) # only numbers
+write.csv(abcover_byspecies_nmdsprep_num, "processed/nmds_aboveground.csv")
+```
+
+
+### load
+```{r nmds by species percent cover}
+
+# the AUTOTRANSFORM = F skips the automatic data transformations and uses the input data as is
+# - when the raw data contains the information you need (e.g., abundance)
+# - when you have a small number of samples or small number of variables
+# - when you want to preseve the original scale of the data (e.g., interested in the absolute differences betwen two sets of measurements)
+
+abcover_byspecies_NMDS <- metaMDS(abcover_byspecies_nmdsprep_num,
+                                  autotransform = F, # or T
+                                  distance = "bray",   # bray or raup
+                  k = 2, #dimentions
+                 try = 100, #runs
+                 trymax = 100) # this is more appropriate for my data
+
+
+# uses the RAUP-CRICK dissimilarity index to calculate pairwise dissimilarities
+# - adjusts for spp richness
+# - downweights importance of rare spp 
+# - more useful when interested in community STRUCTURE rather than individual species
+# - takes into account differences in species evenness
+# abcover_byspecies_NMDS <- metaMDS(abcover_byspecies_nmdsprep_num, distance = "raup") 
+
+```
+
+### stress
+```{r stress tests nmds}
+stressplot(abcover_byspecies_NMDS)
+# if stress tests are really low ==> I may have insufficient data. :/
+
+plot(abcover_byspecies_NMDS)
+ordiplot(abcover_byspecies_NMDS, type = "p")
+ordiplot(abcover_byspecies_NMDS, type = "t")
+ab_nmds.fort <- fortify(abcover_byspecies_NMDS)
+```
+
+```{r scores nmds}
+
+scores(abcover_byspecies_NMDS)
+
+# the below code is from seedbank nmds
+
+#plot_df <- scores(abcover_byspecies_NMDS, display = "sites") %>% # from An's code
+#  as.data.frame() %>% 
+#  rownames_to_column("stand_core") %>% 
+#  full_join(seedbank_bysitecore, by = "stand_core")
+
+nmds_above_df <- data.frame(abcover_byspecies_NMDS$points, abcover_byspecies_nmdsprep) # code from chatgpt
+
+```
+
+### figure 
+```{r ggplot above ground}
+head(nmds_above_df)
+
+nmds_above_df_plotcolor <- ggplot(nmds_above_df, aes(x = MDS1, y = MDS2, color = standtype, shape = standtype)) +
+  geom_point(size = 3, alpha = 0.8) +
+  scale_color_manual(values = c("darkgreen", "darkmagenta", "darkgoldenrod1")) + # in color
+  # scale_color_manual(values = c("gray0", "gray30", "gray60")) + # in bw
+  theme_bw() +
+  theme(legend.position = c(0.1, 0.85)) + # x, y left corner: 0,0
+  stat_ellipse(level = .95, linetype = 2, linewidth = 1) +
+  labs(title = "NMDS: by percent cover", color = "Stand type", shape = "Stand type")
+nmds_above_df_plotcolor
+
+```
+
+
+### p values
+```{r nmds color and vectors with envfit function}
+# code from An Bui: https://rpubs.com/an-bui/vegan-cheat-sheet 
+
+abcover_byspecies_nmdsprep <- abcover_byspecies_nmdsprep %>% 
+  mutate(standtype_ID = 1)
+abcover_byspecies_nmdsprep$standtype_ID <- 1:15
+
+plot_above_df <- scores(abcover_byspecies_NMDS, display = "sites") %>% 
+  as.data.frame() %>% 
+  rownames_to_column("standtype_ID") %>% 
+  mutate_at(c('standtype_ID'), as.numeric) %>% 
+  full_join(abcover_byspecies_nmdsprep, by = "standtype_ID") %>% 
+  dplyr::select(!c(standtype_ID)) %>% 
+  mutate(site = case_when(
+    site == "INT1" ~ "SD1",
+      site == "INT2" ~ "SD2",
+      site == "INT3" ~ "SD3",
+    site == "ENH1" ~ "MX1",
+      site == "ENH2" ~ "MX2",
+      site == "DEG1" ~ "GD1",
+      site == "DEG2" ~ "GD2",
+    TRUE ~ as.character(site)  # Keep other observations unchanged
+  )) %>% 
+  rename(Hillslope = site) %>% # old name = new name
+  mutate(Hillslope = fct_relevel(Hillslope, 
+            "SD1", "SD2", "SD3", "MX1", "MX2", "GD1", "GD2"))
+  
+view(plot_above_df)
+
+# envfit() takes the output of metaMDS() and the species matrix you created
+fit_above <- envfit(abcover_byspecies_NMDS, abcover_byspecies_nmdsprep, perm = 999) # pvalues for spp and stand, site, stand_core
+
+# extract p-values for each species
+fit_above_pvals <- fit_above$vectors$pvals %>% 
+  as.data.frame() %>% 
+  rownames_to_column("species") %>% 
+  dplyr::rename("pvals" = ".") %>% 
+  filter(!c(species == "standtype_ID"))
+view(fit_above_pvals)
+
+# extract coordinates for species, only keep species with p-val = 0.05
+fit_above_spp <- fit_above %>% 
+  scores(., display = "vectors") %>% 
+  as.data.frame() %>% 
+  rownames_to_column("species") %>% 
+  full_join(., fit_above_pvals, by = "species") %>% 
+  filter(pvals <= 0.005) %>%  # <-- p-value = 0.005
+  filter(!species == 'standtype_ID')
+length(fit_above_spp$species) #  <- limited number for visual clarity
+#7
+
+#write.csv(fit_above_spp, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/percentcover_nmds_pvalues.csv")
+# P = 1 --> n = 45 species
+```
+
+```{r}
+# new plot - stand type
+nmdsabove_plot_new <- ggplot(plot_above_df, aes(x = NMDS1, y = NMDS2)) +
+  #coord_fixed() +
+  geom_point(aes(color = standtype), size = 3, alpha = 0.8) +
+  stat_ellipse(aes(color = standtype)) +
+  scale_color_manual(values = c("darkgreen", "darkmagenta", "darkgoldenrod1"),
+                     name = "Stand Type",
+                     labels = c("Intact" = "Shrub dominated", 
+                                "Matrix" = "Matrix", 
+                                "Degraded" = "Grass dominated")) + #rename standtypes labels
+  geom_segment(data = fit_above_spp, aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
+               arrow = arrow(length = unit(0.25, "cm")),
+               col = "black") +
+  geom_text(data = fit_above_spp, aes(label = species),  
+            position = position_jitter(width = 0.1, height = 0.2)) 
+
+
+nmds_above_print <- nmdsabove_plot_new + theme_bw() + theme(legend.position = c(0.125, 0.825))
+
+ggsave("Ch1_Degradation_figures/nmds_above_print.png", nmds_above_print, width = 8, height = 6)
+
+# nmds - by site_rep (aka. hillslope)
+nmdsabove_plot_site_rep <- ggplot(plot_above_df, 
+                                  aes(x = NMDS1, y = NMDS2)) +
+  coord_fixed() +
+  #xlim(-1.5,1.5) +
+ # ylim(-1.5,1.5) +
+  geom_point(aes(color = Hillslope, shape = Hillslope), size = 3, alpha = 0.8) +
+  #stat_ellipse(aes(color = site_rep)) +
+  scale_color_manual(values = c( "lightblue", "cornflowerblue", "blue","green", "darkgreen", "orange", "brown")) + #"gray0",
+   scale_shape_manual(values = c(17, 17, 17, 15, 15, 16,16)) + 
+  # labs(name = "Hillslope",
+  #                    labels = c("DEG1" = "Shrub dominated", 
+  #                               "DEG2" = "Matrix", 
+  #                               "ENH1" = "Grass dominated", 
+  #                               "ENH2" = "Shrub dominated", 
+  #                               "INT1" = "Matrix", 
+  #                               "INT2" = "Grass dominated", 
+  #                               "INT3" = "SH3")) + #rename standtypes labels
+  geom_segment(data = fit_above_spp, aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
+               arrow = arrow(length = unit(0.25, "cm")),
+               col = "black") +
+  geom_text(data = fit_above_spp, aes(label = species),  
+            position = position_jitter(width = 0.0, height = 0.0)) +
+  theme_bw()
+nmdsabove_plot_site_rep
+# nmdsabove_plot_site_rep
+# nmdsabove_plot_site_rep
+# nmdsabove_plot_site_rep
+# nmdsabove_plot_site_rep
+# nmdsabove_plot_site_rep
+# nmdsabove_plot_site_rep
+# nmdsabove_plot_site_rep
+# nmdsabove_plot_site_rep
+ggsave("Ch1_Degradation_figures/nmds_above_vectors.png", nmdsabove_plot_site_rep, width = 8, height = 6)
+```
+
+
+
+
+
+```{r byplot - ggplot vectors and measurments, include = FALSE}
+
+#this makes a dataframe that gives a lot of control graphically 
+abcover_byspecies_NMDS_fort <- fortify(abcover_byspecies_NMDS)
+
+# vectors AND measurments
+abcover_byspecies_NMDS_fortplot <- ggplot() + 
+  geom_point(data = subset(abcover_byspecies_NMDS_fort, Score == 'sites'),
+             mapping = aes(x = NMDS1, y = NMDS2, group = ""),
+             color = 'black',
+             size = 4,
+             alpha = 1) +
+  geom_segment(data = subset(abcover_byspecies_NMDS_fort, Score == 'species'),
+               mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
+               arrow = arrow(length = unit(0.015, "npc"),
+                             type = 'closed'),
+               color = 'darkgrey',
+               linewidth = 0.8) +
+  geom_text(data = subset(abcover_byspecies_NMDS_fort, Score == 'species'),
+            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1), 
+            position = position_jitter(width = 0.2, height = 0.2)) +
+  geom_abline(intercept = 0,slope = 0,linetype = "dashed", linewidth = 0.8,colour = "gray")+
+  geom_vline(aes(xintercept = 0), linetype = "dashed", linewidth = 0.8, colour = "gray")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"))
+abcover_byspecies_NMDS_fortplot
+
+#only vectors shown
+abcover_byspecies_NMDS_fortplot1 <- ggplot() + 
+  geom_point(data = subset(abcover_byspecies_NMDS_fort, Score == 'sites'),
+             mapping = aes(x = NMDS1, y = NMDS2),
+             color = 'black',
+             alpha = 0) +
+  geom_segment(data = subset(abcover_byspecies_NMDS_fort, Score == 'species'),
+               mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
+               arrow = arrow(length = unit(0.015, "npc"),
+                             type = 'closed'),
+               color = 'darkgrey',
+               linewidth = 0.8) +
+  geom_text(data = subset(abcover_byspecies_NMDS_fort, Score == 'species'),
+            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1),
+            position = position_jitter(width = 0.9, height = 0.9)) +
+  geom_abline(intercept = 0,slope = 0,linetype = "dashed", linewidth = 0.8,colour = "gray")+
+  geom_vline(aes(xintercept = 0), linetype = "dashed", size = 0.8, colour = "gray")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"))
+abcover_byspecies_NMDS_fortplot1
+
+#only measurements shown
+abcover_byspecies_NMDS_fortplot2 <- ggplot() + 
+  geom_point(data = subset(abcover_byspecies_NMDS_fort, Score == 'sites'),
+             mapping = aes(x = NMDS1, y = NMDS2),
+             color = 'black',
+             alpha = 0.5) +
+  geom_segment(data = subset(abcover_byspecies_NMDS_fort, Score == 'species'),
+               mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
+               arrow = arrow(length = unit(0.015, "npc"),
+                             type = 'closed'),
+               color = 'darkgrey',
+               size = 0.8,
+               alpha = 0) +
+  geom_text(data = subset(abcover_byspecies_NMDS_fort, Score == 'species'),
+            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1),
+            position = position_jitter(width = 0.2, height = 0.2),
+            alpha = 0)+
+  geom_abline(intercept = 0,slope = 0,linetype = "dashed", size = 0.8,colour = "gray")+
+  geom_vline(aes(xintercept = 0), linetype = "dashed", size = 0.8, colour = "gray")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"))
+abcover_byspecies_NMDS_fortplot2
+
+#interactive plots that I like
+ggplotly(abcover_byspecies_NMDS_fortplot)
+
+#show both plots 
+hi_above <- ggarrange(nmds_above_df_plotcolor, abcover_byspecies_NMDS_fortplot, ncol = 1)
+hi_above
+
+```
+
+
+
+NMDS
+NMDS
+NMDS by Plots! to determine which species are driving transect disimiliarity. 
+
+(5) Identify the unique species at each site_rep_dist to get rid of duplicate species recordings. (e.g., Present at one distance = 1/41 to get percent cover) 
+```{r ab percent cover unby species, inclue = TRUE}
+
+abcover_byplot_groups <- abcover_full_v_omitground %>% 
+  select(c(standtype, site, site_rep, species))
+head(abcover_byplot_groups)
+
+abcover_byplot_prep <- abcover_full_v_omitground %>% 
+  group_by(standtype, site, site_rep, species) %>% 
+  filter(site_rep != "Intact4_4") %>% #omit Intact 4 from data
+  filter(!is.na(species)) %>% # omit blank cells in species 
+  dplyr::summarize(count_per_dist = n_distinct(site_rep_dist), percentcover = n_distinct(site_rep_dist)/41) 
+  
+view(abcover_byplot_prep) # prints to new tab
+
+abcover_byplot <- abcover_byplot_prep %>% 
+  select(c(site_rep, species, percentcover))
+
+write.csv(abcover_byplot, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/abcover_byplot.csv")
+
+abcover_byplot_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/abcover_byplot_onlysite_repsppcover.csv", header = TRUE, na.strings=c("","NA"))
+```
+
+
+(6) Prepare data for an NMDS (percent cover x species x standtype)
+```{r transpose percent cover data by species, include=TRUE}
+
+# use this for GROUPS: abcover_byplot_nmdsprep
+
+head(abcover_byplot_load)
+
+abcover_byplot_nmdsprep <- abcover_byplot_load %>% 
+  tidyr::spread(site_rep, percentcover) %>% # transpose data so columns are species
+  replace(is.na(.), 0) # replace NA with zeros
+view(abcover_byplot_nmdsprep)
+dim(abcover_byplot_nmdsprep)
+
+abcover_byplot_nmdsprep_num <- abcover_byplot_nmdsprep %>% 
+  # use the ungroup() function to take out grouping
+  ungroup() %>% 
+  select(!c(species))
+# 33 species (rows) by 15 sites (columns)
+# DEG 1-6, ENH 1-6, INT 1-3 = 15 transects
+dim(abcover_byplot_nmdsprep_num)
+```
+
+```{r write nmds to csv}
+view(abcover_byplot_nmdsprep_num) # only numbers
+write.csv(abcover_byplot_nmdsprep_num, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/nmds_aboveground.csv")
+```
+
+(7) NMDS 
+```{r stress tests}
+# USE THIS ONE!
+
+# str(seedbank_bysitecore_nmdsprep_num)
+# stand_core_depth -->  tibble [89 × 52]
+
+# stress test, will run 20 times
+seedbank_byplot_nmds <- metaMDS(abcover_byplot_nmdsprep_num, distance = "raup")
+
+# stress test, will run 20 times
+seedbank_byplot_nmds <- metaMDS(abcover_byplot_nmdsprep_num, autotransform = F)
+```
+
+```{r scores nmds}
+
+scores(seedbank_byplot_nmds)
+
+```
+
+
+```{r stress test}
+
+stressplot(seedbank_byplot_nmds)
+# if stress tests are really low ==> I may have insufficient data. :/
+
+#plot_df <- scores(seedbank_bysitecore_nmds, display = "sites") %>% # from An's code
+#  as.data.frame() %>% 
+#  rownames_to_column("stand_core") %>% 
+#  full_join(seedbank_bysitecore, by = "stand_core")
+
+nmds_df <- data.frame(seedbank_byplot_nmds$points, # unnamed column is species n = 33
+                      abcover_byplot_nmdsprep) # from chatgpt
+view(nmds_df)
+```
+
+```{r ggplot bw}
+ggplot(nmds_df, aes(x = MDS1, y = MDS2, color = stand, shape = stand)) +
+  geom_point(size = 3, alpha = 0.8) +
+  scale_color_manual(values = c("gray0", "gray30", "gray60")) +
+  theme_bw() +
+  stat_ellipse(linetype = 2, size = 1) +
+  labs(title = "NMDS: by seed bank germination counts", color = "Stand type", shape = "Stand type")
+```
+
+```{r with vectors}
+
+#this makes a dataframe that gives a lot of control graphically 
+seedbank_byplot_nmds_fort <- fortify(seedbank_byplot_nmds)
+
+# vectors AND measurments
+seedbank_byplot_nmdsfortplot <- ggplot() + 
+  geom_point(data = subset(seedbank_byplot_nmds_fort, Score == 'sites'),
+             mapping = aes(x = NMDS1, y = NMDS2),
+             color = 'black',
+             alpha = 0.5) +
+  geom_segment(data = subset(seedbank_byplot_nmds_fort, Score == 'species'),
+               mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
+               arrow = arrow(length = unit(0.015, "npc"),
+                             type = 'closed'),
+               color = 'darkgrey',
+               linewidth = 0.8) +
+  geom_text(data = subset(seedbank_byplot_nmds_fort, Score == 'species'),
+            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1))+
+  geom_abline(intercept = 0,slope = 0,linetype = "dashed", linewidth = 0.8,colour = "gray")+
+  geom_vline(aes(xintercept = 0), linetype = "dashed", linewidth = 0.8, colour = "gray")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"))
+
+#only vectors shown
+seedbank_byplot_nmds_fortplot1 <- ggplot() + 
+  geom_point(data = subset(seedbank_byplot_nmds_fort, Score == 'sites'),
+             mapping = aes(x = NMDS1, y = NMDS2),
+             color = 'black',
+             alpha = 0) +
+  geom_segment(data = subset(seedbank_byplot_nmds_fort, Score == 'species'),
+               mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
+               arrow = arrow(length = unit(0.015, "npc"),
+                             type = 'closed'),
+               color = 'darkgrey',
+               linewidth = 0.8) +
+  geom_text(data = subset(seedbank_byplot_nmds_fort, Score == 'species'),
+            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1))+
+  geom_abline(intercept = 0,slope = 0,linetype = "dashed", linewidth = 0.8,colour = "gray")+
+  geom_vline(aes(xintercept = 0), linetype = "dashed", size = 0.8, colour = "gray")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"))
+seedbank_byplot_nmds_fortplot1
+```
+```{r plot measurements only }
+#only measurements shown
+seedbank_byplot_nmds_fortplot2 <- ggplot() + 
+  geom_point(data = subset(seedbank_byplot_nmds_fort, Score == 'sites'),
+             mapping = aes(x = NMDS1, y = NMDS2),
+             color = 'black',
+             alpha = 0.5) +
+  geom_segment(data = subset(seedbank_byplot_nmds_fort, Score == 'species'),
+               mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
+               arrow = arrow(length = unit(0.015, "npc"),
+                             type = 'closed'),
+               color = 'darkgrey',
+               size = 0.8,
+               alpha = 0) +
+  geom_text(data = subset(seedbank_byplot_nmds_fort, Score == 'species'),
+            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1),
+            alpha = 0)+
+  geom_abline(intercept = 0,slope = 0,linetype = "dashed", size = 0.8,colour = "gray")+
+  geom_vline(aes(xintercept = 0), linetype = "dashed", size = 0.8, colour = "gray")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"))
+
+#interactive plots that I like
+ggplotly(seedbank_bysitecore_nmds_fortplot)
+
+#show both plots 
+hi <- ggarrange(seedbank_bysitecore_nmds_fortplot1, seedbank_bysitecore_nmds_fortplot2, ncol = 1)
+hi
+
+```
+
+
+```{r}
+
+ggplot(nmds_df, aes(x = MDS1, y = MDS2)) +
+  geom_point()+
+  theme_bw() +
+  stat_ellipse(linetype = 2, size = 1) +
+  labs(title = "NMDS: by seed bank germination counts", color = "Stand type", shape = "Stand type")
+
+#
+ggplot(nmds_df, aes(x = MDS1, y = MDS2, color = stand, shape = stand)) +
+  geom_point(size = 3, alpha = 0.8) +
+  scale_color_manual(values = c("gray0", "gray30", "gray60")) +
+  theme_bw() +
+  stat_ellipse(linetype = 2, size = 1) +
+  labs(title = "NMDS: by seed bank germination counts", color = "Stand type", shape = "Stand type")
+```
+
+```{r ggplot color}
+ggplot(nmds_df, aes(x = MDS1, y = MDS2, color = stand, shape = stand)) +
+  geom_point(size = 3, alpha = 0.8) +
+  scale_color_manual(values = c("darkgreen", "darkmagenta", "darkgoldenrod1")) +
+  theme_bw() +
+  #stat_ellipse(level = .95, linetype = 2, size = 1) +
+  stat_ellipse(linetype = 2, size = 1) +
+  labs(title = "NMDS: by seed bank germination counts", color = "Stand type", shape = "Stand type")
+
+
+```
+
+
+
+```{r}
+# useful code on how to color code NMDS from YouTube: https://www.youtube.com/watch?v=h7OrVmT7Ja8&t=446s
+# and how to group NMDS values: https://www.youtube.com/watch?v=Y0GI34S-ZMI
+
+scores(abcover_byspecies_NMDS) # structure of the file, look at the points to get the matrix of numbers and columns (2 columns)
+abcover_byspecies_NMDS$points # to get the points/values of MDS1 and MDS2
+scores(abcover_byspecies_NMDS) # scores of your variables
+plot(abcover_byspecies_NMDS)
+
+abcover_byspecies_NMDS_centroid <- scores(abcover_byspecies_NMDS$species) %>% 
+  as_tibble(rownames="species") %>% 
+  inner_join(., abcover_byspecies_nmdsprep, by="species") %>% 
+  group_by(standtype) %>% 
+ summarize(axis1 = mean(MDS1),
+            axis2 = mean(MDS2))
+
+scores(abcover_byspecies_NMDS$species) %>% 
+  as_tibble(rownames="species") %>% 
+  inner_join(., abcover_bysite_nmdsprep, by="species") %>% 
+  ggplot(aes(x=MDS1, y=MDS2, color=standtype)) +
+  geom_point() +
+  geom_point(data=abcover_byspecies_NMDS_centroid, aes(x=axis1, y=axis2, color=standtype),
+             shape = 15, size = 5)
+
+# How can I make interactive data points with call outs when I hover over them?
+```
+
+```{r FROM KIT - nmds by species percent cover using code from KIT}
+# USE THIS ONE!
+
+# stress test, will run 20 times
+abcover_byspecies_NMDS <- metaMDS(abcover_byspecies_nmdsprep_num, 
+                                  autotransform = F)
+# stress tests are really low ==> I may have insufficient data. :/
+
+stressplot(seedbank_byplot_nmds)
+plot(seedbank_byplot_nmds)
+
+#basic normal plot
+ordiplot(abcover_byspecies_NMDS) # without point labels
+ordiplot(abcover_byspecies_NMDS, type = "t") # with point labels
+
+#ggvegan to make a quick nice plot
+autoplot(abcover_byspecies_NMDS) # NMDS1 x NMDS2, Key = "Score": sites, species
+
+
+
+#this makes a dataframe that gives a lot of control graphically 
+abcover_byspecies_NMDS_fort <- fortify(abcover_byspecies_NMDS)
+
+abcover_byspecies_NMDS_fortplot <- ggplot() + 
+  geom_point(data = subset(abcover_byspecies_NMDS_fort, Score == 'sites'),
+             mapping = aes(x = NMDS1, y = NMDS2),
+             color = 'black',
+             alpha = 0.5) +
+  geom_segment(data = subset(abcover_byspecies_NMDS_fort, Score == 'species'),
+               mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
+               arrow = arrow(length = unit(0.015, "npc"),
+                             type = 'closed'),
+               color = 'darkgrey',
+               linewidth = 0.8) +
+  geom_text(data = subset(abcover_byspecies_NMDS_fort, Score == 'species'),
+            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1))+
+  geom_abline(intercept = 0,slope = 0,linetype = "dashed", linewidth = 0.8,colour = "gray")+
+  geom_vline(aes(xintercept = 0), linetype = "dashed", linewidth = 0.8, colour = "gray")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"))
+
+#only vectors shown
+abcover_byspecies_NMDS_fortplot1 <- ggplot() + 
+  geom_point(data = subset(abcover_byspecies_NMDS_fort, Score == 'sites'),
+             mapping = aes(x = NMDS1, y = NMDS2),
+             color = 'black',
+             alpha = 0) +
+  geom_segment(data = subset(abcover_byspecies_NMDS_fort, Score == 'species'),
+               mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
+               arrow = arrow(length = unit(0.015, "npc"),
+                             type = 'closed'),
+               color = 'darkgrey',
+               linewidth = 0.8) +
+  geom_text(data = subset(abcover_byspecies_NMDS_fort, Score == 'species'),
+            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1))+
+  geom_abline(intercept = 0,slope = 0,linetype = "dashed", linewidth = 0.8,colour = "gray")+
+  geom_vline(aes(xintercept = 0), linetype = "dashed", size = 0.8, colour = "gray")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"))
+
+#only measurements shown
+abcover_byspecies_NMDS_fortplot2 <- ggplot() + 
+  geom_point(data = subset(abcover_byspecies_NMDS_fort, Score == 'sites'),
+             mapping = aes(x = NMDS1, y = NMDS2),
+             color = 'black',
+             alpha = 0.5) +
+  geom_segment(data = subset(abcover_byspecies_NMDS_fort, Score == 'species'),
+               mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
+               arrow = arrow(length = unit(0.015, "npc"),
+                             type = 'closed'),
+               color = 'darkgrey',
+               size = 0.8,
+               alpha = 0) +
+  geom_text(data = subset(abcover_byspecies_NMDS_fort, Score == 'species'),
+            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1),
+            alpha = 0)+
+  geom_abline(intercept = 0,slope = 0,linetype = "dashed", size = 0.8,colour = "gray")+
+  geom_vline(aes(xintercept = 0), linetype = "dashed", size = 0.8, colour = "gray")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"))
+
+#interactive plots that I like
+ggplotly(abcover_byspecies_NMDS_fortplot)
+
+#show both plots 
+hi <- ggarrange(abcover_byspecies_NMDS_fortplot1, abcover_byspecies_NMDS_fortplot2, ncol = 1)
+hi
+
+
+ordiplot(abcover_byspecies_NMDS,type="n")
+orditorp(abcover_byspecies_NMDS,display="species",col="red",air=0.01)
+orditorp(abcover_byspecies_NMDS,display="sites",cex=1.25,air=0.01)
+
+str(abcover_byspecies_nmdsprep_num)
+#tibble [125 × 34] (S3: tbl_df/tbl/data.frame)
+treat=c(rep("treatment1",50),rep("treatment2",50), rep("treatment3",25)) 
+ordiplot(abcover_byspecies_NMDS,type="n")
+ordihull(abcover_byspecies_NMDS,groups=treat,draw="polygon",col="grey90",
+         label=FALSE)
+orditorp(abcover_byspecies_NMDS,display="species",col="red",air=0.01)
+orditorp(abcover_byspecies_NMDS,display="sites",col=c(rep("green",50),rep("blue",50),re("orange",25)),
+         air=0.01,cex=1.25)
+
+
+```
+
+
+(7) NMDS by site (e.g., Intact_1)
+```{r transpose site percent cover data}
+
+abcover_bysite_nmdsprep <- abcover_byspecies %>% 
+  tidyr::spread(site_rep, percentcover) %>% # transpose data so columns are site_rep
+  replace(is.na(.), 0) # replace NA with zeros
+view(abcover_bysite_nmdsprep)
+
+abcover_bysite_nmdsprep_num <- abcover_bysite_nmdsprep %>% 
+  # use the ungroup() function to take out grouping
+  ungroup() %>% 
+  select(!c(standtype, site, species, status, lifeform, lifecycle, count_per_dist))
+         
+view(abcover_bysite_nmdsprep_num) # only numbers
+```
+
+
+```{r FROM KIT - nmds by site percent cover}
+
+# stress test with DISTANCE, runs 20 times
+# abcover_bysite_NMDS <- metaMDS(abcover_bysite_nmdsprep_num, distance = "raup") 
+#In metaMDS(abcover_bysite_nmdsprep_num, distance = "raup") :
+#  stress is (nearly) zero: you may have insufficient data
+
+# stress test with AUTOTRANSFORM, runs 20 times
+abcover_bysite_NMDS <- metaMDS(abcover_bysite_nmdsprep_num, autotransform = F) 
+#In metaMDS(abcover_bysite_nmdsprep_num, autotransform = F) :
+#  stress is (nearly) zero: you may have insufficient data
+
+stressplot(abcover_bysite_NMDS)
+
+plot(abcover_bysite_NMDS) 
+
+#basic normal plot
+ordiplot(abcover_bysite_NMDS) # without point labels
+ordiplot(abcover_bysite_NMDS, type = "t") # with point labels
+
+#ggvegan to make a quick nice plot
+autoplot(abcover_bysite_NMDS) # NMDS1 x NMDS2, Key = "Score": sites, species
+
+
+
+#this makes a dataframe that gives a lot of control graphically 
+abcover_bysite_NMDS_fort <- fortify(abcover_bysite_NMDS)
+
+abcover_bysite_NMDS_fortplot <- ggplot() + 
+  geom_point(data = subset(abcover_bysite_NMDS_fort, Score == 'sites'),
+             mapping = aes(x = NMDS1, y = NMDS2),
+             color = 'black',
+             alpha = 0.5) +
+  geom_segment(data = subset(abcover_bysite_NMDS_fort, Score == 'species'),
+               mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
+               arrow = arrow(length = unit(0.015, "npc"),
+                             type = 'closed'),
+               color = 'darkgrey',
+               linewidth = 0.8) +
+  geom_text(data = subset(abcover_bysite_NMDS_fort, Score == 'species'),
+            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1))+
+  geom_abline(intercept = 0,slope = 0,linetype = "dashed", linewidth = 0.8,colour = "gray")+
+  geom_vline(aes(xintercept = 0), linetype = "dashed", linewidth = 0.8, colour = "gray")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"))
+
+#only vectors shown
+abcover_bysite_NMDS_fortplot1 <- ggplot() + 
+  geom_point(data = subset(abcover_bysite_NMDS_fort, Score == 'sites'),
+             mapping = aes(x = NMDS1, y = NMDS2),
+             color = 'black',
+             alpha = 0) +
+  geom_segment(data = subset(abcover_bysite_NMDS_fort, Score == 'species'),
+               mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
+               arrow = arrow(length = unit(0.015, "npc"),
+                             type = 'closed'),
+               color = 'darkgrey',
+               linewidth = 0.8) +
+  geom_text(data = subset(abcover_bysite_NMDS_fort, Score == 'species'),
+            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1))+
+  geom_abline(intercept = 0,slope = 0,linetype = "dashed", linewidth = 0.8,colour = "gray")+
+  geom_vline(aes(xintercept = 0), linetype = "dashed", size = 0.8, colour = "gray")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"))
+
+#only measurements shown
+abcover_bysite_NMDS_fortplot2 <- ggplot() + 
+  geom_point(data = subset(abcover_bysite_NMDS_fort, Score == 'sites'),
+             mapping = aes(x = NMDS1, y = NMDS2),
+             color = 'black',
+             alpha = 0.5) +
+  geom_segment(data = subset(abcover_bysite_NMDS_fort, Score == 'species'),
+               mapping = aes(x = 0, y = 0, xend = NMDS1, yend = NMDS2),
+               arrow = arrow(length = unit(0.015, "npc"),
+                             type = 'closed'),
+               color = 'darkgrey',
+               size = 0.8,
+               alpha = 0) +
+  geom_text(data = subset(abcover_bysite_NMDS_fort, Score == 'species'),
+            mapping = aes(label = Label, x = NMDS1*1.1, y = NMDS2*1.1),
+            alpha = 0)+
+  geom_abline(intercept = 0,slope = 0,linetype = "dashed", size = 0.8,colour = "gray")+
+  geom_vline(aes(xintercept = 0), linetype = "dashed", size = 0.8, colour = "gray")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"))
+
+#interactive plots that I like
+ggplotly(abcover_bysite_NMDS_fortplot)
+
+#show both plots 
+hi_site <- ggarrange(abcover_bysite_NMDS_fortplot1, abcover_bysite_NMDS_fortplot2, ncol = 1)
+hi_site
+
+
+ordiplot(abcover_bysite_NMDS,type="n")
+orditorp(abcover_bysite_NMDS,display="species",col="red",air=0.01)
+orditorp(abcover_bysite_NMDS,display="sites",cex=1.25,air=0.01)
+
+str()
+#tibble [125 × 34] (S3: tbl_df/tbl/data.frame)
+treat=c(rep("treatment1",3),rep("treatment2",3), rep("treatment3",3)) 
+ordiplot(abcover_bysite_NMDS,type="n")
+ordihull(abcover_bysite_NMDS,groups=treat,draw="polygon",col="grey90",
+         label=FALSE)
+orditorp(abcover_bysite_NMDS,display="species",col="red",air=0.01)
+orditorp(abcover_bysite_NMDS,display="sites",col=c(rep("green",6),rep("blue",6),re("orange",3)),
+         air=0.01,cex=1.25)
+
+
+
+
+```
+
+
+
+
+
+```{r set seed }
+# *** No convergence -- monoMDS stopping criteria:
+#    15: no. of iterations >= maxit
+#     1: stress < smin
+#     4: scale factor of the gradient < sfgrmin
+
+# set.seed(100)
+abcover_bysite_NMDS <- metaMDS(abcover_bysite_nmdsprep_num, distance = "raup") # Runs with stress and a number
+
+str(abcover_bysite_NMDS) # structure of the file, look at the points to get the matrix of numbers and columns (2 columns)
+abcover_bysite_NMDS$points # to get the points/values of MDS1 and MDS2
+scores(abcover_bysite_NMDS) # scores of your variables
+plot(abcover_bysite_NMDS)
+```
+
+
+
+
+```{r sandbox nmds}
+
+plot(abcover_bysite_NMDS, type = "n") #displays empty ordination space
+
+points(abcover_bysite_NMDS, display = "sites", pch = c(16, 8, 17, 11) [as.numeric(abcover_bysite_nmdsprep$status)], col = c("blue", "orange", "black") [as.numeric(abcover_bysite_nmdsprep$count_per_dist)]) # displays site points where symbols (pch) are different management options and colour (col) are different land uses
+
+# points(abcover_bysite_NMDS, display = "site_rep", 
+#       pch = c(16, 8, 17, 11) [as.numeric(abcover_bysite_nmdsprep_num$site_rep)], 
+#       col = c("blue", "orange", "black", "green", "pink", "red", "purple", "teal", #"magenta", "cyan", "yellow", "brown", "light blue", "peach", "lime"),
+#       [as.numeric(abcover_bysite_nmdsprep_num$Use)]) # displays site points where #symbols (pch) are different management options and colour (col) are different land uses
+
+legend("topright", legend = c(levels(abcover_bysite_nmdsprep_num$site_rep),
+                              levels(abcover_bysite_nmdsprep_num$percent)), 
+       pch = c(16, 8, 17, 11, 16, 16, 16), 
+       col = c("black","black","black","black","blue", "orange", "black"), 
+       bty = "n", cex = 1) # displays symbol and colour legend
+
+legend("topleft", "stress = 0.118", bty = "n", cex = 1) # displays legend text of stress value 
+
+nmds <- ordiplot(abcover_bysite_NMDS, type = "none")
+ordipointlabel(abcover_bysite_NMDS,display = "sites",add=TRUE)
+```
+
+
