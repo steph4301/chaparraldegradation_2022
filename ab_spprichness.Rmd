@@ -295,6 +295,23 @@ TukeyHSD(aov(sppr ~ site, ab_totalsppr_hillslope))
 # Intact3-Intact2 -5.0000000 -11.0364006  1.0364006 0.1174050
 
 ```
+```{r}
+ggplot(ab_totalsppr_hillslope) +
+  stat_summary(
+     mapping = aes(x = site, y = sppr),
+    fun.min = min,
+    fun.max = max,
+    fun = median
+  )+
+  ylim(0,25)
+
+ggplot(data = ab_totalsppr_hillslope, 
+       mapping = aes(x = site, y = sppr)) + 
+  geom_boxplot() +
+  ylim(0,25)
+
+boxplot(sppr ~ site, data = ab_totalsppr_hillslope)
+```
 
 
 ```{r}
