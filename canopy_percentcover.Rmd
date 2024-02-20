@@ -184,7 +184,6 @@ ggplot(data = abcover_vegcover_long, aes(x = site, y = percentcover, color = cov
   theme(text = element_text(size = 14), axis.text.y = element_text(size = 12), axis.text.x = element_text(size = 12))
 # end jitter code
 ```
-
 ```{r normality abcover total veg cover, include=TRUE}
 shapiro.test(abcover_vegcover_long$percentcover) # veg cover and ground cover
 # Shapiro-Wilk normality test
@@ -207,8 +206,18 @@ shapiro.test(abcover_vegcover_long_vegonly$percentcover)
 ggqqplot(abcover_vegcover_long_vegonly$percentcover) 
 
 abcover_vegcover_long_vegonly$site_rep <- paste(abcover_vegcover_long_vegonly$site, abcover_vegcover_long_vegonly$rep, sep="_") # combine site and rep form to one column
+```
 
+#### categorical by stand type
+```{r total veg categorical by standtype}
 # code from --> http://www.sthda.com/english/wiki/kruskal-wallis-test-in-r
+# 
+shapiro.test(abcover_vegcover_long_vegonly$percentcover) 
+# Shapiro-Wilk normality test
+# 
+# data:  abcover_vegcover_long_vegonly$percentcover
+# W = 0.73103, p-value = 0.0005447 <-- not normally distributed
+ 
 kruskal.test(percentcover ~ standtype, data = abcover_vegcover_long_vegonly)
 # 	Kruskal-Wallis rank sum test
 # 
@@ -222,7 +231,33 @@ pairwise.wilcox.test(abcover_vegcover_long_vegonly$percentcover, abcover_vegcove
 # degraded 0.32   0.32  <-- nothing is significant
 
 ```
+#### categorical by hillslope
+```{r total veg categorical by hillslope}
+# code from --> http://www.sthda.com/english/wiki/kruskal-wallis-test-in-r
 
+kruskal.test(percentcover ~ site, data = abcover_vegcover_long_vegonly)
+# 	Kruskal-Wallis rank sum test
+# 
+# data:  percentcover by site
+# Kruskal-Wallis chi-squared = 6.7264, df = 6, p-value = 0.3469
+
+pairwise.wilcox.test(abcover_vegcover_long_vegonly$percentcover, abcover_vegcover_long_vegonly$site,
+                 p.adjust.method = "BH")
+# data:  abcover_vegcover_long_vegonly$percentcover and abcover_vegcover_long_vegonly$site 
+# 
+#          DEG1 DEG2 ENH1 ENH2 Intact_1 Intact_2
+# DEG2     1    -    -    -    -        -       
+# ENH1     1    1    -    -    -        -       
+# ENH2     1    1    1    -    -        -       
+# Intact_1 1    1    1    1    -        -       
+# Intact_2 1    1    1    1    -        -       
+# Intact_3 -    1    1    1    1        1       
+# 
+# P value adjustment method: BH 
+
+min(abcover_vegcover_long_vegonly$percentcover)*100
+max(abcover_vegcover_long_vegonly$percentcover)*100
+```
 ```{r mean sd of abcover by site, include=TRUE}
 # min / max percent cover of veg only
 min(abcover_vegcover_long_vegonly$percentcover)*100 # 92.68%
