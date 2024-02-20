@@ -32,10 +32,8 @@ library(calecopal)
 
 ```
 
-# Canopy HEIGHT
-(vertical variation)
-
-### - load data
+# 1. HEIGHT
+### data
 ```{r load csv - canopy height, include=TRUE}
 # stand height 
 
@@ -95,7 +93,7 @@ standheight <- standheight_full %>%
     left_join(nativecover_load, by = 'site_rep') 
 ```
 
-### - load colors
+### colors
 ```{r}
 # Stand colors: INTACT, MATRIX, DEGRADED 
 cal_palette(name = "chaparral3", n = 3, type = "continuous") 
@@ -151,8 +149,9 @@ ggplot(standheight_full,
        title = "Canopy height (cm) by transect")
 ```
 
-### - means of stand hight 
-```{r combine columns - canopy height, include = TRUE}
+# HEIGHT - categorical
+### site_rep (n = 15)
+```{r stand height by site_rep, include = TRUE}
 
 # mean SD by transect - 15 rows
 standheight_siterep_meanSD <- standheight %>% 
@@ -245,7 +244,7 @@ ggplot(standheight_site_meanSD,
 # 7 Degraded  DEG2            91.8   123  38.0  3.43            0.951                  0.220
 ```
 
-# Stats
+## stats
 ### - normality
 ```{r normality}
 hist(standheight$height_cm)
@@ -348,6 +347,7 @@ summary(lm(mean_height ~ mean_nativeshrubcover, data = standheight_siterep_meanS
 
 ```
 
+### - lm by site_rep x nn grass
 ```{r stand height lm nn grass}
 
 height_nn <- ggplot(standheight_withcover,
@@ -374,7 +374,8 @@ summary(lm(mean_height ~ mean_nngrasscover, data = standheight_siterep_meanSD))
 ```
 
 
-```{r extra code - mean canopy height by stand type, include=FALSE}
+### stand type (n = 3)
+```{r  canopy height by stand type, include=FALSE}
 # 
 # # mean SD by site_rep - 3 stand types
 # standheight_standtype_meanSD <- standheight_full %>%
@@ -429,6 +430,7 @@ pairwise.wilcox.test(standheight_full$height_cm, standheight_full$standtype,
 # P value adjustment method: BH 
 ```
 
+# COV 
 ```{r COV - by transect , include=TRUE}
 
 standheight_cov_transect <- standheight_siterep_meanSD %>% # Intact n = 3, Matrix and Deg n = 6
@@ -473,7 +475,9 @@ transectCOV <- standheight_full %>%
 
 print(transectCOV)
 ```
-# COV figures
+
+
+### - figures
 ```{r graph distance from mean canopy height, include=FALSE}
 
 # distance from mean canopy height x transect
@@ -525,7 +529,7 @@ labs(x = "Average non-native grass cover (%)",
 
 ```
 
-### stats
+### - stats
 ```{r stats for COV, include=FALSE}
 
 histogram(transectCOV$dist_from_mean)
@@ -725,8 +729,8 @@ summary(cov_nngrass.lm)
 ```
 
 
-### 1.3 Shrub density 
-
+# 3. DENSITY
+### data
 ```{r  load data - shrub density, include=TRUE}
 #1. Every variable is a column --> ARCA_dead
 #2. Each observation is a row --> DEG_1
@@ -734,7 +738,7 @@ summary(cov_nngrass.lm)
 
 
 # native shrub density 
-shrubdensitylife_full <- read_csv("deg_beltdensity_bylifestage.csv", 
+shrubdensitylife_load <- read_csv("deg_beltdensity_bylifestage.csv", 
     col_types = cols(
       StandType = col_character(), 
       Site = col_character(),
@@ -754,27 +758,28 @@ shrubdensitylife_full <- read_csv("deg_beltdensity_bylifestage.csv",
                                standtype == "matrix" ~ "matrix",
                                standtype == "Intact" ~ "intact")) %>% 
   mutate(standtype = fct_relevel(standtype, 
-            "intact", "matrix", "degraded"))
-  
-glimpse(shrubdensitylife_full)
+            "intact", "matrix", "degraded")) %>% 
+  mutate(site_rep = paste(site, rep, sep = "_")) %>%  # combine site and rep to one column
+  mutate(site_rep = case_when(
+    site_rep == "Intact_1_1" ~ "Intact1_1", # old name ~ new name
+     site_rep == "Intact_2_2" ~ "Intact2_2",
+     site_rep == "Intact_3_3" ~ "Intact3_3",
+     site_rep == "DEG2_4" ~ "DEG2_1",
+     site_rep == "DEG2_5" ~ "DEG2_2",
+     site_rep == "DEG2_6" ~ "DEG2_3",
+     site_rep == "ENH2_4" ~ "ENH2_1",
+        site_rep == "ENH2_5" ~ "ENH2_2",
+        site_rep == "ENH2_6" ~ "ENH2_3",
+     TRUE ~ as.character(site_rep))) %>%   # Keep other observations unchanged
+   mutate(site_rep_species = paste(site_rep, species, sep = "_")) %>% 
+  as_tibble() 
 
-#dim(shrubdensitylife_full)
-#head(shrubdensitylife_full)
-#tail(shrubdensitylife_full)
-specnumber(shrubdensitylife_full)
+# transpose data from wide to long format
+shrubdensity <- gather(shrubdensitylife_load, "status", "count", 5:9) 
 
-# convert dataframe to tibble
-shrubdensitylife_full <- as_tibble(shrubdensitylife_full) 
-class(shrubdensitylife_full) # now a tibble
-# [1] "tbl_df"     "tbl"        "data.frame"
+view(shrubdensity) # look at new column site_rep, last column
 
-shrubdensitylife_transposed <- gather(shrubdensitylife_full, "status", "count", 5:9) # transpose data from wide to long format
-glimpse(shrubdensitylife_transposed)
-
-shrubdensity <- shrubdensitylife_transposed # 
-shrubdensity$site_rep <- paste(shrubdensity$site, shrubdensity$rep, sep="_") # combine site and rep to one column
-shrubdensity$site_rep_species <- paste(shrubdensity$site_rep, shrubdensity$species, sep="_") # combine site and rep to one column
-head(shrubdensity) # look at new column site_rep, last column
+# check for missing data
 
 shrubdensity %>% 
   group_by(site_rep, status) %>% 
@@ -785,17 +790,20 @@ shrubdensity %>%
 # take home = no missing data points
 
 sort(unique(shrubdensity$site_rep))
-sort(unique(shrubdensity$site_rep_species))
 sort(unique(shrubdensity$species))
+sort(unique(shrubdensity$site_rep_species))
 
 # write.csv(shrubdensity,"processed/shrubdensity.csv")
 
 # shrubdensityspp_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_byspecies.csv")
 # shrubdensityalive_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_beltdensity_seperatealive.csv")
 
+
 ```
 
-#### ALIVE shrub density
+
+
+# ALIVE shrub density
 
 ```{r alive shrub dentsity 1m2, include=TRUE}
 
@@ -817,10 +825,56 @@ shrubdensity_sum_bysiterep <- shrubdensity %>% # call tibble
   group_by(standtype, Hillslope, site_rep) %>%  # lump immature, mature, resprout shrubs and seedlings
   summarize(aliveshrubdensity_80m2 = sum(count), 
             aliveshrubdensity_1m2 = aliveshrubdensity_80m2/80)  # 4m x 20 m belt transect
-print(shrubdensity_sum_bysiterep) 
+view(shrubdensity_sum_bysiterep) 
 
 ```
 
+- visualize
+```{r density visualize}
+hist(shrubdensity_sum_bysiterep$aliveshrubdensity_1m2)
+boxplot(aliveshrubdensity_1m2 ~ Hillslope, data = shrubdensity_sum_bysiterep, col = "red")
+
+ggplot(shrubdensity_sum_bysiterep, aes(x = Hillslope, y = aliveshrubdensity_1m2, color = site_rep)) +
+  geom_point() +
+  labs(x = "Hillslope", y = "Alive Shrub Density (per 1m^2)",
+       title = "Scatter Plot of Hillslope vs Alive Shrub Density")
+```
+
+## stats
+ - normality
+```{r normality density}
+
+shapiro.test(shrubdensity_sum_bysiterep$aliveshrubdensity_1m2)
+# Shapiro-Wilk normality test
+# 
+# data:  shrubdensity_sum_bysiterep$aliveshrubdensity_1m2
+# W = 0.694, p-value = 0.0002145 <-- not normal
+```
+ - KW density by hillslope (n = 15)
+```{r density by site stats, include = TRUE}
+
+kruskal.test(aliveshrubdensity_1m2 ~ Hillslope, data = shrubdensity_sum_bysiterep)
+# Kruskal-Wallis rank sum test
+# 
+# data:  aliveshrubdensity_1m2 by Hillslope
+# Kruskal-Wallis chi-squared = 9.5683, df = 6, p-value = 0.144
+
+pairwise.wilcox.test(shrubdensity_sum_bysiterep$aliveshrubdensity_1m2, shrubdensity_sum_bysiterep$Hillslope,
+                 p.adjust.method = "BH")
+# data:  shrubdensity_sum_bysiterep$aliveshrubdensity_1m2 and shrubdensity_sum_bysiterep$Hillslope 
+# 
+#     SD1  SD2  SD3  MX1  MX2  GD1 
+# SD2 1.00 -    -    -    -    -   
+# SD3 1.00 1.00 -    -    -    -   
+# MX1 1.00 1.00 1.00 -    -    -   
+# MX2 1.00 0.81 0.81 0.81 -    -   
+# GD1 0.81 0.81 0.81 0.81 0.81 -   
+# GD2 0.81 0.81 0.81 0.81 0.81 1.00
+# 
+# P value adjustment method: BH 
+```
+
+- shrub density by species by site_rep
 ```{r alive shrub desity grouped by species}
 shrubdensity_alive_byspp <- shrubdensity %>% # call tibble
   filter(status != "dead") %>% #omit dead shrubs
@@ -833,98 +887,69 @@ print(shrubdensity_alive_byspp)
 # write.csv(shrubdensity_alive_byspp, "Ch1_Degradation_figures/shrubdensity_alive_byspp.csv")
 ```
 
-```{r left join percent cover to alive shrub density}
-
-nativecover_fordensity <- nativecover %>% #created for stand height and cov
-  mutate(site_rep = case_when(
-    site_rep == "Intact_1_1" ~ "Intact1_1", # old name ~ new name
-       site_rep == "Intact_2_2" ~ "Intact2_2",
-       site_rep == "Intact_3_3" ~ "Intact3_3",
-     TRUE ~ as.character(site_rep)  # Keep other observations unchanged
-   ))  %>% 
-  dplyr::select(site_rep, native_shrub, nonnative_grass)
-
-view(nativecover_fordensity)
-
-```
-
-```{r left join native and non-native cover to density data}
-
+```{r left join cover}
+# left_join
 shrubdensity_sum_bysiterep_cover <- shrubdensity_sum_bysiterep %>%
- left_join(nativecover_fordensity, by = "site_rep") 
-view(shrubdensity_sum_bysiterep_cover)
+ left_join(nativecover_load, by = "site_rep") 
+view(shrubdensity_sum_bysiterep_cover) # n = 15
 ```
 
-### figure - native shrub cover
-```{r sandbox}
-
-  aes(x = nonnative_grass*100, y = cov, color = Hillslope)) + #color = site
-  geom_point(size = 3, alpha = 0.8) +
-  ylim(0, 1)+
-  xlim(0,100) +
-  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
-  labs(x = "Non-native grass cover (%)", 
-       y = "Canopy Heterogeneity (COV)", 
-       title = "Canopy Heterogeneity (COV) by Non-native grass cover (%)") +
-  theme_bw() 
-#+  
- #  stat_poly_line() +
- #   stat_poly_eq(
- #    aes(label = paste(after_stat(eq.label), after_stat(adj.rr.label), sep = "~~~~")),
- #    formula = formula1, 
- #    parse=TRUE
- # )
-cov_nngrasscover
-ggsave("Ch1_Degradation_figures/cov_nncover.png", cov_nngrasscover, width = 8, height = 6)
-
-cov_nngrass.lm <- lm(cov ~ nonnative_grass, 
-                                      data = standheight_cov_cover)
-summary(cov_nngrass.lm)
+### lm  by shrub cover
+```{r lm - density x nat shrub cover}
+shrubdensity_nativeshrub.lm <- lm(aliveshrubdensity_1m2 ~ native_shrub, 
+                                      data = shrubdensity_sum_bysiterep_cover)
+summary(shrubdensity_nativeshrub.lm)
+# Residual standard error: 0.4219 on 13 degrees of freedom
+# Multiple R-squared:  0.4476,	Adjusted R-squared:  0.4051 
+# F-statistic: 10.53 on 1 and 13 DF,  p-value: 0.00638 <-- significant
 ```
 
-```{r linear regression - density x nat cover}
+```{r figure linear regression - density x nat shrub cover}
 alivedensity_shrubcover_linear <- ggplot(shrubdensity_sum_bysiterep_cover, 
-       aes(x = native_shrub*100, y = aliveshrubdensity_1m2, olor = Hillslope)) + 
-  geom_point(size = 3, alpha = 0.8) +
-
-#  scale_shape_manual(values = c(16, 17, 18)) +
+       aes(x = native_shrub*100, y = aliveshrubdensity_1m2)) + 
+   geom_point(aes(color = Hillslope, shape = Hillslope), size = 3, alpha = 0.8) +
+  scale_color_manual(values = c( "lightblue", "cornflowerblue", "blue","green", "darkgreen", "orange", "brown")) + #"gray0",
+   scale_shape_manual(values = c(17, 17, 17, 15, 15, 16,16)) + 
   ylim(0, 3)+
   xlim(0,100) +
   geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
-  scale_color_manual(values = c(standcolors),
-                     name = "Stand Type",
-                     labels = c("intact" = "shrub dominated", 
-                                "matrix" = "matrix", 
-                                "degraded" = "grass dominated")) + #rename standtypes labels
-  labs(x = "Non-native grass cover (%)", 
-       y = "Shrub Density (#/m2)", 
-       title = "Shrub density (per m2) x non-native grass cover") +
+  labs(x = "Native shrub cover (%)", 
+       y = "Shrub Density (#/m^2)", 
+       title = "Shrub density (per m^2) by native shrub cover") +
   theme_bw() +  
   stat_poly_line() +
   stat_poly_eq(use_label(c("eq", "R2")))
-print(shrubdensity_sum_bysiterep_regression)
+print(alivedensity_shrubcover_linear)
+ggsave("Ch1_Degradation_figures/alivedensity_shrubcover_linear.png", alivedensity_shrubcover_linear, width = 8, height = 6)
+```
+
+### lm  by nn grass cover
+```{r lm - density x nn grass cover}
+shrubdensity_nngrass.lm <- lm(aliveshrubdensity_1m2 ~ nonnative_grass, 
+                                      data = shrubdensity_sum_bysiterep_cover)
+summary(shrubdensity_nngrass.lm)
+# Residual standard error: 0.4913 on 13 degrees of freedom
+# Multiple R-squared:  0.251,	Adjusted R-squared:  0.1934 
+# F-statistic: 4.358 on 1 and 13 DF,  p-value: 0.05709 <-- not really sig
 ```
 
 ```{r linear regression - density x nn cover}
-shrubdensity_sum_bysiterep_regression <- ggplot(shrubdensity_sum_bysiterep_cover, 
-       aes(x = nonnative_grass*100, y = aliveshrubdensity_1m2, shape = standtype, color = standtype)) + #color = standtype
-  geom_point(size = 3, alpha = 0.8) +
-  scale_shape_manual(values = c(16, 17, 18)) +
+alivedensity_nngrasscover_linear <- ggplot(shrubdensity_sum_bysiterep_cover, 
+       aes(x = nonnative_grass*100, y = aliveshrubdensity_1m2)) + 
+   geom_point(aes(color = Hillslope, shape = Hillslope), size = 3, alpha = 0.8) +
+  scale_color_manual(values = c( "lightblue", "cornflowerblue", "blue","green", "darkgreen", "orange", "brown")) + #"gray0",
+   scale_shape_manual(values = c(17, 17, 17, 15, 15, 16,16)) + 
   ylim(0, 3)+
   xlim(0,100) +
-  #geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
-  scale_color_manual(values = c(standcolors),
-                     name = "Stand Type",
-                     labels = c("intact" = "shrub dominated", 
-                                "matrix" = "matrix", 
-                                "degraded" = "grass dominated")) + #rename standtypes labels
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
   labs(x = "Non-native grass cover (%)", 
-       y = "Shrub Density (#/m2)", 
-       title = "Shrub density (per m2) x non-native grass cover") +
+       y = "Shrub Density (#/m^2)", 
+       title = "Shrub density (per m^2) by non-native grass cover") +
   theme_bw() +  
   stat_poly_line() +
   stat_poly_eq(use_label(c("eq", "R2")))
-print(shrubdensity_sum_bysiterep_regression)
+print(alivedensity_nngrasscover_linear)
+ggsave("Ch1_Degradation_figures/alivedensity_nngrasscover_linear.png", alivedensity_nngrasscover_linear, width = 8, height = 6)
 ```
 
 
