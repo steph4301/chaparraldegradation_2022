@@ -219,7 +219,7 @@ shapiro.test(ab_totalsppr_hillslope$sppr)
 # W = 0.91175, p-value = 0.1441 <-- normally distributed
 ```
 
-- anova
+### - anova - hillslope
 ```{r}
 summary(aov(sppr ~ site, ab_totalsppr_hillslope))
 #  Df Sum Sq Mean Sq F value   Pr(>F)    
@@ -235,18 +235,18 @@ TukeyHSD(aov(sppr ~ site, ab_totalsppr_hillslope))
 # SD3-SD1  -3.000000  -8.83171698  2.831717 0.4961437
 # MX1-SD1  -1.000000  -5.76157698  3.761577 0.9780860
 # MX2-SD1  -9.666667 -14.42824364 -4.905090 0.0006579 <-- MX2-SD1
-# GD1-SD1  -8.000000 -12.76157698 -3.238423 0.0023942 <--GD1-SD1 
-# GD2-SD1  -6.333333 -11.09491031 -1.571756 0.0104732 <--GD2-SD1
+# GD1-SD1  -8.000000 -12.76157698 -3.238423 0.0023942 <--GD1-SD1  0.0023942
+# GD2-SD1  -6.333333 -11.09491031 -1.571756 0.0104732 <--GD2-SD1 
 
 # SD3-SD2  -5.000000 -10.83171698  0.831717 0.1015938
 # MX1-SD2  -3.000000  -7.76157698  1.761577 0.3046200
 # MX2-SD2 -11.666667 -16.42824364 -6.905090 0.0001711 <--MX2-SD2
-# GD1-SD2 -10.000000 -14.76157698 -5.238423 0.0005182 <--GD1-SD2
+# GD1-SD2 -10.000000 -14.76157698 -5.238423 0.0005182 <--GD1-SD2 0.0005182
 # GD2-SD2  -8.333333 -13.09491031 -3.571756 0.0018235 <--GD2-SD2
 
 # MX1-SD3   2.000000  -2.76157698  6.761577 0.6853253
 # MX2-SD3  -6.666667 -11.42824364 -1.905090 0.0076753 <--MX2-SD3
-# GD1-SD3  -5.000000  -9.76157698 -0.238423 0.0390970 <--GD1-SD3
+# GD1-SD3  -5.000000  -9.76157698 -0.238423 0.0390970 <--GD1-SD3 0.0390970
 # GD2-SD3  -3.333333  -8.09491031  1.428244 0.2198423
 
 # MX2-MX1  -8.666667 -12.03361004 -5.299723 0.0001192 <-- MX2-MX1
@@ -254,45 +254,18 @@ TukeyHSD(aov(sppr ~ site, ab_totalsppr_hillslope))
 # GD2-MX1  -5.333333  -8.70027670 -1.966390 0.0035214 <--GD2-MX1
 
 # GD1-MX2   1.666667  -1.70027670  5.033610 0.5337581
-# GD2-MX2   3.333333  -0.03361004  6.700277 0.0525268
+# GD2-MX2   3.333333  -0.03361004  6.700277 0.0525268 <-- 0.053
 
 # GD2-GD1   1.666667  -1.70027670  5.033610 0.5337581
-# 
+
+# SUMMARY
 # GD1 is sig diff from INT hillslopes
-# MX2 is sig diff from INT and MX1 hillslopes
 # GD2 is sig diff from INT1 and 2 and MX1 but not INT3
 
+# MX2 is sig diff from INT and MX1 hillslopes
 
 
 
-
-
-# ANOVA - native species richness
-# Fit: aov(formula = total_native_species ~ site, data = totalnative_spp)
-# 
-# $site
-#                       diff         lwr        upr     p adj
-# DEG2-DEG1        1.3333333  -2.1517842  4.8184508 0.7593849
-# ENH1-DEG1        6.0000000   2.5148825  9.4851175 0.0020356 <-- ENH1-DEG1 
-# ENH2-DEG1       -3.3333333  -6.8184508  0.1517842 0.0620313
-# Intact1-DEG1     8.3333333   3.4046329 13.2620338 0.0022958 <-- Intact1-DEG1
-# Intact2-DEG1    10.3333333   5.4046329 15.2620338 0.0005245 <--Intact2-DEG1
-# Intact3-DEG1     5.3333333   0.4046329 10.2620338 0.0334505 <--Intact2-DEG1
-# ENH1-DEG2        4.6666667   1.1815492  8.1517842 0.0100614 <--ENH1-DEG2 
-# ENH2-DEG2       -4.6666667  -8.1517842 -1.1815492 0.0100614 <--ENH2-DEG2 
-# Intact1-DEG2     7.0000000   2.0712996 11.9287004 0.0070286 <-- Intact1-DEG2
-# Intact2-DEG2     9.0000000   4.0712996 13.9287004 0.0013684 <--
-# Intact3-DEG2     4.0000000  -0.9287004  8.9287004 0.1275715
-# ENH2-ENH1       -9.3333333 -12.8184508 -5.8482158 0.0000889 <--
-# Intact1-ENH1     2.3333333  -2.5953671  7.2620338 0.5767649
-# Intact2-ENH1     4.3333333  -0.5953671  9.2620338 0.0911244
-# Intact3-ENH1    -0.6666667  -5.5953671  4.2620338 0.9977271
-# Intact1-ENH2    11.6666667   6.7379662 16.5953671 0.0002199 <--
-# Intact2-ENH2    13.6666667   8.7379662 18.5953671 0.0000686 <--
-# Intact3-ENH2     8.6666667   3.7379662 13.5953671 0.0017665 <--
-# Intact2-Intact1  2.0000000  -4.0364006  8.0364006 0.8502944
-# Intact3-Intact1 -3.0000000  -9.0364006  3.0364006 0.5298787
-# Intact3-Intact2 -5.0000000 -11.0364006  1.0364006 0.1174050
 
 ```
 ```{r}
@@ -324,32 +297,16 @@ sppr_lm <- ggplot(data = ab_totalsppr_hillslope,
   geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
   labs(x = "Hillslope", 
        y = "Species richness (#)", 
-       title = "Species richness by transect") +
+       title = "Species richness by hillslope") +
   
    stat_poly_line() +
   stat_poly_eq(use_label(c("eq", "R2"))) +
   theme_bw() 
-
-
-
-ggplot(data = sppr_bystatus, 
-       aes(x = site, y = sppr)) +
-    geom_point(aes(color = site, shape = status), size = 3, alpha = 0.8) +
-  scale_color_manual(values = c( "lightblue", "cornflowerblue", "blue","green", "darkgreen", "orange", "brown")) + #"gray0",
-  # scale_shape_manual(values = c(17, 17, 17, 15, 15, 16,16)) + 
-   ylim(0, 25) +
-  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
-  labs(x = "Hillslope", 
-       y = "Species richness (#)", 
-       title = "Species richness by transect") +
-  
-   stat_poly_line() +
-  stat_poly_eq(use_label(c("eq", "R2"))) +
-  theme_bw() 
+sppr_lm
 
 sppr_bystatus_lm <- ggplot(data = sppr_bystatus, 
        aes(x = site, y = sppr)) +
-    geom_point(aes(color = site, fill = status), size = 8, alpha = 0.8, stroke = 2) +
+    geom_point(aes(color = site, shape = status), size = 3, alpha = 0.8, stroke = 2) +
    scale_fill_manual(values = c("gray", "white", "black")) +  # Fill colors for each status
   scale_color_manual(values = c( "lightblue", "cornflowerblue", "blue","green", "darkgreen", "orange", "brown")) + #"gray0",
  #  scale_shape_manual(values = c(17, 17, 17, 15, 15, 16,16)) + 
@@ -357,14 +314,126 @@ sppr_bystatus_lm <- ggplot(data = sppr_bystatus,
   geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
   labs(x = "Hillslope", 
        y = "Species richness (#)", 
-       title = "Species richness by transect") +
-  
+       title = "Native and Non-native species richness by hillslope") +
    stat_poly_line() +
   stat_poly_eq(use_label(c("eq", "R2"))) +
   theme_bw() 
 sppr_bystatus_lm
 
+
+sppr_bystatus$site_rep <- factor(sppr_bystatus$site_rep, levels=c("Intact1_1", "Intact2_2", "Intact3_3", "ENH1_1", "ENH1_2", "ENH1_3", "ENH2_1", "ENH2_2", "ENH2_3", "DEG1_1", "DEG1_2", "DEG1_3", "DEG2_1", "DEG2_2", "DEG2_3"))
+
+ggplot(data = sppr_bystatus, 
+       aes(x = site_rep, y = sppr)) +
+    geom_point(aes(color = site, shape = status), size = 3, alpha = 0.8) +
+  scale_color_manual(values = c( "lightblue", "cornflowerblue", "blue","green", "darkgreen", "orange", "brown")) + #"gray0",
+  # scale_shape_manual(values = c(17, 17, 17, 15, 15, 16,16)) + 
+   ylim(0, 25) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  labs(x = "Hillslope", 
+       y = "Species richness (#)", 
+       title = "Native and Non-native species richness by transect") +
+   stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2"))) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) # turn x-axis labels 90 degrees
+
 ```
+
+### - anova - status x hillslope
+
+- normality - native
+```{r native anova sppr}
+# data vis
+length(sppr_bystatus$sppr) # n = 33 = 15 x 2 + 3 unknowns
+
+hist((sppr_bystatus %>% 
+       filter(status == "native"))$
+       sppr) 
+
+min((sppr_bystatus %>% 
+       filter(status == "native"))$
+       sppr) # 3 native species
+max((sppr_bystatus %>% 
+       filter(status == "native"))$
+       sppr) # 18 native species
+
+shapiro.test((sppr_bystatus %>% 
+       filter(status == "native"))$
+       sppr)
+# Shapiro-Wilk normality test
+# 
+# data:  (sppr_bystatus %>% filter(status == "native"))$sppr
+# W = 0.96634, p-value = 0.8007 <-- normaly distributed
+
+
+summary(aov(sppr ~ site, sppr_bystatus %>% 
+       filter(status == "native")))
+# Df Sum Sq Mean Sq F value   Pr(>F)    
+# site         6  264.9   44.16   35.32 2.47e-05 ***
+# Residuals    8   10.0    1.25   
+
+TukeyHSD(aov(sppr ~ site, sppr_bystatus %>% 
+       filter(status == "native")))
+# $site
+#                diff         lwr        upr     p adj
+# SD2-SD1   2.0000000  -4.0364006  8.0364006 0.8502944 <-- SDs are all similar 
+# SD3-SD1  -3.0000000  -9.0364006  3.0364006 0.5298787
+# SD3-SD2  -5.0000000 -11.0364006  1.0364006 0.1174050
+# 
+# MX1-SD1  -2.3333333  -7.2620338  2.5953671 0.5767649
+# MX1-SD2  -4.3333333  -9.2620338  0.5953671 0.0911244
+# MX1-SD3   0.6666667  -4.2620338  5.5953671 0.9977271.      SD3 and MX1 are the same
+# 
+# MX2-SD1 -11.6666667 -16.5953671 -6.7379662 0.0002199 <-- SD1 greater than MX2, GD1 and 2
+# GD1-SD1  -8.3333333 -13.2620338 -3.4046329 0.0022958 <--
+# GD2-SD1  -7.0000000 -11.9287004 -2.0712996 0.0070286 <--
+# 
+
+
+# 
+# MX2-SD2 -13.6666667 -18.5953671 -8.7379662 0.0000686 <-- SD2 greater than MX2, GD1 and 2
+# GD1-SD2 -10.3333333 -15.2620338 -5.4046329 0.0005245 <--
+# GD2-SD2  -9.0000000 -13.9287004 -4.0712996 0.0013684 <--
+# 
+
+# MX2-SD3  -8.6666667 -13.5953671 -3.7379662 0.0017665 <-- SD3 greater than MX2 and GD1 BUT NOT diff than GD2
+# GD1-SD3  -5.3333333 -10.2620338 -0.4046329 0.0334505 <--
+# GD2-SD3  -4.0000000  -8.9287004  0.9287004 0.1275715 
+# 
+# MX2-MX1  -9.3333333 -12.8184508 -5.8482158 0.0000889 <-- MX1 greater than MX2 and GD1 and 2
+# GD1-MX1  -6.0000000  -9.4851175 -2.5148825 0.0020356 <--
+# GD2-MX1  -4.6666667  -8.1517842 -1.1815492 0.0100614 <--
+# 
+# GD1-MX2   3.3333333  -0.1517842  6.8184508 0.0620313 <-- 0.06
+# GD2-MX2   4.6666667   1.1815492  8.1517842 0.0100614 <-- MX2 less than GD2
+# GD2-GD1   1.3333333  -2.1517842  4.8184508 0.7593849
+
+boxplot(sppr ~ site, data = sppr_bystatus %>% 
+       filter(status == "native"))
+```
+
+- normality - nn
+```{r nn anova sppr}
+hist((sppr_bystatus %>% 
+       filter(status == "nonnative"))$
+       sppr) 
+min((sppr_bystatus %>% 
+       filter(status == "nonnative"))$
+       sppr) # 4 nn species
+max((sppr_bystatus %>% 
+       filter(status == "nonnative"))$
+       sppr) # 6 nn species
+
+shapiro.test((sppr_bystatus %>% 
+       filter(status == "nonnative"))$
+       sppr)
+# Shapiro-Wilk normality test
+# 
+# data:  (sppr_bystatus %>% filter(status == "nonnative"))$sppr
+# W = 0.78295, p-value = 0.00224 <-- not normally distributed
+```
+
 
 END
 
