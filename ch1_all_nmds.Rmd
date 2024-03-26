@@ -89,14 +89,20 @@ density_byspecies <- density_raw %>%
    dplyr::summarize(mean_density_100m2 = mean(density_100m2)) %>% 
   rename(species = species_lifestage_datatype)
 
-sort(unique(germination_raw$genus_abundance))
+sort(unique(germination_raw$species_diversity))
 germination_byspecies <- germination_raw %>%
   group_by(site, species_diversity) %>%
   mutate(species_diversity = case_when(
-    species_diversity == "Bromus madritensis" ~ "Bromus rubens", # old name ~ new name
+    species_diversity == "Bromus diandrus" ~ "Bromus spp.", # old name ~ new name
+    species_diversity == "Bromus hordeaceus" ~ "Bromus spp.",
+    species_diversity == "Bromus madritensis" ~ "Bromus spp.",
+    species_diversity == "Erodium cicutarium" ~ "Erodium spp.",
+     species_diversity == "Erodium moschatum" ~ "Erodium spp.",
+         species_diversity == "Phacelia tanacetifolia" ~ "Phacelia spp.",
+     species_diversity == "Phacelia viscida" ~ "Phacelia spp.",
                               TRUE ~ species_diversity)) %>%
   rename(species = species_diversity) %>%
-  dplyr::summarize(seed_density = mean(n_per_cm3)) %>% 
+  dplyr::summarize(seed_density = mean(n_per_g)) %>% 
   mutate(datatype = as.character("sd")) %>% # adding "seed bank" identifier to species name
   mutate(species_datatype = paste(species, datatype, sep="_")) %>% 
   dplyr::select(!c(species, datatype)) %>% 
@@ -107,8 +113,13 @@ abcover_nmdsprep <- abcover_byspecies %>%
   replace(is.na(.), 0)
 
 density_nmdsprep <- density_byspecies %>%
-  tidyr::spread(species, species_count) %>%
-  replace(is.na(.), 0)
+  tidyr::spread(species, mean_density_100m2) %>%
+  replace(is.na(.), 0) %>% 
+  mutate(site = case_when(
+    site == "Intact1" ~ "INT1", 
+     site == "Intact2" ~ "INT2", 
+     site == "Intact3" ~ "INT3", 
+     TRUE ~ site))
 
 germination_nmdsprep <- germination_byspecies %>%
   tidyr::spread(species, seed_density) %>% 
@@ -225,7 +236,7 @@ total_nmds2_hillslope_vectors <- ggplot(nmds_total.nmds2_plot %>% # output of sc
    scale_x_continuous(breaks = seq(-1.6, 1.6, by = 0.4)) +  # Add tick marks 
    scale_y_continuous(breaks = seq(-1.6, 1.6, by = 0.4)) +   # Add tick marks
   geom_point(aes(color = hillslope, shape = hillslope), 
-             size = 3, alpha = 0.8, position = position_jitter(width = 0.1, height = 0.1)) + 
+             size = 3, alpha = 0.8, position = position_jitter(width = 0.05, height = 0.05)) + # hillslope point jitter
   #stat_ellipse(aes(color = hillslope)) +
  scale_color_manual(values = c("orange", "brown", "green", "darkgreen", "lightblue", "cornflowerblue", "blue")) + #"gray0",
    scale_shape_manual(values = c(16,16, 15, 15, 17, 17, 17)) + 
@@ -233,9 +244,16 @@ total_nmds2_hillslope_vectors <- ggplot(nmds_total.nmds2_plot %>% # output of sc
   geom_segment(data = nmds_total.nmds2_coord, aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
                arrow = arrow(length = unit(0.25, "cm")),
                 col = "black") +
-   geom_text(data = nmds_total.nmds2_coord, aes(label = species),  
-             position = position_jitter(width = 0.0, height = 0.4)
-             )
+   geom_text(data = nmds_total.nmds2_coord, 
+             aes(label = species),  
+             position = position_jitter(width = 0.2, height = 0.2), # spp label jitter
+             size = 3) + # Adjust font size for vector labels
+  labs(x = "NMDS1", y = "NMDS2", title = "Community composition by hillslope percent cover, shrub density, seed density") +
+ theme(axis.text.x = element_text(size = 10),  # Adjust font size for x-axis labels
+        axis.text.y = element_text(size = 10),  # Adjust font size for y-axis labels
+        axis.title = element_text(size = 12),   # Adjust font size for axis titles
+        plot.title = element_text(size = 14))   # Adjust font size for plot title
+
 total_nmds2_hillslope_vectors 
 total_nmds2_hillslope_vectors + theme_bw()
 total_nmds2_hillslope_vectors + theme_bw()
