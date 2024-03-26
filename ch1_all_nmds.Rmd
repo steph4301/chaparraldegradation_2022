@@ -43,8 +43,18 @@ abcover_raw <- read_csv("processed/abcover_full_omitground.csv")
 ```{r Unified data frame}
 sort(unique(abcover_raw$species))
 abcover_byspecies <- abcover_raw %>% 
-  mutate(species = case_when(species == "Bromus madritensis" ~ "Bromus rubens", # old name ~ new name
-                              TRUE ~ species)) %>%
+  mutate(species = case_when(species == "Bromus madritensis" ~ "Bromus spp.", # old name ~ new name
+                                species == "Bromus rubens" ~ "Bromus spp.",
+                             species == "Bromus rubens dead" ~ "Bromus spp.",
+                               species ==  "Bromus diandrus" ~ "Bromus spp.",
+                             species ==  "Bromus diandrus dead" ~ "Bromus spp.",
+                                 species == "Bromus hordeaceus" ~ "Bromus spp.", 
+                                species == "Bromus spp. dead" ~ "Bromus spp.", 
+                              species == "Avena barbata dead" ~ "Avena barbata", 
+                                   species == "Centaurea melitensis dead" ~ "Centaurea melitensis",
+                              species == "Erodium cicutarium" ~ "Erodium spp.",
+                                 species == "Hirschfeldia incana dead" ~ "Hirschfeldia incana",
+                             TRUE ~ species)) %>%
    #                            species ==  "Bromus diandrus dead" ~ "Brom)
    # mutate(species = case_when(species == "Bromus diandrus" ~ "Bromus spp.", # old name ~ new name
    #                            species ==  "Bromus diandrus dead" ~ "Bromus spp. dead",
@@ -53,7 +63,7 @@ abcover_byspecies <- abcover_raw %>%
    #                              species == "Bromus rubens" ~ "Bromus spp.",
    #                            species == "Bromus rubens dead" ~ "Bromus spp. dead",
    #                             species == "Bromus hordeaceus" ~ "Bromus spp.",
-   #                            species == "Centaurea melitensis dead" ~ "Centaurea melitensis",
+   #                      
    #                            species == "Hirschfeldia incana dead" ~ "Hirschfeldia incana",
    #        TRUE ~ species)) %>%
   group_by(site, species, lifeform, status, family) %>% 
@@ -69,13 +79,15 @@ abcover_byspecies <- abcover_raw %>%
   dplyr::select(!c(species, datatype)) %>% 
   rename(species = species_datatype)
 
-density_byspecies <- density_raw %>% 
-  group_by(site, species) %>% 
-  dplyr::summarize(species_count = mean(count)) %>% 
-  mutate(datatype = as.character("dn")) %>% # adding "density" identifier to species name
-  mutate(species_datatype = paste(species, datatype, sep="_")) %>% 
-  dplyr::select(!c(species, datatype)) %>% 
-  rename(species = species_datatype)
+density_byspecies <- density_raw %>%  
+  mutate(species_lifestage = paste(species, status, sep="_")) %>% 
+    mutate(datatype = as.character("dn")) %>% # adding "density" identifier to species_lifeform name
+  mutate(species_lifestage_datatype = paste(species_lifestage, datatype, sep="_")) %>% 
+    group_by(site, rep, site_rep, species, status, species_lifestage_datatype) %>% 
+   dplyr::summarize(density_100m2 = (((sum(count))/80)*100)) %>% 
+  group_by(site, species_lifestage_datatype) %>% 
+   dplyr::summarize(mean_density_100m2 = mean(density_100m2)) %>% 
+  rename(species = species_lifestage_datatype)
 
 sort(unique(germination_raw$genus_abundance))
 germination_byspecies <- germination_raw %>%
