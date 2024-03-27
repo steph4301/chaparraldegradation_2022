@@ -852,20 +852,108 @@ shapiro.test(tot_shrubdensity$shrubdensity_100m2)
 # W = 0.47102, p-value = 2.071e-06 <-- not normally distributed
 ```
 
- - KW density by hillslope (n = 15)
+ - KW total shrub density 
 ```{r total density by site stats, include = TRUE}
-
+# by Hillslope
 kruskal.test(shrubdensity_100m2 ~ Hillslope, data = tot_shrubdensity)
-# 	Kruskal-Wallis rank sum test
+# Kruskal-Wallis rank sum test
 # 
 # data:  shrubdensity_100m2 by Hillslope
-# Kruskal-Wallis chi-squared = 10.577, df = 6, p-value = 0.1024 <-- no diff in total shrub density among 
-
+# Kruskal-Wallis chi-squared = 10.577, df = 6, p-value = 0.1024 <-- no diff by hillslope
 pairwise.wilcox.test(tot_shrubdensity$shrubdensity_100m2, tot_shrubdensity$Hillslope,
                  p.adjust.method = "BH")
 
+# by standtype
+kruskal.test(shrubdensity_100m2 ~ standtype, data = tot_shrubdensity)
+# Kruskal-Wallis rank sum test
+# 
+# data:  shrubdensity_100m2 by standtype
+# Kruskal-Wallis chi-squared = 9.0328, df = 2, p-value = 0.01093 <-- sig diff by standtype
+pairwise.wilcox.test(tot_shrubdensity$shrubdensity_100m2, tot_shrubdensity$standtype,
+                 p.adjust.method = "BH")
+# Pairwise comparisons using Wilcoxon rank sum exact test 
+# 
+# data:  tot_shrubdensity$shrubdensity_100m2 and tot_shrubdensity$standtype 
+# 
+#          intact matrix
+# matrix   0.548  -     
+# degraded 0.041  0.039  <-- DEG is diff from INT and ENH
+
+tot_shrubdensity_mean <-tot_shrubdensity %>%
+  group_by(standtype) %>%
+  summarize(mean_totshrubdensity_100m2 = round(mean(shrubdensity_100m2), digits = 0),
+            n = length((shrubdensity_100m2)),
+            sd = round(sd(shrubdensity_100m2), digits = 1),
+            se = round(((sd(shrubdensity_100m2))/sqrt(length((shrubdensity_100m2)))), digits = 1)
+            )
+
 ```
 
+
+```{r total shrub dentsity 100m2 - figures - tables, include=TRUE}
+
+total_shrubdensity_column <- ggplot(tot_shrubdensity_mean, aes(x = standtype, y = mean_totshrubdensity_100m2, fill = standtype)) +
+  geom_col(position = "dodge", width = 0.8) +
+  geom_errorbar(
+    aes(ymin=mean_totshrubdensity_100m2-se, ymax=mean_totshrubdensity_100m2+se), 
+                width=.2, position=position_dodge(.9)) +
+  labs(
+    title = "Total shrub density by stand type", 
+    x = "Stand Type", 
+    y = "Average total shrub density (#/100m2)") + # title, axes titles
+  scale_fill_manual(values = c(standcolors)) + # manual colors
+  # scale_fill_manual(values = cal_palette('chaparral2')) +  # continuous colors
+  #                  limits = c("intact", "matrix", "degraded"), # "limits" reorders the x-axis
+  #                  labels = c("Intact", "Matrix", "Degraded")) + # "labels" changes the name
+  theme_bw()
+total_shrubdensity_column
+```
+```{r table of shrubs}
+# table: standtype, species, lifestage
+tot_shrubdensity_table <- shrubdensity %>%
+  # mutate(status = case_when(status == "resprout" ~ "immature", 
+  #                           TRUE ~ status)) %>% 
+  mutate(status = fct_relevel(status, "mature", "immature", "resprout", "seedling", "dead")) %>% 
+  group_by(standtype, site_rep, status) %>%
+   rename(lifestage = status) %>% 
+  summarize(density_100m2 = (((sum(count))/80)*100) 
+            ) %>%
+  group_by(standtype, lifestage) %>% 
+  summarize(mean_density_100m2 = round(mean(density_100m2),digits = 1),
+            n = length((density_100m2)),
+            sd = round(sd(density_100m2), digits = 1),
+            se = round(((sd(density_100m2))/sqrt(length((density_100m2)))), digits = 1)) %>% 
+  print(tot_shrubdensity_table) 
+
+#write.csv(tot_shrubdensity_table,"processed/tot_shrubdensity_table.csv")
+
+
+```
+
+ - dead shrubs
+```{r dead shrubs at MX1}
+deadshrubs <- shrubdensity %>% # call tibble
+  filter(status == "dead") %>% #select dead shrubs
+   mutate(site = case_when(
+    site == "Intact1" ~ "SD1", # old name ~ new name
+      site == "Intact2" ~ "SD2",
+      site == "Intact3" ~ "SD3",
+    site == "ENH1" ~ "MX1",
+      site == "ENH2" ~ "MX2",
+      site == "DEG1" ~ "GD1",
+      site == "DEG2" ~ "GD2",
+    TRUE ~ as.character(site)  # Keep other observations unchanged
+  )) %>% 
+  rename(Hillslope = site) %>% # old name = new name
+  mutate(Hillslope = fct_relevel(Hillslope, "SD1", "SD2", "SD3", "MX1", "MX2", "GD1", "GD2")) %>% 
+  group_by(standtype, Hillslope, species) %>%  # lump immature, mature, resprout shrubs and seedlings
+  summarize(deadshrubdensity_80m2 = sum(count), 
+             deadshrubdensity_100m2 = round(((deadshrubdensity_80m2/80)*100), digits = 0))  %>% # 4m x 20 m belt transect
+  filter(deadshrubdensity_100m2 > 0)
+view(deadshrubs) 
+
+```
+ 
 
 
 # ALIVE shrub density
@@ -1070,9 +1158,9 @@ shrubdensity_sum_bysiterep_aov_1m2_column
 
 # table: standtype, species, lifestage
 shrubdensity_table <- shrubdensity %>%
-  mutate(status = case_when(status == "resprout" ~ "immature", 
-                            TRUE ~ status)) %>% 
-  mutate(status = fct_relevel(status, "mature", "immature", "seedling", "dead")) %>% 
+  # mutate(status = case_when(status == "resprout" ~ "immature", 
+  #                           TRUE ~ status)) %>% 
+  mutate(status = fct_relevel(status, "mature", "immature", "resprout", "seedling", "dead")) %>% 
   group_by(standtype, species, status) %>%
    rename(lifestage = status) %>% 
   summarize(N = sum(count)) %>%
@@ -1088,12 +1176,17 @@ shrubdensity_table_spread %>%
   group_by(standtype) %>% 
   summarize(sum_mature = sum(mature), 
             sum_immature = sum(immature), 
+            sum_resprout = sum(resprout),
             sum_seedling = sum(seedling), 
             sum_dead = sum(dead))
-#standtype sum_mature sum_immature sum_seedlingsum_dead
-#intact	  101	    45	  7	    22
-#matrix	  297	    70	  5	    256
-#degraded	72	    16	  3	    0
+#standtype  sum_mature  sum_immature    sum_resprout    sum_seedling        sum_dead
+#intact	    101	        44	              1               7	                  22
+#matrix	    297	        67	              3               5	                  256
+#degraded	  72	        15	             1                  3	                  0
+
+# INT - proportion mature shrubs
+round(101/(101+44+1+7)*100, digits = 2)
+# [1] 66.01
 ```
 
 #### MATURE shrub density
