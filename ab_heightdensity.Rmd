@@ -801,6 +801,71 @@ sort(unique(shrubdensity$site_rep_species))
 
 ```
 
+# TOTAL shrub density
+```{r shrub dentsity 100m2, include=TRUE}
+
+tot_shrubdensity <- shrubdensity %>% # call tibble
+   mutate(site = case_when(
+    site == "Intact1" ~ "SD1", # old name ~ new name
+      site == "Intact2" ~ "SD2",
+      site == "Intact3" ~ "SD3",
+    site == "ENH1" ~ "MX1",
+      site == "ENH2" ~ "MX2",
+      site == "DEG1" ~ "GD1",
+      site == "DEG2" ~ "GD2",
+    TRUE ~ as.character(site)  # Keep other observations unchanged
+  )) %>% 
+  rename(Hillslope = site) %>% # old name = new name
+  mutate(Hillslope = fct_relevel(Hillslope, "SD1", "SD2", "SD3", "MX1", "MX2", "GD1", "GD2")) %>% 
+  group_by(standtype, Hillslope, site_rep) %>%  # lump immature, mature, resprout shrubs and seedlings
+  summarize(shrubdensity_80m2 = sum(count), 
+            shrubdensity_100m2 = round(((shrubdensity_80m2/80)*100), digits = 0))  # 4m x 20 m belt transect
+view(tot_shrubdensity) 
+```
+
+- visualize
+```{r total density visualize}
+hist(tot_shrubdensity$shrubdensity_100m2)
+
+# by hillslope
+boxplot(shrubdensity_100m2 ~ Hillslope, data = tot_shrubdensity, col = "red")
+ggplot(tot_shrubdensity, aes(x = Hillslope, y = shrubdensity_100m2, color = site_rep)) +
+  geom_point() +
+  labs(x = "Hillslope", y = "Total Shrub Density (per 100m^2)",
+       title = "Scatter Plot of Hillslope vs Total Shrub Density")
+
+# by standtype
+boxplot(shrubdensity_100m2 ~ standtype, data = tot_shrubdensity, col = "red")
+ggplot(tot_shrubdensity, aes(x = standtype, y = shrubdensity_100m2)) +
+  geom_point(aes(color = Hillslope, shape = Hillslope), size = 3, alpha = 0.8) +
+  labs(x = "Standtype", y = "Total Shrub Density (per 100m^2)",
+       title = "Scatter Plot of Total Shrub Density by Standtype")
+
+```
+
+
+```{r total shrub density stats}
+shapiro.test(tot_shrubdensity$shrubdensity_100m2)
+# Shapiro-Wilk normality test
+# 
+# data:  tot_shrubdensity$shrubdensity_100m2
+# W = 0.47102, p-value = 2.071e-06 <-- not normally distributed
+```
+
+ - KW density by hillslope (n = 15)
+```{r total density by site stats, include = TRUE}
+
+kruskal.test(shrubdensity_100m2 ~ Hillslope, data = tot_shrubdensity)
+# 	Kruskal-Wallis rank sum test
+# 
+# data:  shrubdensity_100m2 by Hillslope
+# Kruskal-Wallis chi-squared = 10.577, df = 6, p-value = 0.1024 <-- no diff in total shrub density among 
+
+pairwise.wilcox.test(tot_shrubdensity$shrubdensity_100m2, tot_shrubdensity$Hillslope,
+                 p.adjust.method = "BH")
+
+```
+
 
 
 # ALIVE shrub density
@@ -824,7 +889,7 @@ shrubdensity_sum_bysiterep <- shrubdensity %>% # call tibble
   mutate(Hillslope = fct_relevel(Hillslope, "SD1", "SD2", "SD3", "MX1", "MX2", "GD1", "GD2")) %>% 
   group_by(standtype, Hillslope, site_rep) %>%  # lump immature, mature, resprout shrubs and seedlings
   summarize(aliveshrubdensity_80m2 = sum(count), 
-            aliveshrubdensity_1m2 = aliveshrubdensity_80m2/80)  # 4m x 20 m belt transect
+            aliveshrubdensity_100m2 = round(((aliveshrubdensity_80m2/80)*100), digits = 0))  # 4m x 20 m belt transect
 view(shrubdensity_sum_bysiterep) 
 
 ```
