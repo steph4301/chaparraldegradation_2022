@@ -823,6 +823,36 @@ tot_shrubdensity <- shrubdensity %>% # call tibble
 view(tot_shrubdensity) 
 ```
 
+## FIGURE 3 - shrub density by species, lifestage
+```{r figure 3}
+spp_lifeform <- shrubdensity %>% # call tibble
+   mutate(site = case_when(
+    site == "Intact1" ~ "SD1", # old name ~ new name
+      site == "Intact2" ~ "SD2",
+      site == "Intact3" ~ "SD3",
+    site == "ENH1" ~ "MX1",
+      site == "ENH2" ~ "MX2",
+      site == "DEG1" ~ "GD1",
+      site == "DEG2" ~ "GD2",
+    TRUE ~ as.character(site)  # Keep other observations unchanged
+  )) %>% 
+  rename(Hillslope = site) %>% # old name = new name
+  mutate(Hillslope = fct_relevel(Hillslope, "SD1", "SD2", "SD3", "MX1", "MX2", "GD1", "GD2")) %>% 
+  group_by(standtype, Hillslope, site_rep, species, status) %>%  # lump immature, mature, resprout shrubs and seedlings
+  summarize(shrubdensity_80m2 = sum(count), 
+            shrubdensity_100m2 = round(((shrubdensity_80m2/80)*100), digits = 0)) %>%  # 4m x 20 m belt transect
+   dplyr::select(!c("shrubdensity_80m2")) %>% 
+  group_by(Hillslope, species, status) %>% 
+  summarize(mean_shrubdensity_100m2 = round(mean(shrubdensity_100m2), digits = 1),
+            n = length((shrubdensity_100m2)),
+            sd = sd(shrubdensity_100m2),
+            se = round((sd(shrubdensity_100m2))/sqrt(length((shrubdensity_100m2))), digits = 1)
+            )
+
+view(spp_lifeform)
+write.csv(spp_lifeform,"processed/spp_lifeform.csv")
+```
+
 - visualize
 ```{r total density visualize}
 hist(tot_shrubdensity$shrubdensity_100m2)
