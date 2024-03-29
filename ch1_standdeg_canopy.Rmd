@@ -1,5 +1,5 @@
 ---
-title: "ch1_standdeg_canopy"
+title: "ch1_standdeg_canopy - Not current I don't think"
 author: "Stephanie Ma Lucero"
 date: "2023-07-24"
 output: html_document
