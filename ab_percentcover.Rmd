@@ -34,6 +34,7 @@ library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD
 library(ggpmisc)
 library(segmented)
 library(strucchange)
+library(ggpattern)
 ```
 
 ```{r colors, include=TRUE}
@@ -74,6 +75,8 @@ native <- "gray50"
 exotic <- "gray0"
 statuscolors <- c(native, exotic)
 
+
+# "orange", "lightblue", "limegreen", "deeppink","mediumpurple2", "darkgreen"
 ```
 
 
@@ -823,6 +826,109 @@ nngrass_nativeshrub <- ggplot(data = abcover_nonnativecover_nngrasscover,
 print(nngrass_nativeshrub)
 
 ```
+
+
+# CANOPY COVER
+
+-   canopy cover - bird's eye view
+
+```{r canopy cover data prep}
+# data prep
+shrubs <- abcover_full_v_omitground %>% 
+  filter(lifeform == "shrub") %>% 
+  left_join(shrub_leaftype, by = "species") %>% 
+  dplyr::select(!c(lifeform)) %>% 
+    rename(lifeform = leaftype ) # newname = oldname
+
+herbsgrassesfern <-  abcover_full_v_omitground %>% 
+  filter(lifeform =="herb" | lifeform == "grass" | lifeform == "fern") 
+  
+lifeformleaftype <- rbind(herbsgrassesfern, shrubs) #tibble [1,445 × 13] (S3: tbl_df/tbl/data.frame)
+  
+whatsincanopy <- lifeformleaftype %>% 
+  group_by(site_rep_dist) %>%
+  slice_max(order_by = vertical, n = 1) %>% # no ferns 
+   mutate(lifeform_status = paste(lifeform, status, sep = "_")) %>% 
+  group_by(standtype, site, rep, site_rep, lifeform, status, lifeform_status) %>% 
+  dplyr::summarize(
+    count_per_transect = n_distinct(site_rep_dist), 
+    percentcover = n_distinct(site_rep_dist)/41) %>% # <-- calculate percent cover
+  ungroup() %>% 
+   mutate(standtype = fct_relevel(standtype,"intact", "matrix", "degraded")) %>% 
+   mutate(site = fct_relevel(site, "INT1", "INT2", "INT3", "ENH1", "ENH2", "DEG1", "DEG2")) %>%
+  mutate(site_rep = fct_relevel(site_rep, "INT1_1", "INT2_2", "INT3_3", "ENH1_1" ,    "ENH1_2"   ,  "ENH1_3" ,    "ENH2_4" ,    "ENH2_5"    ,"ENH2_6", "DEG1_1",     "DEG1_2"  ,   "DEG1_3"   ,  "DEG2_4" ,    "DEG2_5"   ,  "DEG2_6")) %>% 
+  mutate(lifeform_status = fct_relevel(lifeform_status, "grass_nonnative", "herb_nonnative",
+                                       "grass_native", "herb_native", "nonsclero_native", "sclerophyllous_native")
+  )
+  
+```
+
+```{r canopy cover figure}
+
+
+  
+ggplot(whatsincanopy, 
+       aes(x = site_rep, y = percentcover*100, 
+           fill = lifeform_status)
+       ) +
+  geom_col(position = "stack") +
+  labs(title = "Canopy Cover", 
+       x = "Site", 
+       y = "Percent Cover (%)") +
+  scale_fill_manual(values = c("gold", "orange", "limegreen", "deeppink","purple", "darkgreen"),
+                     name = "Lifeform - Status",
+                     labels = c("grass_native" = "native grass", 
+                                "herb_native" = "native forb", 
+                                "nonsclero_native" = "native non-sclerophyllous_native shrub",
+                                 "sclerophyllous_native" = "native sclerophyllous_native shrub",
+                                "grass_nonnative" = "non-native grass", 
+                                
+                                "herb_nonnative" = "non-native forb"
+                               )) + #rename standtypes labels
+  #ylim(0, 150)+
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+# 
+# ggplot(whatsincanopy, 
+#        aes(x = site_rep, y = percentcover*100, 
+#            fill = lifeform_status)
+#        ) +
+#   geom_col(aes(fill = factor(lifeform_status, 
+#                              levels = c("grass_native", "herb_native", "shrub_native",
+#                                         "grass_nonnative", "herb_nonnative"))), 
+#            position = "stack") +
+#   geom_col_pattern(data = filter(whatsincanopy, 
+#                                  lifeform_status %in% c("herb_nonnative", "grass_nonnative")), 
+#                    aes(fill = lifeform_status),
+#                    pattern = "stripe", pattern_angle = 45, pattern_density = 0.1, position = "stack")  +
+#   labs(title = "Canopy Cover", 
+#        x = "Site", 
+#        y = "Percent Cover (%)") +
+#   scale_fill_manual(values = c(shrub_native = "darkgreen", 
+#                                herb_native = "blue",
+#                                grass_native = "orange", 
+#                                 herb_nonnative = "blue", 
+#                                grass_nonnative = "orange"
+#                                 ),
+#                      name = "Lifeform - Status",
+#                      labels = c("grass_native" = "native grass", 
+#                                 "grass_nonnative" = "non-native grass", 
+#                                 "herb_native" = "native forb", 
+#                                 "herb_nonnative" = "non-native forb", 
+#                                 "shrub_native" = "native shrub")) + #rename standtypes labels
+#   ylim(0, 100) +
+#   theme_bw() +
+#   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+#   
+#   
+
+```
+
+```{r}
+
+```
+
 
 # Breakpoints
 ```{r segmented scatterplot nonnative cover by nn grass cover, include=TRUE}
@@ -1867,7 +1973,7 @@ cover_statuslf_matrix <- cover_statuslf_matrix %>%
             "intact", "matrix", "degraded"))
 ```
 
-### STACKED proportion of Family by Transect
+# STACKED proportion of Family by Transect
 ```{r proportion cover by family, include=TRUE}
 
 
@@ -1889,6 +1995,7 @@ abcover_byfamily_percent <- abcover_byfamily %>%
   mutate(percent_cover = (count_per_transect/total_by_transect)*100) %>%
   dplyr::select(!c(total_by_transect, count_per_transect))
 
+# write.csv(abcover_byfamily_percent,"processed/abcover_byfamily_percent.csv")
 # view(abcover_byfamily_percent) # prints to new tab
 
 #this is with just the counts
