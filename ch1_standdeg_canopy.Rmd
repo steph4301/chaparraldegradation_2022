@@ -5,7 +5,6 @@ date: "2023-07-24"
 output: html_document
 ---
 
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -76,7 +75,6 @@ statuscolors <- c(native, exotic)
 
 ```
 
-
 ```{r load csv, create columns, calculate - percent cover, echo=FALSE, eval=F}
 
 # percent cover - belt transects, point intercept transects
@@ -127,7 +125,9 @@ abcover_full_v_omitground <- filter(abcover_full_v, status !="ground")
 glimpse(abcover_full_v_omitground)
 ```
 
-### 1.1 Percent cover (horizontal variation)
+# VEG COVER
+
+-   Percent cover (horizontal variation)
 
 ```{r percent cover - abcover_vegcover, include = TRUE}
 abcover_vegcover <- abcover_full_v %>% # total above veg
@@ -143,7 +143,10 @@ abcover_vegcover_long <- gather(abcover_vegcover, covertype, percentcover, perce
 abcover_vegcover_long
 ```
 
-### 1.1A total % vegetation cover
+### TOTAL VEG COVER
+
+-   \% vegetation cover per transect
+-   \% bare ground cover per transect
 
 ```{r FIGURES totalvegcover, include=TRUE}
 
@@ -286,8 +289,11 @@ abcover_vegcover_plot <- ggplot(abcover_vegcover_meanSD, aes(x = standtype, y = 
 abcover_vegcover_plot
 ```
 
+# LIFEORM and STATUS
 
-### 1.1B Percent cover by lifeform by native/nonnative status - there shouldn't be zeros in your df
+-   by fern, grass, forb, shrub
+
+-   lifeform by native/nonnative status - there shouldn't be zeros in your df
 
 ```{r cover x status x lifeform - data prep, include = TRUE}
 # line 933 from Ch1_Degradation_original.Rmd
@@ -306,16 +312,26 @@ abcover_bylf_bystatus <- abcover_full_v_omitground %>%
 ## histogram 
 hist(abcover_bylf_bystatus$percentcover) 
 
-## jitter - by site_rep
-ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = site_rep, color = lifeform)) + 
-  geom_jitter()
-ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = lifeform, color = standtype)) + 
-  geom_jitter()
-ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, color = status)) + 
+## jitter - lifeform percent cover by site_rep
+ggplot(data = abcover_bylf_bystatus, 
+       aes(x = site_rep, 
+           y = percentcover*100,
+           color = lifeform)) + 
   geom_jitter()
 
+# by lifeform - hillslope percent cover by fern, forb, grass, shrub
+ggplot(data = abcover_bylf_bystatus, 
+       aes(y = percentcover*100, x = lifeform, color = standtype)) + 
+  geom_jitter()
+
+# by standtype percent cover by status (native or non-native)
+ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, color = status)) + 
+  geom_jitter()
+```
+```{r}
 ## boxplot
-ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, fill = lifeform)) +
+ggplot(data = abcover_bylf_bystatus, 
+       aes(y = percentcover*100, x = standtype, fill = lifeform)) +
     geom_boxplot() # boxplots
 
 ## jitter - by standtype
@@ -329,7 +345,11 @@ ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, co
 ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, fill = lifeform)) +
     geom_boxplot() # boxplots
 ```
-### 1.1C Percent cover by native/nonnative status
+
+# STATUS
+
+-   Percent cover by native/nonnative status
+
 ```{r percent cover by status stats, include=TRUE}
 
 # NATIVE and NON-NATIVE
@@ -341,6 +361,7 @@ shapiro.test(abcover_bylf_bystatus$percentcover)
 # NATIVE ONLY
 abcover_bylf_bystatus_native <- abcover_bylf_bystatus %>%   # NATIVE ONLY
   filter(status =="native")
+
 shapiro.test(abcover_bylf_bystatus_native$percentcover) 
 # 	Shapiro-Wilk normality test
 # 
@@ -494,7 +515,6 @@ print(native_by_nngrass_regression)
 #write.csv(abcover_nativecover_nngrasscover,"processed/abcover_nativecover_nngrasscover.csv")
 
 ```
-
 
 ```{r segmented scatterplot native shrub cover by nn grass cover, include=TRUE}
 
@@ -706,6 +726,7 @@ print(nativeforb_by_nngrass_regression)
 ```
 
 #### NATIVE/NONNATIVE PERCENT COVER HERE!
+
 ```{r scatterplot nonnative cover by nn grass cover, include=TRUE}
 
 abcover_nonnative_cover <- abcover_full_v %>% 
@@ -771,7 +792,22 @@ print(nncover_nativeshrub)
 
 ```
 
+# CANOPY COVER
+
+-   canopy cover - bird's eye view
+
+```{r}
+# data prep
+ <- abcover_full_v_omitground %>% 
+  group_by(standtype, lifeform, status, site, rep, site_rep) %>% 
+  dplyr::summarize(
+    count_per_transect = n_distinct(site_rep_dist), 
+    percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect, lifeform, and status
+    )
+```
+
 ### shrub cover by leaf type x non-native grass
+
 ```{r data prep adding leaf type and percent native/nn cover to  shrub species percent cover}
 # # percent cover by shrub species df
 # shrubspp <- abcover_full_v_omitground %>% 
@@ -944,6 +980,7 @@ TukeyHSD((aov(sum_leaftype_cover ~ site, data = shrubspp_leaftype_NONSCLcover)))
 ```
 
 ### nngrass stats x standtype
+
 ```{r nonnative grass by stand type and hillslope stats}
 
 abcover_nngrass <- abcover_bylf_bystatus %>% 
@@ -993,7 +1030,6 @@ pairwise.wilcox.test(abcover_nngrass$percentcover, abcover_nngrass$site,
 # INT2 0.62 0.62 0.62 0.62 1.00 -   
 # INT3 0.62 0.62 0.62 0.62 1.00 1.00
 ```
-
 
 ```{r leaf type Figure}
 
@@ -1055,7 +1091,6 @@ ggplot(data = leaftype_nativenn_cover,
 
 ```
 
-
 ```{r shrub cover by leaf type x nn grass cover, include=TRUE}
 
 
@@ -1080,6 +1115,7 @@ shrubleaftype_nngrass <- ggplot(data = abcover_nonnativecover_nngrasscover,
 print(nncover_nativeshrub)
 
 ```
+
 ```{r scatterplot nonnative grass cover by native shrub cover, include=TRUE}
 
 nngrass_nativeshrub <- ggplot(data = abcover_nonnativecover_nngrasscover, 
@@ -1105,6 +1141,7 @@ print(nngrass_nativeshrub)
 ```
 
 # Breakpoints
+
 ```{r segmented scatterplot nonnative cover by nn grass cover, include=TRUE}
 abcover_nonnativecover_nngrasscover2 <- abcover_nonnativecover_nngrasscover[order(abcover_nonnativecover_nngrasscover$nonnative_grass),]
 
@@ -2083,8 +2120,8 @@ modelgraph_nngrass <- p1 +
 
 modelgraph_nngrass
 ```
-#end
 
+#end
 
 ```{r}
 
@@ -2135,8 +2172,6 @@ p3 <- p3 + geom_line(data = my.model1, aes(x = NonNativeGrassCover, y = TotalNon
 p3
 ```
 
-
-
 ```{r }
 
 #write.csv(abcover_bylf_bystatus,"processed/percentcover_bystatus_bylifeform.csv")
@@ -2148,6 +2183,7 @@ cover_statuslf_matrix <- cover_statuslf_matrix %>%
 ```
 
 ### STACKED proportion of Family by Transect
+
 ```{r proportion cover by family, include=TRUE}
 
 
@@ -2350,7 +2386,6 @@ plot.segmented(os, res=TRUE, col=2, conf.level=.95)
 
 ```
 
-
 ### - SHRUB
 
 ```{r cover by lf by status - stats, include=TRUE}
@@ -2539,6 +2574,7 @@ print(TukeyHSD(abcover_bylf_bystatus_aov_forbnn))
 ```
 
 ### - GRASS
+
 ```{r grass}
 # GRASS
 abcover_bylf_bystatus_aov_grass <- aov(percentcover ~ standtype * status, data = cover_statuslf_matrix %>% 
@@ -2641,6 +2677,7 @@ ggsave("Ch1_Degradation_figures/nncover_combined.png", nncover_combined, width =
 ```
 
 ### - STATS
+
 ```{r plot abcover_bylf_meanSD, include = TRUE}
 # line 965 in Ch1_Degradation_original.Rmd
 
@@ -2660,4 +2697,3 @@ abcover_bylf_bystatus_meanSD_plot_wrap + scale_x_discrete(limits=c("intact", "ma
 
 
 ```
-
