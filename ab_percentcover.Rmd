@@ -326,6 +326,34 @@ abcover_vegcover_plot <- ggplot(abcover_vegcover_meanSD, aes(x = standtype, y = 
 abcover_vegcover_plot
 ```
 
+# rbind leaftype
+```{data prep rbind leaftype}
+
+shrubs <- abcover_full_v_omitground %>% 
+  filter(lifeform == "shrub") %>% 
+  left_join(shrub_leaftype, by = "species") %>% 
+  dplyr::select(!c(lifeform)) %>% 
+    rename(lifeform = leaftype ) # newname = oldname
+
+herbsgrassesfern <-  abcover_full_v_omitground %>% 
+  filter(lifeform =="herb" | lifeform == "grass" | lifeform == "fern") 
+  
+lifeformleaftype <- rbind(herbsgrassesfern, shrubs) %>%  
+  group_by(site_rep_dist) %>%
+   mutate(lifeform_status = paste(lifeform, status, sep = "_")) %>% 
+  group_by(standtype, site, rep, site_rep, lifeform, status, lifeform_status) %>% 
+  dplyr::summarize(
+    count_per_transect = n_distinct(site_rep_dist), 
+    percentcover = n_distinct(site_rep_dist)/41) %>% # <-- calculate percent cover
+  ungroup() %>% 
+   mutate(standtype = fct_relevel(standtype,"intact", "matrix", "degraded")) %>% 
+   mutate(site = fct_relevel(site, "INT1", "INT2", "INT3", "ENH1", "ENH2", "DEG1", "DEG2")) %>%
+  mutate(site_rep = fct_relevel(site_rep, "INT1_1", "INT2_2", "INT3_3", "ENH1_1" ,    "ENH1_2"   ,  "ENH1_3" ,    "ENH2_4" ,    "ENH2_5"    ,"ENH2_6", "DEG1_1",     "DEG1_2"  ,   "DEG1_3"   ,  "DEG2_4" ,    "DEG2_5"   ,  "DEG2_6")) %>% 
+  mutate(lifeform_status = fct_relevel(lifeform_status, "grass_nonnative", "herb_nonnative",
+                                  "fern_native",     "grass_native", "herb_native", "nonsclero_native", "sclerophyllous_native")
+  )
+view(lifeformleaftype)
+```
 
 ### 1.1B Percent cover by lifeform by native/nonnative status - there shouldn't be zeros in your df
 
@@ -368,6 +396,33 @@ ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, co
 ## boxplot
 ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, fill = lifeform)) +
     geom_boxplot() # boxplots
+```
+
+
+```{r percent cover stacked by lifeform}
+
+
+lifeformstatus_stacked <- ggplot(lifeformleaftype, 
+       aes(x = site_rep, y = percentcover*100, 
+           fill = lifeform_status)
+       ) +
+  geom_col(position = "stack") +
+  labs(title = "Canopy Cover", 
+       x = "Site", 
+       y = "Percent Cover (%)") +
+  scale_fill_manual(values = c("gold", "orange", "brown", "limegreen", "deeppink","purple", "darkgreen"),
+                     name = "Lifeform - Status",
+                     labels = c("grass_native" = "native grass", 
+                                "herb_native" = "native forb", 
+                                "nonsclero_native" = "native non-sclerophyllous_native shrub",
+                                 "sclerophyllous_native" = "native sclerophyllous_native shrub",
+                                "grass_nonnative" = "non-native grass", 
+                                
+                                "herb_nonnative" = "non-native forb"
+                               )) + #rename standtypes labels
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+lifeformstatus_stacked
 ```
 ### 1.1C Percent cover by native/nonnative status
 ```{r percent cover by status stats, include=TRUE}
@@ -833,17 +888,6 @@ print(nngrass_nativeshrub)
 -   canopy cover - bird's eye view
 
 ```{r canopy cover data prep}
-# data prep
-shrubs <- abcover_full_v_omitground %>% 
-  filter(lifeform == "shrub") %>% 
-  left_join(shrub_leaftype, by = "species") %>% 
-  dplyr::select(!c(lifeform)) %>% 
-    rename(lifeform = leaftype ) # newname = oldname
-
-herbsgrassesfern <-  abcover_full_v_omitground %>% 
-  filter(lifeform =="herb" | lifeform == "grass" | lifeform == "fern") 
-  
-lifeformleaftype <- rbind(herbsgrassesfern, shrubs) #tibble [1,445 × 13] (S3: tbl_df/tbl/data.frame)
   
 whatsincanopy <- lifeformleaftype %>% 
   group_by(site_rep_dist) %>%
