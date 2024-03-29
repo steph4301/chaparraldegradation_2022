@@ -325,7 +325,9 @@ ggplot(data = abcover_bylf_bystatus,
   geom_jitter()
 
 # by standtype percent cover by status (native or non-native)
-ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, color = status)) + 
+ggplot(data = abcover_bylf_bystatus, 
+       aes(y = percentcover*100, 
+           x = standtype, color = status)) + 
   geom_jitter()
 ```
 ```{r}
@@ -790,20 +792,6 @@ nncover_nativeshrub <- ggplot(data = abcover_nonnativecover_nngrasscover,
   stat_poly_eq(use_label(c("eq", "R2")))
 print(nncover_nativeshrub)
 
-```
-
-# CANOPY COVER
-
--   canopy cover - bird's eye view
-
-```{r}
-# data prep
- <- abcover_full_v_omitground %>% 
-  group_by(standtype, lifeform, status, site, rep, site_rep) %>% 
-  dplyr::summarize(
-    count_per_transect = n_distinct(site_rep_dist), 
-    percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect, lifeform, and status
-    )
 ```
 
 ### shrub cover by leaf type x non-native grass
