@@ -407,7 +407,7 @@ lifeformstatus_stacked <- ggplot(lifeformleaftype,
            fill = lifeform_status)
        ) +
   geom_col(position = "stack") +
-  labs(title = "Canopy Cover", 
+  labs(title = "Vegetation cover by lifeform", 
        x = "Site", 
        y = "Percent Cover (%)") +
   scale_fill_manual(values = c("gold", "orange", "brown", "limegreen", "deeppink","purple", "darkgreen"),
@@ -420,9 +420,12 @@ lifeformstatus_stacked <- ggplot(lifeformleaftype,
                                 
                                 "herb_nonnative" = "non-native forb"
                                )) + #rename standtypes labels
+  ylim(0,250) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 lifeformstatus_stacked
+
+ggsave("Ch1_Degradation_figures/lifeformstatus_stacked.png", lifeformstatus_stacked, width = 8, height = 6)
 ```
 ### 1.1C Percent cover by native/nonnative status
 ```{r percent cover by status stats, include=TRUE}
@@ -528,6 +531,358 @@ ggplot(abcover_bystatus_edited, aes(fill = status, y=percentcover*100, x=site_re
        y = "Percent cover (%)", 
        title = "Percent cover by vegetation status per Trasect")
 ```
+
+# shrub cover by leaf type SCL
+
+```{r data prep adding leaf type and percent native/nn cover to  shrub species percent cover}
+# # percent cover by shrub species df
+# shrubspp <- abcover_full_v_omitground %>% 
+#   filter(lifeform == "shrub") 
+# sort(unique(shrubspp$species))
+# # [1] "Artemisia californica"         <-- 1
+# #   "Baccharis pilularis"             2
+# #   "Eriodictyon crassifolium"       3
+# #  [4] "Heteromeles arbutifolia"      4  
+# #   "Heteromeles arbutifolia dead"    
+# #   "Malacothamnus fasciculatus"     5
+# #  [7] "Malacothamnus fasciculatus dead" 
+# #  "Rhamnus ilicifolia"             6
+# #   "Rhus ovata"                     7
+# # [10] "Salvia leucophylla"           8 unique species 
+# #   "Salvia leucophylla dead"  <-- 3 dead shrub species
+# 
+# # Read the Excel file into R
+# shrub_leaftype <- read_excel("shrub_leaftype.xlsx")
+# sort(unique(shrub_leaftype$species))
+# # [1] "Artemisia californica"           "Baccharis pilularis"             "Eriodictyon crassifolium"       
+# #  [4] "Heteromeles arbutifolia"         "Heteromeles arbutifolia dead"    "Malacothamnus fasciculatus"     
+# #  [7] "Malacothamnus fasciculatus dead" "Rhamnus ilicifolia"              "Rhus ovata"                     
+# # [10] "Salvia leucophylla"              "Salvia leucophylla dead"      
+# 
+# shrubspp_leaftype <- shrubspp %>%  
+#   left_join(shrub_leaftype, by = "species") # left join leaf type
+# 
+# shrubspp_leaftype_cover_write <- shrubspp_leaftype %>% 
+#     filter(!grepl("dead", species, ignore.case = TRUE)) %>%  # Filter out species containing "dead"
+#   group_by(standtype, site, rep, site_rep, species, leaftype,) %>% 
+#   dplyr::summarize(
+#     count_per_transect = n_distinct(site_rep_dist), 
+#     percentcover = (n_distinct(site_rep_dist)/41)*100 # <-- calculate percent cover 
+#     ) %>% 
+#   dplyr::select(!c(count_per_transect)) %>% 
+#   group_by(standtype, site, site_rep, leaftype) %>% 
+#    dplyr::summarize(sum_leaftype_cover = sum(percentcover), 
+#                     num_species = (length(species))
+#    ) %>%
+#   left_join(abcover_nonnativecover_nngrasscover, # left join non-native grass cover (and all cover)
+#               by = c("standtype", "site_rep")) %>% 
+#    dplyr::select(!c(count_per_transect.x, count_per_transect.y)) %>% 
+#    mutate(standtype = fct_relevel(standtype, 
+#             "intact", "matrix", "degraded")) %>% 
+#   mutate(leaftype = fct_relevel(leaftype, 
+#             "native_shrub", "sclerophyllous", "nonsclero"))
+# 
+# view(shrubspp_leaftype_cover_write)
+# write.csv(shrubspp_leaftype_cover_write,"processed/shrubspp_leaftype_cover.csv")
+
+shrubspp_leaftype_cover <- read.csv("processed/shrubspp_leaftype_cover_zeros.csv") %>%
+  mutate(standtype = fct_relevel(standtype, 
+             "intact", "matrix", "degraded")) %>% 
+   mutate(site = fct_relevel(site, 
+             "INT1", "INT2", "INT3", "ENH1", "ENH2", "DEG1", "DEG2")) %>% 
+  mutate(leaftype = fct_relevel(leaftype, 
+            "sclerophyllous", "nonsclero"))
+  
+```
+
+```{r leaftype data visualization}
+
+#scatterplot
+ggplot(data = shrubspp_leaftype_cover, 
+       aes(y = sum_leaftype_cover, x = site, color = leaftype)) +
+    geom_point(size = 5)
+```
+
+##### - SCL by hillslope
+```{r leaf type stats - SCL - hillslope}
+shrubspp_leaftype_SCLcover <- shrubspp_leaftype_cover %>% 
+  filter(leaftype == "sclerophyllous")
+
+histogram(shrubspp_leaftype_SCLcover$sum_leaftype_cover)
+
+shapiro.test(shrubspp_leaftype_SCLcover$sum_leaftype_cover)
+# Shapiro-Wilk normality test
+# 
+# data:  shrubspp_leaftype_SCLcover$sum_leaftype_cover
+# W = 0.54976, p-value = 9.124e-06 <-- not normally distributed
+
+### by hillslope
+kruskal.test(sum_leaftype_cover ~ site, data = shrubspp_leaftype_SCLcover)
+# Kruskal-Wallis rank sum test
+# data:  sum_leaftype_cover by site
+# Kruskal-Wallis chi-squared = 12.024, df = 6, p-value = 0.06145
+
+pairwise.wilcox.test(shrubspp_leaftype_SCLcover$sum_leaftype_cover, shrubspp_leaftype_SCLcover$site,
+                 p.adjust.method = "BH")
+# 
+# 
+#      INT1 INT2 INT3 ENH1 ENH2 DEG1
+# INT2 1.00 -    -    -    -    -   
+# INT3 1.00 1.00 -    -    -    -   
+# ENH1 0.52 0.52 0.52 -    -    -   
+# ENH2 0.50 0.50 0.50 0.61 -    -   
+# DEG1 0.50 0.50 0.50 0.61 -    -   
+# DEG2 0.50 0.50 0.50 0.61 -    - 
+
+```
+```{r}
+ggplot(shrubspp_leaftype_SCLcover, 
+       aes(x = site, y = sum_leaftype_cover)) +
+  geom_boxplot() +
+  theme(axis.text.x.bottom = element_text(angle = 90)) +
+  labs(title = "Sclerophyllous shrub cover by hillslope", 
+       x = "Hillslope",
+       y = "Percent Cover (%)")
+```
+
+##### - SCL by stand type
+```{r leaf type stats - SCL - stand type}
+SCLcover_bysite <- shrubspp_leaftype_SCLcover %>%  
+  group_by(standtype, site) %>% 
+  summarise(meanSITE_SCLcover = mean(sum_leaftype_cover))
+
+histogram(SCLcover_bysite$meanSITE_SCLcover)
+
+shapiro.test(SCLcover_bysite$meanSITE_SCLcover)
+# Shapiro-Wilk normality test
+# 
+# data:  SCLcover_bysite$meanSITE_SCLcover
+# W = 0.78369, p-value = 0.02815 <-- not normally distributed
+
+### by stand type
+kruskal.test(meanSITE_SCLcover ~ standtype, data = SCLcover_bysite)
+# Kruskal-Wallis rank sum test
+# 
+# data:  meanSITE_SCLcover by standtype
+# Kruskal-Wallis chi-squared = 5.0769, df = 2, p-value = 0.07899
+
+pairwise.wilcox.test(SCLcover_bysite$meanSITE_SCLcover, SCLcover_bysite$standtype,
+                 p.adjust.method = "BH")
+#     intact matrix
+# matrix   0.30   -     
+# degraded 0.30   0.62  
+# 
+# P value adjustment method: BH 
+
+```
+
+```{r}
+ggplot(SCLcover_bysite, 
+       aes(x = standtype, y = meanSITE_SCLcover)) +
+  geom_boxplot() +
+  labs(title = "Sclerophyllous shrub cover by standtype", 
+       x = "Standtype",
+       y = "Percent Cover (%)")
+```
+```{r leaf type stats - NON SCL}
+shrubspp_leaftype_NONSCLcover <- shrubspp_leaftype_cover %>% 
+  filter(leaftype == "nonsclero")
+
+histogram(shrubspp_leaftype_NONSCLcover$sum_leaftype_cover)
+
+# NONSCL by hillslope
+shapiro.test(shrubspp_leaftype_NONSCLcover$sum_leaftype_cover)
+# 	Shapiro-Wilk normality test
+# 
+# data:  shrubspp_leaftype_NONSCLcover$sum_leaftype_cover
+# W = 0.90197, p-value = 0.102 <-- normally distributed
+
+summary(aov(sum_leaftype_cover ~ site, data = shrubspp_leaftype_NONSCLcover))
+#   Df Sum Sq Mean Sq F value Pr(>F)  
+# site         6   5812   968.6   3.172 0.0673 .<-- no sig diff
+# Residuals    8   2443   305.4                 
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1 
+
+TukeyHSD((aov(sum_leaftype_cover ~ standtype, data = shrubspp_leaftype_NONSCLcover)))
+# $standtype
+#                      diff       lwr       upr     p adj
+# matrix-intact    16.66667 -24.60484 57.938170 0.5452095
+# degraded-intact -12.19512 -53.46663 29.076382 0.7169657
+# degraded-matrix -28.86179 -62.55983  4.836253 0.0967824
+
+
+summary(aov(sum_leaftype_cover ~ site, data = shrubspp_leaftype_NONSCLcover))
+#             Df Sum Sq Mean Sq F value Pr(>F)  
+# site         6   5812   968.6   3.172 0.0673 . <-- no diff by hillslope
+# Residuals    8   2443   305.4 
+
+TukeyHSD((aov(sum_leaftype_cover ~ site, data = shrubspp_leaftype_NONSCLcover)))
+# Fit: aov(formula = sum_leaftype_cover ~ site, data = shrubspp_leaftype_NONSCLcover)
+# 
+# $site
+#                 diff        lwr       upr     p adj
+# DEG2-DEG1 -11.382114  -65.85474  43.09051 0.9786122
+# ENH1-DEG1  39.024390  -15.44823  93.49701 0.2032746
+# ENH2-DEG1   7.317073  -47.15555  61.78970 0.9978115
+# INT1-DEG1 -19.512195  -96.54812  57.52373 0.9483739
+# INT2-DEG1  36.585366  -40.45056 113.62129 0.5737545
+# INT3-DEG1   2.439024  -74.59690  79.47495 0.9999995
+# ENH1-DEG2  50.406504   -4.06612 104.87913 0.0724026
+# ENH2-DEG2  18.699187  -35.77344  73.17181 0.8306002
+# INT1-DEG2  -8.130081  -85.16600  68.90584 0.9994274
+# INT2-DEG2  47.967480  -29.06844 125.00340 0.3149369
+# INT3-DEG2  13.821138  -63.21478  90.85706 0.9899234
+# ENH2-ENH1 -31.707317  -86.17994  22.76531 0.3764956
+# INT1-ENH1 -58.536585 -135.57251  18.49934 0.1646056
+# INT2-ENH1  -2.439024  -79.47495  74.59690 0.9999995
+# INT3-ENH1 -36.585366 -113.62129  40.45056 0.5737545
+# INT1-ENH2 -26.829268 -103.86519  50.20665 0.8220705
+# INT2-ENH2  29.268293  -47.76763 106.30422 0.7644413
+# INT3-ENH2  -4.878049  -81.91397  72.15787 0.9999701
+# INT2-INT1  56.097561  -38.25179 150.44691 0.3566797
+# INT3-INT1  21.951220  -72.39813 116.30057 0.9646390
+# INT3-INT2 -34.146341 -128.49569  60.20301 0.7979319
+```
+
+
+### nngrass stats x standtype
+
+```{r nonnative grass by stand type and hillslope stats}
+
+abcover_nngrass <- abcover_bylf_bystatus %>% 
+  filter(lifeform == "grass") %>% 
+  filter(status == "nonnative")
+
+histogram(abcover_nngrass$percentcover)
+
+shapiro.test(abcover_nngrass$percentcover)
+# Shapiro-Wilk normality test
+# 
+# data:  abcover_nngrass$percentcover
+# W = 0.80794, p-value = 0.004657 <-- not normally distributed
+
+
+### by standtype
+kruskal.test(percentcover ~ standtype, data = abcover_nngrass)
+# Kruskal-Wallis rank sum test
+# 
+# data:  percentcover by standtype
+# Kruskal-Wallis chi-squared = 12.282, df = 2, p-value = 0.002153
+
+pairwise.wilcox.test(abcover_nngrass$percentcover, abcover_nngrass$standtype,
+                 p.adjust.method = "BH")
+# data:  abcover_nngrass$percentcover and abcover_nngrass$standtype 
+# 
+#          intact matrix
+# matrix   0.028  -     
+# degraded 0.028  0.014 <-- all are sig diff by stand type
+
+### by hillslope
+kruskal.test(percentcover ~ site, data = abcover_nngrass)
+# Kruskal-Wallis rank sum test
+# 
+# data:  percentcover by site
+# Kruskal-Wallis chi-squared = 13.099, df = 6, p-value = 0.0415 <-- sig by hillslope
+
+pairwise.wilcox.test(abcover_nngrass$percentcover, abcover_nngrass$site,
+                 p.adjust.method = "BH")
+# data:  abcover_nngrass$percentcover and abcover_nngrass$site 
+# 
+#      DEG1 DEG2 ENH1 ENH2 INT1 INT2
+# DEG2 0.95 -    -    -    -    -   
+# ENH1 0.42 0.40 -    -    -    -   
+# ENH2 0.40 0.40 0.40 -    -    -   
+# INT1 0.62 0.62 0.62 0.62 -    -   
+# INT2 0.62 0.62 0.62 0.62 1.00 -   
+# INT3 0.62 0.62 0.62 0.62 1.00 1.00
+```
+
+```{r leaf type Figure}
+
+leaftype_nngrass_figure <- ggplot(data = shrubspp_leaftype_cover, 
+       aes(x = nonnative_grass*100, y = sum_leaftype_cover, 
+           color = leaftype)) +
+  geom_point(size = 3, alpha = 0.8) +
+  # geom_point(data = shrubspp_leaftype_cover, 
+  #            aes(x = nonnative_grass*100, y = percentcover_native*100, shape = standtype), 
+  #            size = 3, alpha = 0.8, color = "red") +  # Add second set of data
+  #scale_shape_manual(values = c(16, 17, 18)) +
+    labs(title = "Shrub cover by leaf type over non-native grass cover",
+         x = "Non-native grass cover (%)",
+       y = "Percent cover (%)",
+       ) +
+  scale_color_manual(values = c("darkgreen", "purple"),
+                     name = "Leaf Type",
+                     labels = c("nonsclero" = "non-sclerophyllous", #rename leaf types
+                                "sclerophyllous" = "sclerophyllous")
+                     ) +
+  ylim(0, 110)+
+  xlim(0,100) +
+  #geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  theme_bw() +
+   stat_poly_line() +
+   stat_poly_eq(use_label(c("eq", "R2")))
+print(leaftype_nngrass_figure)
+```
+
+```{r  leaf type Figure another version}
+leaftype_nativenn_cover <- read_excel("processed/leaftype_nativenn_cover.xlsx", sheet = "shrubspp_leaftype_cover", range = "A1:F35") %>%
+  mutate(standtype = fct_relevel(standtype, 
+            "intact", "matrix", "degraded")) %>% 
+  mutate(leaftype = fct_relevel(leaftype, 
+            "native_shrub", "sclerophyllous", "nonsclero"))
+
+ggplot(data = leaftype_nativenn_cover, 
+       aes(x = nonnative_grass*100, y = percentcover*100, color = leaftype)) + #shape = standtype
+  geom_point(size = 3, alpha = 0.8) +
+  labs(title = "Shrub cover by leaf type by non-native grass cover", 
+       x = "Non-native grass cover (%)",
+       y = "Percent cover (%)"
+       ) +
+  scale_shape_manual(values = c(16, 17, 18), 
+                     name = "Stand Type", 
+                     labels = c("intact" = "shrub dominated",
+                                "matrix" = "matrix",
+                                "degraded" = "grass dominated")
+                     ) +
+#  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  scale_color_manual(values = c("gray", "darkgreen", "purple"),
+                     name = "Percent Cover Type",
+                     labels = c("nonsclero" = "non-sclerophyllous",
+                                "sclerophyllous" = "sclerophyllous",
+                                "native_shrub" = "total native shrub")) + #rename standtypes labels
+  ylim(0, 110)+
+  xlim(0,100) +
+  theme_bw() 
+
+```
+
+```{r shrub cover by leaf type x nn grass cover, include=TRUE}
+
+
+shrubleaftype_nngrass <- ggplot(data = abcover_nonnativecover_nngrasscover, 
+       aes(x = native_shrub*100, y = percentcover_nonnative*100, shape = standtype, color = standtype)) + #shape = standtype.x, color = standtype.x
+  geom_point(size = 3, alpha = 0.8) +
+  scale_shape_manual(values = c(16, 17, 18)) +
+  ylim(0, 100)+
+  xlim(0,100) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "solid", color = "black") +  # lm, loess, glm
+  scale_color_manual(values = c(standcolors),
+                     name = "Stand Type",
+                     labels = c("intact" = "shrub dominated", 
+                                "matrix" = "matrix", 
+                                "degraded" = "grass dominated")) + #rename standtypes labels
+  labs(x = "Native shrub cover (%)", 
+       y = "Total non-native cover (%)", 
+       title = "Total non-native cover x native shrub cover") +
+  theme_bw() +  
+  stat_poly_line() +
+  stat_poly_eq(use_label(c("eq", "R2")))
+print(nncover_nativeshrub)
+
+```
+
 
 ```{r scatterplot native cover by nn grass cover, include=TRUE}
 
@@ -883,9 +1238,7 @@ print(nngrass_nativeshrub)
 ```
 
 
-# CANOPY COVER
-
--   canopy cover - bird's eye view
+# CANOPY COVER - Bird's eye view
 
 ```{r canopy cover data prep}
   
@@ -911,7 +1264,7 @@ whatsincanopy <- lifeformleaftype %>%
 
 
   
-ggplot(whatsincanopy, 
+canopycover_figure <- ggplot(whatsincanopy, 
        aes(x = site_rep, y = percentcover*100, 
            fill = lifeform_status)
        ) +
@@ -929,7 +1282,7 @@ ggplot(whatsincanopy,
                                 
                                 "herb_nonnative" = "non-native forb"
                                )) + #rename standtypes labels
-  #ylim(0, 150)+
+  ylim(0, 250)+
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 
@@ -967,10 +1320,25 @@ ggplot(whatsincanopy,
 #   
 #   
 
+canopycover_figure
+ggsave("Ch1_Degradation_figures/canopycover_figure.png", canopycover_figure, width = 8, height = 6)
+
+combined_caonpyplots <- grid.arrange(canopycover_figure + theme(
+                                            legend.position = c(0.4, 0.825),
+                                            legend.key.size = unit(0.2, "cm")
+                                             ),
+                                     lifeformstatus_stacked + theme(
+                                       legend.position = "none"), 
+                                     ncol = 2, 
+                                widths = c(4, 4),  # Adjust the width of each plot
+                                heights = c(6)) # Adjust the height of each plot
+ggsave("Ch1_Degradation_figures/combined_caonpyplots.png", combined_caonpyplots, width = 8, height = 6)
+
 ```
 
 ```{r}
-
+view(abcover_raw %>%
+       filter(site == "ENH1" & status == "nonnative" & lifeform == "herb"))
 ```
 
 
@@ -2222,11 +2590,12 @@ plot.segmented(os, res=TRUE, col=2, conf.level=.95)
 ```
 
 
-### - SHRUB
+### SHRUB cover 
 
 ```{r cover by lf by status - stats, include=TRUE}
 # SHRUB
 # highlight all and run as one command
+
 cover_statuslf_matrix_shrub <- cover_statuslf_matrix %>% 
   filter(lifeform == "shrub" & status == "native")
 
