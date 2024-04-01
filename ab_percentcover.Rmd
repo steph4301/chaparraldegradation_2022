@@ -635,7 +635,7 @@ pairwise.wilcox.test(shrubspp_leaftype_SCLcover$sum_leaftype_cover, shrubspp_lea
 # DEG2 0.50 0.50 0.50 0.61 -    - 
 
 ```
-```{r}
+```{r SCL percent cover by hillslope figure}
 ggplot(shrubspp_leaftype_SCLcover, 
        aes(x = site, y = sum_leaftype_cover)) +
   geom_boxplot() +
@@ -676,7 +676,7 @@ pairwise.wilcox.test(SCLcover_bysite$meanSITE_SCLcover, SCLcover_bysite$standtyp
 
 ```
 
-```{r}
+```{r SLC percent cover by standtype figure}
 ggplot(SCLcover_bysite, 
        aes(x = standtype, y = meanSITE_SCLcover)) +
   geom_boxplot() +
@@ -684,6 +684,9 @@ ggplot(SCLcover_bysite,
        x = "Standtype",
        y = "Percent Cover (%)")
 ```
+
+##### - NONSCL by hillslope
+
 ```{r leaf type stats - NON SCL}
 shrubspp_leaftype_NONSCLcover <- shrubspp_leaftype_cover %>% 
   filter(leaftype == "nonsclero")
@@ -704,13 +707,84 @@ summary(aov(sum_leaftype_cover ~ site, data = shrubspp_leaftype_NONSCLcover))
 # ---
 # Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1 
 
-TukeyHSD((aov(sum_leaftype_cover ~ standtype, data = shrubspp_leaftype_NONSCLcover)))
-# $standtype
-#                      diff       lwr       upr     p adj
-# matrix-intact    16.66667 -24.60484 57.938170 0.5452095
-# degraded-intact -12.19512 -53.46663 29.076382 0.7169657
-# degraded-matrix -28.86179 -62.55983  4.836253 0.0967824
+TukeyHSD((aov(sum_leaftype_cover ~ site, data = shrubspp_leaftype_NONSCLcover)))
+# Fit: aov(formula = sum_leaftype_cover ~ site, data = shrubspp_leaftype_NONSCLcover)
+# 
+# $site
+#                 diff        lwr       upr     p adj
+# INT2-INT1  56.097561  -38.25179 150.44691 0.3566797
+# INT3-INT1  21.951220  -72.39813 116.30057 0.9646390
+# ENH1-INT1  58.536585  -18.49934 135.57251 0.1646056
+# ENH2-INT1  26.829268  -50.20665 103.86519 0.8220705
+# DEG1-INT1  19.512195  -57.52373  96.54812 0.9483739
+# DEG2-INT1   8.130081  -68.90584  85.16600 0.9994274
+# INT3-INT2 -34.146341 -128.49569  60.20301 0.7979319
+# ENH1-INT2   2.439024  -74.59690  79.47495 0.9999995
+# ENH2-INT2 -29.268293 -106.30422  47.76763 0.7644413
+# DEG1-INT2 -36.585366 -113.62129  40.45056 0.5737545
+# DEG2-INT2 -47.967480 -125.00340  29.06844 0.3149369
+# ENH1-INT3  36.585366  -40.45056 113.62129 0.5737545
+# ENH2-INT3   4.878049  -72.15787  81.91397 0.9999701
+# DEG1-INT3  -2.439024  -79.47495  74.59690 0.9999995
+# DEG2-INT3 -13.821138  -90.85706  63.21478 0.9899234
+# ENH2-ENH1 -31.707317  -86.17994  22.76531 0.3764956
+# DEG1-ENH1 -39.024390  -93.49701  15.44823 0.2032746
+# DEG2-ENH1 -50.406504 -104.87913   4.06612 0.0724026
+# DEG1-ENH2  -7.317073  -61.78970  47.15555 0.9978115
+# DEG2-ENH2 -18.699187  -73.17181  35.77344 0.8306002
+# DEG2-DEG1 -11.382114  -65.85474  43.09051 0.9786122
+```
 
+```{r NONSCL percent cover by hillslope}
+ggplot(shrubspp_leaftype_SCLcover, 
+       aes(x = site, y = sum_leaftype_cover)) +
+  geom_boxplot() +
+  theme(axis.text.x.bottom = element_text(angle = 90)) +
+  labs(title = "Non-sclerophyllous shrub cover by hillslope", 
+       x = "Hillslope",
+       y = "Percent Cover (%)")
+```
+
+##### - NONSCL by stand type
+
+```{r NONSCL percent cover by stand type stats}
+
+NONSCLcover_byhillslope <- shrubspp_leaftype_NONSCLcover %>% 
+  group_by(standtype, site) %>% 
+  summarise(meansite_NONSCLcover = mean(sum_leaftype_cover))
+
+histogram(NONSCLcover_byhillslope$meansite_NONSCLcover)
+
+# NONSCL by hillslope
+shapiro.test(NONSCLcover_byhillslope$meansite_NONSCLcover)
+# Shapiro-Wilk normality test
+# 
+# data:  NONSCLcover_byhillslope$meansite_NONSCLcover
+# W = 0.90062, p-value = 0.3347 <-- normally distributed
+
+summary(aov(meansite_NONSCLcover ~ standtype, data = NONSCLcover_byhillslope))
+#    Df Sum Sq Mean Sq F value Pr(>F)
+# standtype    2  841.6   420.8   0.777  0.519 <-- no sig diff
+# Residuals    4 2165.7   541.4   
+
+TukeyHSD((aov(meansite_NONSCLcover ~ standtype, data = NONSCLcover_byhillslope)))
+# $standtype
+#                      diff        lwr      upr     p adj
+# matrix-intact    16.66667  -59.03679 92.37012 0.7312194
+# degraded-intact -12.19512  -87.89857 63.50833 0.8404796
+# degraded-matrix -28.86179 -111.79077 54.06719 0.4940505
+```
+
+```{r NONSLC percent cover by standtype figure}
+ggplot(NONSCLcover_byhillslope, 
+       aes(x = standtype, y = meansite_NONSCLcover)) +
+  geom_boxplot() +
+  labs(title = "Non-sclerophyllous shrub cover by standtype", 
+       x = "Standtype",
+       y = "Percent Cover (%)")
+```
+
+```{r}
 
 summary(aov(sum_leaftype_cover ~ site, data = shrubspp_leaftype_NONSCLcover))
 #             Df Sum Sq Mean Sq F value Pr(>F)  
