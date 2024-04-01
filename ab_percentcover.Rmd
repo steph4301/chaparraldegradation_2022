@@ -820,58 +820,6 @@ TukeyHSD((aov(sum_leaftype_cover ~ site, data = shrubspp_leaftype_NONSCLcover)))
 ```
 
 
-### nngrass stats x standtype
-
-```{r nonnative grass by stand type and hillslope stats}
-
-abcover_nngrass <- abcover_bylf_bystatus %>% 
-  filter(lifeform == "grass") %>% 
-  filter(status == "nonnative")
-
-histogram(abcover_nngrass$percentcover)
-
-shapiro.test(abcover_nngrass$percentcover)
-# Shapiro-Wilk normality test
-# 
-# data:  abcover_nngrass$percentcover
-# W = 0.80794, p-value = 0.004657 <-- not normally distributed
-
-
-### by standtype
-kruskal.test(percentcover ~ standtype, data = abcover_nngrass)
-# Kruskal-Wallis rank sum test
-# 
-# data:  percentcover by standtype
-# Kruskal-Wallis chi-squared = 12.282, df = 2, p-value = 0.002153
-
-pairwise.wilcox.test(abcover_nngrass$percentcover, abcover_nngrass$standtype,
-                 p.adjust.method = "BH")
-# data:  abcover_nngrass$percentcover and abcover_nngrass$standtype 
-# 
-#          intact matrix
-# matrix   0.028  -     
-# degraded 0.028  0.014 <-- all are sig diff by stand type
-
-### by hillslope
-kruskal.test(percentcover ~ site, data = abcover_nngrass)
-# Kruskal-Wallis rank sum test
-# 
-# data:  percentcover by site
-# Kruskal-Wallis chi-squared = 13.099, df = 6, p-value = 0.0415 <-- sig by hillslope
-
-pairwise.wilcox.test(abcover_nngrass$percentcover, abcover_nngrass$site,
-                 p.adjust.method = "BH")
-# data:  abcover_nngrass$percentcover and abcover_nngrass$site 
-# 
-#      DEG1 DEG2 ENH1 ENH2 INT1 INT2
-# DEG2 0.95 -    -    -    -    -   
-# ENH1 0.42 0.40 -    -    -    -   
-# ENH2 0.40 0.40 0.40 -    -    -   
-# INT1 0.62 0.62 0.62 0.62 -    -   
-# INT2 0.62 0.62 0.62 0.62 1.00 -   
-# INT3 0.62 0.62 0.62 0.62 1.00 1.00
-```
-
 ```{r leaf type Figure}
 
 leaftype_nngrass_figure <- ggplot(data = shrubspp_leaftype_cover, 
@@ -931,6 +879,91 @@ ggplot(data = leaftype_nativenn_cover,
   theme_bw() 
 
 ```
+
+# nngrass cover 
+
+##### - nngrass cover by hillslope
+
+```{r nonnative grass by hillslope stats}
+
+abcover_nngrass <- abcover_bylf_bystatus %>% 
+  filter(lifeform == "grass") %>% 
+  filter(status == "nonnative")
+
+histogram(abcover_nngrass$percentcover)
+
+shapiro.test(abcover_nngrass$percentcover)
+# Shapiro-Wilk normality test
+# 
+# data:  abcover_nngrass$percentcover
+# W = 0.80794, p-value = 0.004657 <-- not normally distributed
+
+kruskal.test(percentcover ~ site, data = abcover_nngrass)
+# Kruskal-Wallis rank sum test
+# 
+# data:  percentcover by site
+# Kruskal-Wallis chi-squared = 13.099, df = 6, p-value = 0.0415
+
+pairwise.wilcox.test(abcover_nngrass$percentcover, abcover_nngrass$site,
+                 p.adjust.method = "BH")
+
+#      DEG1 DEG2 ENH1 ENH2 INT1 INT2
+# DEG2 0.95 -    -    -    -    -   
+# ENH1 0.42 0.40 -    -    -    -   
+# ENH2 0.40 0.40 0.40 -    -    -   
+# INT1 0.62 0.62 0.62 0.62 -    -   
+# INT2 0.62 0.62 0.62 0.62 1.00 -   
+# INT3 0.62 0.62 0.62 0.62 1.00 1.00 <-- no sig differences
+```
+
+```{r nngrass cover by hillslope figure}
+ggplot(abcover_nngrass, 
+       aes(x = site, y = percentcover)) +
+  geom_boxplot() +
+  theme(axis.text.x.bottom = element_text(angle = 90)) +
+  labs(title = "Non-native grass cover by hillslope", 
+       x = "Hillslope",
+       y = "Percent Cover (%)")
+```
+
+##### - nngrass cover by stand type
+
+```{r nngrass cover by stand type stats}
+
+abcover_nngrass_byhillslope <- abcover_nngrass %>% 
+  group_by(standtype, site) %>% 
+  summarise(mean_percentcover = mean(percentcover))
+
+kruskal.test(mean_percentcover ~ standtype, data = abcover_nngrass_byhillslope)
+# Kruskal-Wallis rank sum test
+
+# data:  mean_percentcover by standtype
+# Kruskal-Wallis chi-squared = 5.3571, df = 2, p-value = 0.06866 <-- normally distributed
+
+summary(aov(mean_percentcover ~ standtype, data = abcover_nngrass_byhillslope))
+#  Df Sum Sq Mean Sq F value  Pr(>F)   
+# standtype    2 0.8862  0.4431   44.77 0.00183 **
+# Residuals    4 0.0396  0.0099                   
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1  
+
+TukeyHSD((aov(mean_percentcover ~ standtype, data = abcover_nngrass_byhillslope)))
+# $standtype
+#                      diff        lwr       upr     p adj
+# matrix-intact   0.5894309  0.2657448 0.9131170 0.0064030 <-- ENH and INT
+# degraded-intact 0.8089431  0.4852570 1.1326292 0.0019497 <-- DEG and INT
+# degraded-matrix 0.2195122 -0.1350681 0.5740925 0.1836405
+```
+
+```{r nngrass percent cover by standtype figure}
+ggplot(abcover_nngrass_byhillslope, 
+       aes(x = standtype, y = mean_percentcover)) +
+  geom_boxplot() +
+  labs(title = "Non-native grass cover by standtype", 
+       x = "Standtype",
+       y = "Percent Cover (%)")
+```
+
 
 ```{r shrub cover by leaf type x nn grass cover, include=TRUE}
 
