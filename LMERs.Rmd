@@ -1,0 +1,43 @@
+---
+title: "LMERs"
+author: "Stephanie Ma Lucero"
+date: "2024-04-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r libraries}
+library(here) # similar to set working directory
+library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
+# library(lubridate) # dates and times
+library(ggplot2) # data visualization
+library(gridExtra)
+# library(readr)
+library(dplyr)
+library(ggthemes)
+library(plotly)
+library(ggpubr) # customize ggplot2 for publication
+#library(broom)
+#library(AICcmodavg)
+library(vegan) #community ecology package - includes, MASS, cluster, mgcv
+library(readxl) # for .xls and .xlsx sheets
+#library(janitor)
+library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD, dist{stats}, simint, simtest, csimint, csimtest{multcomp}, friedmanmc, kruskalmc{pgirmess}
+#library(multcomp) # functions: multcompLetters2, multcompLetters3, multcompLetters4 using aov object
+#library(DHARMa) #The ‘DHARMa’ package uses a simulation-based approach to create readily interpretable scaled (quantile) residuals for fitted (generalized) linear mixed models.
+#citation("DHARMa")
+library(ggpmisc)
+library(segmented)
+library(strucchange)
+library(ggpattern)
+library(lme4)
+library(lmerTest) # load again or update if you're not getting p-values from environmental models
+library(sjPlot)
+```
+
+```
+
