@@ -1,0 +1,138 @@
+---
+title: "dataprep"
+author: "Stephanie Ma Lucero"
+date: "2024-04-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r libraries}
+library(here) # similar to set working directory
+library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
+# library(lubridate) # dates and times
+library(ggplot2) # data visualization
+library(gridExtra)
+# library(readr)
+library(dplyr)
+library(ggthemes)
+library(plotly)
+library(ggpubr) # customize ggplot2 for publication
+#library(broom)
+#library(AICcmodavg)
+library(vegan) #community ecology package - includes, MASS, cluster, mgcv
+library(readxl) # for .xls and .xlsx sheets
+#library(janitor)
+library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD, dist{stats}, simint, simtest, csimint, csimtest{multcomp}, friedmanmc, kruskalmc{pgirmess}
+#library(multcomp) # functions: multcompLetters2, multcompLetters3, multcompLetters4 using aov object
+#library(DHARMa) #The ‘DHARMa’ package uses a simulation-based approach to create readily interpretable scaled (quantile) residuals for fitted (generalized) linear mixed models.
+#citation("DHARMa")
+library(ggpmisc)
+library(segmented)
+library(strucchange)
+library(ggpattern)
+library(lme4)
+library(lmerTest) # load again or update if you're not getting p-values from environmental models
+library(sjPlot)
+```
+
+# percent cover
+
+### - lifeformleaftype
+
+```{r load, echo=FALSE, eval=F}
+
+# percent cover - belt transects, point intercept transects
+abcover_full <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA")) %>% 
+  rename(speciescode = species.1 ) %>%
+  mutate(standtype = fct_relevel(standtype, 
+            "intact", "matrix", "degraded")) %>% 
+  dplyr::select(!speciescode) %>% 
+    mutate(site = case_when(site == "Intact_1" ~ "INT1", 
+                                site == "Intact_2" ~ "INT2",
+                                site == "Intact_3" ~ "INT3", 
+          TRUE ~ site))
+
+glimpse(abcover_full)
+str(abcover_full)
+
+#abcover_full$standtype <- factor(abcover_full$standtype, levels = c("intact", "matrix", "degraded"))
+
+# convert dataframe to tibble
+abcover_full_v <- as_tibble(abcover_full) 
+class(abcover_full_v)
+
+# combine site and rep to one column
+abcover_full_v$site_rep <- paste(abcover_full_v$site, abcover_full_v$rep, sep="_") 
+
+# combine site_rep and distance to one column
+abcover_full_v$site_rep_dist <- paste(abcover_full_v$site_rep, abcover_full_v$distance, sep="_") 
+
+# combine standtype and native/nonnative status to one column
+abcover_full_v$stand_status <- paste(abcover_full_v$standtype, abcover_full_v$status, sep="_") 
+
+abcover_full_v <- abcover_full_v %>% 
+  mutate(site_rep = fct_relevel
+         (site_rep, 
+                                "INT1_1", "INT2_2", "INT3_3", "ENH1_1", "ENH1_2",    "ENH1_3"  ,   "ENH2_4"  ,   "ENH2_5"    , "ENH2_6"  , "DEG1_1"   ,  "DEG1_2"  ,   "DEG1_3"     ,"DEG2_4" ,    "DEG2_5"    , "DEG2_6" ))
+
+glimpse(abcover_full_v) # look at new columns
+
+sort(unique(abcover_full_v$species))
+
+abcover_full_v %>%  
+  na.omit() %>%  
+  group_by(standtype, rep) %>% 
+  summarize(data_points = length(rep))
+
+# omit "ground" as a status since interested in Native and Non-native species 
+abcover_full_v_omitground <- filter(abcover_full_v, status !="ground")
+glimpse(abcover_full_v_omitground)
+
+shrubs <- abcover_full_v_omitground %>% 
+  filter(lifeform == "shrub") %>% 
+  left_join(shrub_leaftype, by = "species") %>% 
+  dplyr::select(!c(lifeform)) %>% 
+    rename(lifeform = leaftype ) # newname = oldname
+
+herbsgrassesfern <-  abcover_full_v_omitground %>% 
+  filter(lifeform =="herb" | lifeform == "grass" | lifeform == "fern") 
+  
+lifeformleaftype <- rbind(herbsgrassesfern, shrubs) %>%  
+  group_by(site_rep_dist) %>%
+   mutate(lifeform_status = paste(lifeform, status, sep = "_")) %>% 
+  group_by(standtype, site, rep, site_rep, lifeform, status, lifeform_status) %>% 
+  dplyr::summarize(
+    count_per_transect = n_distinct(site_rep_dist), 
+    percentcover = n_distinct(site_rep_dist)/41) %>% # <-- calculate percent cover
+  ungroup() %>% 
+   mutate(standtype = fct_relevel(standtype,"intact", "matrix", "degraded")) %>% 
+   mutate(site = fct_relevel(site, "INT1", "INT2", "INT3", "ENH1", "ENH2", "DEG1", "DEG2")) %>%
+  mutate(site_rep = fct_relevel(site_rep, "INT1_1", "INT2_2", "INT3_3", "ENH1_1" ,    "ENH1_2"   ,  "ENH1_3" ,    "ENH2_4" ,    "ENH2_5"    ,"ENH2_6", "DEG1_1",     "DEG1_2"  ,   "DEG1_3"   ,  "DEG2_4" ,    "DEG2_5"   ,  "DEG2_6")) %>% 
+  mutate(lifeform_status = fct_relevel(lifeform_status, "grass_nonnative", "herb_nonnative",
+                                  "fern_native",     "grass_native", "herb_native", "nonsclero_native", "sclerophyllous_native")
+  )
+```
+
+### - Total Veg Cover (100%)
+```{r allvegetationcover, include = TRUE}
+abcover_vegcover <- abcover_full_v %>% # total above veg
+  filter(vertical == "1") %>% 
+  group_by(standtype, site, rep) %>% 
+  dplyr::summarize(count_per_transect = length(vertical), 
+    percentcover_veg = length(vertical)/41, 
+    percentcover_ground = (1-percentcover_veg)
+    )
+print(abcover_vegcover)
+
+abcover_vegcover_long <- gather(abcover_vegcover, covertype, percentcover, percentcover_veg:percentcover_ground, factor_key = TRUE) 
+abcover_vegcover_long
+```
+
+# Percent cover
+```{r lifeform}
+
+```
