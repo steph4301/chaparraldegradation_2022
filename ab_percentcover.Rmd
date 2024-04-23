@@ -35,6 +35,8 @@ library(ggpmisc)
 library(segmented)
 library(strucchange)
 library(ggpattern)
+library(lme4)
+library(lmerTest) # load again or update if you're not getting p-values from environmental models
 ```
 
 ```{r colors, include=TRUE}
@@ -80,17 +82,17 @@ statuscolors <- c(native, exotic)
 ```
 
 
-```{r load csv, create columns, calculate - percent cover, echo=FALSE, eval=F}
+```{r percentcoverprep, echo=FALSE, eval=F}
 
 # percent cover - belt transects, point intercept transects
 abcover_full <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA")) %>% 
   rename(speciescode = species.1 ) %>%
   mutate(standtype = fct_relevel(standtype, 
-            "intact", "matrix", "degraded")) %>% 
-  dplyr::select(!speciescode) %>% 
-    mutate(site = case_when(site == "Intact_1" ~ "INT1", 
+            "degraded", "matrix", "intact")) %>% 
+  dplyr::select(!species_code) %>% 
+    mutate(site = case_when(site == "Intact_1" ~ "INT1",
                                 site == "Intact_2" ~ "INT2",
-                                site == "Intact_3" ~ "INT3", 
+                                site == "Intact_3" ~ "INT3",
           TRUE ~ site))
 
 glimpse(abcover_full)
@@ -134,7 +136,7 @@ glimpse(abcover_full_v_omitground)
 
 ### 1.1 Percent cover (horizontal variation)
 
-```{r percent cover - abcover_vegcover, include = TRUE}
+```{r allvegetationcover, include = TRUE}
 abcover_vegcover <- abcover_full_v %>% # total above veg
   filter(vertical == "1") %>% 
   group_by(standtype, site, rep) %>% 
@@ -150,7 +152,7 @@ abcover_vegcover_long
 
 ### 1.1A total % vegetation cover
 
-```{r FIGURES totalvegcover, include=TRUE}
+```{r FIGUREStotalvegcover, include=TRUE}
 
 # 1) visualizing data - highlight all and run
 hist(abcover_vegcover_long$percentcover) # histogram
@@ -187,7 +189,7 @@ ggplot(data = abcover_vegcover_long, aes(x = site, y = percentcover, color = cov
   theme(text = element_text(size = 14), axis.text.y = element_text(size = 12), axis.text.x = element_text(size = 12))
 # end jitter code
 ```
-```{r normality abcover total veg cover, include=TRUE}
+```{r totalvegnormality, include=TRUE}
 shapiro.test(abcover_vegcover_long$percentcover) # veg cover and ground cover
 # Shapiro-Wilk normality test
 # data:  abcover_vegcover_long$percentcover
@@ -212,7 +214,8 @@ abcover_vegcover_long_vegonly$site_rep <- paste(abcover_vegcover_long_vegonly$si
 ```
 
 #### categorical by stand type
-```{r total veg categorical by standtype}
+```{r totalvegstandtypeCAT, include=TRUE}
+
 # code from --> http://www.sthda.com/english/wiki/kruskal-wallis-test-in-r
 # 
 shapiro.test(abcover_vegcover_long_vegonly$percentcover) 
@@ -235,7 +238,8 @@ pairwise.wilcox.test(abcover_vegcover_long_vegonly$percentcover, abcover_vegcove
 
 ```
 #### categorical by hillslope
-```{r total veg categorical by hillslope}
+```{r totalveghillslopeCAT, include=TRUE}
+
 # code from --> http://www.sthda.com/english/wiki/kruskal-wallis-test-in-r
 
 kruskal.test(percentcover ~ site, data = abcover_vegcover_long_vegonly)
@@ -261,7 +265,7 @@ pairwise.wilcox.test(abcover_vegcover_long_vegonly$percentcover, abcover_vegcove
 min(abcover_vegcover_long_vegonly$percentcover)*100
 max(abcover_vegcover_long_vegonly$percentcover)*100
 ```
-```{r mean sd of abcover by site, include=TRUE}
+```{r meancoverbysite, include=TRUE}
 # min / max percent cover of veg only
 min(abcover_vegcover_long_vegonly$percentcover)*100 # 92.68%
 max(abcover_vegcover_long_vegonly$percentcover)*100 # 100%
@@ -327,7 +331,7 @@ abcover_vegcover_plot
 ```
 
 # rbind leaftype
-```{data prep rbind leaftype}
+```{r preprbindleaftype, include=TRUE}
 
 shrubs <- abcover_full_v_omitground %>% 
   filter(lifeform == "shrub") %>% 
@@ -352,6 +356,7 @@ lifeformleaftype <- rbind(herbsgrassesfern, shrubs) %>%
   mutate(lifeform_status = fct_relevel(lifeform_status, "grass_nonnative", "herb_nonnative",
                                   "fern_native",     "grass_native", "herb_native", "nonsclero_native", "sclerophyllous_native")
   )
+
 view(lifeformleaftype)
 ```
 
@@ -366,7 +371,9 @@ abcover_bylf_bystatus <- abcover_full_v_omitground %>%
   dplyr::summarize(
     count_per_transect = n_distinct(site_rep_dist), 
     percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect, lifeform, and status
-    )
+    ) %>% 
+  ungroup() %>% 
+  unite("lifeform_total", 2:3, sep = "_")
 # view(abcover_bylf_bystatus) # prints to new tab
 #write.csv(abcover_bylf_bystatus,"processed/abcover_bylf_bystatus.csv")
 # visualizing data
@@ -387,8 +394,9 @@ ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, fi
     geom_boxplot() # boxplots
 
 ## jitter - by standtype
-ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, color = lifeform)) + 
-  geom_jitter()
+ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype)) + 
+  geom_jitter()+
+  facet_wrap(~lifeform_total)
 ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, color = status)) + 
   geom_jitter()
 ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, color = status)) + 
@@ -532,56 +540,57 @@ ggplot(abcover_bystatus_edited, aes(fill = status, y=percentcover*100, x=site_re
        title = "Percent cover by vegetation status per Trasect")
 ```
 
-# shrub cover by leaf type SCL
+# shrub cover by leaf type 
+## SCL
 
 ```{r data prep adding leaf type and percent native/nn cover to  shrub species percent cover}
-# # percent cover by shrub species df
-# shrubspp <- abcover_full_v_omitground %>% 
-#   filter(lifeform == "shrub") 
-# sort(unique(shrubspp$species))
-# # [1] "Artemisia californica"         <-- 1
-# #   "Baccharis pilularis"             2
-# #   "Eriodictyon crassifolium"       3
-# #  [4] "Heteromeles arbutifolia"      4  
-# #   "Heteromeles arbutifolia dead"    
-# #   "Malacothamnus fasciculatus"     5
-# #  [7] "Malacothamnus fasciculatus dead" 
-# #  "Rhamnus ilicifolia"             6
-# #   "Rhus ovata"                     7
-# # [10] "Salvia leucophylla"           8 unique species 
-# #   "Salvia leucophylla dead"  <-- 3 dead shrub species
-# 
-# # Read the Excel file into R
-# shrub_leaftype <- read_excel("shrub_leaftype.xlsx")
-# sort(unique(shrub_leaftype$species))
-# # [1] "Artemisia californica"           "Baccharis pilularis"             "Eriodictyon crassifolium"       
-# #  [4] "Heteromeles arbutifolia"         "Heteromeles arbutifolia dead"    "Malacothamnus fasciculatus"     
-# #  [7] "Malacothamnus fasciculatus dead" "Rhamnus ilicifolia"              "Rhus ovata"                     
-# # [10] "Salvia leucophylla"              "Salvia leucophylla dead"      
-# 
-# shrubspp_leaftype <- shrubspp %>%  
-#   left_join(shrub_leaftype, by = "species") # left join leaf type
-# 
-# shrubspp_leaftype_cover_write <- shrubspp_leaftype %>% 
-#     filter(!grepl("dead", species, ignore.case = TRUE)) %>%  # Filter out species containing "dead"
-#   group_by(standtype, site, rep, site_rep, species, leaftype,) %>% 
-#   dplyr::summarize(
-#     count_per_transect = n_distinct(site_rep_dist), 
-#     percentcover = (n_distinct(site_rep_dist)/41)*100 # <-- calculate percent cover 
-#     ) %>% 
-#   dplyr::select(!c(count_per_transect)) %>% 
-#   group_by(standtype, site, site_rep, leaftype) %>% 
-#    dplyr::summarize(sum_leaftype_cover = sum(percentcover), 
-#                     num_species = (length(species))
-#    ) %>%
-#   left_join(abcover_nonnativecover_nngrasscover, # left join non-native grass cover (and all cover)
-#               by = c("standtype", "site_rep")) %>% 
-#    dplyr::select(!c(count_per_transect.x, count_per_transect.y)) %>% 
-#    mutate(standtype = fct_relevel(standtype, 
-#             "intact", "matrix", "degraded")) %>% 
-#   mutate(leaftype = fct_relevel(leaftype, 
-#             "native_shrub", "sclerophyllous", "nonsclero"))
-# 
+# percent cover by shrub species df
+shrubspp <- abcover_full_v_omitground %>%
+  filter(lifeform == "shrub")
+sort(unique(shrubspp$species))
+# [1] "Artemisia californica"         <-- 1
+#   "Baccharis pilularis"             2
+#   "Eriodictyon crassifolium"       3
+#  [4] "Heteromeles arbutifolia"      4
+#   "Heteromeles arbutifolia dead"
+#   "Malacothamnus fasciculatus"     5
+#  [7] "Malacothamnus fasciculatus dead"
+#  "Rhamnus ilicifolia"             6
+#   "Rhus ovata"                     7
+# [10] "Salvia leucophylla"           8 unique species
+#   "Salvia leucophylla dead"  <-- 3 dead shrub species
+
+# Read the Excel file into R
+shrub_leaftype <- read_excel("shrub_leaftype.xlsx")
+#sort(unique(shrub_leaftype$species))
+# [1] "Artemisia californica"           "Baccharis pilularis"             "Eriodictyon crassifolium"
+#  [4] "Heteromeles arbutifolia"         "Heteromeles arbutifolia dead"    "Malacothamnus fasciculatus"
+#  [7] "Malacothamnus fasciculatus dead" "Rhamnus ilicifolia"              "Rhus ovata"
+# [10] "Salvia leucophylla"              "Salvia leucophylla dead"
+
+shrubspp_leaftype <- shrubspp %>%
+  left_join(shrub_leaftype, by = "species") # left join leaf type
+
+shrubspp_leaftype_cover_write <- shrubspp_leaftype %>%
+    filter(!grepl("dead", species, ignore.case = TRUE)) %>%  # Filter out species containing "dead"
+  group_by(standtype, site, rep, site_rep, species, leaftype,) %>%
+  dplyr::summarize(
+    count_per_transect = n_distinct(site_rep_dist),
+    percentcover = (n_distinct(site_rep_dist)/41)*100 # <-- calculate percent cover
+    ) %>%
+  dplyr::select(!c(count_per_transect)) %>%
+  group_by(standtype, site, site_rep, leaftype) %>%
+   dplyr::summarize(sum_leaftype_cover = sum(percentcover),
+                    num_species = (length(species))
+   ) %>%
+  left_join(abcover_nonnativecover_nngrasscover, # left join non-native grass cover (and all cover)
+              by = c("standtype", "site_rep")) %>%
+   dplyr::select(!c(count_per_transect.x, count_per_transect.y)) %>%
+   mutate(standtype = fct_relevel(standtype,
+            "intact", "matrix", "degraded")) %>%
+  mutate(leaftype = fct_relevel(leaftype,
+            "native_shrub", "sclerophyllous", "nonsclero"))
+
 # view(shrubspp_leaftype_cover_write)
 # write.csv(shrubspp_leaftype_cover_write,"processed/shrubspp_leaftype_cover.csv")
 
@@ -603,7 +612,7 @@ ggplot(data = shrubspp_leaftype_cover,
     geom_point(size = 5)
 ```
 
-##### - SCL by hillslope
+##### - by hillslope
 ```{r leaf type stats - SCL - hillslope}
 shrubspp_leaftype_SCLcover <- shrubspp_leaftype_cover %>% 
   filter(leaftype == "sclerophyllous")
@@ -645,7 +654,7 @@ ggplot(shrubspp_leaftype_SCLcover,
        y = "Percent Cover (%)")
 ```
 
-##### - SCL by stand type
+##### - by stand type
 ```{r leaf type stats - SCL - stand type}
 SCLcover_bysite <- shrubspp_leaftype_SCLcover %>%  
   group_by(standtype, site) %>% 
@@ -685,7 +694,33 @@ ggplot(SCLcover_bysite,
        y = "Percent Cover (%)")
 ```
 
-##### - NONSCL by hillslope
+##### - by LMER
+
+```{r SCLlmer}
+SCLlmer <- lmer(sum_leaftype_cover ~ standtype + (1|standtype/site), shrubspp_leaftype_SCLcover)
+summary(SCLlmer)
+# Fixed effects:
+#                   Estimate Std. Error      df t value Pr(>|t|)  
+# (Intercept)         52.846     12.182   4.325   4.338   0.0103 *
+# standtypematrix    -51.220     19.117   4.199  -2.679   0.0525 .
+# standtypedegraded  -52.846     19.117   4.199  -2.764   0.0480 *
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Correlation of Fixed Effects:
+#             (Intr) stndtypm
+# stndtypmtrx -0.637         
+# stndtypdgrd -0.637  0.406  
+
+MOD <- SCLlmer 
+simulationOutput <- simulateResiduals(fittedModel = MOD, plot = T)
+testDispersion(simulationOutput) 
+```
+
+
+## NONSCL
+
+#### - by hillslope
 
 ```{r leaf type stats - NON SCL}
 shrubspp_leaftype_NONSCLcover <- shrubspp_leaftype_cover %>% 
@@ -745,7 +780,7 @@ ggplot(shrubspp_leaftype_SCLcover,
        y = "Percent Cover (%)")
 ```
 
-##### - NONSCL by stand type
+##### - by stand type
 
 ```{r NONSCL percent cover by stand type stats}
 
@@ -782,6 +817,29 @@ ggplot(NONSCLcover_byhillslope,
   labs(title = "Non-sclerophyllous shrub cover by standtype", 
        x = "Standtype",
        y = "Percent Cover (%)")
+```
+
+#### - NONSCL by LMER
+```{r}
+NONSCLlmer <- lmer(sum_leaftype_cover ~ standtype + (1|site), 
+                data = shrubspp_leaftype_NONSCLcover)
+
+summary(NONSCLlmer)
+tab_model(NONSCLlmer, transform = NULL)
+```
+
+#### - Shrub by LMER
+```{r}
+
+shrubcover <- abcover_bylf_bystatus %>%  filter(lifeform == "shrub")
+shrubcover$standtype <- factor(shrubcover$standtype, 
+                               levels = c("degraded", "matrix", "intact") # set degraded as intercept
+                               )
+shrublmer <- lmer(percentcover ~ standtype + (1|site), 
+                data = shrubcover)
+
+summary(shrublmer)
+tab_model(shrublmer, transform = NULL)
 ```
 
 ```{r}
@@ -4144,5 +4202,15 @@ shrubdensitylife_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertat
 
 shrubdensityspp_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_byspecies.csv")
 # shrubdensityalive_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_beltdensity_seperatealive.csv")
+
+```
+
+
+# LMERs
+
+### - SCL percent cover
+
+```{r}
+# call df
 
 ```
