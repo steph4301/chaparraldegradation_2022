@@ -19,6 +19,8 @@ library(multcomp) # functions: multcompLetters2, multcompLetters3, multcompLette
 library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD, dist{stats}, simint, simtest, csimint, csimtest{multcomp}, friedmanmc, 
 library(plotly)
 library(calecopal) 
+library(googlesheets4) 
+gs4_auth()
 
 #library(vegan) #community ecology package - includes, MASS, cluster, mgcv
 # library(lubridate) # dates and times
@@ -29,6 +31,7 @@ library(calecopal)
 #library(AICcmodavg)
 #library(janitor)
 # kruskalmc{pgirmess}
+
 
 ```
 
@@ -736,14 +739,12 @@ summary(cov_nngrass.lm)
 #2. Each observation is a row --> DEG_1
 #3. Each cell contains a single value --> N
 
-
 # native shrub density 
 shrubdensitylife_load <- read_csv("deg_beltdensity_bylifestage.csv", 
     col_types = cols(
-      StandType = col_character(), 
-      Site = col_character(),
-      rep = col_character(),
-      ScientificName = col_character(), 
+       site = col_character(),
+      transect = col_character(), 
+      species = col_character(), 
       dead = col_integer(),
       immature = col_integer(),
       mature = col_integer(), 
@@ -751,49 +752,48 @@ shrubdensitylife_load <- read_csv("deg_beltdensity_bylifestage.csv",
       seedling = col_integer()
       )
      ) %>% 
-  rename(standtype = StandType, 
-         site = Site, 
-         species = ScientificName) %>%
-  mutate(standtype = case_when(standtype == "Grass" ~ "degraded", 
-                               standtype == "matrix" ~ "matrix",
-                               standtype == "Intact" ~ "intact")) %>% 
-  mutate(standtype = fct_relevel(standtype, 
-            "intact", "matrix", "degraded")) %>% 
-  mutate(site_rep = paste(site, rep, sep = "_")) %>%  # combine site and rep to one column
-  mutate(site_rep = case_when(
-    site_rep == "Intact_1_1" ~ "Intact1_1", # old name ~ new name
-     site_rep == "Intact_2_2" ~ "Intact2_2",
-     site_rep == "Intact_3_3" ~ "Intact3_3",
-     site_rep == "DEG2_4" ~ "DEG2_1",
-     site_rep == "DEG2_5" ~ "DEG2_2",
-     site_rep == "DEG2_6" ~ "DEG2_3",
-     site_rep == "ENH2_4" ~ "ENH2_1",
-        site_rep == "ENH2_5" ~ "ENH2_2",
-        site_rep == "ENH2_6" ~ "ENH2_3",
-     TRUE ~ as.character(site_rep))) %>%   # Keep other observations unchanged
-   mutate(site_rep_species = paste(site_rep, species, sep = "_")) %>% 
-  as_tibble() 
+  dplyr::select(-StandType, -hillslope) %>% 
+  as_tibble()
 
 # transpose data from wide to long format
-shrubdensity <- gather(shrubdensitylife_load, "status", "count", 5:9) 
+shrubdensity_2019 <- gather(shrubdensitylife_load, "lifestage", "density_80m2", 4:8) %>% 
+  mutate(year = 2019)
 
-view(shrubdensity) # look at new column site_rep, last column
-
+#view(shrubdensity_2019) # look at new column site_rep, last column
 # check for missing data
 
+#google drive data
+shrubdensity2024_loadfromgoogle <- "https://docs.google.com/spreadsheets/d/1FK2YxFNLESzUOiZXI4AIm9gUVStaOLQqCRljIOMnwoM/edit"
+
+shrubdensity_2024 <- read_sheet(shrubdensity2024_loadfromgoogle, sheet = "shrub_density") %>%
+  mutate(
+    site = as.character(site),
+    transect = as.character(transect),
+    species = as.character(species),
+    density_80m2 = as.integer(density_80m2)
+  ) %>%
+  dplyr::select(-date, -name, -hillslope, -standtype, -notes) %>% 
+  mutate(year = 2024)
+
+#view(shrubdensity_2024)
+
+shrubdensity <-  full_join(shrubdensity_2019, shrubdensity_2024, by = c("site", "transect", "species", "lifestage", "density_80m2", "year")) %>% # Perform the join using all common columns
+  mutate(site_transect = paste(site, transect, sep = "_")) %>%  # combine site and transect to one column
+   mutate(site_transect_species = paste(site_transect, species, sep = "_"))
+
 shrubdensity %>% 
-  group_by(site_rep, status) %>% 
-  summarize(length_count = length(count)) %>% 
-  print(shrubdensity_sum_bysiterep_meanSD)
+  group_by(site, transect) %>% 
+  summarize(length_count = length(site_transect))
 # all site_rep have 5 status categories: dead, immature, mature, resprout, seedling 
 # all status have 13 length_count --> 13 species per status
 # take home = no missing data points
 
-sort(unique(shrubdensity$site_rep))
+sort(unique(shrubdensity$site_transect))
 sort(unique(shrubdensity$species))
-sort(unique(shrubdensity$site_rep_species))
+sort(unique(shrubdensity$site_transect_species))
 
-# write.csv(shrubdensity,"processed/shrubdensity.csv")
+#write.csv(shrubdensity,"processed/shrubdensity.csv") 
+#last saved on May 16, 2024 with Site 1: transect 1-10, Site 2: transect 1-18
 
 # shrubdensityspp_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_byspecies.csv")
 # shrubdensityalive_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_beltdensity_seperatealive.csv")
@@ -805,20 +805,8 @@ sort(unique(shrubdensity$site_rep_species))
 ```{r shrub dentsity 100m2, include=TRUE}
 
 tot_shrubdensity <- shrubdensity %>% # call tibble
-   mutate(site = case_when(
-    site == "Intact1" ~ "SD1", # old name ~ new name
-      site == "Intact2" ~ "SD2",
-      site == "Intact3" ~ "SD3",
-    site == "ENH1" ~ "MX1",
-      site == "ENH2" ~ "MX2",
-      site == "DEG1" ~ "GD1",
-      site == "DEG2" ~ "GD2",
-    TRUE ~ as.character(site)  # Keep other observations unchanged
-  )) %>% 
-  rename(Hillslope = site) %>% # old name = new name
-  mutate(Hillslope = fct_relevel(Hillslope, "SD1", "SD2", "SD3", "MX1", "MX2", "GD1", "GD2")) %>% 
-  group_by(standtype, Hillslope, site_rep) %>%  # lump immature, mature, resprout shrubs and seedlings
-  summarize(shrubdensity_80m2 = sum(count), 
+  group_by(site, transect) %>%  # lump immature, mature, resprout shrubs and seedlings
+  summarize(shrubdensity_80m2 = sum(density_80m2), 
             shrubdensity_100m2 = round(((shrubdensity_80m2/80)*100), digits = 0))  # 4m x 20 m belt transect
 view(tot_shrubdensity) 
 ```
