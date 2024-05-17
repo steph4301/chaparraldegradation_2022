@@ -39,5 +39,19 @@ library(lmerTest) # load again or update if you're not getting p-values from env
 library(sjPlot)
 ```
 
+# SCL by LMER
+```{r}
+
 ```
+
+
+# NONSCL by LMER
+```{r}
+NONSCLlmer <- lmer(sum_leaftype_cover ~ standtype + (1|standtype/site), 
+                data = shrubspp_leaftype_NONSCLcover)
+
+summary(NONSCLlmer)
+tab_model(NONSCLlmer, transform = NULL)
+```
+
 
