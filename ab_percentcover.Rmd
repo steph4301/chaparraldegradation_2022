@@ -85,50 +85,35 @@ statuscolors <- c(native, exotic)
 ```{r percentcoverprep, echo=FALSE, eval=F}
 
 # percent cover - belt transects, point intercept transects
-abcover_full <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA")) %>% 
-  rename(speciescode = species.1 ) %>%
-  mutate(standtype = fct_relevel(standtype, 
-            "degraded", "matrix", "intact")) %>% 
-  dplyr::select(!species_code) %>% 
-    mutate(site = case_when(site == "Intact_1" ~ "INT1",
-                                site == "Intact_2" ~ "INT2",
-                                site == "Intact_3" ~ "INT3",
-          TRUE ~ site))
-
+abcover_full <- read.csv("deg_percentcover_byspecies_bylifeform_2024.csv", header = TRUE, na.strings=c("","NA")) %>%  
+  dplyr::select(-species_code, -notes, -hillslope, -standtype) %>% 
+  na.omit()
+  
 glimpse(abcover_full)
-str(abcover_full)
-
-#abcover_full$standtype <- factor(abcover_full$standtype, levels = c("intact", "matrix", "degraded"))
 
 # convert dataframe to tibble
 abcover_full_v <- as_tibble(abcover_full) 
 class(abcover_full_v)
 
 # combine site and rep to one column
-abcover_full_v$site_rep <- paste(abcover_full_v$site, abcover_full_v$rep, sep="_") 
+abcover_full_v$site_transect <- paste(abcover_full_v$site, abcover_full_v$transect, sep="_") 
 
 # combine site_rep and distance to one column
-abcover_full_v$site_rep_dist <- paste(abcover_full_v$site_rep, abcover_full_v$distance, sep="_") 
-
-# combine standtype and native/nonnative status to one column
-abcover_full_v$stand_status <- paste(abcover_full_v$standtype, abcover_full_v$status, sep="_") 
-
-abcover_full_v <- abcover_full_v %>% 
-  mutate(site_rep = fct_relevel
-         (site_rep, 
-                                "INT1_1", "INT2_2", "INT3_3", "ENH1_1", "ENH1_2",    "ENH1_3"  ,   "ENH2_4"  ,   "ENH2_5"    , "ENH2_6"  , "DEG1_1"   ,  "DEG1_2"  ,   "DEG1_3"     ,"DEG2_4" ,    "DEG2_5"    , "DEG2_6" ))
+abcover_full_v$site_transect_dist <- paste(abcover_full_v$site_transect, abcover_full_v$distance, sep="_") 
 
 glimpse(abcover_full_v) # look at new columns
 
 sort(unique(abcover_full_v$species))
 
 abcover_full_v %>%  
-  na.omit() %>%  
-  group_by(standtype, rep) %>% 
-  summarize(data_points = length(rep))
+ # na.omit() %>%  
+  group_by(site_transect) %>% 
+  summarize(hits = length(unique(distance)))
 
 # omit "ground" as a status since interested in Native and Non-native species 
-abcover_full_v_omitground <- filter(abcover_full_v, status !="ground")
+abcover_full_v_omitground <- abcover_full_v %>%
+  filter(status %in% c("native", "nonnative", "Native", "Non-native"))
+
 glimpse(abcover_full_v_omitground)
 ```
 
