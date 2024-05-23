@@ -13,10 +13,10 @@ library(pwr)
 
 ```{r}
 # Number of Samples (# of transects)
-K = 36
+U = 2
 
 # Sample Size (number of data points/transect)
-N = 1
+V = 18
 
 # Significance level
 sig = 0.05
@@ -25,14 +25,14 @@ sig = 0.05
 F = 0.2
 
 # Power 
-P = 1
+P = 0.8
 
 ```
 
 ```{r}
-#Test for power
-pwr.anova.test(k = K, n = N, f = F, sig.level = sig)
+#Linear regression Test for power
+pwr.f2.test(u = U, v = V, f2 = F, sig.level = sig, power = )
 
-#Test for F statistic
-pwr.anova.test(k = K, n = N, sig.level = sig, power = P)
+#Linear regression Test for F statistic
+pwr.f2.test(u = U, v = V, sig.level = sig, power = P)
 ```
