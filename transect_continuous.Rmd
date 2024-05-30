@@ -19,7 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r libraries, message=FALSE}
 
-#install.packages(c("dplyr", "ggplot2", "tidyr", "readr", "lubridate"))
+#install.packages(c("tidyverse", "ggplot2", "ggthemes", "plotly", "ggpubr", "vegan", "lme4", "ggpattern"))
 
 library(here) # similar to set working directory
 library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
@@ -33,26 +33,19 @@ library(plotly)
 library(ggpubr) # customize ggplot2 for publication
 #library(broom)
 #library(AICcmodavg)
-library(vegan) #community ecology package - includes, MASS, cluster, mgcv
+#library(vegan) #community ecology package - includes, MASS, cluster, mgcv
 library(readxl) # for .xls and .xlsx sheets
 #library(janitor)
 library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD, dist{stats}, simint, simtest, csimint, csimtest{multcomp}, friedmanmc, kruskalmc{pgirmess}
 #library(multcomp) # functions: multcompLetters2, multcompLetters3, multcompLetters4 using aov object
 #library(DHARMa) #The ‘DHARMa’ package uses a simulation-based approach to create readily interpretable scaled (quantile) residuals for fitted (generalized) linear mixed models.
 #citation("DHARMa")
-library(ggpmisc)
+#library(ggpmisc)
 library(segmented)
-library(strucchange)
+#library(strucchange)
 library(ggpattern)
 library(lme4)
 library(lmerTest) # load again or update if you're not getting p-values from environmental models
-library(googlesheets4) 
-#gs4_auth()
-# The googlesheets4 package is requesting access to your Google account.
-# Enter '1' to start a new auth process or select a pre-authorized account.
-# 1: Send me to the browser for a new auth process.
-# 2: sama@ucsb.edu
-# --> Selection: 2
 
 ```
 
@@ -63,6 +56,8 @@ library(calecopal)
 # all palettes
 names(cal_palettes)
 
+#chaparral1
+#chaparral2
 cal_palette(name = "chaparral3", n = 20, type = "continuous") 
 
 
@@ -97,43 +92,120 @@ colors_status <- c(native, nonnative)
 # "orange", "lightblue", "limegreen", "deeppink","mediumpurple2", "darkgreen"
 ```
 
-#Transect data overview
+#NOTES
+Transect data overview
 - Years collected: 2017, 2019, 2024
 - Sites: 1 and 2
 - Comparing to intact sites: INT1, INT2, INT3, INT4, INT5
 
-# load exl and google data and FULL join
+# load data 
+```{r load point intercept transect data from csv, include=TRUE}
+file_transect_2019_load <- read_excel("deg_percentcover_byspecies_bylifeform_2024.xlsx", sheet = "2019_data")
+# -- years 2017, 2019
+# -- Site 1: transects 1-6
+# -- Site 2: transects 1-6
+# -- INT1, INT2, INT3, INT4
 
-load excel data
--- years 2017, 2019
--- Site 1: transects 1-6
--- Site 2: transects 1-6
--- INT1, INT2, INT3, INT4
+transect2019 <- file_transect_2019_load %>% 
+  dplyr::select(c(site, transect, year, distance, vertical, species)) %>% # select columns to full join with 2024 data
+  filter(year %in% c(2017, 2019)) %>% #filter data to 2019 data
+  dplyr::select(year, site, transect, distance, vertical, species)
+  
+# View the data (optional)
+#View(transect2019)
+#sort(unique(transect2019$transect))
+#sort(unique(transect2019$site))
 
-```{r load point intercept transect data from excel, include=TRUE}
 
-file_transect <- "deg_percentcover_byspecies_bylifeform_2024.xlsx"
+file_transect_2024_load <- read.csv("Transects_2024 - transect.csv", header = TRUE, na.strings=c("","NA"))
+# -- years 2024
+# -- Site 1: transects 7-14
+# -- Site 2: transects 7-18
+# -- INT5
+transect2024 <- file_transect_2024_load %>%  
+  dplyr::select(c(site, transect, year, distance, vertical, species)) %>% 
+  filter(species != "N/A")
+  
+# View the data (optional)
+#View(transect_2024)
+#sort(unique(transect_2024$transect))
+#sort(unique(transect_2024$site))
+  
+```
 
-# Read the specific sheet named "transect_data"
-file_transect_load <- read_excel(file_transect, sheet = "2019_data") %>% 
-  mutate(
+## full join
+```{r full join}
+abcover_fulljoin <- full_join(transect2019, transect2024, 
+                          by = intersect(names(transect2019), names(transect2024)))
+
+# View the data (optional)
+#View(abcover_full)
+#sort(unique(abcover_full$transect))
+#sort(unique(abcover_full$site))
+```
+
+## data prep
+```{r convert to tibble}
+# convert dataframe to tibble
+abcover_fulljoin_tib <- as_tibble(abcover_fulljoin) 
+class(abcover_fulljoin_tib)
+
+abcover_full <- abcover_fulljoin_tib %>% 
+   mutate(site_rep = paste(site, transect, sep = "_")) %>% # combine site and rep to one column
+  mutate(site_rep_dist = paste(site_rep, distance, sep = "_")) %>%  # combine site_rep and distance to one column 
+   mutate(species = case_when(species == "BG bare ground" ~ "bare_ground", # oldname ~ newname
+                              species == "ground" ~ "bare_ground", 
+                              species == "native_litter" ~ "litter",
+                              species == "nonnative_thatch" ~ "thatch",
+                              
+                                species == "Bromus diandrus BRDI" ~ "Bromus diandrus",
+                                species == "Bromus rubens BRRU" ~ "Bromus rubens", 
+                                   species == "Bromus hordeaceus BRHO" ~ "Bromus hordeaceus", 
+                              
+                               species == "Rapistrum rugosum - round pods" ~ "Rapistrum rugosum", 
+                              species == "HIIN Hirschfeldia incana - long pods" ~ "Hirschfeldia incana", 
+                                 species == "Hirschfeldia incana - long pods" ~ "Hirschfeldia incana", 
+                              
+                              
+                              species == "Salvia lucophylla" ~ "Salvia leucophylla",
+                              species == "Malacothamnus fasciculatus " ~ "Malacothamnus fasciculatus",
+                              
+                              species == "dead HEAR" ~ "Heteromeles arbutifolia dead",
+                              species == "dead MAFA" ~ "Malacothamnus fasciculatus dead",
+                              species == "dead RHIL" ~ "Rhamnus ilicifolia dead",
+                              species == "dead ARCA" ~ "Artemisia californica dead",
+                                  species == "dead SALE" ~ "Salvia leucophylla dead",
+                              
+                             
+                              species == "ACGL Acmispon glaber" ~ "Acmispon glaber",
+                              species == "Acmispon maritimus - round, sevfl" ~ "Acmispon maritimus",
+                           species == "Acmispon strigosus - oval, sevfl" ~ "Acmispon strigosus",
+                    
+          TRUE ~ species)) %>% 
+   mutate(
     year = as.character(year),
     site = as.character(site),
     transect = as.character(transect),
     distance = as.character(distance),
      vertical = as.character(vertical),
     species = as.character(species)
-  ) %>%
-   mutate(species = case_when(species == "BG bare ground" ~ "bare_ground", # oldname ~ newname
-                                species == "Bromus diandrus BRDI" ~ "Bromus diandrus",
-                                species == "Bromus rubens BRRU" ~ "Bromus rubens", 
-                               species == "Rapistrum rugosum - round pods" ~ "Rapistrum rugosum", 
-                              species == "Salvia lucophylla" ~ "Salvia leucophylla",
-                              species == "dead HEAR" ~ "Heteromeles arbutifolia dead",
-                              species == "dead MAFA" ~ "Malacothamnus fasciculatus dead",
-                              species == "dead RHIL" ~ "Rhamnus ilicifolia dead",
-          TRUE ~ species)) %>% 
-  mutate(status = case_when(status == "Native" ~ "native",
+  )
+
+glimpse(abcover_full) # look at new columns
+
+sort(unique(abcover_full$species))
+```
+
+# load species data
+```{r load schlero leaf data, echo=FALSE, eval=F}
+shrub_leaftype <- read_excel("shrub_leaftype.xlsx")
+print(sort(shrub_leaftype$species))
+```
+
+```{r load species characteristics, include=TRUE}
+specieslist <- file_transect_2019_load %>% 
+  dplyr::select(species, lifeform, status, lifecycle, family) %>%
+   mutate(status = case_when(status == "Native" ~ "native",
                               status == "Non-native" ~ "nonnative",
                               lifeform == "thatch" ~ "ground",
                             TRUE ~ status)) %>% 
@@ -147,91 +219,42 @@ file_transect_load <- read_excel(file_transect, sheet = "2019_data") %>%
                                    lifecycle == "thatch" ~ "ground",
                                TRUE ~ lifecycle)) %>% 
   mutate(family = case_when(family == "thatch" ~ "ground", 
-                            TRUE ~ family))
-  
-
-transect2019 <- file_transect_load %>% #filter data to 2019 data
-  filter(year %in% c(2017, 2019)) %>% 
-  dplyr::select(year, site, transect, distance, vertical, species)
- 
-# View the data (optional)
-#View(transect2019)
-#sort(unique(transect2019$transect))
-#sort(unique(transect2019$site))
-#sort(unique(transect2019$species))
-```
-
-load google sheets data
--- years 2024
--- Site 1: transects 7-18
--- Site 2: transects 7-14
--- INT5
-```{r load load point intercept google data, include=TRUE, echo =FALSE}
-
-Transects2024_loadfromgoogle <- "https://docs.google.com/spreadsheets/d/1FK2YxFNLESzUOiZXI4AIm9gUVStaOLQqCRljIOMnwoM/edit"
-
-#google drive data
-transect2024_load <- read_sheet(Transects2024_loadfromgoogle, sheet = "transect") %>%
-  mutate(
-    year = as.character(year),
-    site = as.character(site),
-    transect = as.character(transect),
-    distance = as.character(distance),
-     vertical = as.character(vertical),
-    species = as.character(species),
-    max_height_cm = as.integer(max_height_cm)
-  ) %>%
-  dplyr::select(-date, -name, -species_code, -standtype, -hillslope, -coordinates_x, -coordinates_y)
-
-transect2024 <- transect2024_load %>% 
-  filter(species != "N/A") %>% 
-  dplyr::select((-Notes & -max_height_cm))
-
-# View the data (optional)
-#View(transect2024)
-sort(unique(transect2024$transect))
-sort(unique(transect2024$site))
-sort(unique(transect2024$species))
-```
-
-full join
-```{r}
-abcover_full <- full_join(transect2019, transect2024, 
-                          by = intersect(names(transect2019), names(transect2024)))
-
-```
-
-```{r load schlero leaf data, echo=FALSE, eval=F}
-shrub_leaftype <- read_excel("shrub_leaftype.xlsx")
-print(sort(shrub_leaftype$species))
-```
-
-```{r load species characteristics, include=TRUE}
-specieslist <- file_transect_load %>% 
-  dplyr::select(species, lifeform, status, lifecycle, family) %>%
+                            TRUE ~ family)) %>% 
+   mutate(species = case_when(species == "BG bare ground" ~ "bare_ground", # oldname ~ newname
+                              species == "ground" ~ "bare_ground", 
+                              species == "native_litter" ~ "litter",
+                              species == "nonnative_thatch" ~ "thatch",
+                              
+                                species == "Bromus diandrus BRDI" ~ "Bromus diandrus",
+                                species == "Bromus rubens BRRU" ~ "Bromus rubens", 
+                                   species == "Bromus hordeaceus BRHO" ~ "Bromus hordeaceus", 
+                              
+                               species == "Rapistrum rugosum - round pods" ~ "Rapistrum rugosum", 
+                              species == "HIIN Hirschfeldia incana - long pods" ~ "Hirschfeldia incana", 
+                                 species == "Hirschfeldia incana - long pods" ~ "Hirschfeldia incana", 
+                              
+                              
+                              species == "Salvia lucophylla" ~ "Salvia leucophylla",
+                              species == "Malacothamnus fasciculatus " ~ "Malacothamnus fasciculatus",
+                              
+                              species == "dead HEAR" ~ "Heteromeles arbutifolia dead",
+                              species == "dead MAFA" ~ "Malacothamnus fasciculatus dead",
+                              species == "dead RHIL" ~ "Rhamnus ilicifolia dead",
+                              species == "dead ARCA" ~ "Artemisia californica dead",
+                                  species == "dead SALE" ~ "Salvia leucophylla dead",
+                              
+                             
+                              species == "ACGL Acmispon glaber" ~ "Acmispon glaber",
+                              species == "Acmispon maritimus - round, sevfl" ~ "Acmispon maritimus",
+                           species == "Acmispon strigosus - oval, sevfl" ~ "Acmispon strigosus",
+                    
+          TRUE ~ species)) %>% 
   distinct() 
 
-View(specieslist)
+#View(specieslist)
+sort(unique(specieslist$species))
 ```
 
-# data prep
-
-```{r}
-# convert dataframe to tibble
-transect2019_tib <- as_tibble(transect2019) 
-class(transect2019_tib)
-
-transect2019_v <- transect2019_tib %>% 
-   mutate(site_rep = paste(site, transect, sep = "_")) %>% # combine site and rep to one column
-  mutate(site_rep_dist = paste(site_rep, distance, sep = "_")) %>%  # combine site_rep and distance to one column  
-  mutate(site_rep_status = paste(site_rep, status, sep = "_"))
-
-glimpse(transect2019_v) # look at new columns
-```
-
-```{r}
-sort(unique(abcover_full_v$species))
-```
 
 ```{r}
 abcover_full_v %>%  
