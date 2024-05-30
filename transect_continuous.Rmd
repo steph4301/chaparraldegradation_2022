@@ -19,11 +19,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r libraries, message=FALSE}
 
+#install.packages(c("dplyr", "ggplot2", "tidyr", "readr", "lubridate"))
+
 library(here) # similar to set working directory
 library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
 # library(lubridate) # dates and times
 library(ggplot2) # data visualization
-library(gridExtra)
+#library(gridExtra)
 # library(readr)
 library(dplyr)
 library(ggthemes)
@@ -44,6 +46,14 @@ library(strucchange)
 library(ggpattern)
 library(lme4)
 library(lmerTest) # load again or update if you're not getting p-values from environmental models
+library(googlesheets4) 
+#gs4_auth()
+# The googlesheets4 package is requesting access to your Google account.
+# Enter '1' to start a new auth process or select a pre-authorized account.
+# 1: Send me to the browser for a new auth process.
+# 2: sama@ucsb.edu
+# --> Selection: 2
+
 ```
 
 ```{r colors, include=TRUE}
@@ -53,68 +63,140 @@ library(calecopal)
 # all palettes
 names(cal_palettes)
 
-# Stand colors: INTACT, MATRIX, DEGRADED 
-cal_palette(name = "chaparral3", n = 3, type = "continuous") 
-#deg <- "#D3E3CA"
-#mat <- "#92A587"
-#int <- "#2F3525"
-deg <- "gray60"
-mat <- "gray40"
-int <- "gray20"
-line <- "red"
-degshape <- 16
-matshape <- 17
-intshape <- 18
+cal_palette(name = "chaparral3", n = 20, type = "continuous") 
 
 
-standcolors <- c(int, mat, deg)
-standcolors_line <- c(line, int, mat, deg)
-standshape <- c(intshape, matshape, degshape)
+#species colors
+HEAR <- "#D3E3CA"
+RHOV <- "#92A587"
+RHIL <- "#2F3525"
+
+MAFA <- "gray60"
+SALE <- "gray40"
+ARCA <- "gray20"
+
+scl <- 16
+css <- 17
+
+colors_scl <- c(HEAR, RHOV, RHIL)
+colors_css <- c(MAFA, SALE, ARCA)
 
 # Lifeform colors: shrub, grass, forb
-cal_palette(name = "chaparral3", n = 3, type = "continuous") 
 shrub <- "green4"
 grass <- "yellow2"
 forb <- "purple2"
 fern <- "black"
-lifeformcolors <- c(shrub, grass, forb, fern)
+colors_lifeform <- c(shrub, grass, forb, fern)
 
 # Status colors: native, exotic 
-cal_palette(name = "chaparral1", n = 6, type = "continuous") 
 native <- "gray50"
 nonnative <- "gray0"
-statuscolors <- c(native, nonnative)
+colors_status <- c(native, nonnative)
 
 
 # "orange", "lightblue", "limegreen", "deeppink","mediumpurple2", "darkgreen"
 ```
 
+#Transect data overview
+- Years collected: 2017, 2019, 2024
+- Sites: 1 and 2
+- Comparing to intact sites: INT1, INT2, INT3, INT4, INT5
+
 # load data
 
-Here I'm loading the point-intercept transect data.
-Years collected: 2019, 2024
-Sites: 1 and 2
-Comparing to intact sites: INT1, INT2, INT3
-```{r load transect data, include=TRUE}
-# percent cover - belt transects, point intercept transects
-pointintercept_load <- read.csv("deg_percentcover_byspecies_bylifeform_2024.csv", header = TRUE, na.strings=c("","NA")) %>% 
-  #rename(speciescode = species.1 ) %>%
-  mutate(standtype = fct_relevel(standtype, 
-            "degraded", "matrix", "intact")) %>% 
-  dplyr::select(!c(species_code, notes)) # %>% 
-    # mutate(site = case_when(site == "Intact_1" ~ "INT1", 
-    #                             site == "Intact_2" ~ "INT2",
-    #                             site == "Intact_3" ~ "INT3", 
-    #       TRUE ~ site))
+- excel data
+-- years 2017, 2019
+-- Site 1: transects 1-6
+-- Site 2: transects 1-6
+-- INT1, INT2, INT3, INT4
 
-glimpse(pointintercept_load)
-str(pointintercept_load)
+```{r load point intercept transect data from excel, include=TRUE}
+
+file_transect <- "deg_percentcover_byspecies_bylifeform_2024.xlsx"
+
+# Read the specific sheet named "transect_data"
+file_transect_load <- read_excel(file_transect, sheet = "2019_data") %>% 
+   mutate(species = case_when(species == "BG bare ground" ~ "bare_ground", # oldname ~ newname
+                                species == "Bromus diandrus BRDI" ~ "Bromus diandrus",
+                                species == "Bromus rubens BRRU" ~ "Bromus rubens", 
+                               species == "Rapistrum rugosum - round pods" ~ "Rapistrum rugosum", 
+                              species == "Salvia lucophylla" ~ "Salvia leucophylla",
+                              species == "dead HEAR" ~ "Heteromeles arbutifolia dead",
+                              species == "dead MAFA" ~ "Malacothamnus fasciculatus dead",
+                              species == "dead RHIL" ~ "Rhamnus ilicifolia dead",
+          TRUE ~ species)) %>% 
+  mutate(status = case_when(status == "Native" ~ "native",
+                              status == "Non-native" ~ "nonnative",
+                              lifeform == "thatch" ~ "ground",
+                            TRUE ~ status)) %>% 
+    mutate(lifeform = case_when(lifeform == "Grass" ~ "grass",
+                              lifeform == "Shrub" ~ "shrub",
+                              lifeform == "Forb" ~ "forb",
+                                lifeform == "thatch" ~ "ground",
+                            TRUE ~ lifeform)) %>% 
+  mutate(lifecycle = case_when(lifecycle == "Annual" ~ "annual", 
+                               lifecycle == "Perennial" ~ "perennial", 
+                                   lifecycle == "thatch" ~ "ground",
+                               TRUE ~ lifecycle)) %>% 
+  mutate(family = case_when(family == "thatch" ~ "ground", 
+                            TRUE ~ family))
+  
+
+transect2019 <- file_transect_load %>% #filter data to 2019 data
+  filter(year %in% c(2017, 2019))
+ 
+# View the data (optional)
+#View(transect2019)
+#sort(unique(transect2019$transect))
+#sort(unique(transect2019$site))
+#sort(unique(transect2019$species))
+```
+
+
+- google sheets data
+-- years 2024
+-- Site 1: transects 7-18
+-- Site 2: transects 7-14
+-- INT5
+```{r load load point intercept google data, include=TRUE, echo =FALSE}
+
+Transects2024_loadfromgoogle <- "https://docs.google.com/spreadsheets/d/1FK2YxFNLESzUOiZXI4AIm9gUVStaOLQqCRljIOMnwoM/edit"
+
+#google drive data
+transect2024_load <- read_sheet(Transects2024_loadfromgoogle, sheet = "transect") %>%
+  mutate(
+    year = as.character(year),
+    site = as.character(site),
+    transect = as.character(transect),
+    distance = as.character(distance),
+     vertical = as.character(vertical),
+    species = as.character(species),
+    max_height_cm = as.integer(max_height_cm)
+  ) %>%
+  dplyr::select(-date, -name, -species_code, -standtype, -hillslope, -coordinates_x, -coordinates_y)
+
+transect2024 <- transect2024_load %>% 
+  filter(species != "N/A") %>% 
+  dplyr::select((-Notes & -max_height_cm))
+
+# View the data (optional)
+#View(transect2024)
+sort(unique(transect2024$transect))
+sort(unique(transect2024$site))
+sort(unique(transect2024$species))
 ```
 
 ```{r load schlero leaf data, echo=FALSE, eval=F}
-
 shrub_leaftype <- read_excel("shrub_leaftype.xlsx")
-print(shrub_leaftype)
+print(sort(shrub_leaftype$species))
+```
+
+```{r load species characteristics, include=TRUE}
+specieslist <- file_transect_load %>% 
+  dplyr::select(species, lifeform, status, lifecycle, family) %>%
+  distinct() 
+
+View(specieslist)
 ```
 
 ```{r}
