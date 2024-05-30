@@ -2,7 +2,7 @@
 title: "transect_continuous"
 author: "Stephanie Ma Lucero"
 date: "2024-04-23"
-output: pdf_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -18,35 +18,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r libraries, message=FALSE}
-
-#install.packages(c("tidyverse", "ggplot2", "ggthemes", "plotly", "ggpubr", "vegan", "lme4", "ggpattern"))
-
 library(here) # similar to set working directory
 library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
-# library(lubridate) # dates and times
-library(ggplot2) # data visualization
-#library(gridExtra)
-# library(readr)
-library(dplyr)
-library(ggthemes)
-library(plotly)
-library(ggpubr) # customize ggplot2 for publication
-#library(broom)
-#library(AICcmodavg)
-#library(vegan) #community ecology package - includes, MASS, cluster, mgcv
-library(readxl) # for .xls and .xlsx sheets
-#library(janitor)
-library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD, dist{stats}, simint, simtest, csimint, csimtest{multcomp}, friedmanmc, kruskalmc{pgirmess}
-#library(multcomp) # functions: multcompLetters2, multcompLetters3, multcompLetters4 using aov object
-#library(DHARMa) #The ‘DHARMa’ package uses a simulation-based approach to create readily interpretable scaled (quantile) residuals for fitted (generalized) linear mixed models.
-#citation("DHARMa")
-#library(ggpmisc)
-library(segmented)
-#library(strucchange)
-library(ggpattern)
-library(lme4)
-library(lmerTest) # load again or update if you're not getting p-values from environmental models
-
+library(readxl) 
 ```
 
 ```{r colors, include=TRUE}
@@ -59,7 +33,6 @@ names(cal_palettes)
 #chaparral1
 #chaparral2
 cal_palette(name = "chaparral3", n = 20, type = "continuous") 
-
 
 #species colors
 HEAR <- "#D3E3CA"
@@ -88,17 +61,13 @@ native <- "gray50"
 nonnative <- "gray0"
 colors_status <- c(native, nonnative)
 
-
 # "orange", "lightblue", "limegreen", "deeppink","mediumpurple2", "darkgreen"
 ```
 
-#NOTES
-Transect data overview
-- Years collected: 2017, 2019, 2024
-- Sites: 1 and 2
-- Comparing to intact sites: INT1, INT2, INT3, INT4, INT5
+#NOTES Transect data overview - Years collected: 2017, 2019, 2024 - Sites: 1 and 2 - Comparing to intact sites: INT1, INT2, INT3, INT4, INT5
 
-# load data 
+# load data
+
 ```{r load point intercept transect data from csv, include=TRUE}
 file_transect_2019_load <- read_excel("deg_percentcover_byspecies_bylifeform_2024.xlsx", sheet = "2019_data")
 # -- years 2017, 2019
@@ -116,7 +85,6 @@ transect2019 <- file_transect_2019_load %>%
 #sort(unique(transect2019$transect))
 #sort(unique(transect2019$site))
 
-
 file_transect_2024_load <- read.csv("Transects_2024 - transect.csv", header = TRUE, na.strings=c("","NA"))
 # -- years 2024
 # -- Site 1: transects 7-14
@@ -130,13 +98,12 @@ transect2024 <- file_transect_2024_load %>%
 #View(transect_2024)
 #sort(unique(transect_2024$transect))
 #sort(unique(transect_2024$site))
-  
 ```
 
 ## full join
+
 ```{r full join}
-abcover_fulljoin <- full_join(transect2019, transect2024, 
-                          by = intersect(names(transect2019), names(transect2024)))
+abcover_fulljoin <- full_join(transect2019, transect2024, by = intersect(names(transect2019), names(transect2024)))
 
 # View the data (optional)
 #View(abcover_full)
@@ -145,6 +112,7 @@ abcover_fulljoin <- full_join(transect2019, transect2024,
 ```
 
 ## data prep
+
 ```{r convert to tibble}
 # convert dataframe to tibble
 abcover_fulljoin_tib <- as_tibble(abcover_fulljoin) 
@@ -152,44 +120,36 @@ class(abcover_fulljoin_tib)
 
 abcover_full <- abcover_fulljoin_tib %>% 
    mutate(site_rep = paste(site, transect, sep = "_")) %>% # combine site and rep to one column
-  mutate(site_rep_dist = paste(site_rep, distance, sep = "_")) %>%  # combine site_rep and distance to one column 
+   mutate(site_rep_dist = paste(site_rep, distance, sep = "_")) %>%  # combine site_rep and distance to one column 
    mutate(species = case_when(species == "BG bare ground" ~ "bare_ground", # oldname ~ newname
                               species == "ground" ~ "bare_ground", 
                               species == "native_litter" ~ "litter",
                               species == "nonnative_thatch" ~ "thatch",
-                              
-                                species == "Bromus diandrus BRDI" ~ "Bromus diandrus",
-                                species == "Bromus rubens BRRU" ~ "Bromus rubens", 
-                                   species == "Bromus hordeaceus BRHO" ~ "Bromus hordeaceus", 
-                              
-                               species == "Rapistrum rugosum - round pods" ~ "Rapistrum rugosum", 
+                              species == "Bromus diandrus BRDI" ~ "Bromus diandrus",
+                              species == "Bromus rubens BRRU" ~ "Bromus rubens", 
+                              species == "Bromus hordeaceus BRHO" ~ "Bromus hordeaceus", 
+                              species == "Rapistrum rugosum - round pods" ~ "Rapistrum rugosum", 
                               species == "HIIN Hirschfeldia incana - long pods" ~ "Hirschfeldia incana", 
-                                 species == "Hirschfeldia incana - long pods" ~ "Hirschfeldia incana", 
-                              
-                              
+                              species == "Hirschfeldia incana - long pods" ~ "Hirschfeldia incana", 
                               species == "Salvia lucophylla" ~ "Salvia leucophylla",
                               species == "Malacothamnus fasciculatus " ~ "Malacothamnus fasciculatus",
-                              
                               species == "dead HEAR" ~ "Heteromeles arbutifolia dead",
                               species == "dead MAFA" ~ "Malacothamnus fasciculatus dead",
                               species == "dead RHIL" ~ "Rhamnus ilicifolia dead",
                               species == "dead ARCA" ~ "Artemisia californica dead",
-                                  species == "dead SALE" ~ "Salvia leucophylla dead",
-                              
-                             
+                              species == "dead SALE" ~ "Salvia leucophylla dead",
                               species == "ACGL Acmispon glaber" ~ "Acmispon glaber",
                               species == "Acmispon maritimus - round, sevfl" ~ "Acmispon maritimus",
-                           species == "Acmispon strigosus - oval, sevfl" ~ "Acmispon strigosus",
-                    
-          TRUE ~ species)) %>% 
+                              species == "Acmispon strigosus - oval, sevfl" ~ "Acmispon strigosus",
+                              TRUE ~ species)) %>% 
    mutate(
-    year = as.character(year),
-    site = as.character(site),
-    transect = as.character(transect),
-    distance = as.character(distance),
-     vertical = as.character(vertical),
-    species = as.character(species)
-  )
+      year = as.character(year),
+      site = as.character(site),
+      transect = as.character(transect),
+      distance = as.character(distance),
+      vertical = as.character(vertical),
+      species = as.character(species)
+      )
 
 glimpse(abcover_full) # look at new columns
 
@@ -197,6 +157,7 @@ sort(unique(abcover_full$species))
 ```
 
 # load species data
+
 ```{r load schlero leaf data, echo=FALSE, eval=F}
 shrub_leaftype <- read_excel("shrub_leaftype.xlsx")
 print(sort(shrub_leaftype$species))
@@ -206,148 +167,181 @@ print(sort(shrub_leaftype$species))
 specieslist <- file_transect_2019_load %>% 
   dplyr::select(species, lifeform, status, lifecycle, family) %>%
    mutate(status = case_when(status == "Native" ~ "native",
-                              status == "Non-native" ~ "nonnative",
-                              lifeform == "thatch" ~ "ground",
-                            TRUE ~ status)) %>% 
-    mutate(lifeform = case_when(lifeform == "Grass" ~ "grass",
-                              lifeform == "Shrub" ~ "shrub",
-                              lifeform == "Forb" ~ "forb",
+                                status == "Non-native" ~ "nonnative",
                                 lifeform == "thatch" ~ "ground",
-                            TRUE ~ lifeform)) %>% 
-  mutate(lifecycle = case_when(lifecycle == "Annual" ~ "annual", 
-                               lifecycle == "Perennial" ~ "perennial", 
-                                   lifecycle == "thatch" ~ "ground",
-                               TRUE ~ lifecycle)) %>% 
-  mutate(family = case_when(family == "thatch" ~ "ground", 
-                            TRUE ~ family)) %>% 
+                                TRUE ~ status)) %>% 
+   mutate(lifeform = case_when(lifeform == "Grass" ~ "grass",
+                                lifeform == "Shrub" ~ "shrub",
+                                lifeform == "Forb" ~ "forb",
+                                lifeform == "thatch" ~ "ground",
+                                TRUE ~ lifeform)) %>% 
+   mutate(lifecycle = case_when(lifecycle == "Annual" ~ "annual", 
+                                lifecycle == "Perennial" ~ "perennial", 
+                                lifecycle == "thatch" ~ "ground",
+                                TRUE ~ lifecycle)) %>% 
+   mutate(family = case_when(family == "thatch" ~ "ground", 
+                                TRUE ~ family)) %>% 
    mutate(species = case_when(species == "BG bare ground" ~ "bare_ground", # oldname ~ newname
-                              species == "ground" ~ "bare_ground", 
-                              species == "native_litter" ~ "litter",
-                              species == "nonnative_thatch" ~ "thatch",
-                              
+                                species == "ground" ~ "bare_ground", 
+                                species == "native_litter" ~ "litter",
+                                species == "nonnative_thatch" ~ "thatch",
                                 species == "Bromus diandrus BRDI" ~ "Bromus diandrus",
                                 species == "Bromus rubens BRRU" ~ "Bromus rubens", 
-                                   species == "Bromus hordeaceus BRHO" ~ "Bromus hordeaceus", 
-                              
-                               species == "Rapistrum rugosum - round pods" ~ "Rapistrum rugosum", 
-                              species == "HIIN Hirschfeldia incana - long pods" ~ "Hirschfeldia incana", 
-                                 species == "Hirschfeldia incana - long pods" ~ "Hirschfeldia incana", 
-                              
-                              
-                              species == "Salvia lucophylla" ~ "Salvia leucophylla",
-                              species == "Malacothamnus fasciculatus " ~ "Malacothamnus fasciculatus",
-                              
-                              species == "dead HEAR" ~ "Heteromeles arbutifolia dead",
-                              species == "dead MAFA" ~ "Malacothamnus fasciculatus dead",
-                              species == "dead RHIL" ~ "Rhamnus ilicifolia dead",
-                              species == "dead ARCA" ~ "Artemisia californica dead",
-                                  species == "dead SALE" ~ "Salvia leucophylla dead",
-                              
-                             
-                              species == "ACGL Acmispon glaber" ~ "Acmispon glaber",
-                              species == "Acmispon maritimus - round, sevfl" ~ "Acmispon maritimus",
-                           species == "Acmispon strigosus - oval, sevfl" ~ "Acmispon strigosus",
-                    
-          TRUE ~ species)) %>% 
+                                species == "Bromus hordeaceus BRHO" ~ "Bromus hordeaceus", 
+                                species == "Rapistrum rugosum - round pods" ~ "Rapistrum rugosum", 
+                                species == "HIIN Hirschfeldia incana - long pods" ~ "Hirschfeldia incana", 
+                                species == "Hirschfeldia incana - long pods" ~ "Hirschfeldia incana", 
+                                species == "Salvia lucophylla" ~ "Salvia leucophylla",
+                                species == "Malacothamnus fasciculatus " ~ "Malacothamnus fasciculatus",
+                                species == "dead HEAR" ~ "Heteromeles arbutifolia dead",
+                                species == "dead MAFA" ~ "Malacothamnus fasciculatus dead",
+                                species == "dead RHIL" ~ "Rhamnus ilicifolia dead",
+                                species == "dead ARCA" ~ "Artemisia californica dead",
+                                species == "dead SALE" ~ "Salvia leucophylla dead",
+                                species == "ACGL Acmispon glaber" ~ "Acmispon glaber",
+                                species == "Acmispon maritimus - round, sevfl" ~ "Acmispon maritimus",
+                                species == "Acmispon strigosus - oval, sevfl" ~ "Acmispon strigosus",
+                                TRUE ~ species)) %>% 
   distinct() 
 
 #View(specieslist)
 sort(unique(specieslist$species))
 ```
 
+```{r playing with da species list}
+ab_species <- sort(unique(abcover_full$species))
+species_species <- sort(unique(specieslist$species))
 
-```{r}
-abcover_full_v %>%  
-   # na.omit() %>%  
-  group_by(site, hillslope, transect) %>% 
-  summarize(data_points = length(unique(distance)))
+#These are the species that are in abcover_full that are NOT in the species list
+difab <- setdiff(ab_species, species_species)
+difab 
+
+#These are the species that are in the species list that are NOT in abcover_full
+difsp <- setdiff(species_species, ab_species)
+difsp
+
+# Mirabilis Laevis is in both, but the species list has is as "mirabilis laevis var. crassifolia"
+# Blitum californicum and Sambucus nigra are in abcover but not species list
+# Sambucus mexicana is in species list but not in abcover (i dont know why this would be)
+
+new.specieslist <- specieslist %>%
+  add_row(species = "", 
+          lifeform = "",
+          status = "",
+          lifecycle = "",
+          family = "")
+
+# Rename if need be renamed
+# new.specieslist <- new.specieslist %>%
+#     mutate(species = case_when(species == "Mirabilis laevis var. crassifolia" ~ "Mirabilis laevis", TRUE ~ species))
+
+# Run the code below when you are sure you added everything correctly 
+# specieslist <- new.specieslist
+
+write.csv(specieslist, file = "specieslist.csv")
+
+
 ```
 
 ```{r}
-# omit "ground" as a status since interested in Native and Non-native species 
-abcover_full_v_omitground <- filter(abcover_full_v, status =="native" |status == "nonnative")
-print(abcover_full_v_omitground)
-```
-
-```{r preprbindleaftype, include=TRUE}
-
-shrubs <- abcover_full_v_omitground %>% 
-  filter(lifeform == "shrub") %>% 
-  left_join(shrub_leaftype, by = "species") %>% 
-  dplyr::select(!c(lifeform)) %>% 
-    rename(lifeform = leaftype ) # newname = oldname
-
-herbsgrassesfern <-  abcover_full_v_omitground %>% 
-  filter(lifeform =="herb" | lifeform == "grass" | lifeform == "fern") 
-  
-lifeformleaftype <- rbind(herbsgrassesfern, shrubs) %>%  
-  group_by(site_rep_dist) %>%
-   mutate(lifeform_status = paste(lifeform, status, sep = "_")) %>% 
-  group_by(standtype, site, transect, site_rep, lifeform, status, lifeform_status) %>% 
-  dplyr::summarize(
-    count_per_transect = n_distinct(site_rep_dist), 
-    percentcover = n_distinct(site_rep_dist)/41) %>% # <-- calculate percent cover
-  ungroup() #%>% 
-  #  mutate(standtype = fct_relevel(standtype,"intact", "matrix", "degraded")) %>% 
-  #  mutate(site = fct_relevel(site, "INT1", "INT2", "INT3", "ENH1", "ENH2", "DEG1", "DEG2")) %>%
-  # # mutate(site_rep = fct_relevel(site_rep, "INT1_1", "INT2_2", "INT3_3", "ENH1_1" ,    "ENH1_2"   ,  "ENH1_3" ,    "ENH2_4" ,    "ENH2_5"    ,"ENH2_6", "DEG1_1",     "DEG1_2"  ,   "DEG1_3"   ,  "DEG2_4" ,    "DEG2_5"   ,  "DEG2_6")) %>% 
-  # mutate(lifeform_status = fct_relevel(lifeform_status, "grass_nonnative", "herb_nonnative",
-  #                                 "fern_native",     "grass_native", "herb_native", "nonsclero_native", "sclerophyllous_native")
-  #)
-
-print(lifeformleaftype)
-```
-
-### Percent cover by lifeform by native/nonnative status - there shouldn't be zeros in your df
-
-```{r cover x status x lifeform - data prep, include = TRUE}
-# line 933 from Ch1_Degradation_original.Rmd
-
-# data prep
-abcover_bylf_bystatus <- abcover_full_v_omitground %>% 
-  group_by(standtype, lifeform, status, site, transect, site_rep, year) %>% 
-  dplyr::summarize(
-    count_per_transect = n_distinct(site_rep_dist), 
-    percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect, lifeform, and status
-    ) %>% 
-  ungroup() %>% 
-  unite("lifeform_total", 2:3, sep = "_") #combines characters in two columns to one column
-# view(abcover_bylf_bystatus) # prints to new tab
-#write.csv(abcover_bylf_bystatus,"processed/abcover_bylf_bystatus.csv")
-# visualizing data
-
-## histogram 
-hist(abcover_bylf_bystatus$percentcover) 
-```
-This is the spread of my percent cover data by standtype wrapped by lifeform_status
-```{r}
-## jitter - by standtype
-ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, color = year)) + 
-  geom_jitter()+
-  facet_wrap(~lifeform_total)
-```
-Here I'm transposing the data from long to wide by lifeform_status becuase I want to visualize native shrub cover by non-native grass cover.
-```{r}
-abcover_bylf_bystatus_wide <- abcover_bylf_bystatus %>% 
-  dplyr::select(!c(count_per_transect)) %>% 
-  pivot_wider(names_from = lifeform_total, values_from = percentcover) %>% 
-  replace_na(replace = list(grass_native = 0, grass_nonnative = 0, 
-                            herb_native = 0, herb_nonnative = 0, 
-                            shrub_native = 0, shrub_nonnative = 0,
-                            fern_native = 0, fern_nonnative = 0))  # Replace NA with 0 for each value column
-  
-```
-
-This is the spread of native shrub cover over non-native grass cover...
-```{r}
-
-ggplot(data = abcover_bylf_bystatus_wide, 
-       aes(y = shrub_native*100, x = grass_nonnative*100, color = year)) + 
-  geom_jitter()
-```
-... and here is the spread of non-native grass cover overnative shrub cover.
-```{r}
-ggplot(data = abcover_bylf_bystatus_wide, 
-       aes(y = grass_nonnative*100, x = shrub_native*100, color = year)) + 
-  geom_jitter()
+# abcover_full_v %>%  
+#    # na.omit() %>%  
+#   group_by(site, hillslope, transect) %>%
+#   summarize(data_points = length(unique(distance)))
+# ```
+# 
+# ```{r}
+# # omit "ground" as a status since interested in Native and Non-native species 
+# abcover_full_v_omitground <- filter(abcover_full_v, status =="native" |status == "nonnative")
+# print(abcover_full_v_omitground)
+# ```
+# 
+# ```{r preprbindleaftype, include=TRUE}
+# 
+# shrubs <- abcover_full_v_omitground %>% 
+#   filter(lifeform == "shrub") %>% 
+#   left_join(shrub_leaftype, by = "species") %>% 
+#   dplyr::select(!c(lifeform)) %>% 
+#     rename(lifeform = leaftype ) # newname = oldname
+# 
+# herbsgrassesfern <-  abcover_full_v_omitground %>% 
+#   filter(lifeform =="herb" | lifeform == "grass" | lifeform == "fern") 
+#   
+# lifeformleaftype <- rbind(herbsgrassesfern, shrubs) %>%  
+#   group_by(site_rep_dist) %>%
+#    mutate(lifeform_status = paste(lifeform, status, sep = "_")) %>% 
+#   group_by(standtype, site, transect, site_rep, lifeform, status, lifeform_status) %>% 
+#   dplyr::summarize(
+#     count_per_transect = n_distinct(site_rep_dist), 
+#     percentcover = n_distinct(site_rep_dist)/41) %>% # <-- calculate percent cover
+#   ungroup() #%>% 
+#   #  mutate(standtype = fct_relevel(standtype,"intact", "matrix", "degraded")) %>% 
+#   #  mutate(site = fct_relevel(site, "INT1", "INT2", "INT3", "ENH1", "ENH2", "DEG1", "DEG2")) %>%
+#   # # mutate(site_rep = fct_relevel(site_rep, "INT1_1", "INT2_2", "INT3_3", "ENH1_1" ,    "ENH1_2"   ,  "ENH1_3" ,    "ENH2_4" ,    "ENH2_5"    ,"ENH2_6", "DEG1_1",     "DEG1_2"  ,   "DEG1_3"   ,  "DEG2_4" ,    "DEG2_5"   ,  "DEG2_6")) %>% 
+#   # mutate(lifeform_status = fct_relevel(lifeform_status, "grass_nonnative", "herb_nonnative",
+#   #                                 "fern_native",     "grass_native", "herb_native", "nonsclero_native", "sclerophyllous_native")
+#   #)
+# 
+# print(lifeformleaftype)
+# ```
+# 
+# ### Percent cover by lifeform by native/nonnative status - there shouldn't be zeros in your df
+# 
+# ```{r cover x status x lifeform - data prep, include = TRUE}
+# # line 933 from Ch1_Degradation_original.Rmd
+# 
+# # data prep
+# abcover_bylf_bystatus <- abcover_full_v_omitground %>% 
+#   group_by(standtype, lifeform, status, site, transect, site_rep, year) %>% 
+#   dplyr::summarize(
+#     count_per_transect = n_distinct(site_rep_dist), 
+#     percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect, lifeform, and status
+#     ) %>% 
+#   ungroup() %>% 
+#   unite("lifeform_total", 2:3, sep = "_") #combines characters in two columns to one column
+# # view(abcover_bylf_bystatus) # prints to new tab
+# #write.csv(abcover_bylf_bystatus,"processed/abcover_bylf_bystatus.csv")
+# # visualizing data
+# 
+# ## histogram 
+# hist(abcover_bylf_bystatus$percentcover) 
+# ```
+# 
+# This is the spread of my percent cover data by standtype wrapped by lifeform_status
+# 
+# ```{r}
+# ## jitter - by standtype
+# ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, color = year)) + 
+#   geom_jitter()+
+#   facet_wrap(~lifeform_total)
+# ```
+# 
+# Here I'm transposing the data from long to wide by lifeform_status becuase I want to visualize native shrub cover by non-native grass cover.
+# 
+# ```{r}
+# abcover_bylf_bystatus_wide <- abcover_bylf_bystatus %>% 
+#   dplyr::select(!c(count_per_transect)) %>% 
+#   pivot_wider(names_from = lifeform_total, values_from = percentcover) %>% 
+#   replace_na(replace = list(grass_native = 0, grass_nonnative = 0, 
+#                             herb_native = 0, herb_nonnative = 0, 
+#                             shrub_native = 0, shrub_nonnative = 0,
+#                             fern_native = 0, fern_nonnative = 0))  # Replace NA with 0 for each value column
+#   
+# ```
+# 
+# This is the spread of native shrub cover over non-native grass cover...
+# 
+# ```{r}
+# 
+# ggplot(data = abcover_bylf_bystatus_wide, 
+#        aes(y = shrub_native*100, x = grass_nonnative*100, color = year)) + 
+#   geom_jitter()
+# ```
+# 
+# ... and here is the spread of non-native grass cover overnative shrub cover.
+# 
+# ```{r}
+# ggplot(data = abcover_bylf_bystatus_wide, 
+#        aes(y = grass_nonnative*100, x = shrub_native*100, color = year)) + 
+#   geom_jitter()
 ```
