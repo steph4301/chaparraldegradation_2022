@@ -19,7 +19,7 @@ library(multcomp) # functions: multcompLetters2, multcompLetters3, multcompLette
 library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD, dist{stats}, simint, simtest, csimint, csimtest{multcomp}, friedmanmc, 
 library(plotly)
 library(calecopal) 
-library(googlesheets4) 
+library(googlesheets4 ) 
 gs4_auth()
 
 #library(vegan) #community ecology package - includes, MASS, cluster, mgcv
