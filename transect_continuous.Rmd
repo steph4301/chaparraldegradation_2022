@@ -102,9 +102,9 @@ colors_status <- c(native, nonnative)
 - Sites: 1 and 2
 - Comparing to intact sites: INT1, INT2, INT3, INT4, INT5
 
-# load data
+# load exl and google data and FULL join
 
-- excel data
+load excel data
 -- years 2017, 2019
 -- Site 1: transects 1-6
 -- Site 2: transects 1-6
@@ -116,6 +116,14 @@ file_transect <- "deg_percentcover_byspecies_bylifeform_2024.xlsx"
 
 # Read the specific sheet named "transect_data"
 file_transect_load <- read_excel(file_transect, sheet = "2019_data") %>% 
+  mutate(
+    year = as.character(year),
+    site = as.character(site),
+    transect = as.character(transect),
+    distance = as.character(distance),
+     vertical = as.character(vertical),
+    species = as.character(species)
+  ) %>%
    mutate(species = case_when(species == "BG bare ground" ~ "bare_ground", # oldname ~ newname
                                 species == "Bromus diandrus BRDI" ~ "Bromus diandrus",
                                 species == "Bromus rubens BRRU" ~ "Bromus rubens", 
@@ -143,7 +151,8 @@ file_transect_load <- read_excel(file_transect, sheet = "2019_data") %>%
   
 
 transect2019 <- file_transect_load %>% #filter data to 2019 data
-  filter(year %in% c(2017, 2019))
+  filter(year %in% c(2017, 2019)) %>% 
+  dplyr::select(year, site, transect, distance, vertical, species)
  
 # View the data (optional)
 #View(transect2019)
@@ -152,8 +161,7 @@ transect2019 <- file_transect_load %>% #filter data to 2019 data
 #sort(unique(transect2019$species))
 ```
 
-
-- google sheets data
+load google sheets data
 -- years 2024
 -- Site 1: transects 7-18
 -- Site 2: transects 7-14
@@ -186,6 +194,13 @@ sort(unique(transect2024$site))
 sort(unique(transect2024$species))
 ```
 
+full join
+```{r}
+abcover_full <- full_join(transect2019, transect2024, 
+                          by = intersect(names(transect2019), names(transect2024)))
+
+```
+
 ```{r load schlero leaf data, echo=FALSE, eval=F}
 shrub_leaftype <- read_excel("shrub_leaftype.xlsx")
 print(sort(shrub_leaftype$species))
@@ -199,20 +214,19 @@ specieslist <- file_transect_load %>%
 View(specieslist)
 ```
 
+# data prep
+
 ```{r}
 # convert dataframe to tibble
-abcover_full_tib <- as_tibble(pointintercept_load) 
-class(abcover_full_tib)
+transect2019_tib <- as_tibble(transect2019) 
+class(transect2019_tib)
 
-abcover_full_v <- abcover_full_tib %>% 
+transect2019_v <- transect2019_tib %>% 
    mutate(site_rep = paste(site, transect, sep = "_")) %>% # combine site and rep to one column
-  mutate(site_rep_dist = paste(site_rep, distance, sep = "_")) %>% # combine site_rep and distance to one column
-  mutate(stand_status = paste(standtype, status, sep = "_")) # combine standtype and native/nonnative status to one column
-# %>%   mutate(site_rep = fct_relevel
-         # (site_rep, 
-         #                        "INT1_1", "INT2_2", "INT3_3", "ENH1_1", "ENH1_2",    "ENH1_3"  ,   "ENH2_4"  ,   "ENH2_5"    , "ENH2_6"  , "DEG1_1"   ,  "DEG1_2"  ,   "DEG1_3"     ,"DEG2_4" ,    "DEG2_5"    , "DEG2_6" ))
+  mutate(site_rep_dist = paste(site_rep, distance, sep = "_")) %>%  # combine site_rep and distance to one column  
+  mutate(site_rep_status = paste(site_rep, status, sep = "_"))
 
-glimpse(abcover_full_v) # look at new columns
+glimpse(transect2019_v) # look at new columns
 ```
 
 ```{r}
