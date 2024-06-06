@@ -88,7 +88,7 @@ transect2019 <- file_transect_2019_load %>%
 file_transect_2024_load <- read.csv("Transects_2024 - transect.csv", header = TRUE, na.strings=c("","NA"))
 # -- years 2024
 # -- Site 1: transects 7-14
-# -- Site 2: transects 7-18
+# -- Site 2: transects 7-21
 # -- INT5
 transect2024 <- file_transect_2024_load %>%  
   dplyr::select(c(site, transect, year, distance, vertical, species)) %>% 
@@ -219,16 +219,6 @@ difab
 difsp <- setdiff(species_species, ab_species)
 difsp
 
-new.specieslist <- specieslist %>%
-  add_row(species = "", 
-          lifeform = "",
-          status = "",
-          lifecycle = "",
-          family = "")
-# Mirabilis Laevis is in both, but the species list has is as "mirabilis laevis var. crassifolia"
-# Blitum californicum and Sambucus nigra are in abcover but not species list
-# Sambucus mexicana is in species list but not in abcover (i dont know why this would be)
-
 # new.specieslist <- specieslist %>%
 #   add_row(species = "", 
 #           lifeform = "",
@@ -236,35 +226,35 @@ new.specieslist <- specieslist %>%
 #           lifecycle = "",
 #           family = "")
 
-# Rename if need be renamed
-new.specieslist <- specieslist %>%
-    mutate(species = case_when(species == "Mirabilis laevis var. crassifolia" ~ "Mirabilis laevis", 
-                               TRUE ~ species))
-
-new.abcover_full <- abcover_full %>%
-    mutate(species = case_when(species == "Blitum californicum" ~ "Chenopodium californicum", 
-                               species == "Sambucus nigra" ~ "Sambucus mexicana", 
-                               TRUE ~ species))
-
-new.ab_species <- sort(unique(new.abcover_full$species))
-new.species_species <- sort(unique(new.specieslist$species))
-
-new.ab_species == new.species_species
-
-#These are the species that are in abcover_full that are NOT in the species list
-new.difab <- setdiff(new.ab_species, new.species_species)
-new.difab 
-
-#These are the species that are in the species list that are NOT in abcover_full
-new.difsp <- setdiff(new.species_species, new.ab_species)
-new.difsp
-
-
-# Run the code below when you are sure you added everything correctly 
-specieslist <- new.specieslist
-abcover_full <- new.abcover_full
-
-write.csv(specieslist, file = "specieslist.csv")
+# # Rename if need be renamed
+# new.specieslist <- specieslist %>%
+#     mutate(species = case_when(species == "Mirabilis laevis var. crassifolia" ~ "Mirabilis laevis", 
+#                                TRUE ~ species))
+# 
+# new.abcover_full <- abcover_full %>%
+#     mutate(species = case_when(species == "Blitum californicum" ~ "Chenopodium californicum", 
+#                                species == "Sambucus nigra" ~ "Sambucus mexicana", 
+#                                TRUE ~ species))
+# 
+# new.ab_species <- sort(unique(new.abcover_full$species))
+# new.species_species <- sort(unique(new.specieslist$species))
+# 
+# new.ab_species == new.species_species
+# 
+# #These are the species that are in abcover_full that are NOT in the species list
+# new.difab <- setdiff(new.ab_species, new.species_species)
+# new.difab 
+# 
+# #These are the species that are in the species list that are NOT in abcover_full
+# new.difsp <- setdiff(new.species_species, new.ab_species)
+# new.difsp
+# 
+# 
+# # Run the code below when you are sure you added everything correctly 
+# specieslist <- new.specieslist
+# abcover_full <- new.abcover_full
+# 
+# write.csv(specieslist, file = "specieslist.csv")
 
 ```
 
@@ -284,7 +274,10 @@ shrub_leaftype <- read.csv("shrub_leaftype.csv") %>%
    mutate(
       species = as.character(species),
       leaftype = as.character(leaftype)
-      )
+      ) %>% 
+  mutate(
+    leaftype = if_else(grepl("dead", species, ignore.case = TRUE), "dead_shrub", leaftype)
+  )
 
 print(sort(shrub_leaftype$species))
 ```
