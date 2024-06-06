@@ -100,7 +100,7 @@ transect2024 <- file_transect_2024_load %>%
 #sort(unique(transect_2024$site))
 ```
 
-## full join
+## full join transect data
 
 ```{r full join}
 abcover_fulljoin <- full_join(transect2019, transect2024, by = intersect(names(transect2019), names(transect2024)))
@@ -111,7 +111,7 @@ abcover_fulljoin <- full_join(transect2019, transect2024, by = intersect(names(t
 #sort(unique(abcover_full$site))
 ```
 
-## data prep
+## species list
 
 ```{r convert to tibble}
 # convert dataframe to tibble
@@ -141,6 +141,8 @@ abcover_full <- abcover_fulljoin_tib %>%
                               species == "ACGL Acmispon glaber" ~ "Acmispon glaber",
                               species == "Acmispon maritimus - round, sevfl" ~ "Acmispon maritimus",
                               species == "Acmispon strigosus - oval, sevfl" ~ "Acmispon strigosus",
+                              species == "Sambucus nigra" ~ "Sambucus mexicana",
+                              species == "Blitum californicum" ~ "Chenopodium californicum",
                               TRUE ~ species)) %>% 
    mutate(
       year = as.character(year),
@@ -156,12 +158,7 @@ glimpse(abcover_full) # look at new columns
 sort(unique(abcover_full$species))
 ```
 
-# load species data
-
-```{r load schlero leaf data, echo=FALSE, eval=F}
-shrub_leaftype <- read_excel("shrub_leaftype.xlsx")
-print(sort(shrub_leaftype$species))
-```
+## species characteristics
 
 ```{r load species characteristics, include=TRUE}
 specieslist <- file_transect_2019_load %>% 
@@ -201,6 +198,7 @@ specieslist <- file_transect_2019_load %>%
                                 species == "ACGL Acmispon glaber" ~ "Acmispon glaber",
                                 species == "Acmispon maritimus - round, sevfl" ~ "Acmispon maritimus",
                                 species == "Acmispon strigosus - oval, sevfl" ~ "Acmispon strigosus",
+                                species == "Mirabilis laevis var. crassifolia" ~ "Mirabilis laevis",
                                 TRUE ~ species)) %>% 
   distinct() 
 
@@ -208,6 +206,7 @@ specieslist <- file_transect_2019_load %>%
 sort(unique(specieslist$species))
 ```
 
+-- code to update list of species characteristics
 ```{r playing with da species list}
 ab_species <- sort(unique(abcover_full$species))
 species_species <- sort(unique(specieslist$species))
@@ -219,10 +218,6 @@ difab
 #These are the species that are in the species list that are NOT in abcover_full
 difsp <- setdiff(species_species, ab_species)
 difsp
-
-# Mirabilis Laevis is in both, but the species list has is as "mirabilis laevis var. crassifolia"
-# Blitum californicum and Sambucus nigra are in abcover but not species list
-# Sambucus mexicana is in species list but not in abcover (i dont know why this would be)
 
 new.specieslist <- specieslist %>%
   add_row(species = "", 
@@ -240,25 +235,83 @@ new.specieslist <- specieslist %>%
 
 write.csv(specieslist, file = "specieslist.csv")
 
+```
+
+### left_join species characteristics
+```{r left_join species characteristics}
+abcover_charateristics <- abcover_full %>% 
+  left_join(specieslist, by = "species")
 
 ```
 
+## leaf type
+```{r load schlero leaf data, echo=FALSE, eval=F}
+# shrub_leaftype <- read_excel("shrub_leaftype.xlsx") #original data
+
+shrub_leaftype <- read.csv("shrub_leaftype.csv") %>% 
+  dplyr::select("species", "leaftype") %>% 
+   mutate(
+      species = as.character(species),
+      leaftype = as.character(leaftype)
+      )
+
+print(sort(shrub_leaftype$species))
+```
+
+-- code to update list of shrub leaf characteristics
+```{r update schlero leaf data}
+ab_shrubs <- abcover_charateristics %>% 
+   filter(lifeform == "shrub") %>%
+  pull(species) %>% 
+  unique() %>% 
+  sort()
+
+shrub_shrubs <- sort(unique(shrub_leaftype$species))
+
+#These are the shrubs that are in abcover_full that are NOT in the shrub species list
+difshr <- setdiff(ab_shrubs, shrub_shrubs)
+difshr 
+
+# new.shrub_leaftype <- shrub_leaftype %>%
+#   add_row(species = "", leaftype = "")
+# 
+# # Run the code below when you are sure you added everything correctly
+# shrub_leaftype <- new.shrub_leaftype
+# 
+# write.csv(shrub_leaftype, file = "shrub_leaftype.csv")
+```
+
+### left_join leaftype
 ```{r}
-# abcover_full_v %>%  
-#    # na.omit() %>%  
-#   group_by(site, hillslope, transect) %>%
-#   summarize(data_points = length(unique(distance)))
-# ```
-# 
-# ```{r}
-# # omit "ground" as a status since interested in Native and Non-native species 
-# abcover_full_v_omitground <- filter(abcover_full_v, status =="native" |status == "nonnative")
-# print(abcover_full_v_omitground)
-# ```
-# 
-# ```{r preprbindleaftype, include=TRUE}
-# 
-# shrubs <- abcover_full_v_omitground %>% 
+abcover_charateristics_leaftype <- abcover_charateristics %>% 
+  left_join(shrub_leaftype, by = "species")
+```
+
+
+# Transect data
+```{r data check, include = TRUE}
+abcover_full %>% 
+  group_by(site, transect) %>%
+  summarize(data_points = length(unique(distance))) # number of "hits" per transect
+
+abcover_full %>% 
+  group_by(site) %>%
+  summarize(data_points = length(unique(transect))) # number of transects per site
+```
+
+```{r omit ground as a status}
+abcover_full_1 <- abcover_full %>% 
+  left_join()
+
+abcover_full_omitground <- abcover_full %>% 
+  left_join
+filter(abcover_full, status =="native" |status == "nonnative")
+print(abcover_full_v_omitground)
+```
+ 
+```{r preprbindleaftype, include=TRUE}
+ 
+shrubs <- abcover_full_v_omitground %>% 
 #   filter(lifeform == "shrub") %>% 
 #   left_join(shrub_leaftype, by = "species") %>% 
 #   dplyr::select(!c(lifeform)) %>% 
