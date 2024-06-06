@@ -227,8 +227,9 @@ new.specieslist <- specieslist %>%
           family = "")
 
 # Rename if need be renamed
-# new.specieslist <- new.specieslist %>%
-#     mutate(species = case_when(species == "Mirabilis laevis var. crassifolia" ~ "Mirabilis laevis", TRUE ~ species))
+new.specieslist <- new.specieslist %>%
+    mutate(species = case_when(species == "Mirabilis laevis var. crassifolia" ~ "Mirabilis laevis", TRUE ~ species))
+    mutate(species = case_when(species == "Mirabilis laevis var. crassifolia" ~ "Mirabilis laevis", TRUE ~ species))
 
 # Run the code below when you are sure you added everything correctly 
 # specieslist <- new.specieslist
