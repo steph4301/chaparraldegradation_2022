@@ -229,7 +229,6 @@ new.specieslist <- specieslist %>%
 # Rename if need be renamed
 new.specieslist <- new.specieslist %>%
     mutate(species = case_when(species == "Mirabilis laevis var. crassifolia" ~ "Mirabilis laevis", TRUE ~ species))
-    mutate(species = case_when(species == "Mirabilis laevis var. crassifolia" ~ "Mirabilis laevis", TRUE ~ species))
 
 # Run the code below when you are sure you added everything correctly 
 # specieslist <- new.specieslist
@@ -291,7 +290,9 @@ abcover_charateristics_leaftype <- abcover_charateristics %>%
 
 # Transect data
 ```{r data check, include = TRUE}
-abcover_full %>% 
+abcover_charateristics_leaftype
+
+%>% 
   group_by(site, transect) %>%
   summarize(data_points = length(unique(distance))) # number of "hits" per transect
 
