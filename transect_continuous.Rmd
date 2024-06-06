@@ -225,13 +225,44 @@ new.specieslist <- specieslist %>%
           status = "",
           lifecycle = "",
           family = "")
+# Mirabilis Laevis is in both, but the species list has is as "mirabilis laevis var. crassifolia"
+# Blitum californicum and Sambucus nigra are in abcover but not species list
+# Sambucus mexicana is in species list but not in abcover (i dont know why this would be)
+
+# new.specieslist <- specieslist %>%
+#   add_row(species = "", 
+#           lifeform = "",
+#           status = "",
+#           lifecycle = "",
+#           family = "")
 
 # Rename if need be renamed
-new.specieslist <- new.specieslist %>%
-    mutate(species = case_when(species == "Mirabilis laevis var. crassifolia" ~ "Mirabilis laevis", TRUE ~ species))
+new.specieslist <- specieslist %>%
+    mutate(species = case_when(species == "Mirabilis laevis var. crassifolia" ~ "Mirabilis laevis", 
+                               TRUE ~ species))
+
+new.abcover_full <- abcover_full %>%
+    mutate(species = case_when(species == "Blitum californicum" ~ "Chenopodium californicum", 
+                               species == "Sambucus nigra" ~ "Sambucus mexicana", 
+                               TRUE ~ species))
+
+new.ab_species <- sort(unique(new.abcover_full$species))
+new.species_species <- sort(unique(new.specieslist$species))
+
+new.ab_species == new.species_species
+
+#These are the species that are in abcover_full that are NOT in the species list
+new.difab <- setdiff(new.ab_species, new.species_species)
+new.difab 
+
+#These are the species that are in the species list that are NOT in abcover_full
+new.difsp <- setdiff(new.species_species, new.ab_species)
+new.difsp
+
 
 # Run the code below when you are sure you added everything correctly 
-# specieslist <- new.specieslist
+specieslist <- new.specieslist
+abcover_full <- new.abcover_full
 
 write.csv(specieslist, file = "specieslist.csv")
 
