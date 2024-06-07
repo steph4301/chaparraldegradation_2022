@@ -411,10 +411,12 @@ cover_byleaftype_wide <- cover_byleaftype %>%
                             native_shrub_dead_shrub = 0, native_shrub_nonsclero = 0, native_shrub_sclerophyllous = 0,
                             native_grass_NA = 0, nonnative_grass_NA = 0)) 
   
-#view(cover_bylfstatus_wide)
+#view(cover_byleaftype_wide)
 ```
  
-This is the spread of non-native grass cover by native shrub cover... 
+# Regressions
+This is the spread of 
+- non-native grass cover by native shrub cover... 
 ```{r regression nngrass x shrub}
 ggplot(data = cover_bylfstatus_wide, 
        aes(y = grass_nonnative*100, x = shrub_native*100)) + 
@@ -438,7 +440,7 @@ print(paste("Multiple R^2:", r_squared))
 # Adjusted R-squared = adjusts for the number of predictors in the model.  It provides a more accurate measure when comparing models with a different number of predictors.
 ```
 
-... and native shrub cover by non-native grass cover.
+- native shrub cover by non-native grass cover ...
 ```{r regression shrub x nn grass}
 ggplot(data = cover_bylfstatus_wide, 
        aes(y = shrub_native*100, x = grass_nonnative*100)) + 
@@ -449,4 +451,39 @@ model.g <- lm(shrub_native ~ grass_nonnative, data = cover_bylfstatus_wide)
 model.g_summary <- summary(model.g)
 r_squared <- round(model.g_summary$r.squared, 3)
 print(paste("Multiple R^2:", r_squared))
+```
+
+- native shrub cover by leaftype by non-native grass cover ...
+```{r regression shrub leaftype x nn grass}
+ggplot(data = cover_byleaftype_wide) +
+  geom_point(aes(x = nonnative_grass_NA * 100, y = native_shrub_nonsclero * 100, color = "Native Shrub Nonsclero"), show.legend = TRUE) +
+  #geom_smooth(aes(x = nonnative_grass_NA * 100, y = native_shrub_nonsclero * 100, color = "Native Shrub Nonsclero"), 
+  #            method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
+  geom_point(aes(x = nonnative_grass_NA * 100, y = native_shrub_sclerophyllous * 100, color = "Native Shrub Sclero"), show.legend = TRUE) +
+ # geom_smooth(aes(x = nonnative_grass_NA * 100, y = native_shrub_sclerophyllous * 100, color = "Native Shrub Sclero"), 
+   #           method = "lm", se = TRUE, linetype = "dashed", show.legend = TRUE) +
+  labs(
+    x = "Percent cover non-native grass (%)",
+    y = "Percent cover native Shrub (%)",
+    title = "Comparison of Native Shrub percent cover by Nonnative Grass percent cover",
+    color = "Legend"
+    ) +
+  scale_color_manual(values = c("Native Shrub Nonsclero" = "blue", "Native Shrub Sclero" = "red"),
+                     labels = c("Sclerophyllous", "Non-sclerophyllous")) +
+  xlim(0, 100) +
+  ylim(0, 100) +
+  theme_bw()
+
+#only six transects had schlero shrubs present: INT 1-5, Site1 transect 4
+#cover_byleaftype_wide %>% filter(native_shrub_sclerophyllous > 0) %>% group_by(site_rep, year) %>%  summarize(native_shrub_sclerophyllous = native_shrub_sclerophyllous)
+
+# model.nonscl <- lm(native_shrub_nonsclero ~ nonnative_grass_NA, data = cover_byleaftype_wide)
+# model.nonscl_summary <- summary(model.nonscl)
+# r_squared <- round(model.nonscl_summary$r.squared, 3)
+# print(paste("Multiple R^2:", r_squared))
+# 
+# model.scl <- lm(native_shrub_sclerophyllous ~ nonnative_grass_NA, data = cover_byleaftype_wide)
+# model.scl_summary <- summary(model.scl)
+# r_squared <- round(model.scl_summary$r.squared, 3)
+# print(paste("Multiple R^2:", r_squared))
 ```
