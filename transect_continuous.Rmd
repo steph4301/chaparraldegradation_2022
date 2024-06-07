@@ -9,20 +9,22 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r code to hang on to, include=FALSE}
-
-# df<- df_load %>% 
-#  mutate(site_rep = paste(site, transect, sep = "_")) %>% # create new column
-# unite("lifeform_total", 2:3, sep = "_") # consolidate columns
-
-```
+# Code to hang on to
+- create a new third column by: mutate(site_rep = paste(site, transect, sep = "_")) %>% # create a new third column
+- combine two columns into one column: unite("lifeform_total", 2:3, sep = "_") # consolidate columns
+- line types
+-- "solid": A solid line.
+-- "dashed": A dashed line.
+-- "dotted": A dotted line.
+-- "dotdash": Alternating dots and dashes.
+-- "longdash": Long dashes.
 
 ```{r libraries, message=FALSE}
 library(here) # similar to set working directory
 library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
 library(readxl) 
 ```
-
+# colors
 ```{r colors, include=TRUE}
 devtools::install_github("an-bui/calecopal")
 
@@ -57,9 +59,10 @@ fern <- "black"
 colors_lifeform <- c(shrub, grass, forb, fern)
 
 # Status colors: native, exotic 
-native <- "gray50"
-nonnative <- "gray0"
-colors_status <- c(native, nonnative)
+native <- "black"
+nonnative <- "maroon"
+unknown <- "lightblue"
+colors_status <- c(native, nonnative, unknown)
 
 # "orange", "lightblue", "limegreen", "deeppink","mediumpurple2", "darkgreen"
 ```
@@ -163,22 +166,30 @@ sort(unique(abcover_full$species))
 ```{r load species characteristics, include=TRUE}
 specieslist <- file_transect_2019_load %>% 
   dplyr::select(species, lifeform, status, lifecycle, family) %>%
-   mutate(status = case_when(status == "Native" ~ "native",
-                                status == "Non-native" ~ "nonnative",
-                                lifeform == "thatch" ~ "ground",
+   mutate(status = case_when(status == "Native" ~ "native", # oldname ~ newname
+                                status == "Non-native" ~ "nonnative", 
+                                status == "thatch" ~ "ground",
+                                status == "litter" ~ "ground",
+                                status == "rock" ~ "ground",
                                 TRUE ~ status)) %>% 
    mutate(lifeform = case_when(lifeform == "Grass" ~ "grass",
                                 lifeform == "Shrub" ~ "shrub",
                                 lifeform == "Forb" ~ "forb",
                                 lifeform == "thatch" ~ "ground",
+                                lifeform == "litter" ~ "ground",
+                                lifeform == "rock" ~ "ground",
                                 TRUE ~ lifeform)) %>% 
    mutate(lifecycle = case_when(lifecycle == "Annual" ~ "annual", 
                                 lifecycle == "Perennial" ~ "perennial", 
                                 lifecycle == "thatch" ~ "ground",
+                                lifecycle == "litter" ~ "ground",
+                                lifecycle == "rock" ~ "ground",
                                 TRUE ~ lifecycle)) %>% 
    mutate(family = case_when(family == "thatch" ~ "ground", 
+                             family == "litter" ~ "ground", 
+                             family == "rock" ~ "ground",
                                 TRUE ~ family)) %>% 
-   mutate(species = case_when(species == "BG bare ground" ~ "bare_ground", # oldname ~ newname
+   mutate(species = case_when(species == "BG bare ground" ~ "bare_ground", 
                                 species == "ground" ~ "bare_ground", 
                                 species == "native_litter" ~ "litter",
                                 species == "nonnative_thatch" ~ "thatch",
@@ -254,7 +265,7 @@ difsp
 # specieslist <- new.specieslist
 # abcover_full <- new.abcover_full
 # 
-# write.csv(specieslist, file = "specieslist.csv")
+#write.csv(specieslist, file = "specieslist.csv")
 
 ```
 
@@ -311,7 +322,7 @@ abcover_charateristics_leaftype <- abcover_charateristics %>%
   left_join(shrub_leaftype, by = "species")
 ```
 
-# Transect data
+# Data prep
 ```{r data check, include = TRUE}
 abcover_charateristics_leaftype %>% 
   group_by(site, transect) %>%
@@ -321,7 +332,7 @@ abcover_full %>%
   group_by(site) %>%
   summarize(data_points = length(unique(transect))) # number of transects per site
 ```
-### omit ground
+- omit ground
 ```{r omit ground as a status}
 abcover_omitground <- abcover_charateristics_leaftype %>% 
   filter(vertical != "ground", 
@@ -330,116 +341,112 @@ abcover_omitground <- abcover_charateristics_leaftype %>%
 
 #sort(unique(abcover_omitground$status))
 ```
-```{r linear reg}
+
+### subset data by status
+```{r hist percent cover by site and status}
 cover_bystatus <- abcover_omitground %>% 
   group_by(site, transect, site_rep, year, status) %>% 
   dplyr::summarize(
     count_per_transect = n_distinct(site_rep_dist),
     percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect, lifeform, and status
-    )
+    ) 
 
-view(cover)
+#view(cover_bystatus)
+hist(cover_bystatus$percentcover)
 
-# abcover_bylf_bystatus <- abcover_full_v_omitground %>% 
-#   group_by(standtype, lifeform, status, site, transect, site_rep, year) %>% 
-#   dplyr::summarize(
-#     count_per_transect = n_distinct(site_rep_dist), 
-#     percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect, lifeform, and status
-#     ) %>% 
-#   ungroup() %>% 
-#   unite("lifeform_total", 2:3, sep = "_") #combines characters in two columns to one column
-# # view(abcover_bylf_bystatus) # prints to new tab
-# #write.csv(abcover_bylf_bystatus,"processed/abcover_bylf_bystatus.csv")
-# # visualizing data
+# jitter - by site and status
+ggplot(data = cover_bystatus, aes(y = percentcover*100, x = site, color = status)) + geom_jitter() + scale_color_manual(values=c(colors_status)) + facet_wrap(~status)
 
 ```
 
-```{r prep rbind leaftype, include=TRUE}
+### subset data by lifeform x status
+```{r hist percent cover by lifeform and status}
+
+cover_bylfstatus <- abcover_omitground %>% 
+  group_by(site, transect, site_rep, year, status, lifeform) %>% 
+  dplyr::summarize(
+    count_per_transect = n_distinct(site_rep_dist),
+    percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect, lifeform, and status
+    ) %>% 
+  ungroup() %>% 
+  unite("lifeform_status", 6:5, sep = "_") #combines characters in two columns to one column, withoutcreating a third column
+
+#view(cover_bystatus_bylf)
+hist(cover_bylfstatus$percentcover) 
+
+# jitter - by site, lifeform, and status
+ggplot(data = cover_bylfstatus, aes(y = percentcover*100, x = site, color = lifeform_status)) + geom_jitter() + facet_wrap(~lifeform_status)
+
+```
+
+### subset data by leaftype
+```{r}
+cover_byleaftype <- abcover_omitground %>% 
+  group_by(site, transect, site_rep, year, status, lifeform, leaftype) %>% 
+  dplyr::summarize(
+    count_per_transect = n_distinct(site_rep_dist),
+    percentcover = n_distinct(site_rep_dist)/41
+    ) %>% 
+  ungroup() %>% 
+  unite("lifeform_status_leaftype", 5:7, sep = "_") %>% 
+  dplyr::select(!c(count_per_transect))
+```
+
+- Here I'm transposing the dataframes from long to wide  because I want to visualize native shrub cover by non-native grass cover.
+```{r transpose}
+cover_bylfstatus_wide <- cover_bylfstatus %>%
+   dplyr::select(!c(count_per_transect)) %>%
+   pivot_wider(names_from = lifeform_status, values_from = percentcover) %>%
+   replace_na(replace = list(grass_native = 0, grass_nonnative = 0,
+                             forb_native = 0, forb_nonnative = 0, forb_unknown = 0,
+                             shrub_native = 0,
+                             fern_native = 0,
+                             unknown_unknown = 0))  # Replace NA with 0 for each value column
+
+cover_byleaftype_wide <- cover_byleaftype %>% 
+  pivot_wider(names_from = lifeform_status_leaftype, values_from = percentcover) %>%
+  replace_na(replace = list(native_fern_NA = 0, 
+                            unknown_unknown_NA = 0,
+                            native_forb_NA = 0, nonnative_forb_NA = 0, unknown_forb_NA = 0,
+                            native_shrub_dead_shrub = 0, native_shrub_nonsclero = 0, native_shrub_sclerophyllous = 0,
+                            native_grass_NA = 0, nonnative_grass_NA = 0)) 
+  
+#view(cover_bylfstatus_wide)
+```
  
-#shrubs <- abcover_full_v_omitground %>% 
-#   filter(lifeform == "shrub") %>% 
-#   left_join(shrub_leaftype, by = "species") %>% 
-#   dplyr::select(!c(lifeform)) %>% 
-#     rename(lifeform = leaftype ) # newname = oldname
-# 
-# herbsgrassesfern <-  abcover_full_v_omitground %>% 
-#   filter(lifeform =="herb" | lifeform == "grass" | lifeform == "fern") 
-#   
-# lifeformleaftype <- rbind(herbsgrassesfern, shrubs) %>%  
-#   group_by(site_rep_dist) %>%
-#    mutate(lifeform_status = paste(lifeform, status, sep = "_")) %>% 
-#   group_by(standtype, site, transect, site_rep, lifeform, status, lifeform_status) %>% 
-#   dplyr::summarize(
-#     count_per_transect = n_distinct(site_rep_dist), 
-#     percentcover = n_distinct(site_rep_dist)/41) %>% # <-- calculate percent cover
-#   ungroup() #%>% 
-#   #  mutate(standtype = fct_relevel(standtype,"intact", "matrix", "degraded")) %>% 
-#   #  mutate(site = fct_relevel(site, "INT1", "INT2", "INT3", "ENH1", "ENH2", "DEG1", "DEG2")) %>%
-#   # # mutate(site_rep = fct_relevel(site_rep, "INT1_1", "INT2_2", "INT3_3", "ENH1_1" ,    "ENH1_2"   ,  "ENH1_3" ,    "ENH2_4" ,    "ENH2_5"    ,"ENH2_6", "DEG1_1",     "DEG1_2"  ,   "DEG1_3"   ,  "DEG2_4" ,    "DEG2_5"   ,  "DEG2_6")) %>% 
-#   # mutate(lifeform_status = fct_relevel(lifeform_status, "grass_nonnative", "herb_nonnative",
-#   #                                 "fern_native",     "grass_native", "herb_native", "nonsclero_native", "sclerophyllous_native")
-#   #)
-# 
-# print(lifeformleaftype)
-# ```
-# 
-# ### Percent cover by lifeform by native/nonnative status - there shouldn't be zeros in your df
-# 
-# ```{r cover x status x lifeform - data prep, include = TRUE}
-# # line 933 from Ch1_Degradation_original.Rmd
-# 
-# # data prep
-# abcover_bylf_bystatus <- abcover_full_v_omitground %>% 
-#   group_by(standtype, lifeform, status, site, transect, site_rep, year) %>% 
-#   dplyr::summarize(
-#     count_per_transect = n_distinct(site_rep_dist), 
-#     percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect, lifeform, and status
-#     ) %>% 
-#   ungroup() %>% 
-#   unite("lifeform_total", 2:3, sep = "_") #combines characters in two columns to one column
-# # view(abcover_bylf_bystatus) # prints to new tab
-# #write.csv(abcover_bylf_bystatus,"processed/abcover_bylf_bystatus.csv")
-# # visualizing data
-# 
-# ## histogram 
-# hist(abcover_bylf_bystatus$percentcover) 
-# ```
-# 
-# This is the spread of my percent cover data by standtype wrapped by lifeform_status
-# 
-# ```{r}
-# ## jitter - by standtype
-# ggplot(data = abcover_bylf_bystatus, aes(y = percentcover*100, x = standtype, color = year)) + 
-#   geom_jitter()+
-#   facet_wrap(~lifeform_total)
-# ```
-# 
-# Here I'm transposing the data from long to wide by lifeform_status becuase I want to visualize native shrub cover by non-native grass cover.
-# 
-# ```{r}
-# abcover_bylf_bystatus_wide <- abcover_bylf_bystatus %>% 
-#   dplyr::select(!c(count_per_transect)) %>% 
-#   pivot_wider(names_from = lifeform_total, values_from = percentcover) %>% 
-#   replace_na(replace = list(grass_native = 0, grass_nonnative = 0, 
-#                             herb_native = 0, herb_nonnative = 0, 
-#                             shrub_native = 0, shrub_nonnative = 0,
-#                             fern_native = 0, fern_nonnative = 0))  # Replace NA with 0 for each value column
-#   
-# ```
-# 
-# This is the spread of native shrub cover over non-native grass cover...
-# 
-# ```{r}
-# 
-# ggplot(data = abcover_bylf_bystatus_wide, 
-#        aes(y = shrub_native*100, x = grass_nonnative*100, color = year)) + 
-#   geom_jitter()
-# ```
-# 
-# ... and here is the spread of non-native grass cover overnative shrub cover.
-# 
-# ```{r}
-# ggplot(data = abcover_bylf_bystatus_wide, 
-#        aes(y = grass_nonnative*100, x = shrub_native*100, color = year)) + 
-#   geom_jitter()
+This is the spread of non-native grass cover by native shrub cover... 
+```{r regression nngrass x shrub}
+ggplot(data = cover_bylfstatus_wide, 
+       aes(y = grass_nonnative*100, x = shrub_native*100)) + 
+   geom_point() +
+  geom_smooth(method = "lm", se = TRUE, color = "blue", linetype = "solid") # se = confidence interval 
+
+# Fit the linear model
+model.s <- lm(grass_nonnative ~ shrub_native, data = cover_bylfstatus_wide)
+
+# Print the summary of the model
+model.s_summary <- summary(model.s)
+
+# Extract the R^2 value
+r_squared <- round(model.s_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squared))
+# adjusted_r_squared <- round(model.s_summary$adj.r.squared, 3)
+# print(paste("Adjusted R^2:", adjusted_r_squared))
+
+# Multiple R-squared = variance in the dependent variable that is predictable from the independent variables.  It indicates how well the independent variables explain the variation in the dependent variable. 
+
+# Adjusted R-squared = adjusts for the number of predictors in the model.  It provides a more accurate measure when comparing models with a different number of predictors.
+```
+
+... and native shrub cover by non-native grass cover.
+```{r regression shrub x nn grass}
+ggplot(data = cover_bylfstatus_wide, 
+       aes(y = shrub_native*100, x = grass_nonnative*100)) + 
+   geom_point() +
+  geom_smooth(method = "lm", se = TRUE, color = "blue", linetype = "solid")  
+
+model.g <- lm(shrub_native ~ grass_nonnative, data = cover_bylfstatus_wide)
+model.g_summary <- summary(model.g)
+r_squared <- round(model.g_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squared))
 ```
