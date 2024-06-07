@@ -415,6 +415,7 @@ cover_byleaftype_wide <- cover_byleaftype %>%
 ```
  
 # Regressions
+## SHRUBS
 This is the spread of 
 - non-native grass cover by native shrub cover... 
 ```{r regression nngrass x shrub}
@@ -469,7 +470,7 @@ ggplot(data = cover_byleaftype_wide) +
     color = "Legend"
     ) +
   scale_color_manual(values = c("Native Shrub Nonsclero" = "blue", "Native Shrub Sclero" = "red"),
-                     labels = c("Sclerophyllous", "Non-sclerophyllous")) +
+                     labels = c("Non-sclerophyllous", "Sclerophyllous")) +
   xlim(0, 100) +
   ylim(0, 100) +
   theme_bw()
@@ -486,4 +487,49 @@ ggplot(data = cover_byleaftype_wide) +
 # model.scl_summary <- summary(model.scl)
 # r_squared <- round(model.scl_summary$r.squared, 3)
 # print(paste("Multiple R^2:", r_squared))
+```
+
+## forbs
+```{r regression forb x grass}
+ggplot(data = cover_bylfstatus_wide) +
+  geom_point(aes(x = grass_nonnative * 100, y = forb_native * 100, color = "forb_native"), show.legend = TRUE) +
+  geom_smooth(aes(x = grass_nonnative * 100, y = forb_native * 100, color = "forb_native"), 
+              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
+  geom_point(aes(x = grass_nonnative * 100, y = forb_nonnative * 100, color = "forb_nonnative"), show.legend = TRUE) +
+  geom_smooth(aes(x = grass_nonnative * 100, y = forb_nonnative * 100, color = "forb_nonnative"), 
+              method = "lm", se = TRUE, linetype = "dashed", show.legend = TRUE) +
+  labs(
+    x = "Percent cover non-native grass (%)",
+    y = "Percent cover native forb (%)",
+    title = "Comparison of Native forb percent cover by Nonnative Grass percent cover",
+    color = "Legend"
+    ) +
+  scale_color_manual(values = c("forb_native" = "blue", "forb_nonnative" = "red"),
+                     labels = c("Native ", "Non-native")) +
+  xlim(0, 100) +
+  ylim(0, 100) +
+  theme_bw()
+```
+
+## grass
+```{r regression grass x grass}
+ggplot(data = cover_bylfstatus_wide) +
+  geom_point(aes(x = grass_nonnative * 100, y = grass_native * 100, color = "grass_native"), show.legend = TRUE) +
+  geom_smooth(aes(x = grass_nonnative * 100, y = grass_native * 100, color = "grass_native"), 
+              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
+  labs(
+    x = "Percent cover non-native grass (%)",
+    y = "Percent cover native grass (%)",
+    title = "Comparison of Native grass percent cover by Nonnative Grass percent cover",
+    color = "Legend"
+    ) +
+  scale_color_manual(values = c("grass_native" = "blue"),
+                     labels = c("Native ", "Non-native")) +
+  xlim(0, 100) +
+  ylim(0, 100) +
+  theme_bw()
+
+#14 transecrs have native grass present - mostly at Site 1 and at INT transects
+#cover_bylfstatus_wide %>% filter(grass_native > 0) %>% group_by(site_rep, year) %>%  summarize(native_grass = grass_native)
+
 ```
