@@ -375,7 +375,20 @@ cover_bylfstatus <- abcover_omitground %>%
 hist(cover_bylfstatus$percentcover) 
 
 # jitter - by site, lifeform, and status
-ggplot(data = cover_bylfstatus, aes(y = percentcover*100, x = site, color = lifeform_status)) + geom_jitter() + facet_wrap(~lifeform_status)
+cover1 <- ggplot(data = cover_bylfstatus, 
+       aes(y = percentcover*100, x = site, color = lifeform_status)) + 
+  geom_point() + 
+  facet_wrap(~lifeform_status)
+
+# ggplot(data = cover_bylfstatus %>% filter(site == "1" | site == "2"), 
+#        aes(y = percentcover*100, x = site, color = lifeform_status)) + 
+#   geom_point() + 
+#   facet_wrap(~lifeform_status)
+
+# ggplot(data = cover_bylfstatus %>% filter(site == "INT1" | site == "INT2" | site == "INT3" | site == "INT4" | site == "INT5"), 
+#        aes(y = percentcover*100, x = site, color = lifeform_status)) + 
+#   geom_point() + 
+#   facet_wrap(~lifeform_status)
 
 ```
 
@@ -446,7 +459,10 @@ print(paste("Multiple R^2:", r_squared))
 ggplot(data = cover_bylfstatus_wide, 
        aes(y = shrub_native*100, x = grass_nonnative*100)) + 
    geom_point() +
-  geom_smooth(method = "lm", se = TRUE, color = "blue", linetype = "solid")  
+  geom_smooth(method = "lm", se = TRUE, color = "blue", linetype = "solid")  +
+  xlim(0, 100) +
+  ylim(0, 100) +
+  theme_bw()
 
 model.g <- lm(shrub_native ~ grass_nonnative, data = cover_bylfstatus_wide)
 model.g_summary <- summary(model.g)
@@ -456,13 +472,15 @@ print(paste("Multiple R^2:", r_squared))
 
 - native shrub cover by leaftype by non-native grass cover ...
 ```{r regression shrub leaftype x nn grass}
-ggplot(data = cover_byleaftype_wide) +
-  geom_point(aes(x = nonnative_grass_NA * 100, y = native_shrub_nonsclero * 100, color = "Native Shrub Nonsclero"), show.legend = TRUE) +
-  #geom_smooth(aes(x = nonnative_grass_NA * 100, y = native_shrub_nonsclero * 100, color = "Native Shrub Nonsclero"), 
-  #            method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
-  geom_point(aes(x = nonnative_grass_NA * 100, y = native_shrub_sclerophyllous * 100, color = "Native Shrub Sclero"), show.legend = TRUE) +
- # geom_smooth(aes(x = nonnative_grass_NA * 100, y = native_shrub_sclerophyllous * 100, color = "Native Shrub Sclero"), 
-   #           method = "lm", se = TRUE, linetype = "dashed", show.legend = TRUE) +
+sch1 <- ggplot(data = cover_byleaftype_wide) +
+  
+  geom_point(aes(x = nonnative_grass_NA * 100, y = native_shrub_nonsclero * 100, color = "Native Shrub Nonsclero", shape = site), size = 4, show.legend = TRUE) +
+  geom_smooth(aes(x = nonnative_grass_NA * 100, y = native_shrub_nonsclero * 100, color = "Native Shrub Nonsclero"), 
+              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
+  
+  geom_point(aes(x = nonnative_grass_NA * 100, y = native_shrub_sclerophyllous * 100, color = "Native Shrub Sclero", shape = site), size = 4,  show.legend = TRUE) +
+  geom_smooth(aes(x = nonnative_grass_NA * 100, y = native_shrub_sclerophyllous * 100, color = "Native Shrub Sclero"), 
+              method = "lm", se = TRUE, linetype = "dashed", show.legend = TRUE) +
   labs(
     x = "Percent cover non-native grass (%)",
     y = "Percent cover native Shrub (%)",
