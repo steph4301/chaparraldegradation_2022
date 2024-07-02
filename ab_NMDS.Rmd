@@ -9,7 +9,7 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## library
+### library
 ```{r install libraries, message=FALSE}
 
 library(tidyverse) # includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
@@ -33,7 +33,7 @@ library(here)
 library(ggpmisc)
 ```
 
-useful code:
+### useful code
 - names() = column titles
 - head()
 - tail()
@@ -41,7 +41,7 @@ useful code:
 - class() = tibble or data.frame?
 
 
-## data prep
+#Data prep
 
 - data prep code taken from transect_continuous.Rmd
 ```{r load csv, include=FALSE}
@@ -220,63 +220,44 @@ useful code:
 
 ```
 
-
 ```{r data prep}
+
 view(abcover_charateristics)
+sort(unique(abcover_charateristics$species))
 ```
 
+- omit "ground" to isolate vegetation species 
+```{r omit groundcover, include=TRUE}
+abcover_full_v_omitground <- abcover_charateristics %>% 
+  filter(!(species %in% c("bare_ground", "moss", "rock", "litter", "thatch", "no_species")))
 
-### (2) Organize the percent cover data by reordering the classes: Intact, Matrix, Degraded.
-```{r ab percent cover reorder classes to Intact Matrix Degraded}
-abcover_full_v <- abcover_full_raw %>%
-  mutate(standtype = fct_relevel(standtype, 
-            "intact", "matrix", "degraded")) %>% 
-  na.omit()
-unique(abcover_full_v$standtype)
-
-# renaming observations
-abcover_full_v$standtype <- factor(abcover_full_v$standtype, levels=c("intact", "matrix", "degraded"), labels=c("Intact", "Matrix", "Degraded"))
-unique(abcover_full_v$standtype)
-
+#sort(unique(abcover_full_v_omitground$species))
+#glimpse(abcover_full_v_omitground)
 ```
 
-
-
-### (4) Omit "ground" as a status since I'm interested in only Native and Non-native species.
-```{r ab percent cover filter for native and non-native only}
-abcover_full_v_omitground <- filter(abcover_full_v, status !="ground")
-head(abcover_full_v_omitground)
-sort(unique(abcover_full_v_omitground$site))
-# "DEG1" "DEG2" "ENH1" "ENH2" "INT1" "INT2" "INT3"
-glimpse(abcover_full_v_omitground)
-```
-
-
-### (5) Identify the unique species at each site_rep_dist to get rid of duplicate species recordings. (e.g., Present at one distance = 1/41 to get percent cover) 
-```{r ab percent cover unby species, inclue = TRUE}
+# Calculate percent cover of species by transect 
+- identify the unique species at each site_rep_dist to get rid of duplicate species recordings. (e.g., Present at one distance = 1/41 to get percent cover) 
+```{r calculate spp percent cover per transect, inclue = TRUE}
 
 abcover_byspecies <- abcover_full_v_omitground %>% 
-  group_by(standtype, site, site_rep, species) %>% 
-  filter(site_rep != "Intact4_4") %>% #omit Intact 4 from data
-  filter(!is.na(species)) %>% # omit blank cells in species 
+  group_by(site, site_rep, species) %>% 
   dplyr::summarize(
-    count_per_dist = n_distinct(site_rep_dist), 
-    percentcover = n_distinct(site_rep_dist)/41) %>% 
-   dplyr::select(!c(count_per_dist))
-  
+    count_per_transect = sum(n_distinct(site_rep_dist)), 
+    percentcover = (count_per_transect/41)*100
+    )
 
-head(abcover_byspecies) # prints to new tab
+#view(abcover_byspecies)
 
-
-unique(abcover_byspecies$standtype)
-unique(abcover_byspecies$site)
-unique(abcover_byspecies$site_rep)
-unique(abcover_byspecies$species)
-
+#species list check 
+# abcover_full_v_omitground %>%
+#   filter(site_rep == "1_1") %>%
+#   select(species) %>%
+#     distinct() %>%
+#   pull()
 ```
 
 
-### (6) Prepare data for an NMDS (percent cover x species x standtype)
+# Prepare data for an NMDS
 ```{r transpose percent cover data by species, include=TRUE}
 
 # use this for GROUPS: abcover_byspecies_nmdsprep
