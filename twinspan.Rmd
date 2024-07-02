@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 # devtools::install_github("jarioksa/twinspan") # if not installed yet
-# https://cran.r-project.org/bin/windows/Rtools/rtools42/rtools.html # You may need rtools updated
+# https://cran.r-project.org/bin/windows/Rtools/rtools42/rtools.html # You may need rtools updated for MS Windows
 
 library(twinspan)
 library(vegan) # for data 
@@ -58,3 +58,4 @@ image(tw) #a heatmap of the groups
 misclassified(tw) 
 # (the dune and sipoo datasets give me no misclassifications, so its likely itll be fine)
 ```
+
