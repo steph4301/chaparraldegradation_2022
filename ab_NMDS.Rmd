@@ -42,24 +42,187 @@ useful code:
 
 
 ## data prep
-```{r data prep, include=FALSE}
 
-abcover_full_load <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA"))
+- data prep code taken from transect_continuous.Rmd
+```{r load csv, include=FALSE}
 
-abcover_full_raw <- abcover_full_load %>% 
-  dplyr::select(!c(species.1, standtype)) %>% 
-  mutate(site_rep = paste(site, rep, sep = "_"), 
-         site_rep_dist = paste(site_rep, distance, sep = "_"), 
-         site_rep_status = paste(site_rep, status, sep = "_"), 
-         site_rep_species = paste(site_rep, species, sep = "_")) %>% 
-  as_tibble() %>% 
-  mutate(site_rep = fct_relevel(site_rep, 
-            "intact", "matrix", "degraded")) %>% 
-  na.omit()
+# ### 1. load 2019 point intercept transect data from csv
+# file_transect_2019_load <- read_excel("deg_percentcover_byspecies_bylifeform_2024.xlsx", sheet = "2019_data")
+# # -- years 2017, 2019
+# # -- Site 1: transects 1-6
+# # -- Site 2: transects 1-6
+# # -- INT1, INT2, INT3, INT4
+
+# transect2019 <- file_transect_2019_load %>% 
+#   dplyr::select(c(site, transect, year, distance, vertical, species)) %>% # select columns to full join with 2024 data
+#   filter(year %in% c(2017, 2019)) %>% #filter data to 2019 data
+#   dplyr::select(year, site, transect, distance, vertical, species)
   
-  
+# ### 2. load 2024 point intercept transect data from csv
+# file_transect_2024_load <- read.csv("Transects_2024 - transect.csv", header = TRUE, na.strings=c("","NA"))
+# # -- years 2024
+# # -- Site 1: transects 7-14
+# # -- Site 2: transects 7-21
+# # -- INT5
+
+# transect2024 <- file_transect_2024_load %>%  
+#   dplyr::select(c(site, transect, year, distance, vertical, species)) %>% 
+#   filter(species != "N/A")
+```
+
+```{r full join, include=FALSE}
+### 3. full join transect data
+#abcover_fulljoin <- full_join(transect2019, transect2024, by = intersect(names(transect2019), names(transect2024)))
+```
+
+```{r species list, include=FALSE}
+### 4. convert dataframe to tibble and correct species names in 2019 and 2024 data
+# abcover_fulljoin_tib <- as_tibble(abcover_fulljoin) 
+# class(abcover_fulljoin_tib)
+# 
+# abcover_full <- abcover_fulljoin_tib %>% 
+#    mutate(site_rep = paste(site, transect, sep = "_")) %>% # combine site and rep to one column
+#    mutate(site_rep_dist = paste(site_rep, distance, sep = "_")) %>%  # combine site_rep and distance to one column 
+#    mutate(species = case_when(species == "BG bare ground" ~ "bare_ground", # oldname ~ newname
+#                               species == "ground" ~ "bare_ground", 
+#                               species == "native_litter" ~ "litter",
+#                               species == "nonnative_thatch" ~ "thatch",
+#                               species == "Bromus diandrus BRDI" ~ "Bromus diandrus",
+#                               species == "Bromus rubens BRRU" ~ "Bromus rubens", 
+#                               species == "Bromus hordeaceus BRHO" ~ "Bromus hordeaceus", 
+#                               species == "Rapistrum rugosum - round pods" ~ "Rapistrum rugosum", 
+#                               species == "HIIN Hirschfeldia incana - long pods" ~ "Hirschfeldia incana", 
+#                               species == "Hirschfeldia incana - long pods" ~ "Hirschfeldia incana", 
+#                               species == "Salvia lucophylla" ~ "Salvia leucophylla",
+#                               species == "Malacothamnus fasciculatus " ~ "Malacothamnus fasciculatus",
+#                               species == "dead HEAR" ~ "Heteromeles arbutifolia dead",
+#                               species == "dead MAFA" ~ "Malacothamnus fasciculatus dead",
+#                               species == "dead RHIL" ~ "Rhamnus ilicifolia dead",
+#                               species == "dead ARCA" ~ "Artemisia californica dead",
+#                               species == "dead SALE" ~ "Salvia leucophylla dead",
+#                               species == "ACGL Acmispon glaber" ~ "Acmispon glaber",
+#                               species == "Acmispon maritimus - round, sevfl" ~ "Acmispon maritimus",
+#                               species == "Acmispon strigosus - oval, sevfl" ~ "Acmispon strigosus",
+#                               species == "Sambucus nigra" ~ "Sambucus mexicana",
+#                               species == "Blitum californicum" ~ "Chenopodium californicum",
+#                               TRUE ~ species)) %>% 
+#    mutate(
+#       year = as.character(year),
+#       site = as.character(site),
+#       transect = as.character(transect),
+#       distance = as.character(distance),
+#       vertical = as.character(vertical),
+#       species = as.character(species)
+#       )
+```
+
+```{r species list with family characteristics, include=FALSE}
+# ### 5. creating a corrected species list
+# specieslist <- file_transect_2019_load %>% 
+#   dplyr::select(species, lifeform, status, lifecycle, family) %>%
+#    mutate(status = case_when(status == "Native" ~ "native", # oldname ~ newname
+#                                 status == "Non-native" ~ "nonnative", 
+#                                 status == "thatch" ~ "ground",
+#                                 status == "litter" ~ "ground",
+#                                 status == "rock" ~ "ground",
+#                                 TRUE ~ status)) %>% 
+#    mutate(lifeform = case_when(lifeform == "Grass" ~ "grass",
+#                                 lifeform == "Shrub" ~ "shrub",
+#                                 lifeform == "Forb" ~ "forb",
+#                                 lifeform == "thatch" ~ "ground",
+#                                 lifeform == "litter" ~ "ground",
+#                                 lifeform == "rock" ~ "ground",
+#                                 TRUE ~ lifeform)) %>% 
+#    mutate(lifecycle = case_when(lifecycle == "Annual" ~ "annual", 
+#                                 lifecycle == "Perennial" ~ "perennial", 
+#                                 lifecycle == "thatch" ~ "ground",
+#                                 lifecycle == "litter" ~ "ground",
+#                                 lifecycle == "rock" ~ "ground",
+#                                 TRUE ~ lifecycle)) %>% 
+#    mutate(family = case_when(family == "thatch" ~ "ground", 
+#                              family == "litter" ~ "ground", 
+#                              family == "rock" ~ "ground",
+#                                 TRUE ~ family)) %>% 
+#    mutate(species = case_when(species == "BG bare ground" ~ "bare_ground", 
+#                                 species == "ground" ~ "bare_ground", 
+#                                 species == "native_litter" ~ "litter",
+#                                 species == "nonnative_thatch" ~ "thatch",
+#                                 species == "Bromus diandrus BRDI" ~ "Bromus diandrus",
+#                                 species == "Bromus rubens BRRU" ~ "Bromus rubens", 
+#                                 species == "Bromus hordeaceus BRHO" ~ "Bromus hordeaceus", 
+#                                 species == "Rapistrum rugosum - round pods" ~ "Rapistrum rugosum", 
+#                                 species == "HIIN Hirschfeldia incana - long pods" ~ "Hirschfeldia incana", 
+#                                 species == "Hirschfeldia incana - long pods" ~ "Hirschfeldia incana", 
+#                                 species == "Salvia lucophylla" ~ "Salvia leucophylla",
+#                                 species == "Malacothamnus fasciculatus " ~ "Malacothamnus fasciculatus",
+#                                 species == "dead HEAR" ~ "Heteromeles arbutifolia dead",
+#                                 species == "dead MAFA" ~ "Malacothamnus fasciculatus dead",
+#                                 species == "dead RHIL" ~ "Rhamnus ilicifolia dead",
+#                                 species == "dead ARCA" ~ "Artemisia californica dead",
+#                                 species == "dead SALE" ~ "Salvia leucophylla dead",
+#                                 species == "ACGL Acmispon glaber" ~ "Acmispon glaber",
+#                                 species == "Acmispon maritimus - round, sevfl" ~ "Acmispon maritimus",
+#                                 species == "Acmispon strigosus - oval, sevfl" ~ "Acmispon strigosus",
+#                                 species == "Mirabilis laevis var. crassifolia" ~ "Mirabilis laevis",
+#                                 TRUE ~ species)) %>% 
+#   distinct() 
+```
+
+```{r update species list with family charicteristics}
+# ### 6. code to update list of species characteristics 
+# ab_species <- sort(unique(abcover_full$species))
+# species_species <- sort(unique(specieslist$species))
+# 
+# #These are the species that are in abcover_full that are NOT in the species list
+# difab <- setdiff(ab_species, species_species)
+# difab 
+# 
+# #These are the species that are in the species list that are NOT in abcover_full
+# difsp <- setdiff(species_species, ab_species)
+# difsp
+# 
+# # new.specieslist <- specieslist %>%
+# #   add_row(species = "", 
+# #           lifeform = "",
+# #           status = "",
+# #           lifecycle = "",
+# #           family = "")
+# 
+# # # Rename if need be renamed
+# # new.specieslist <- specieslist %>%
+# #     mutate(species = case_when(species == "Mirabilis laevis var. crassifolia" ~ "Mirabilis laevis", 
+# #                                TRUE ~ species))
+# # 
+# # new.abcover_full <- abcover_full %>%
+# #     mutate(species = case_when(species == "Blitum californicum" ~ "Chenopodium californicum", 
+# #                                species == "Sambucus nigra" ~ "Sambucus mexicana", 
+# #                                TRUE ~ species))
+# # 
+# # new.ab_species <- sort(unique(new.abcover_full$species))
+# # new.species_species <- sort(unique(new.specieslist$species))
+# # 
+# # new.ab_species == new.species_species
+# # 
+# # #These are the species that are in abcover_full that are NOT in the species list
+# # new.difab <- setdiff(new.ab_species, new.species_species)
+# # new.difab 
+# # 
+# # #These are the species that are in the species list that are NOT in abcover_full
+# # new.difsp <- setdiff(new.species_species, new.ab_species)
+# # new.difsp
+# # 
+# # 
+# # # Run the code below when you are sure you added everything correctly 
+# # specieslist <- new.specieslist
+# # abcover_full <- new.abcover_full
+# # 
+# #write.csv(specieslist, file = "specieslist.csv")
+
+```
 
 
+```{r data prep}
+view(abcover_charateristics)
 ```
 
 
