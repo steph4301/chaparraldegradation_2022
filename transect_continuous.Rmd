@@ -274,6 +274,7 @@ difsp
 abcover_charateristics <- abcover_full %>% 
   left_join(specieslist, by = "species")
 
+#sort(unique(abcover_charateristics$species))
 ```
 
 ## leaf type
@@ -427,7 +428,7 @@ cover_byleaftype_wide <- cover_byleaftype %>%
 #view(cover_byleaftype_wide)
 ```
  
-# Regressions
+# REGRESSIONS
 ## SHRUBS
 This is the spread of 
 - non-native grass cover by native shrub cover... 
@@ -456,7 +457,7 @@ print(paste("Multiple R^2:", r_squared))
 
 - native shrub cover by non-native grass cover ...
 ```{r regression shrub x nn grass}
-ggplot(data = cover_bylfstatus_wide, 
+cover2 <- ggplot(data = cover_bylfstatus_wide, 
        aes(y = shrub_native*100, x = grass_nonnative*100)) + 
    geom_point() +
   geom_smooth(method = "lm", se = TRUE, color = "blue", linetype = "solid")  +
