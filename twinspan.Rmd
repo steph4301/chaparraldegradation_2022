@@ -1,5 +1,5 @@
 ---
-title: "Untitled"
+title: "Using twinspan to identify communities among chaparral transects"
 author: "Kit Swift"
 date: "2024-06-13"
 output: html_document
@@ -11,7 +11,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 # devtools::install_github("jarioksa/twinspan") # if not installed yet
-# https://cran.r-project.org/bin/windows/Rtools/rtools42/rtools.html # You may need rtools updated for MS Windows
+
+# MS Windows
+# https://cran.r-project.org/bin/windows/Rtools/rtools42/rtools.html # You may need rtools updated 
+
+# MacOS: install C and Fortran compiler
+# in terminal, install Homebrew, which installs 'gcc' and includes a 'gfortran' compiler --> /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+# in terminal, install brew install GCC (which includes gfortran): brew install gcc
 
 library(twinspan)
 library(vegan) # for data 
