@@ -19,9 +19,22 @@ knitr::opts_chunk$set(echo = TRUE)
 # in terminal, install Homebrew, which installs 'gcc' and includes a 'gfortran' compiler --> /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 # in terminal, install brew install GCC (which includes gfortran): brew install gcc
 
-install.packages("twinspan", repos = "https://jarioksa.github.io/drat/")
+#install.packages("twinspan", repos = "https://jarioksa.github.io/drat/")
+#
 library(twinspan)
 library(vegan) # for data 
+```
+
+```{r load data}
+
+# data were processed and csv's were created in 1_NMDS_percentcover.Rmd
+
+data <- read.csv("processed/twinspan_withdeadspecies.csv", header = TRUE) %>% # df contains percent cover by unique dead and alive species (e.g., "Heteromeles arbutifolia dead" and "Heteromeles arbutifolia") and percent cover by unique Bromus species when they could be identified to species (e.g., "Bromus rubens", "Bromus diandrus", and "Bromus spp.")
+   dplyr::select(!c(X))
+
+data_simplified <- read.csv("processed/twinspan_species.csv", header = TRUE) %>%  # transect "hits" of dead species were renamed as alive (e.g., "Heteromeles arbutifolia dead" ~ "Heteromeles arbutifolia") and all Bromus species were combined into "Bromus spp." (e.g., Bromus diandrus, Bromus rubens, and Bromus hordeaceous ~ "Bromus spp."). Percent cover was then calculated by species. 
+   dplyr::select(!c(X))
+
 ```
 
 ```{r Twinspan proper}
