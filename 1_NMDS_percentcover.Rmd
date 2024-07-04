@@ -279,6 +279,7 @@ END data prep code copy/pasted from transect_continuous.Rmd
 ```{r omit groundcover, include=TRUE}
 abcover_full_v_omitground <- abcover_charateristics %>% 
   filter(!(species %in% c("bare_ground", "moss", "rock", "litter", "thatch", "no_species"))) %>% 
+  # run the code below if you want to omit "dead" species and to combine all Bromus into "Bromus spp."
   mutate(species = case_when(species == "Acmispon glaber dead" ~ "Acmispon glaber", 
                              species == "Artemisia californica dead" ~ "Artemisia californica",
                              species == "Ceanothus oliganthus dead" ~ "Ceanothus oliganthus",
@@ -337,7 +338,7 @@ abcover_byspecies_nmdsprep_num <- abcover_byspecies_nmdsprep %>%
   dplyr::select(!c(site, site_rep)) 
          
 # glimpse(abcover_byspecies_nmdsprep_num) # only numbers
-# write.csv(abcover_byspecies_nmdsprep_num, "processed/nmds_aboveground.csv")
+# write.csv(abcover_byspecies_nmdsprep, "processed/twinspan_withdeadspecies.csv")
 ```
 
 
