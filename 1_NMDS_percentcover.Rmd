@@ -280,7 +280,7 @@ END data prep code copy/pasted from transect_continuous.Rmd
 abcover_full_v_omitground <- abcover_charateristics %>% 
   filter(!(species %in% c("bare_ground", "moss", "rock", "litter", "thatch", "no_species"))) %>% 
   # run the code below if you want to omit "dead" species and to combine all Bromus into "Bromus spp."
-  mutate(species = case_when(species == "Acmispon glaber dead" ~ "Acmispon glaber", 
+  mutate(species = case_when(species == "Acmispon glaber dead" ~ "Acmispon glaber",
                              species == "Artemisia californica dead" ~ "Artemisia californica",
                              species == "Ceanothus oliganthus dead" ~ "Ceanothus oliganthus",
                              species == "Elymus condensatus dead" ~ "Elymus condensatus",
@@ -398,7 +398,7 @@ head(nmds_above_df)
 nmds_above_df_plotcolor <- ggplot(nmds_above_df, 
                                   aes(x = MDS1, y = MDS2, color = site, shape = site)) +
   geom_point(size = 3, alpha = 0.8) +
-  scale_shape_manual(values = c(16, 17, 15, 15, 15,15, 15)) + 
+  scale_shape_manual(values = c(16, 17, 1, 2, 3,4, 5)) + 
   scale_color_manual(values = c(site1, site2, intact, intact, intact, intact, intact)) + # in bw
   theme_bw() +
  # theme(legend.position = c(0.1, 0.85)) + # x, y left corner: 0,0
@@ -455,10 +455,9 @@ length(fit_above_spp$species) #  <- limited number for visual clarity
 ```{r nmds by transect with species percent cover}
 
 nmds.1 <- ggplot(plot_above_df, aes(x = NMDS1, y = NMDS2)) +
-  coord_fixed() +
-    # geom_point(aes(color = site_rep, shape = site), size = 5, alpha = 0.8) + #`Bromus rubens`
-  geom_point(size = 3) +
-  scale_shape_manual(values = c(15, 18, 8, 8, 8,8, 8)) + 
+  #coord_fixed() +
+    geom_point(aes( shape = site), size = 5, alpha = 0.8) + #`Bromus rubens`
+  scale_shape_manual(values = c(15, 18, 1, 2, 3, 4, 5)) + 
   geom_segment(data = fit_above_spp, aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
                arrow = arrow(length = unit(0.25, "cm")),
                col = "black") +
@@ -473,7 +472,8 @@ nmds.1
 nmds.1
 nmds.1
 nmds.1
-ggsave("Ch1_Degradation_figures/nmds_transectbyspecies.png", nmds.1, width = 8, height = 6)
+#ggsave("Ch1_Degradation_figures/nmds_transectbyspecies.png", nmds.1, width = 8, height = 6)
+#ggsave("Ch1_Degradation_figures/nmds_transectbyspecies_simplified.png", nmds.1, width = 8, height = 6)
 ```
 
 # EXTRA CODE BELOW 
