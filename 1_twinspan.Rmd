@@ -21,6 +21,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #install.packages("twinspan", repos = "https://jarioksa.github.io/drat/")
 #
+library(tidyverse)
 library(twinspan)
 library(vegan) # for data 
 ```
@@ -30,12 +31,59 @@ library(vegan) # for data
 # data were processed and csv's were created in 1_NMDS_percentcover.Rmd
 
 data <- read.csv("processed/twinspan_withdeadspecies.csv", header = TRUE) %>% # df contains percent cover by unique dead and alive species (e.g., "Heteromeles arbutifolia dead" and "Heteromeles arbutifolia") and percent cover by unique Bromus species when they could be identified to species (e.g., "Bromus rubens", "Bromus diandrus", and "Bromus spp.")
-   dplyr::select(!c(X))
+   dplyr::select(!c(X, site))
+
+#turning the sites into the row names (for easy reference later)
+rownames(data) <- data[,1]
+data[,1] <- NULL
 
 data_simplified <- read.csv("processed/twinspan_species.csv", header = TRUE) %>%  # transect "hits" of dead species were renamed as alive (e.g., "Heteromeles arbutifolia dead" ~ "Heteromeles arbutifolia") and all Bromus species were combined into "Bromus spp." (e.g., Bromus diandrus, Bromus rubens, and Bromus hordeaceous ~ "Bromus spp."). Percent cover was then calculated by species. 
-   dplyr::select(!c(X))
+   dplyr::select(!c(X, site))
+
+#turning the sites into the row names (for easy reference later)
+rownames(data_simplified) <- data_simplified[,1]
+data_simplified[,1] <- NULL
+data_simplified[,51] <- NULL
+
 
 ```
+
+```{r regular Twinspan}
+
+tw_data <- twinspan(data)
+summary(tw_data)
+
+nodePar <- list(lab.cex = 0.4, pch = c(NA, 19), 
+                cex = 0.4, col = "green3")
+
+plot(as.dendrogram(tw_data, "species"), type = "rectangle", nodePar = nodePar) #creates a dendogram based on species 
+plot(as.dendrogram(tw_data, "quadrat"), type = "rectangle", nodePar = nodePar) #creates a dendogram based on the sample
+
+plot(as.hclust(tw_data, "species")) #creates a Hierarchical Cluster Tree based on the species
+plot(as.hclust(tw_data, "quadrat")) #creates a Hierarchical Cluster Tree based on the sample
+
+twintable(tw_data) #the table of relatedness, 00 is closer to 01 than it is to 11 and vice versa 
+image(tw_data)
+
+misclassified(tw_data) #none~
+```
+
+```{r simple Twinspan}
+
+tw_data_simplified <- twinspan(data_simplified)
+summary(tw_data_simplified)
+plot(as.dendrogram(tw_data_simplified, "species"), type = "rectangle", nodePar = nodePar) #creates a dendogram based on species 
+plot(as.dendrogram(tw_data_simplified, "quadrat"), type = "rectangle", nodePar = nodePar) #creates a dendogram based on the sample
+
+plot(as.hclust(tw_data_simplified, "species")) #creates a Hierarchical Cluster Tree based on the species
+plot(as.hclust(tw_data_simplified, "quadrat")) #creates a Hierarchical Cluster Tree based on the sample
+
+twintable(tw_data_simplified) #the table of relatedness, 00 is closer to 01 than it is to 11 and vice versa 
+image(tw_data_simplified)
+
+misclassified(tw_data_simplified) #none~
+```
+
 
 ```{r Twinspan proper}
 #twinspan
