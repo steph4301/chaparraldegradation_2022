@@ -1,0 +1,28 @@
+Okay im gonna send this exact text as an email, but here it is again for reference.
+
+For the text files, make sure the font is "Consolas" otherwise the spacing will get weird 
+(i can send screenshots if needed, but it wont be as high quality)
+
+The text files contain two outputs: 
+	1. summary(tw_data): this is the summary of the twinspan eigenvalues and indicator species analysis.
+		- It is split up into groups, based on binary number (so may not be intuitive)
+		- Each will either have an eigen value (eig) or an N
+		- The N indicates that those sites are the most closely related to each other, and cannot be divided furtherm based on the rules we set for the twinspan
+		- The eigen value is unimportant right now, what is important is the names of the species next to it
+		- The species listed are the indicator species! and they tell us how the sites were divided
+		- The species will either have a plus (+) or a minus (-), the plus means that species is indicitive of the groups on the right side, and vice versa
+		- an example, from the "data outputs file", "1) eig=0.404:  +Heteromeles.arbutifolia1 < 1" 
+			- Group 1 is the entire data set, the groups under group 1 in this case are groups 2 and 3. The +Heteromeles.arbutifolia means that the presence of HEAR inidicates a site is in group 3, as opposed to group 2. 
+		- Theres always at least one species, sometimes more. 
+	2. twintable(tw_data)
+		- I showed this to you almost a month ago, this is just a redrawing of the species table, but in the form of psuedospecies
+		- If two species show up near each other, it means theyre likely to be found together, and if theyre far apart, then theyre not.
+		- This is the same with sites, close means similar species makeup, far means different species makeup
+		- The 1's and 0's are the binary numbers of each group, and why the summary table has values like 89
+
+The images are dendrograms of the groups created by the twinspan, and they basically tell the same story as the twintable and summary combined. 
+It is just a visual representation of which species are found in the same/different sites, and which sites have similar/different species. 
+In both the INT sites are always the first group out with HEAR being the indicator. 
+
+I can also look into labeling the dendrograms in depth. 
+I leave the data for you to ponder, I apologize for the delay I had to mess around in R to get good figures. 
