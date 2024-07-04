@@ -19,6 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # in terminal, install Homebrew, which installs 'gcc' and includes a 'gfortran' compiler --> /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 # in terminal, install brew install GCC (which includes gfortran): brew install gcc
 
+install.packages("twinspan", repos = "https://jarioksa.github.io/drat/")
 library(twinspan)
 library(vegan) # for data 
 ```
