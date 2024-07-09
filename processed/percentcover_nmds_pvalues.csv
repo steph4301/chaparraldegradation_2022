@@ -1,17 +1,35 @@
-"","species","NMDS1","NMDS2","pvals"
-"1","Avena barbata",-0.746968911058852,-0.225253379286116,0.001
-"2","Bromus diandrus",-0.294417038341478,0.82430595780222,0.001
-"3","Bromus rubens",-0.453541372200607,-0.687909221328413,0.001
-"4","Centaurea melitensis",0.203227351341157,-0.533184651746521,0.002
-"5","Erodium cicutarium",-0.331465498341611,-0.271283438388681,0.011
-"6","Galium porrigens",0.393246913178084,0.128923403745513,0.025
-"7","Heteromeles arbutifolia",0.670473987978431,0.262283344077074,0.001
-"8","Heteromeles arbutifolia dead",0.484459008982089,0.376384846161872,0.001
-"9","Hirschfeldia incana",-0.592015741919519,-0.254372417713907,0.001
-"10","Lupinus spp.",-0.321883573495256,-0.217139117764527,0.041
-"11","Malacothamnus fasciculatus",0.311647866363065,-0.44772649725636,0.001
-"12","Rhamnus ilicifolia",0.456806038111764,-0.0582177938925063,0.001
-"13","Rhamnus ilicifolia dead",0.394728380047051,-0.0698886521666526,0.02
-"14","Rhus ovata",0.408240107198279,0.0497438566849984,0.022
-"15","Salvia leucophylla",0.412621756955096,-0.362174883045613,0.004
-"16","Stipa lepida",0.759316692254818,0.0307599976543961,0.001
+,species,NMDS1,NMDS2,pvals,lifeform,status,lifecycle,family,,
+1,Avena barbata,-0.69053253,-0.2978554,0.001,grass,nonnative,annual,Poaceae,,
+2,Bromus spp.,-0.70963477,0.4993833,0.001,grass,nonnative,annual,Poaceae,,
+3,Ceanothus oliganthus,0.03455099,0.448719,0.018,shrub,native,perennial,Rhamnaceae,,
+4,Galium porrigens,0.3909187,0.2417582,0.017,forb,native,perennial,Rubiaceae,,
+5,Heteromeles arbutifolia,0.49591188,0.63663,0.001,shrub,native,perennial,Rosaceae,,
+6,Hirschfeldia incana,-0.56610391,-0.1746383,0.003,forb,nonnative,annual,Brassicaceae,,
+7,Malacothamnus fasciculatus,0.30231112,-0.2551447,0.031,shrub,native,perennial,Malvaceae,,
+8,Marah macrocarpa,0.04575008,0.4242438,0.039,forb,native,perennial,Cucurbitaceae,,
+9,Rapistrum rugosum,-0.0740724,0.4139058,0.026,forb,nonnative,annual,Brassicaceae,,
+10,Rhamnus ilicifolia,0.3773516,0.3208537,0.002,shrub,native,perennial,Rhamnaceae,,
+11,Rhus ovata,0.39600603,0.1666261,0.027,shrub,native,perennial,Anacardiaceae,,
+12,Salvia leucophylla,0.32644657,-0.7814024,0.001,shrub,native,perennial,Lamiaceae,,
+13,Stipa lepida,0.77544971,0.2014954,0.001,grass,native,perennial,Poaceae,,
+14,unknown2,0.03393348,0.43742,0.05,forb,unknown,unknown,unknown,,
+15,unknown3,0.03393348,0.43742,0.05,unknown,unknown,unknown,unknown,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
