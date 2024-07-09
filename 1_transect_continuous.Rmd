@@ -142,10 +142,12 @@ abcover_full <- abcover_fulljoin_tib %>%
                               species == "dead ARCA" ~ "Artemisia californica dead",
                               species == "dead SALE" ~ "Salvia leucophylla dead",
                               species == "ACGL Acmispon glaber" ~ "Acmispon glaber",
+                              species == "dead Acmispon glaber" ~ "Acmispon glaber dead",
                               species == "Acmispon maritimus - round, sevfl" ~ "Acmispon maritimus",
                               species == "Acmispon strigosus - oval, sevfl" ~ "Acmispon strigosus",
                               species == "Sambucus nigra" ~ "Sambucus mexicana",
                               species == "Blitum californicum" ~ "Chenopodium californicum",
+                              species == "Cryptantha sp." ~ "Cryptantha spp.",
                               TRUE ~ species)) %>% 
    mutate(
       year = as.character(year),
@@ -164,41 +166,41 @@ sort(unique(abcover_full$species))
 ## species characteristics
 
 ```{r load species characteristics, include=TRUE}
-specieslist <- file_transect_2019_load %>% 
+specieslist <- file_transect_2019_load %>%
   dplyr::select(species, lifeform, status, lifecycle, family) %>%
    mutate(status = case_when(status == "Native" ~ "native", # oldname ~ newname
-                                status == "Non-native" ~ "nonnative", 
+                                status == "Non-native" ~ "nonnative",
                                 status == "thatch" ~ "ground",
                                 status == "litter" ~ "ground",
                                 status == "rock" ~ "ground",
-                                TRUE ~ status)) %>% 
+                                TRUE ~ status)) %>%
    mutate(lifeform = case_when(lifeform == "Grass" ~ "grass",
                                 lifeform == "Shrub" ~ "shrub",
                                 lifeform == "Forb" ~ "forb",
                                 lifeform == "thatch" ~ "ground",
                                 lifeform == "litter" ~ "ground",
                                 lifeform == "rock" ~ "ground",
-                                TRUE ~ lifeform)) %>% 
-   mutate(lifecycle = case_when(lifecycle == "Annual" ~ "annual", 
-                                lifecycle == "Perennial" ~ "perennial", 
+                                TRUE ~ lifeform)) %>%
+   mutate(lifecycle = case_when(lifecycle == "Annual" ~ "annual",
+                                lifecycle == "Perennial" ~ "perennial",
                                 lifecycle == "thatch" ~ "ground",
                                 lifecycle == "litter" ~ "ground",
                                 lifecycle == "rock" ~ "ground",
-                                TRUE ~ lifecycle)) %>% 
-   mutate(family = case_when(family == "thatch" ~ "ground", 
-                             family == "litter" ~ "ground", 
+                                TRUE ~ lifecycle)) %>%
+   mutate(family = case_when(family == "thatch" ~ "ground",
+                             family == "litter" ~ "ground",
                              family == "rock" ~ "ground",
-                                TRUE ~ family)) %>% 
-   mutate(species = case_when(species == "BG bare ground" ~ "bare_ground", 
-                                species == "ground" ~ "bare_ground", 
+                                TRUE ~ family)) %>%
+   mutate(species = case_when(species == "BG bare ground" ~ "bare_ground",
+                                species == "ground" ~ "bare_ground",
                                 species == "native_litter" ~ "litter",
                                 species == "nonnative_thatch" ~ "thatch",
                                 species == "Bromus diandrus BRDI" ~ "Bromus diandrus",
-                                species == "Bromus rubens BRRU" ~ "Bromus rubens", 
-                                species == "Bromus hordeaceus BRHO" ~ "Bromus hordeaceus", 
-                                species == "Rapistrum rugosum - round pods" ~ "Rapistrum rugosum", 
-                                species == "HIIN Hirschfeldia incana - long pods" ~ "Hirschfeldia incana", 
-                                species == "Hirschfeldia incana - long pods" ~ "Hirschfeldia incana", 
+                                species == "Bromus rubens BRRU" ~ "Bromus rubens",
+                                species == "Bromus hordeaceus BRHO" ~ "Bromus hordeaceus",
+                                species == "Rapistrum rugosum - round pods" ~ "Rapistrum rugosum",
+                                species == "HIIN Hirschfeldia incana - long pods" ~ "Hirschfeldia incana",
+                                species == "Hirschfeldia incana - long pods" ~ "Hirschfeldia incana",
                                 species == "Salvia lucophylla" ~ "Salvia leucophylla",
                                 species == "Malacothamnus fasciculatus " ~ "Malacothamnus fasciculatus",
                                 species == "dead HEAR" ~ "Heteromeles arbutifolia dead",
@@ -210,8 +212,23 @@ specieslist <- file_transect_2019_load %>%
                                 species == "Acmispon maritimus - round, sevfl" ~ "Acmispon maritimus",
                                 species == "Acmispon strigosus - oval, sevfl" ~ "Acmispon strigosus",
                                 species == "Mirabilis laevis var. crassifolia" ~ "Mirabilis laevis",
-                                TRUE ~ species)) %>% 
-  distinct() 
+                                TRUE ~ species)) %>%
+  add_row(species = "Cryptantha spp.",
+          lifeform = "forb",
+          status = "native",
+          lifecycle = "annual",
+          family = "Boraginaceae ") %>% 
+    add_row(species = "Acmispon glaber dead",
+          lifeform = "forb",
+          status = "native",
+          lifecycle = "annual",
+          family = "Fabaceae ") %>% 
+    add_row(species = "Uropappus lindleyi",
+          lifeform = "forb",
+          status = "native",
+          lifecycle = "annual",
+          family = "Asteraceae   ") %>% 
+  distinct()
 
 #View(specieslist)
 sort(unique(specieslist$species))
@@ -232,15 +249,15 @@ difsp
 
 # # add species to the specieslist
 # new.specieslist <- specieslist %>%
-#   add_row(species = "",
-#           lifeform = "",
-#           status = "",
-#           lifecycle = "",
-#           family = "") 
-#           
+#   add_row(species = "Cryptantha spp.",
+#           lifeform = "forb",
+#           status = "native",
+#           lifecycle = "annual",
+#           family = "Boraginaceae ")
+# #           
 # # Rename species in the specieslist if needed
 # new.specieslist <- specieslist %>%
-#     mutate(species = case_when(species == "Cryptantha sp." ~ "Cryptantha spp.",
+#     mutate(species = case_when(species == "" ~ "",
 #                                TRUE ~ species))
 # 
 # # Rename species in the data frame (abcover_full) if needed
@@ -267,7 +284,7 @@ difsp
 # specieslist <- new.specieslist
 # abcover_full <- new.abcover_full
 # 
-# write.csv(specieslist, file = "specieslist.csv")
+# write.csv(specieslist, file = "processed/specieslist.csv")
 
 ```
 
