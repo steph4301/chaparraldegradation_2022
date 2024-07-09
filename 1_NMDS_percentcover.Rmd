@@ -12,10 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ### library
 ```{r install libraries, message=FALSE}
 
-library(tidyverse) # includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
-library(ggplot2) # data visualization
-library(readr)
-library(dplyr)
+library(tidyverse) # includes ggplot2 - data visulization, dplyr, tidyr, readr, purr, tibble, stringr, forcats
 library(ggpubr) # customize ggplot2 for publication
 library(broom)
 library(AICcmodavg)
@@ -89,7 +86,7 @@ intact <- "#92A587"
 # load abcover_charateristics
 - the df "abcover_charateristics" is from transect_continuous.Rmd
 ```{r load data from transect_continuousdotRMD, include = TRUE}
-view(abcover_charateristics)
+#view(abcover_charateristics)
 
 str(abcover_charateristics)
 
@@ -273,13 +270,19 @@ START data prep code copy/pasted from transect_continuous.Rmd
 # #write.csv(specieslist, file = "specieslist.csv")
 
 ```
-END data prep code copy/pasted from transect_continuous.Rmd
+END data prep code copy/pasted from 1_transect_continuous.Rmd
 
 - omit "ground" to isolate vegetation species 
 ```{r omit groundcover, include=TRUE}
 abcover_full_v_omitground <- abcover_charateristics %>% 
   filter(!(species %in% c("bare_ground", "moss", "rock", "litter", "thatch", "no_species"))) %>% 
-  # run the code below if you want to omit "dead" species and to combine all Bromus into "Bromus spp."
+  #
+  ##
+  ###
+  ##### run the code below if you want to omit "dead" species and to combine all Bromus into "Bromus spp."
+  ##### 
+  ##### 
+  #####
   mutate(species = case_when(species == "Acmispon glaber dead" ~ "Acmispon glaber",
                              species == "Artemisia californica dead" ~ "Artemisia californica",
                              species == "Ceanothus oliganthus dead" ~ "Ceanothus oliganthus",
@@ -398,7 +401,7 @@ head(nmds_above_df)
 nmds_above_df_plotcolor <- ggplot(nmds_above_df, 
                                   aes(x = MDS1, y = MDS2, color = site, shape = site)) +
   geom_point(size = 3, alpha = 0.8) +
-  scale_shape_manual(values = c(16, 17, 1, 2, 3,4, 5)) + 
+  scale_shape_manual(values = c(16, 17, 1, 2, 3, 4, 5)) + 
   scale_color_manual(values = c(site1, site2, intact, intact, intact, intact, intact)) + # in bw
   theme_bw() +
  # theme(legend.position = c(0.1, 0.85)) + # x, y left corner: 0,0
@@ -449,7 +452,18 @@ fit_above_spp <- fit_above %>%
   filter(!species == 'standtype_ID')
 length(fit_above_spp$species) #  <- limited number for visual clarity
 
-#write.csv(fit_above_spp, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/processed/percentcover_nmds_pvalues.csv")
+fit_above_spp_p005 <- fit_above %>% 
+  scores(., display = "vectors") %>% 
+  as.data.frame() %>% 
+  rownames_to_column("species") %>% 
+  full_join(., fit_above_pvals, by = "species") %>% 
+   filter(pvals <= 0.05) %>%
+  filter(!species == 'standtype_ID') %>% 
+  left_join((abcover_charateristics %>% 
+                distinct(species, .keep_all = TRUE) %>%
+               dplyr::select(species, lifeform, status, lifecycle, family)
+             ), by = "species")
+#write.csv(fit_above_spp_p005, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/processed/percentcover_nmds_pvalues.csv")
 ```
 ### - nmds x transect w/ species
 ```{r nmds by transect with species percent cover}
