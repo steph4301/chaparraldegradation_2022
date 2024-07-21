@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# libraries
 ```{r}
 # devtools::install_github("jarioksa/twinspan") # if not installed yet
 
@@ -26,6 +27,7 @@ library(twinspan)
 library(vegan) # for data 
 ```
 
+# Percent cover   
 ```{r load data}
 
 # data were processed and csv's were created in 1_NMDS_percentcover.Rmd
@@ -127,3 +129,13 @@ misclassified(tw)
 # (the dune and sipoo datasets give me no misclassifications, so its likely itll be fine)
 ```
 
+# Seedbank
+
+```{r}
+# the original .csv is located here:
+# seedbank_load_raw <- read.csv("deg_seedbank_20231007.csv", header = TRUE, na.strings=c("","NA"))
+
+seedbank <- read.csv("processed/seedbank_NMDS_202401.csv", header = TRUE) %>% 
+   dplyr::select(!c(X, stand))
+
+```
