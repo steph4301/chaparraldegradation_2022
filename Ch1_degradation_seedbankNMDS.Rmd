@@ -39,7 +39,7 @@ library(ggnewscale)
 # Initial data prep
 ```{r load deg_seedbank csv}
 # 
-seedbank_load_raw <- read.csv("deg_seedbank_20231007.csv", header = TRUE, na.strings=c("","NA"))
+seedbank_load_raw <- read.csv("deg_seedbank_202407.csv", header = TRUE, na.strings=c("","NA"))
 
 seedbank_load <- seedbank_load_raw %>% 
   dplyr::select(c("stand", "site", "soilcore", "depth_name", "treatment", "rep", "species_diversity", "genus_abundance", "lifeform", "status", "lifescycle", "family", "count"))
@@ -146,14 +146,14 @@ unique(seedbank_load_v_omitpretreatment$genus_abundance) # list unique species -
 unique(seedbank_load_v_omitpretreatment$stand_core) # unique stand_core --> 26 = 7 + 10 + 9
 sort(unique(seedbank_load_v_omitpretreatment$family))
 
-# write.csv(seedbank_load_v_omitpretreatment, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/seedbank_load_v_omitpretreatment.csv")
+# write.csv(seedbank_load_v_omitpretreatment, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/processed//old_processed/seedbank_load_v_omitpretreatment.csv")
 ```
 
 # Load clean data 
 
 ### - germination by depth and treatment
 ```{r load standardized germination data, inlude = TRUE}
-germination_m2_raw <- read_xlsx("processed/germination_m2.xlsx")
+germination_m2_raw <- read_xlsx("processed/old_processed/germination_m2.xlsx")
 average_cover <- read.csv("nat_nn_cover.csv", header = TRUE, na.strings=c("","NA"))
 
 germination_depthtreat <- germination_m2_raw %>%
@@ -364,6 +364,7 @@ fit_below_spp_nperg <- fit_below_nperg %>%
   full_join(., fit_below_pvals_nperg, by = "species") %>% 
   filter(pvals <= 0.005) %>% # <-- limited number for visual clarity
   filter(!species == 'standtype_ID')
+#length(fit_below_spp_nperg$species)
 
 #write.csv(fit_below_spp_nperg, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/seedbank_nmds_pvalues.csv")
 # p = 1 --> n = 35 spp
@@ -384,9 +385,17 @@ nmdsbelow_plot_new_nperg <- ggplot(plot_below_df_nperg,
                arrow = arrow(length = unit(0.25, "cm")),
                col = "black") +
   geom_text(data = fit_below_spp_nperg, aes(label = species),  
-            position = position_jitter(width = 0.4, height = 0.5))
+            position = position_jitter(width = 0.4, height = 0.5)) +
+  labs(
+#    x = "NMDS: Seedbank by standtype",
+ #   y = "Percent cover native Shrub (%)",
+    title = "NMDS: Seedbank by standtype"
+    ) 
+  
 nmdsbelow_plot_new_nperg + theme_bw()
+```
 
+```{r}
 # by hillslope
 colnames(plot_below_df_nperg)[colnames(plot_below_df_nperg) == 'site'] <- 'hillslope' # rename "site" to "hillslope"
 
@@ -403,7 +412,10 @@ nmdsbelow_plot_new_nperg <- ggplot(plot_below_df_nperg,
                col = "black") +
   geom_text(data = fit_below_spp_nperg, aes(label = species),  
             position = position_jitter(width = 0.0, height = 0.2)
-            )
+            ) +
+  labs(
+    title = "NMDS: Seedbank by hillslope"
+    )
 nmdsbelow_plot_new_nperg 
 nmdsbelow_plot_new_nperg 
 nmdsbelow_plot_new_nperg 
