@@ -284,7 +284,7 @@ difsp
 # specieslist <- new.specieslist
 # abcover_full <- new.abcover_full
 # 
-# write.csv(specieslist, file = "processed/specieslist.csv")
+# write.csv(specieslist, file = "processed/specieslist.csv") # species and their characteristics :)
 
 ```
 
