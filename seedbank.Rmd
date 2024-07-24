@@ -36,10 +36,10 @@ library(segmented)
 # 3. germination abundance - "genus_abundance" column and "count" column
 # 4. germination of fire followers - ask Rob how he would select for not present in CK but present in treated tray.
 
-#seedbank_load_raw <- read.csv("deg_seedbank_20231007.csv", header = TRUE, na.strings=c("","NA"))
+#seedbank_load_raw <- read.csv("deg_seedbank_202407.csv", header = TRUE, na.strings=c("","NA"))
 #seedbank_load_slice <- seedbank_load_raw %>% slice(1:2127) 
 
-germination_m2_load <- read_xlsx("processed/germination_m2.xlsx")
+germination_m2_load <- read_xlsx("processed/old_processed/germination_m2.xlsx")
 glimpse(germination_m2_load)
 
 average_cover <- read.csv("nat_nn_cover.csv", header = TRUE, na.strings=c("","NA"))
