@@ -85,7 +85,7 @@ intact <- "#92A587"
 
 # load abcover_charateristics
 - the df "abcover_charateristics" is from transect_continuous.Rmd
-```{r load data from transect_continuousdotRMD, include = TRUE}
+```{r load data from 1_transect_continuousdotRMD line 89, include = TRUE}
 #view(abcover_charateristics)
 
 str(abcover_charateristics)
@@ -94,7 +94,7 @@ sort(unique(abcover_charateristics$species))
 sort(unique(abcover_charateristics$site_rep))
 ```
 
-START data prep code copy/pasted from transect_continuous.Rmd
+START data prep code copy/pasted from 1_transect_continuous.Rmd
 ```{r data prep load csv, include=FALSE}
 
 # ### 1. load 2019 point intercept transect data from csv
