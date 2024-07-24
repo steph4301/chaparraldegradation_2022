@@ -29,11 +29,71 @@ library(vegan) # for data
 
 # Percent cover   
 ```{r load data}
+# Aboveground species list with site and characteristics is here: abcover_charateristics (line 89) from 1_transect_continuous.RMD
 
-# data were processed and csv's were created in 1_NMDS_percentcover.Rmd
+data_sppprep <- abcover_charateristics %>% 
+  mutate(distance = sprintf("%02s", distance)) %>% 
+  mutate(species = case_when(
+    site_rep == "2_5" & species == "Bromus spp." ~ "Bromus rubens",   # Modify the species names based on transect_rep
+    site_rep == "2_6" & species == "Bromus spp." ~ "Bromus rubens",
+    site_rep == "2_19" & species == "Bromus spp." ~ "Bromus hordeaceus",
+    site_rep == "INT1_1" & species == "Bromus spp." ~ "Bromus diandrus",
+    TRUE ~ species
+  )) %>% 
+  filter(!(species %in% c("bare_ground", "moss", "rock", "litter", "thatch", "no_species"))) %>% 
+  #
+  ##
+  ###
+  ##### run the code below if you want to omit "dead" species
+  ##### 
+  ##### 
+  #####
+  mutate(species = case_when(species == "Acmispon glaber dead" ~ "Acmispon glaber",
+                             species == "Artemisia californica dead" ~ "Artemisia californica",
+                             species == "Ceanothus oliganthus dead" ~ "Ceanothus oliganthus",
+                             species == "Elymus condensatus dead" ~ "Elymus condensatus",
+                             species == "Heteromeles arbutifolia dead" ~ "Heteromeles arbutifolia",
+                             species == "Malacothamnus fasciculatus dead" ~ "Malacothamnus fasciculatus",
+                             species == "Marah macrocarpa dead" ~ "Marah macrocarpa",
+                             species == "Rhamnus ilicifolia dead" ~ "Rhamnus ilicifolia",
+                             species == "Salvia leucophylla dead" ~ "Salvia leucophylla",
+                             species == "Stipa lepida dead" ~ "Stipa lepida",
+                             species == "Erodium cicutarium" ~ "Erodium spp.",
+                             # species == "Bromus diandrus" ~ "Bromus spp.",
+                             # species == "Bromus hordeaceus" ~ "Bromus spp.",
+                             # species == "Bromus rubens" ~ "Bromus spp.",
+                              TRUE ~ species))
 
-data <- read.csv("processed/twinspan_withdeadspecies.csv", header = TRUE) %>% # df contains percent cover by unique dead and alive species (e.g., "Heteromeles arbutifolia dead" and "Heteromeles arbutifolia") and percent cover by unique Bromus species when they could be identified to species (e.g., "Bromus rubens", "Bromus diandrus", and "Bromus spp.")
-   dplyr::select(!c(X, site))
+#sort(unique(data$species))
+# lumped species include: Erodium spp, Lupinus spp, Cryptantha spp
+
+```
+
+```{r calculate percent cover}
+data_percentcoverprep <- data_sppprep %>% 
+  group_by(site, site_rep, species) %>% 
+  dplyr::summarize(
+    count_per_transect = sum(n_distinct(site_rep_dist)), 
+    percentcover = (count_per_transect/41)
+    ) %>% 
+  dplyr::select(!c(count_per_transect)) 
+
+data_wide <- data_percentcoverprep %>% 
+  tidyr::spread(species, percentcover) %>% # transpose data so columns are species
+  replace(is.na(.), 0)  # replace NA with zeros
+write.csv(data_wide, "processed/twinspan_percentcover.csv")
+  
+data <- data_wide %>% 
+  ungroup() %>% 
+  dplyr::select(!c(site, site_rep)) 
+
+```
+
+
+```{r}
+
+# data <- read.csv("processed/twinspan_withdeadspecies.csv", header = TRUE) %>% # df contains percent cover by unique dead and alive species (e.g., "Heteromeles arbutifolia dead" and "Heteromeles arbutifolia") and percent cover by unique Bromus species when they could be identified to species (e.g., "Bromus rubens", "Bromus diandrus", and "Bromus spp.")
+#   dplyr::select(!c(X, site))
 
 #turning the sites into the row names (for easy reference later)
 rownames(data) <- data[,1]
@@ -130,12 +190,95 @@ misclassified(tw)
 ```
 
 # Seedbank
+ 
+NOTES:
 
-```{r}
-# the original .csv is located here:
-# seedbank_load_raw <- read.csv("deg_seedbank_20231007.csv", header = TRUE, na.strings=c("","NA"))
+There are two files of data for the seedbank:
+1) seedbank_load_raw <- read.csv("deg_seedbank_202407.csv", header = TRUE, na.strings=c("","NA"))
+AND seedbank <- read.csv("processed/seedbank_NMDS_202401.csv", header = TRUE)
 
-seedbank <- read.csv("processed/seedbank_NMDS_202401.csv", header = TRUE) %>% 
-   dplyr::select(!c(X, stand))
+2) germination_m2_load <- read_xlsx("processed/old_processed/germination_m2.xlsx")
+
+```{r do not run, include=FALSE}
+
+# don't run this code
+
+# 
+# seedbank_load <- seedbank_load_raw %>% 
+#   dplyr::select(c("stand", "site", "soilcore", "depth_name", "treatment", "rep", "species_diversity", "genus_abundance", "lifeform", "status", "lifescycle", "family", "count")) %>% 
+#   as_tibble() %>% 
+#    mutate(family = case_when(
+#     family ==  "Asteraceae  " ~ "Asteraceae", # old name ~ new name
+#     family ==  "Cucurbitaceae  " ~ "Cucurbitaceae",
+#     family ==  "Euphorbiaceae  " ~ "Euphorbiaceae",
+#     family ==  "Fabaceae  " ~ "Fabaceae",
+#     family ==  "Juncaceae  " ~ "Juncaceae",
+#     family ==  "Liliaceae  " ~ "Liliaceae",
+#     family ==  "Namaceae  " ~ "Namaceae",
+#     family ==  "Phrymaceae  " ~ "Phrymaceae",
+#     family ==  "Poaceae  " ~ "Poaceae",
+#     family == "Themidaceae  " ~ "Themidaceae", 
+#      TRUE ~ as.character(family)  # Keep other observations unchanged
+#   )) %>% 
+#    mutate(species_diversity = case_when(
+#      species_diversity == "Astragalus trichopodus " ~ "Astragalus trichopodus",
+#      species_diversity == "Erodium spp. "  ~ "Erodium spp.",
+#      species_diversity == "Festuca myuros " ~ "Festuca myuros",
+#      species_diversity == "Lactuca serriola " ~ "Lactuca serriola",
+#      species_diversity ==   "Lupinus bicolor "   ~ "Lupinus bicolor", 
+#      species_diversity ==  "Salvia leucophylla "   ~ "Salvia leucophylla", 
+#      species_diversity == "Thysanocarpus spp. " ~ "Thysanocarpus spp.",     
+#      TRUE ~ as.character(species_diversity)  
+#   )) %>% 
+#    mutate(lifescycle = case_when(
+#      lifescycle == "annual or biannual" ~ "biannual", 
+#        TRUE ~ as.character(lifescycle)  
+#   )) %>% 
+#   mutate(genus_abundance = case_when(
+#     genus_abundance == "Lactuca serriola "  ~ "Lactuca serriola",
+#     genus_abundance == "Lupinus bicolor "   ~ "Lupinus bicolor", 
+#     genus_abundance == "Thysanocarpus spp. "  ~ "Thysanocarpus spp.",
+#     genus_abundance == "Unknown Phrymaceae  " ~ "Unknown Phrymaceae",
+#     TRUE ~ as.character(genus_abundance)  
+#   )) %>% 
+#   mutate(stand_core = paste(site, soilcore, sep = "_")) %>% 
+#   mutate(stand_core_depth = paste(stand_core, depth_name, sep = "_")) %>% 
+#   mutate(stand_core_depth_treat = paste(stand_core_depth, treatment, sep = "_"))
+# 
+# seedbank <- read.csv("processed/seedbank_NMDS_202401.csv", header = TRUE) %>% 
+#    dplyr::select(!c(X, stand))
 
 ```
+
+```{r load data, include=TRUE}
+germination_m2_load <- read_xlsx("processed/old_processed/germination_m2.xlsx")
+
+twin_seed <- germination_m2_load %>% 
+  mutate(species_diversity = case_when(
+    species_diversity == "Bromus madritensis" ~ "Bromus rubens",
+    species_diversity == "Erodium cicutarium" ~ "Erodium spp.",
+    species_diversity == "Erodium moschatum"  ~ "Erodium spp.",
+    species_diversity == "Phacelia viscida" ~ "Phacelia spp.",
+    species_diversity == "Phacelia tanacetifolia"  ~ "Phacelia spp.",
+      TRUE ~ as.character(species_diversity))) %>% 
+  mutate(stand_core = paste(site, soilcore, sep = "_")) %>% 
+  dplyr::select(c(stand_core, species_diversity, n_per_g))
+
+#sort(unique(twin_seed$species_diversity))
+ 
+twin_seed_sum <- twin_seed %>% # group germination counts by soil core and species
+   group_by(stand_core, species_diversity) %>% 
+  dplyr::summarise(total_germ_per_g = sum(n_per_g))
+```
+
+```{r seedbank data wide}
+twin_seed_wide <- twin_seed_sum %>%  
+  tidyr::spread(species_diversity, total_germ_per_g) %>% 
+  replace(is.na(.), 0) 
+
+# write.csv(twin_seed_wide, "processed/twinspan_seedbank.csv")
+```
+
+
+
+
