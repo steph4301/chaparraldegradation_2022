@@ -21,13 +21,20 @@ knitr::opts_chunk$set(echo = TRUE)
 # in terminal, install brew install GCC (which includes gfortran): brew install gcc
 
 #install.packages("twinspan", repos = "https://jarioksa.github.io/drat/")
-#
+
 library(tidyverse)
 library(twinspan)
 library(vegan) # for data 
 ```
 
-# Percent cover   
+# Data Processing
+```{r bringing in the csv you sent me}
+data_pc <- read.csv("twinspan_percentcover.csv")
+rownames(data_pc) <- data_pc[,1]
+data_pc[,1] <- NULL
+```
+
+## Percent cover
 ```{r load data}
 # Aboveground species list with site and characteristics is here: abcover_charateristics (line 89) from 1_transect_continuous.RMD
 
@@ -39,15 +46,11 @@ data_sppprep <- abcover_charateristics %>%
     site_rep == "2_19" & species == "Bromus spp." ~ "Bromus hordeaceus",
     site_rep == "INT1_1" & species == "Bromus spp." ~ "Bromus diandrus",
     TRUE ~ species
-  )) %>% 
-  filter(!(species %in% c("bare_ground", "moss", "rock", "litter", "thatch", "no_species"))) %>% 
-  #
-  ##
-  ###
-  ##### run the code below if you want to omit "dead" species
-  ##### 
-  ##### 
-  #####
+        )) %>% 
+  filter(!(species %in% c("bare_ground", "moss", "rock", "litter", "thatch", "no_species")))  
+
+  # run the code below if you want to omit "dead" species
+  %>%
   mutate(species = case_when(species == "Acmispon glaber dead" ~ "Acmispon glaber",
                              species == "Artemisia californica dead" ~ "Artemisia californica",
                              species == "Ceanothus oliganthus dead" ~ "Ceanothus oliganthus",
@@ -62,7 +65,8 @@ data_sppprep <- abcover_charateristics %>%
                              # species == "Bromus diandrus" ~ "Bromus spp.",
                              # species == "Bromus hordeaceus" ~ "Bromus spp.",
                              # species == "Bromus rubens" ~ "Bromus spp.",
-                              TRUE ~ species))
+                             TRUE ~ species
+                             ))
 
 #sort(unique(data$species))
 # lumped species include: Erodium spp, Lupinus spp, Cryptantha spp
@@ -86,18 +90,14 @@ write.csv(data_wide, "processed/twinspan_percentcover.csv")
 data <- data_wide %>% 
   ungroup() %>% 
   dplyr::select(!c(site, site_rep)) 
-
 ```
 
-
-```{r}
-
+```{r cleaning day}
 # data <- read.csv("processed/twinspan_withdeadspecies.csv", header = TRUE) %>% # df contains percent cover by unique dead and alive species (e.g., "Heteromeles arbutifolia dead" and "Heteromeles arbutifolia") and percent cover by unique Bromus species when they could be identified to species (e.g., "Bromus rubens", "Bromus diandrus", and "Bromus spp.")
 #   dplyr::select(!c(X, site))
 
 #turning the sites into the row names (for easy reference later)
-rownames(data) <- data[,1]
-data[,1] <- NULL
+
 
 data_simplified <- read.csv("processed/twinspan_species.csv", header = TRUE) %>%  # transect "hits" of dead species were renamed as alive (e.g., "Heteromeles arbutifolia dead" ~ "Heteromeles arbutifolia") and all Bromus species were combined into "Bromus spp." (e.g., Bromus diandrus, Bromus rubens, and Bromus hordeaceous ~ "Bromus spp."). Percent cover was then calculated by species. 
    dplyr::select(!c(X, site))
@@ -106,90 +106,9 @@ data_simplified <- read.csv("processed/twinspan_species.csv", header = TRUE) %>%
 rownames(data_simplified) <- data_simplified[,1]
 data_simplified[,1] <- NULL
 data_simplified[,51] <- NULL
-
-
 ```
 
-```{r regular Twinspan}
-
-tw_data <- twinspan(data)
-summary(tw_data)
-
-nodePar <- list(lab.cex = 0.4, pch = c(NA, 19), 
-                cex = 0.4, col = "green3")
-
-plot(as.dendrogram(tw_data, "species"), type = "rectangle", nodePar = nodePar) #creates a dendogram based on species 
-plot(as.dendrogram(tw_data, "quadrat"), type = "rectangle", nodePar = nodePar) #creates a dendogram based on the sample
-
-plot(as.hclust(tw_data, "species")) #creates a Hierarchical Cluster Tree based on the species
-plot(as.hclust(tw_data, "quadrat")) #creates a Hierarchical Cluster Tree based on the sample
-
-twintable(tw_data) #the table of relatedness, 00 is closer to 01 than it is to 11 and vice versa 
-image(tw_data)
-
-misclassified(tw_data) #none~
-```
-
-```{r simple Twinspan}
-
-tw_data_simplified <- twinspan(data_simplified)
-summary(tw_data_simplified)
-plot(as.dendrogram(tw_data_simplified, "species"), type = "rectangle", nodePar = nodePar) #creates a dendogram based on species 
-plot(as.dendrogram(tw_data_simplified, "quadrat"), type = "rectangle", nodePar = nodePar) #creates a dendogram based on the sample
-
-plot(as.hclust(tw_data_simplified, "species")) #creates a Hierarchical Cluster Tree based on the species
-plot(as.hclust(tw_data_simplified, "quadrat")) #creates a Hierarchical Cluster Tree based on the sample
-
-twintable(tw_data_simplified) #the table of relatedness, 00 is closer to 01 than it is to 11 and vice versa 
-image(tw_data_simplified)
-
-misclassified(tw_data_simplified) #none~
-```
-
-
-```{r Twinspan proper}
-#twinspan
-
-data(dune) #from vegan, other options include: varespec, mite, sipoo
-
-tw <- twinspan(x = varespec #,
-               #cutlevels = c(0, 2, 5, 10, 20), #these are the default cut levels
-               #indmax = 7, #the maximum number of indidcators for each division (<= 15)
-               #groupmax = 5, #the minimum group size for division (>= 2)
-               #levmax = 6, #maximum levels of depth (<= 15), how many times itll divide
-               #lind, #whether or not you want certain psuedospecies levels to be considered in the indidcator analysis
-               #lwgt, #weights for species levels
-               #noind #any species you do NOT want to be indicators for some reason
-               )
-
-summary(tw) #this gets us the eigenvalues of each correspondance analysis, and the indidcator pseudospecies
-
-plot(as.dendrogram(tw, "species"), type = "triangle") #creates a dendogram based on species 
-plot(as.dendrogram(tw, "quadrat"), type = "triangle") #creates a dendogram based on the sample
-
-plot(as.hclust(tw, "species")) #creates a Hierarchical Cluster Tree based on the species
-plot(as.hclust(tw, "quadrat")) #creates a Hierarchical Cluster Tree based on the sample
-
-twintable(tw) #the table of relatedness, 00 is closer to 01 than it is to 11 and vice versa 
-image(tw) #a heatmap of the groups
-
-# almost all of these represent the same data, so its likely youll only need the dendograms and hclusters 
-
-# cut(tw) #returns vector of twinspan classes at a given level of hierarchy or classes respecting group heterogeneity for quadrats or species. 
-# eigenvals(tw) #returns the eigenvalues of twinspan divisions. I do not know what the eigenvalues tell us
-```
-
-```{r}
-# This is the error checking thing I mentioned
-# From documentation: twinspan bases its quadrat classification primarily on ordination axis. In some cases this is in conflict with the classification derived from indicator pseudospecies. This function identifies these cases. 
-# Twinspan is not an indicator species analysis, it is a dichotomized ordination analysis that also does a basic indicator species analysis
-# It takes into account the indicator species analysis when it builds its groups, but it can build the groups differently than what the indicator species may imply
-# this function finds those differences. If there are a lot, it may be worth it to look into modern "indicator species analysis" (IDA), if there are few to none, you dont have to worry about it :)
-misclassified(tw) 
-# (the dune and sipoo datasets give me no misclassifications, so its likely itll be fine)
-```
-
-# Seedbank
+## Seedbank data
  
 NOTES:
 
@@ -279,6 +198,77 @@ twin_seed_wide <- twin_seed_sum %>%
 # write.csv(twin_seed_wide, "processed/twinspan_seedbank.csv")
 ```
 
+
+
+
+
+# Twinspan Processing
+
+##example code
+```{r Twinspan proper}
+#twinspan
+
+data(dune) #from vegan, other options include: varespec, mite, sipoo
+
+tw <- twinspan(x = varespec #,
+               #cutlevels = c(0, 2, 5, 10, 20), #these are the default cut levels
+               #indmax = 7, #the maximum number of indidcators for each division (<= 15)
+               #groupmax = 5, #the minimum group size for division (>= 2)
+               #levmax = 6, #maximum levels of depth (<= 15), how many times itll divide
+               #lind, #whether or not you want certain psuedospecies levels to be considered in the indidcator analysis
+               #lwgt, #weights for species levels
+               #noind #any species you do NOT want to be indicators for some reason
+               )
+
+summary(tw) #this gets us the eigenvalues of each correspondance analysis, and the indidcator pseudospecies
+
+plot(as.dendrogram(tw, "species"), type = "triangle") #creates a dendogram based on species 
+plot(as.dendrogram(tw, "quadrat"), type = "triangle") #creates a dendogram based on the sample
+
+plot(as.hclust(tw, "species")) #creates a Hierarchical Cluster Tree based on the species
+plot(as.hclust(tw, "quadrat")) #creates a Hierarchical Cluster Tree based on the sample
+
+twintable(tw) #the table of relatedness, 00 is closer to 01 than it is to 11 and vice versa 
+image(tw) #a heatmap of the groups
+
+# almost all of these represent the same data, so its likely youll only need the dendograms and hclusters 
+
+# cut(tw) #returns vector of twinspan classes at a given level of hierarchy or classes respecting group heterogeneity for quadrats or species. 
+# eigenvals(tw) #returns the eigenvalues of twinspan divisions. I do not know what the eigenvalues tell us
+```
+
+```{r error checking}
+# This is the error checking thing I mentioned
+# From documentation: twinspan bases its quadrat classification primarily on ordination axis. In some cases this is in conflict with the classification derived from indicator pseudospecies. This function identifies these cases. 
+# Twinspan is not an indicator species analysis, it is a dichotomized ordination analysis that also does a basic indicator species analysis
+# It takes into account the indicator species analysis when it builds its groups, but it can build the groups differently than what the indicator species may imply
+# this function finds those differences. If there are a lot, it may be worth it to look into modern "indicator species analysis" (IDA), if there are few to none, you dont have to worry about it :)
+misclassified(tw) 
+# (the dune and sipoo datasets give me no misclassifications, so its likely itll be fine)
+```
+
+
+
+
+## Percent Cover Twinspan
+```{r regular Twinspan}
+tw_data_pc <- twinspan(data_pc)
+summary(tw_data_pc)
+
+nodePar <- list(lab.cex = 0.4, pch = c(NA, 19), 
+                cex = 0.4, col = "green3")
+
+plot(as.dendrogram(tw_data_pc, "species"), type = "rectangle", nodePar = nodePar) #creates a dendogram based on species 
+plot(as.dendrogram(tw_data_pc, "quadrat"), type = "rectangle", nodePar = nodePar) #creates a dendogram based on the sample
+
+plot(as.hclust(tw_data_pc, "species")) #creates a Hierarchical Cluster Tree based on the species
+plot(as.hclust(tw_data_pc, "quadrat")) #creates a Hierarchical Cluster Tree based on the sample
+
+twintable(tw_data_pc) #the table of relatedness, 00 is closer to 01 than it is to 11 and vice versa 
+image(tw_data_pc)
+
+misclassified(tw_data_pc) #none~
+```
 
 
 

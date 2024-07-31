@@ -1,0 +1,100 @@
+> summary(tw_data_pc)
+1) eig=0.367:  +Heteromeles.arbutifolia1 < 1
+  2) eig=0.294:  +Salvia.leucophylla1 +Malacothamnus.fasciculatus1 +Centaurea.melitensis1 +Artemisia.californica1 -Phacelia.hubbyi1 < 2
+    4) eig=0.385:  -Rapistrum.rugosum1 < 0
+      8) N=2: 1_11 1_12 
+      9) eig=0.319:  -Artemisia.californica1 < 0
+        18) N=1: 2_12 
+        19) eig=0.331:  -Bromus.diandrus1 < 0
+          38) N=4: 2_11 2_7 2_8 2_9 
+          39) N=1: 2_2 
+    5) eig=0.218:  +Stipa.lepida1 -Avena.barbata1 -Bromus.diandrus1 +Centaurea.melitensis1 -Hirschfeldia.incana1 < 0
+      10) eig=0.243:  +Bromus.hordeaceus1 +Centaurea.melitensis1 -Erodium.spp.1 < 0
+        20) N=4: 1_1 1_2 2_1 2_3 
+        21) eig=0.192:  +Bromus.hordeaceus1 < 1
+          42) eig=0.31:  +Bromus.rubens1 < 1
+            84) N=1: 2_14 
+            85) N=4: 1_3 2_10 2_13 2_18 
+          43) eig=0.18:  -Centaurea.melitensis1 +Erodium.spp.1 < 1
+            86) N=7: 2_15 2_16 2_17 2_19 2_20 2_5 2_6 
+            87) N=2: 2_21 2_4 
+      11) eig=0.39:  +Bromus.diandrus1 -Erodium.spp.1 < 0
+        22) N=3: 1_13 1_4 1_6 
+        23) eig=0.369:  +Claytonia.perfoliata1 < 1
+          46) eig=0.301:  -Artemisia.californica1 < 0
+            92) N=4: 1_10 1_14 1_7 1_8 
+            93) N=1: 1_9 
+          47) N=1: 1_5 
+  3) eig=0.691:  +Ceanothus.oliganthus1 < 1
+    6) N=4: INT1_1 INT2_1 INT3_1 INT5_1 
+    7) N=1: INT4_1 
+
+> twintable(tw_data_pc)
+                                                                            
+                                    0000000000000000000000000000000000011111
+                                    0000000011111111111111111111111111100001
+                                    00111111000000000000000000111111111     
+                                      011111000011111111111111000111111     
+                                       00001    00000111111111   000001     
+                                                01111000000011   00001 IIIII
+                                                                       NNNNN
+                                    1122        2 22222222  2 1  11    TTTTT
+                                    ____22221122_1________22_2_11__111112354
+                                    1111________1_11111112__2_1__11_________
+                                    1221789212134303856790561434604789511111
+ 111                       unknown3 ---------------------------------------1
+ 111                       unknown2 ---------------------------------------1
+ 111               Marah.macrocarpa ----------------------------1----------1
+ 111           Ceanothus.oliganthus --------------------------1------------1
+ 1101         Carduus.pycnocephalus --1--------------------------------1----
+ 110011          Rhamnus.ilicifolia ------------------------------------1-1-
+ 110011      Pellaea.andromedifolia -----------------------------------1----
+ 110011     Heteromeles.arbutifolia -----------------------------------11111
+ 110011     Apiastrum.angustifolium ------------------------------------1---
+ 110010                  Rhus.ovata ---------------------------1--------111-
+ 110010            Galium.porrigens ----------------------------1------11---
+ 11000           Elymus.condensatus -----------1----------------------111---
+ 10                    Stipa.lepida ------------1-----------1--111111111111-
+ 011                Bromus.diandrus 1111111---111111111111-111-------111---1
+ 0101            Salvia.leucophylla --1-----111-1111111111111-11111111-111--
+ 0101       Dipterostemon.capitatus --------1--1---1-1-1-------1-1--1-1-1---
+ 0101             Bromus.hordeaceus -----------------111111111---1-------1--
+ 0101         Artemisia.californica --1-----11-1-1-111111--111-111111---11--
+ 0100    Malacothamnus.fasciculatus ----1--1--111111-11-111111-11111111---1-
+ 001111               Festuca.myros -----------------11111--1---------------
+ 001111      Eriogonum.fasciculatum -----------------11---------------------
+ 001111             Acmispon.glaber -----------------1-11-1-11--------------
+ 001110          Uropappus.lindleyi ------------------------1---------------
+ 001110             Cryptantha.spp. ------------------------1---------------
+ 00110            Sonchus.oleraceus ------------1---------------------------
+ 00110                Solanum.xanti ------------1--1-1-1----11--1-----------
+ 00110     Chenopodium.californicum ---------------11-----------------------
+ 00110       Calystegia.macrostegia --------------1-------------------------
+ 001011 Pseudognaphalium.luteoalbum ---------------------------1------------
+ 001011    Eriodictyon.crassifolium ----------------------------1-----------
+ 001011              Croton.setiger --------------------------1-------------
+ 001011        Calochortus.clavatus ----------------------------1-----------
+ 001011         Baccharis.pilularis ----------------------------1-----------
+ 001010       Stephanomeria.virgata ----------------------------------1-----
+ 001010           Sambucus.mexicana -------------------------------1--------
+ 001010         Lysimachia.arvensis ------------------------------1---------
+ 001010     Euphorbia.albomarginata ---------------------------------1------
+ 001010        Claytonia.perfoliata ----------------------------------1-----
+ 001010      Astragalus.trichopodus --------------------------------1-------
+ 00100         Centaurea.melitensis ---------------1-1111-11--111111111-----
+ 000111             Phacelia.hubbyi --1111----------------------------------
+ 000111            Mirabilis.laevis ---111----------------------------------
+ 000111    Eschscholzia.californica ---1--1---------------------------------
+ 000111          Acmispon.strigosus ---1------------------------------------
+ 000110          Acmispon.maritimus -----1--1-------------------------------
+ 000101                Lupinus.spp. -------111-1-------------1--------------
+ 000101         Hirschfeldia.incana --11-11111111111111---1-1--11-----------
+ 000101                Erodium.spp. --11---11111-----1------11111-----------
+ 000100           Rapistrum.rugosum 11------------------1-----1-----1-------
+ 000100    Pterostegia.drymarioides ----1-------------1-----1---------------
+ 000100               Avena.barbata 111111111111111111111-1111-1----11------
+ 0000                 Bromus.rubens 1-1111111111-1111111111111111111111-1--1
+40 sites, 52 species
+
+
+
