@@ -1,0 +1,113 @@
+---
+title: "One file to rule all: let's visualize the environmental data by community groups!"
+author: "Stephanie Ma Lucero"
+date: "2024-08-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r libraries, message=FALSE}
+library(here) # similar to set working directory
+library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
+library(ggplot2)
+```
+
+#### load data
+
+```{r load data}
+extracted_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) 
+
+extracted <- extracted_load%>% 
+  dplyr::select(!c(system.index, ID, .geo)) %>% 
+  rename(transect_ID = system_ind, 
+         aspect_degrees = aspect, 
+         elevation_m = elevation, 
+         slope_degrees = slope
+         ) %>% 
+# “southwest-ness” is calculated using: cos (aspect - 225°)
+      mutate(transect_ID = case_when(transect_ID == "1.1" ~ "1.10", # old ~ new
+                                   transect_ID == "2.1" ~ "2.10",
+                                   transect_ID == "2.2" ~ "2.20",
+                                   TRUE ~ transect_ID)) %>% 
+  
+   mutate(
+      aspect_degrees = as.numeric(aspect_degrees),
+      elevation_m = as.integer(elevation_m),
+      slope_degrees = as.numeric(slope_degrees),
+      group_15 = as.character(group_15),
+      group_9 = as.character(group_9),
+      group_6 = as.character(group_6),
+      group_4 = as.character(group_4),
+      group_2 = as.character(group_2),
+      transect_ID = as.character(transect_ID), 
+      fire_history = as.integer(fire_history), 
+      twi = as.numeric(twi)
+   ) #   %>% 
+  # factor(group_15, )
+  
+# view(extracted)
+```
+
+Environmental variables include:
+- aspect (degrees)
+- slope (degrees)
+- elevation (m)
+- hillshade (0-255) - considers sun azimuth and altitude 
+--- definition: hillshading computes __surface illumination as values from 0 to 255__ based on a given compass direction to the sun (azimuth) and a certain altitude above the horizon (altitude). Hillshades are often used to produce maps that are visually appealing.
+- southwestness (-1 to 1)
+
+# ASPECT
+
+```{r}
+hist(extracted$aspect_degrees) # aspect
+
+ggplot(data = extracted, 
+       aes(y = aspect_degrees, x = group_4)) + 
+  geom_point() +
+  theme_classic()
+```
+# SLOPE
+
+```{r}
+hist(extracted$slope_degrees) # slope
+
+ggplot(data = extracted, 
+       aes(y = slope_degrees, x = group_4)) + 
+  geom_point() +
+  theme_classic()
+```
+#SOUTHWESTNESS
+
+```{r}
+hist(extracted$southwestness) # southwestness
+
+ggplot(data = extracted, 
+       aes(y = southwestness, x = group_4)) + 
+  geom_point() +
+  theme_classic()
+```
+#ELEVATION
+```{r}
+hist(extracted$elevation) # elevation
+
+ggplot(data = extracted, 
+       aes(y = elevation_m, x = group_9)) + 
+  geom_point() +
+  theme_classic()
+
+# MAKE a 3d plot here with ---> plotly()
+```
+
+
+```{r}
+hist(extracted$hillshade) # hillshade
+
+ggplot(data = extracted, 
+       aes(y = hillshade, x = group_9)) + 
+  geom_point() +
+  theme_classic()
+```
