@@ -11,6 +11,8 @@ library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, pur
 library(rpart) # for classification and regression trees
 ```
 
+#### load data
+
 ```{r load data}
 extracted_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) 
 
@@ -36,26 +38,42 @@ extracted <- extracted_load%>%
       group_6 = as.character(group_6),
       group_4 = as.character(group_4),
       group_2 = as.character(group_2),
-      transect_ID = as.character(transect_ID)
+      transect_ID = as.character(transect_ID), 
+      fire_history = as.integer(fire_history), 
+      twi = as.numeric(twi)
       )
   
+# view(extracted)
 ```
+
+# GROUPS by ALL 
 
 _Notes on Classification Trees (from ChatGPT)_
 
-Purpose: Classification trees are used to classify an outcome into a discrete set of classes (categories). For example, classifying if an email is spam or not spam.
+_Purpose: Classification trees are used to classify an outcome into a discrete set of classes (categories). For example, classifying if an email is spam or not spam._
 
-How It Works:
+_How It Works:_
+_- Splitting: The algorithm splits the dataset into subsets based on the value of input features. The goal is to create branches that result in the most homogenous subsets._
+_- Decision Nodes and Leaves: Each internal node represents a "test" on an attribute (e.g., whether a feature is above or below a certain value), each branch represents the outcome of the test, and each leaf node represents a class label (decision taken after computing all attributes)._
+_- Gini Impurity or Entropy: To decide the best splits, the algorithm uses metrics like Gini impurity or entropy to measure the homogeneity of the nodes._
 
-Splitting: The algorithm splits the dataset into subsets based on the value of input features. The goal is to create branches that result in the most homogenous subsets.
-Decision Nodes and Leaves: Each internal node represents a "test" on an attribute (e.g., whether a feature is above or below a certain value), each branch represents the outcome of the test, and each leaf node represents a class label (decision taken after computing all attributes).
-Gini Impurity or Entropy: To decide the best splits, the algorithm uses metrics like Gini impurity or entropy to measure the homogeneity of the nodes.
-Example:
+_Example:_
+_A classification tree for predicting whether a patient has a disease based on symptoms might start with a root node testing if the patient has a fever, and then branch into other symptoms like cough and sore throat._
 
-A classification tree for predicting whether a patient has a disease based on symptoms might start with a root node testing if the patient has a fever, and then branch into other symptoms like cough and sore throat.
+Environmental variables include:
+- aspect (degrees)
+- slope (degrees)
+- elevation (m)
+- hillshade (0-255) - considers sun azimuth and altitude 
+--- definition: hillshading computes __surface illumination as values from 0 to 255__ based on a given compass direction to the sun (azimuth) and a certain altitude above the horizon (altitude). Hillshades are often used to produce maps that are visually appealing.
+- southwestness (-1 to 1)
+
 
 ```{r classification tree - group_15}
-model_15 <- rpart(group_15 ~ aspect_degrees + elevation_m + hillshade + slope_degrees + southwestness,  # tree can't handle interacting terms
+
+model_15 <- rpart(group_15 ~ 
+                  #aspect_degrees + elevation_m + hillshade + slope_degrees + southwestness,  # tree can't handle interacting terms
+                   elevation_m + slope_degrees + southwestness, 
                   data = extracted)
 summary(model_15)
 model_15 # data output
@@ -67,7 +85,9 @@ text(model_15, use.n = TRUE)
 ```
 
 ```{r classification tree - group_9}
-model_9 <- rpart(group_9 ~ aspect_degrees + elevation_m + hillshade + slope_degrees + southwestness,  # tree can't handle interacting terms
+model_9 <- rpart(group_9 ~ 
+                   #aspect_degrees + elevation_m + hillshade + slope_degrees + southwestness,  # tree can't handle interacting terms
+                     elevation_m + slope_degrees + southwestness, 
                   data = extracted)
 
 summary(model_9) # data output
@@ -79,7 +99,9 @@ text(model_9, use.n = TRUE)
 ```
 
 ```{r classification tree - group_6}
-model_6 <- rpart(group_6 ~ aspect_degrees + elevation_m + hillshade + slope_degrees + southwestness,  # tree can't handle interacting terms
+model_6 <- rpart(group_6 ~ 
+                   #aspect_degrees + elevation_m + hillshade + slope_degrees + southwestness,  # tree can't handle interacting terms
+                   elevation_m + slope_degrees + southwestness, # southwestness and aspect_degrees result in the same tree
                   data = extracted)
 
 model_6 # data output
@@ -91,10 +113,13 @@ text(model_6, use.n = TRUE)
 ```
 
 ```{r classification tree - group_4}
-model_4 <- rpart(group_4 ~ aspect_degrees + elevation_m + hillshade + slope_degrees + southwestness,  # tree can't handle interacting terms
-                  data = extracted)
+model_4 <- rpart(group_4 ~ 
+                   #aspect_degrees + elevation_m + hillshade + slope_degrees + southwestness,  # tree can't handle interacting terms
+                   elevation_m + slope_degrees + aspect_degrees, # doesn't run with southwestness
+                 data = extracted)
 
 model_4 # data output
+summary(model_4)
 
 # Plotting the tree
 par(mfrow = c(1,2), xpd = NA)
@@ -110,6 +135,8 @@ model_2 # data output
 # model_2 is not a tree, just a root - because there are already two groups so nothing predicts the split.
 
 ```
+
+# GROUPS by ASPECT 
 
 ```{r classification tree - aspect}
 model <- rpart(community_number ~ aspect_degrees, data = extracted)
