@@ -25,6 +25,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(twinspan)
 library(vegan) # for data 
+library(readxl)
 ```
 
 # Data Processing
@@ -195,16 +196,17 @@ twin_seed_wide <- twin_seed_sum %>%
   tidyr::spread(species_diversity, total_germ_per_g) %>% 
   replace(is.na(.), 0) 
 
+twin_seed_df <- as.data.frame(twin_seed_wide)
+
+rownames(twin_seed_df) <- twin_seed_df[,1]
+twin_seed_df[,1] <- NULL
+
 # write.csv(twin_seed_wide, "processed/twinspan_seedbank.csv")
 ```
 
-
-
-
-
 # Twinspan Processing
 
-##example code
+## example code
 ```{r Twinspan proper}
 #twinspan
 
@@ -251,8 +253,8 @@ misclassified(tw)
 
 
 ## Percent Cover Twinspan
-```{r regular Twinspan}
-tw_data_pc <- twinspan(data_pc)
+```{r Percent Twinspan}
+tw_data_pc <- twinspan(data_pc, levmax = 15, groupmin = 2)
 summary(tw_data_pc)
 
 nodePar <- list(lab.cex = 0.4, pch = c(NA, 19), 
@@ -270,5 +272,23 @@ image(tw_data_pc)
 misclassified(tw_data_pc) #none~
 ```
 
+## Seedbank Twinspan
 
+```{r seedbank Twinspan}
+tw_data_seed <- twinspan(twin_seed_df)
+summary(tw_data_seed)
 
+nodePar <- list(lab.cex = 0.4, pch = c(NA, 19), 
+                cex = 0.4, col = "green3")
+
+plot(as.dendrogram(tw_data_seed, "species"), type = "rectangle", nodePar = nodePar) #creates a dendogram based on species 
+plot(as.dendrogram(tw_data_seed, "quadrat"), type = "rectangle", nodePar = nodePar) #creates a dendogram based on the sample
+
+plot(as.hclust(tw_data_seed, "species")) #creates a Hierarchical Cluster Tree based on the species
+plot(as.hclust(tw_data_seed, "quadrat")) #creates a Hierarchical Cluster Tree based on the sample
+
+twintable(tw_data_seed) #the table of relatedness, 00 is closer to 01 than it is to 11 and vice versa 
+image(tw_data_seed)
+
+misclassified(tw_data_seed) #none~
+```

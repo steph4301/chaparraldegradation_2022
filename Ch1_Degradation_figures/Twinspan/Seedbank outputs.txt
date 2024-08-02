@@ -1,0 +1,20 @@
+> summary(tw_data_seed)
+1) eig=0.477:  -Pseudognaphalium californicum1 +Hirschfeldia incana1 -Erigeron canadensis1 < 0
+  2) eig=0.236:  +Ribes spp.1 +Bromus diandrus1 < 1
+    4) N=3: INT2_4 INT2_5 INT2_6 
+    5) eig=0.257:  +Nicotiana glauca1 < 1
+      10) N=1: INT3_9 
+      11) eig=0.218:  -Apiastrum angustifolium1 < 0
+        22) N=4: INT1_1 INT1_2 INT1_3 INT3_8 
+        23) N=1: INT3_7 
+  3) eig=0.44:  -Centaurea melitensis1 -Malacothamnus fasciculatus1 < -1
+    6) eig=0.313:  +Avena barbara1 < 1
+      12) eig=0.293:  +Erodium spp.1 < 1
+        24) N=3: ENH1_1 ENH1_4 ENH1_5 
+        25) N=2: ENH1_2 ENH1_3 
+      13) eig=0.355:  +Acmispon glaber1 < 1
+        26) N=3: ENH2_10 ENH2_7 ENH2_8 
+        27) N=2: ENH2_6 ENH2_9 s
+    7) eig=0.427:  -Astragalus trichopodus1 < 0
+      14) N=4: DEG1_1 DEG1_2 DEG1_3 DEG1_4 
+      15) N=3: DEG2_5 DEG2_6 DEG2_7 
