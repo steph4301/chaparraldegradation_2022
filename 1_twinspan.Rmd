@@ -180,7 +180,11 @@ twin_seed <- germination_m2_load %>%
     species_diversity == "Erodium moschatum"  ~ "Erodium spp.",
     species_diversity == "Phacelia viscida" ~ "Phacelia spp.",
     species_diversity == "Phacelia tanacetifolia"  ~ "Phacelia spp.",
+    # species_diversity == "Unknown D - brown dicot" ~ "Diplacus spp.",
       TRUE ~ as.character(species_diversity))) %>% 
+   # mutate(genus_abundance = case_when(
+   #   genus_abundance == "Unknown Phrymaceae" ~ "Diplacus spp.",
+   #     TRUE ~ as.character(genus_abundance))) %>% 
   mutate(stand_core = paste(site, soilcore, sep = "_")) %>% 
   dplyr::select(c(stand_core, species_diversity, n_per_g))
 
