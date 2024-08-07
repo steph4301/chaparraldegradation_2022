@@ -14,6 +14,51 @@ knitr::opts_chunk$set(echo = TRUE)
 library(here) # similar to set working directory
 library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
 library(ggplot2)
+library(plotly)
+```
+
+```{r colors}
+devtools::install_github("an-bui/calecopal")
+
+library(calecopal)
+# all palettes
+# names(cal_palettes)
+
+# Group_15 colors
+cal_palette(name = "grassdry", n = 15, type = "continuous") 
+
+c15 <- "#E1BC8D" 
+c14 <- "#C6A076" 
+c13 <- "#AB845F" 
+c12 <- "#916849" 
+c11 <- "#7E593A"
+c10 <- "#725532" 
+c9 <- "#66512A" 
+c8 <- "#5B4E23" 
+c7 <- "#504521" 
+c6 <- "#453C1F"
+c5 <- "#3A341D" 
+c4 <- "#383524" 
+c3 <- "#3E3F33" 
+c2 <- "#454943" 
+c1 <- "#4C5454"
+
+
+colors_15 <- c(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15)
+
+# Lifeform colors: shrub, grass, forb
+cal_palette(name = "creek", n = 15, type = "continuous") 
+"#EBDAC9" "#E0C9B6" "#D6B9A4" "#CEAF9A" "#CEBBB0"
+"#CEC7C6" "#BFC1C3" "#9B9F9A" "#767C70" "#606B5A"
+"#546450" "#475E46" "#3B5139" "#2F422B" "#23341E"
+
+# # Status colors: native, exotic 
+# cal_palette(name = "chaparral1", n = 6, type = "continuous") 
+# native <- "#AEBFA8"
+# exotic <- "#F19B34"
+# statuscolors <- c(native, exotic)
+
+
 ```
 
 #### load data
@@ -22,9 +67,8 @@ library(ggplot2)
 extracted_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) 
 
 extracted <- extracted_load%>% 
-  dplyr::select(!c(system.index, ID, .geo)) %>% 
+  dplyr::select(!c(system.index, ID, .geo, aspect)) %>% # omit aspect because INT transects cross from 21 to 350 degrees
   rename(transect_ID = system_ind, 
-         aspect_degrees = aspect, 
          elevation_m = elevation, 
          slope_degrees = slope
          ) %>% 
@@ -35,71 +79,252 @@ extracted <- extracted_load%>%
                                    TRUE ~ transect_ID)) %>% 
   
    mutate(
-      aspect_degrees = as.numeric(aspect_degrees),
+      southwestness = as.numeric(southwestness),
       elevation_m = as.integer(elevation_m),
       slope_degrees = as.numeric(slope_degrees),
       group_15 = as.character(group_15),
-      group_9 = as.character(group_9),
+      group_10 = as.character(group_10),
       group_6 = as.character(group_6),
       group_4 = as.character(group_4),
       group_2 = as.character(group_2),
       transect_ID = as.character(transect_ID), 
       fire_history = as.integer(fire_history), 
-      twi = as.numeric(twi)
-   ) #   %>% 
-  # factor(group_15, )
+      twi = as.numeric(twi), 
+      lat = as.numeric(lat), 
+      long = as.numeric(long)
+   )   %>% 
+   mutate(group_typeconvert = factor(
+     group_typeconvert, levels = c("chaparral", "css", "grass")
+    )
+  ) %>% 
+  mutate(group_2 = factor(
+     group_2, levels = c("HEAR", "no HEAR")
+    )
+  ) %>% 
+   mutate(group_4 = factor(
+     group_4, levels = c("HEAR+CEOL", "HEAR", "SALE+MAFA+ARCA", "PHHU")
+    )
+  ) %>% 
+   mutate(group_6 = factor(
+     group_6, levels = c("HEAR+CEOL", "HEAR", 
+                         "SALE+MAFA+ARCA+STLE+CEME", 
+                         "SALE+MAFA+ARCA+HIIN",
+                         "PHHU", "PHHU+RARU")
+    )
+  ) %>% 
+     mutate(group_10 = factor(
+     group_10, levels = c("HEAR+CEOL", "HEAR", 
+                         "SALE+MAFA+ARCA+STLE+CEME+BRDI",
+                         "SALE+MAFA+ARCA+STLE+CEME+Erodium_spp.",
+                         "SALE+MAFA+ARCA+HIIN+BRHO+CEME",
+                         "SALE+MAFA+ARCA+HIIN+Erodium_spp.",
+                         "PHHU",
+                         "PHHU+BRDI",
+                         "PHHU+ARCA",
+                         "PHHU+RARU")
+    )
+  ) %>% 
+     mutate(group_15 = factor(
+     group_15, levels = c("1", "2", 
+                         "3",
+                         "4",
+                         "5",
+                         "6",
+                         "7",
+                         "8",
+                         "9",
+                         "10", "11", "12", "13", "14", "15")
+    )
+  ) 
   
 # view(extracted)
 ```
 
 Environmental variables include:
-- aspect (degrees)
+- southwestness (-1 to 1)
 - slope (degrees)
 - elevation (m)
 - hillshade (0-255) - considers sun azimuth and altitude 
 --- definition: hillshading computes __surface illumination as values from 0 to 255__ based on a given compass direction to the sun (azimuth) and a certain altitude above the horizon (altitude). Hillshades are often used to produce maps that are visually appealing.
-- southwestness (-1 to 1)
 
-# ASPECT
 
-```{r}
-hist(extracted$aspect_degrees) # aspect
-
-ggplot(data = extracted, 
-       aes(y = aspect_degrees, x = group_4)) + 
-  geom_point() +
-  theme_classic()
-```
-# SLOPE
-
-```{r}
-hist(extracted$slope_degrees) # slope
-
-ggplot(data = extracted, 
-       aes(y = slope_degrees, x = group_4)) + 
-  geom_point() +
-  theme_classic()
-```
 #SOUTHWESTNESS
 
-```{r}
+```{r southwestness normality}
 hist(extracted$southwestness) # southwestness
+# -1  
+# 1
+ggqqplot(extracted$southwestness)
+shapiro.test(extracted$southwestness)
+# Shapiro-Wilk normality test
+# data:  extracted$southwestness
+# W = 0.88105, p-value = 0.0006598 <- not normally distributed
+```
+
+```{r southwestness mean}
+extracted %>%
+  group_by(group_4) %>% 
+  summarise(
+    southwestness_N = length(southwestness),
+    southwestness_mean = mean(southwestness),
+    southwestness_SE = round(((sd(southwestness))/sqrt(length((southwestness)))),2)
+            )
+```
+
+```{r southwestness visuals}
+# boxplot(southwestness ~ group_4,
+#   data = extracted)
 
 ggplot(data = extracted, 
        aes(y = southwestness, x = group_4)) + 
-  geom_point() +
-  theme_classic()
+  # geom_point() +
+  geom_boxplot() +
+  theme_classic() +
+  labs(x = "Community Groups (n = 4)", 
+       y = "Southwestness (-1 = northeast, 1 = southwest)", 
+       title = "Community Groups by Southwestness")
+ 
+ggplot(data = extracted, 
+       aes(y = southwestness, x = group_9)) + 
+  geom_boxplot() +
+  theme_classic() +
+  labs(x = "Community Groups (n = 9)", 
+       y = "Southwestness (-1 = northeast, 1 = southwest)", 
+       title = "Community Groups by Southwestness") +
+  scale_x_discrete(guide = guide_axis(angle = 45)) +
+  ylim(-1, 1)
+
 ```
+
+
+# SLOPE
+
+```{r slope normality}
+hist(extracted$slope_degrees) # slope
+
+ggqqplot(extracted$slope_degrees)
+shapiro.test(extracted$slope_degrees)
+# data:  extracted$slope_degrees
+# W = 0.96687, p-value = 0.2994 <-- normally distributed
+
+```
+
+```{r slope mean}
+extracted %>%
+  group_by(group_4) %>% 
+  summarise(
+    slope_N = length(slope_degrees),
+    slope_mean = mean(slope_degrees),
+    slope_SE = round(((sd(slope_degrees))/sqrt(length((slope_degrees)))),2)
+            )
+
+summary(aov(slope_degrees ~ group_4, data = extracted))
+TukeyHSD((aov(slope_degrees ~ group_4, data = extracted)))
+plot(TukeyHSD((aov(slope_degrees ~ group_4, data = extracted))))
+```
+```{r slope visuals}
+boxplot(slope_degrees ~ group_4,
+  data = extracted)
+
+ggplot(data = extracted, 
+       aes(y = slope_degrees, x = group_4)) + 
+  # geom_point() +
+  geom_boxplot() +
+  theme_classic()
+
+```
+
 #ELEVATION
 ```{r}
 hist(extracted$elevation) # elevation
 
 ggplot(data = extracted, 
        aes(y = elevation_m, x = group_9)) + 
-  geom_point() +
+  # geom_point() +
+  geom_boxplot() +
   theme_classic()
 
-# MAKE a 3d plot here with ---> plotly()
+
+```
+
+# lat x long x elevation
+```{r 3D figure}
+p <- plot_ly(data = extracted, 
+       x = ~elevation_m, y = ~long, z = ~lat, 
+       type = "scatter3d", 
+       mode = 'markers', marker = list(size=5),
+       color = ~group_typeconvert
+       ) %>% 
+   layout(scene = list(
+     xaxis = list(title = 'Elevation (m)'),
+     yaxis = list(title = 'Longitude (E-W)'),
+     zaxis = list(title = 'Latitude (N-S)')
+     )
+     )
+
+
+
+p2 <- plot_ly(data = extracted, 
+       x = ~lat*-1, 
+       y = ~long, 
+       z = ~elevation_m, 
+       type = "scatter3d", 
+       mode = 'markers', marker = list(size=5),
+       color = ~group_typeconvert, colors = (c("green", "purple", "orange"))
+       ) %>% 
+   layout(scene = list(
+      xaxis = list(title = 'Latitude (-1) (S-N)'),
+     yaxis = list(title = 'Longitude (W-E)'),
+      zaxis = list(title = 'Elevation (m)')  
+     )
+     )
+
+p3 <- plot_ly(data = extracted, 
+       x = ~lat*-1, 
+       y = ~long, 
+       z = ~elevation_m, 
+       type = "scatter3d", 
+       mode = 'markers', marker = list(size=10),
+       color = ~group_15, colors = (colors_15)
+       ) %>% 
+   layout(scene = list(
+      xaxis = list(title = 'Latitude (-1) (S-N)'),
+     yaxis = list(title = 'Longitude (W-E)'),
+      zaxis = list(title = 'Elevation (m)')  
+     )
+     )
+
+p_site1 <- plot_ly(data = (extracted %>% filter(site == "site_1")), 
+       x = ~lat*-1, 
+       y = ~long, 
+       z = ~elevation_m, 
+       type = "scatter3d", 
+       mode = 'markers', marker = list(size=10),
+       color = ~group_15,
+       colors = colors_15
+       ) %>% 
+   layout(scene = list(
+      xaxis = list(title = 'Latitude (-1) (S-N)'),
+     yaxis = list(title = 'Longitude (W-E)'),
+      zaxis = list(title = 'Elevation (m)')  
+     )
+     )
+
+p_site2 <- plot_ly(data = (extracted %>% filter(site == "site_2")), 
+       x = ~lat*-1, 
+       y = ~long, 
+       z = ~elevation_m, 
+       type = "scatter3d", 
+       mode = 'markers', marker = list(size=10),
+       color = ~group_15,
+       colors = colors_15
+       ) %>% 
+   layout(scene = list(
+      xaxis = list(title = 'Latitude (-1) (S-N)'),
+     yaxis = list(title = 'Longitude (W-E)'),
+      zaxis = list(title = 'Elevation (m)')  
+     )
+     )
 ```
 
 
@@ -108,6 +333,7 @@ hist(extracted$hillshade) # hillshade
 
 ggplot(data = extracted, 
        aes(y = hillshade, x = group_9)) + 
-  geom_point() +
+   # geom_point() +
+  geom_boxplot() +
   theme_classic()
 ```
