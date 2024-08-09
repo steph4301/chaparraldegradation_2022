@@ -26,7 +26,6 @@ library(calecopal)
 
 # Group_15 colors
 cal_palette(name = "grassdry", n = 15, type = "continuous") 
-
 c15 <- "#E1BC8D" 
 c14 <- "#C6A076" 
 c13 <- "#AB845F" 
@@ -42,11 +41,17 @@ c4 <- "#383524"
 c3 <- "#3E3F33" 
 c2 <- "#454943" 
 c1 <- "#4C5454"
-
-
 colors_15 <- c(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15)
 
-# Lifeform colors: shrub, grass, forb
+# group_4 colors
+cal_palette(name = "grassdry", n = 5, type = "continuous") 
+d <- "#E1BC8D" 
+c <- "#765635" 
+b <- "#5B4E23"
+a <- "#4C5454"
+colors_4 <- c(a, b, c, d)
+
+
 cal_palette(name = "creek", n = 15, type = "continuous") 
 "#EBDAC9" "#E0C9B6" "#D6B9A4" "#CEAF9A" "#CEBBB0"
 "#CEC7C6" "#BFC1C3" "#9B9F9A" "#767C70" "#606B5A"
@@ -264,7 +269,7 @@ p <- plot_ly(data = extracted,
 
 
 
-p2 <- plot_ly(data = extracted, 
+p3 <- plot_ly(data = extracted, 
        x = ~lat*-1, 
        y = ~long, 
        z = ~elevation_m, 
@@ -279,7 +284,7 @@ p2 <- plot_ly(data = extracted,
      )
      )
 
-p3 <- plot_ly(data = extracted, 
+p15 <- plot_ly(data = extracted, 
        x = ~lat*-1, 
        y = ~long, 
        z = ~elevation_m, 
@@ -294,14 +299,13 @@ p3 <- plot_ly(data = extracted,
      )
      )
 
-p_site1 <- plot_ly(data = (extracted %>% filter(site == "site_1")), 
+p4 <- plot_ly(data = extracted, 
        x = ~lat*-1, 
        y = ~long, 
        z = ~elevation_m, 
        type = "scatter3d", 
        mode = 'markers', marker = list(size=10),
-       color = ~group_15,
-       colors = colors_15
+       color = ~group_4, colors = (colors_4)
        ) %>% 
    layout(scene = list(
       xaxis = list(title = 'Latitude (-1) (S-N)'),
@@ -310,14 +314,14 @@ p_site1 <- plot_ly(data = (extracted %>% filter(site == "site_1")),
      )
      )
 
-p_site2 <- plot_ly(data = (extracted %>% filter(site == "site_2")), 
+p_site1 <- plot_ly(data = (extracted %>% filter(site == "site_1")), 
        x = ~lat*-1, 
        y = ~long, 
        z = ~elevation_m, 
        type = "scatter3d", 
        mode = 'markers', marker = list(size=10),
-       color = ~group_15,
-       colors = colors_15
+       color = ~group_4, #group
+       colors = colors_4 #color
        ) %>% 
    layout(scene = list(
       xaxis = list(title = 'Latitude (-1) (S-N)'),
@@ -325,6 +329,24 @@ p_site2 <- plot_ly(data = (extracted %>% filter(site == "site_2")),
       zaxis = list(title = 'Elevation (m)')  
      )
      )
+
+
+p_site2 <- plot_ly(data = (extracted %>% filter(site == "site_2")), 
+       x = ~lat*-1, 
+       y = ~long, 
+       z = ~elevation_m, 
+       type = "scatter3d", 
+       mode = 'markers', marker = list(size=10),
+       color = ~group_4, # grouping 
+       colors = colors_4 # color
+       ) %>% 
+   layout(scene = list(
+      xaxis = list(title = 'Latitude (-1) (S-N)'),
+     yaxis = list(title = 'Longitude (W-E)'),
+      zaxis = list(title = 'Elevation (m)')  
+     )
+     )
+
 ```
 
 
