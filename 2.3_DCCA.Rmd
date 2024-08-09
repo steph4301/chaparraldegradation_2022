@@ -1,0 +1,69 @@
+---
+title: "2.3_DCCA"
+author: "Stephanie Ma Lucero"
+date: "2024-08-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+https://www.davidzeleny.net/anadat-r/doku.php/en:pca_examplesv
+
+```{r}
+# https://www.rdocumentation.org/packages/vegan/versions/2.4-2/topics/decorana
+data(varespec)
+vare.dca <- decorana(varespec)
+vare.dca
+summary(vare.dca)
+plot(vare.dca)
+
+### the detrending rationale:
+gaussresp <- function(x,u) exp(-(x-u)^2/2)
+x <- seq(0,6,length=15) ## The gradient
+u <- seq(-2,8,len=23)   ## The optima
+pack <- outer(x,u,gaussresp)
+matplot(x, pack, type="l", main="Species packing")
+opar <- par(mfrow=c(2,2))
+plot(scores(prcomp(pack)), asp=1, type="b", main="PCA")
+plot(scores(decorana(pack, ira=1)), asp=1, type="b", main="CA")
+plot(scores(decorana(pack)), asp=1, type="b", main="DCA")
+plot(scores(cca(pack ~ x), dis="sites"), asp=1, type="b", main="CCA")
+
+### Let's add some noise:
+noisy <- (0.5 + runif(length(pack)))*pack
+par(mfrow=c(2,1))
+matplot(x, pack, type="l", main="Ideal model")
+matplot(x, noisy, type="l", main="Noisy model")
+par(mfrow=c(2,2))
+plot(scores(prcomp(noisy)), type="b", main="PCA", asp=1)
+plot(scores(decorana(noisy, ira=1)), type="b", main="CA", asp=1)
+plot(scores(decorana(noisy)), type="b", main="DCA", asp=1)
+plot(scores(cca(noisy ~ x), dis="sites"), asp=1, type="b", main="CCA")
+par(opar)
+
+
+```
+
+```{r chatgpt}
+# Load necessary library
+library(vegan)
+
+# Assuming species_data is your species composition dataframe
+# and env_data is your environmental variables dataframe
+
+# Perform CCA
+cca_result <- cca(species_data ~ slope + southwestness + elevation + TWI + solar_radiation, data = varespec)
+
+# Detrending CCA results (the function 'cca' includes a method for DCCA)
+dcca_result <- decorana(cca_result)
+
+# View the results
+summary(dcca_result)
+
+# Plot the results
+plot(dcca_result)
+
+
+```
