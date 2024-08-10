@@ -16,6 +16,8 @@ library(rpart) # for classification and regression trees
 ```{r load data}
 extracted_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) 
 
+# names(extracted_load)
+
 extracted <- extracted_load%>% 
   dplyr::select(!c(system.index, ID, .geo)) %>% 
   rename(transect_ID = system_ind, 
@@ -23,6 +25,7 @@ extracted <- extracted_load%>%
          elevation_m = elevation, 
          slope_degrees = slope
          ) %>% 
+ filter(transect_ID != "1.03") %>% 
 # “southwest-ness” is calculated using: cos (aspect - 225°)
       mutate(transect_ID = case_when(transect_ID == "1.1" ~ "1.10", # old ~ new
                                    transect_ID == "2.1" ~ "2.10",
@@ -34,7 +37,8 @@ extracted <- extracted_load%>%
       elevation_m = as.integer(elevation_m),
       slope_degrees = as.numeric(slope_degrees),
       group_15 = as.character(group_15),
-      group_9 = as.character(group_9),
+       group_3 = as.character(group_3),
+      group_10 = as.character(group_10),
       group_6 = as.character(group_6),
       group_4 = as.character(group_4),
       group_2 = as.character(group_2),
@@ -44,6 +48,7 @@ extracted <- extracted_load%>%
       )
   
 # view(extracted)
+# length(extracted$transect_ID)    # n = 39
 ```
 
 # GROUPS by ALL 
