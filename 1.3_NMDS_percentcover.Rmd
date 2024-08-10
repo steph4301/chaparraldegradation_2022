@@ -43,6 +43,13 @@ cal_palette(name = "chaparral3", n = 3, type = "continuous")
 site1 <- "#DCC27A" 
 site2 <-  "#D98A63"
 intact <- "#92A587" 
+
+# group_3 colors
+cal_palette(name = "grassdry", n = 5, type = "continuous") 
+grass <- "#E1BC8D" 
+css <- "#66512A" 
+chap <- "#4C5454"
+
 # 
 # #species colors
 # HEAR <- "#D3E3CA"
@@ -118,12 +125,16 @@ groups <- groups_load %>%
    mutate(
       site_rep = as.character(site_rep),
       group_15 = as.character(group_15),
-      group_typeconvert = as.character(group_typeconvert),
+      group_3 = as.character(group_3),
       group_10 = as.character(group_10),
       group_6 = as.character(group_6),
       group_4 = as.character(group_4),
       group_2 = as.character(group_2)
-      )
+      ) %>% 
+  as_tibble()
+
+# names(groups)
+# length(groups$site_rep)     # n = 40
 ```
 
 - omit "ground" to isolate vegetation species 
@@ -186,25 +197,25 @@ abcover_byspecies <- abcover_full_v_omitground %>%
                          site_rep == "2.8" ~ "2.08",
                          site_rep == "2.9" ~ "2.09",
    TRUE ~ site_rep))
-#glimpse(abcover_byspecies)
 
-#species list check 
-# abcover_full_v_omitground %>%
-#   filter(site_rep == "1_1") %>%
-#   select(species) %>%
-#     distinct() %>%
-#   pull()
 ```
 
 ```{r left join percent cover and twinspan groups, include=TRUE}
 
-cover_groups <- abcover_byspecies %>% 
+abcover_byspecies_groups <- abcover_byspecies %>% 
   left_join(groups, by = "site_rep")
 
-# view(cover_groups)
-length(unique(cover_groups$site_rep))
-```
+class(abcover_byspecies)
+class(groups)
 
+# view(abcover_byspecies_groups)
+length(unique(abcover_byspecies_groups$site_rep))
+
+```
+```{r cover for group_15}
+# cover_group15 <- abcover_byspecies_groups %>% 
+#   dplyr::select(site, site_rep, species, percentcover, group_15)
+```
 
 # Prepare data for an NMDS
 ```{r transpose percent cover data by species, include=TRUE}
@@ -218,10 +229,9 @@ abcover_byspecies_nmdsprep <- abcover_byspecies_groups %>%
 abcover_byspecies_nmdsprep_num <- abcover_byspecies_nmdsprep %>% 
   # use the ungroup() function to take out grouping
   ungroup() %>% 
-  dplyr::select(!c(site, site_rep)) 
+  dplyr::select(!c(site, site_rep, group_15, group_3, group_10, group_6, group_4, group_2)) 
          
 # glimpse(abcover_byspecies_nmdsprep_num) # only numbers
-# write.csv(abcover_byspecies_nmdsprep, "processed/twinspan_withdeadspecies.csv")
 ```
 
 
@@ -270,24 +280,81 @@ scores(abcover_byspecies_NMDS)
 #  rownames_to_column("stand_core") %>%
 #  full_join(seedbank_bysitecore, by = "stand_core")
 
-nmds_above_df <- data.frame(abcover_byspecies_NMDS$points, abcover_byspecies_nmdsprep) # join NMDS scores and percent cover by species, including columns: site, site_rep, and count_per_transect
+nmds_above_df <- data.frame(abcover_byspecies_NMDS$points, abcover_byspecies_nmdsprep) %>%  # join NMDS scores and percent cover by species, including columns: site, site_rep, and count_per_transect
+    mutate(group_3 = factor(
+     group_3, levels = c("chaparral", "css", "grass")
+    )
+  ) %>% 
+  mutate(group_2 = factor(
+     group_2, levels = c("HEAR", "no HEAR")
+    )
+  ) %>% 
+   mutate(group_4 = factor(
+     group_4, levels = c("HEAR+CEOL", "HEAR", "SALE+MAFA+ARCA", "PHHU")
+    )
+  ) %>% 
+   mutate(group_6 = factor(
+     group_6, levels = c("HEAR+CEOL", "HEAR", 
+                         "SALE+MAFA+ARCA+STLE+CEME", 
+                         "SALE+MAFA+ARCA+HIIN",
+                         "PHHU", "PHHU+RARU")
+    )
+  ) %>% 
+     mutate(group_10 = factor(
+     group_10, levels = c("HEAR+CEOL", "HEAR", 
+                         "SALE+MAFA+ARCA+STLE+CEME+BRDI",
+                         "SALE+MAFA+ARCA+STLE+CEME+Erodium_spp.",
+                         "SALE+MAFA+ARCA+HIIN+BRHO+CEME",
+                         "SALE+MAFA+ARCA+HIIN+Erodium_spp.",
+                         "PHHU",
+                         "PHHU+BRDI",
+                         "PHHU+ARCA",
+                         "PHHU+RARU")
+    )
+  ) %>% 
+     mutate(group_15 = factor(
+     group_15, levels = c("1", "2", 
+                         "3",
+                         "4",
+                         "5",
+                         "6",
+                         "7",
+                         "8",
+                         "9",
+                         "10", "11", "12", "13", "14", "15")
+    )
+  ) 
+  
 head(nmds_above_df)
 ```
 
 # figure 
-### - nmds x site
+### - nmds x group_15
 ```{r ggplot percent cover by species}
 
-nmds_above_df_plotcolor <- ggplot(nmds_above_df, 
-                                  aes(x = MDS1, y = MDS2, color = site, shape = site)) +
-  geom_point(size = 3, alpha = 0.8) +
+nmds_ab_group15_points <- ggplot(nmds_above_df, 
+                                  aes(x = MDS1, y = MDS2, color = group_15, shape = group_3)) +
+  geom_point(size = 5, alpha = 0.8) +
+  theme_bw() +
+  labs(title = "NMDS of species percent cover grouped by twinspan groups (n = 15) ", color = "Group_15")
+
+nmds_ab_group15_points
+# ggsave("Ch1_Degradation_figures/nmds_group15_points.png", nmds_ab_group15_points, width = 8, height = 6)
+
+
+nmds_ab_group15_ellipses <- ggplot(nmds_above_df, 
+                                  aes(x = MDS1, y = MDS2, color = group_15, shape = group_3)) +
+  geom_point(size = 5, alpha = 0.8) +
   # scale_shape_manual(values = c(16, 17, 1, 2, 3, 4, 5)) + 
-  # scale_color_manual(values = c(site1, site2, intact, intact, intact, intact, intact)) + # in bw
+  #scale_color_manual(values = c(chap, chap, css, css, css, css, css, css, css, css, css, grass, grass, grass,grass,grass)) + # in bw
   theme_bw() +
  # theme(legend.position = c(0.1, 0.85)) + # x, y left corner: 0,0
   stat_ellipse(level = .95, linetype = 2, linewidth = 1) +
-  labs(title = "NMDS of transects by species percent cover", color = "Site", shape = "Site")
-nmds_above_df_plotcolor
+  labs(title = "NMDS of species percent cover grouped by twinspan groups (n = 15) ", color = "Group_15")
+nmds_ab_group15_ellipses
+ # 9 groups don't have enough data points to run ellipses on
+ # 6 groups have enough data points --> 6 ellipses! --> Groups: chap = 2, css = 5, 8, 9, grass = 11, 13
+# ggsave("Ch1_Degradation_figures/nmds_group15_ellipses.png", nmds_ab_group15_ellipses, width = 8, height = 6)
 
 ```
 
@@ -367,7 +434,7 @@ nmds.1
 nmds.1
 nmds.1
 #ggsave("Ch1_Degradation_figures/nmds_transectbyspecies.png", nmds.1, width = 8, height = 6)
-#ggsave("Ch1_Degradation_figures/nmds_transectbyspecies_simplified.png", nmds.1, width = 8, height = 6)
+# ggsave("Ch1_Degradation_figures/nmds_transectbyspecies_simplified.png", nmds.1, width = 8, height = 6)
 ```
 
 # EXTRA CODE BELOW 
