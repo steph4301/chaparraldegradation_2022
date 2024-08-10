@@ -307,7 +307,7 @@ difsp
 ### left_join species characteristics
 ```{r left_join species characteristics}
 abcover_charateristics <- abcover_full %>% 
-  left_join(specieslist, by = "species") %>% 
+  left_join(specieslist, by = "species") 
   
 
 #sort(unique(abcover_charateristics$species))
