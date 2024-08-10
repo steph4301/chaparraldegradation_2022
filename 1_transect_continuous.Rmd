@@ -78,10 +78,25 @@ file_transect_2019_load <- read_excel("deg_percentcover_byspecies_bylifeform_202
 # -- Site 2: transects 1-6
 # -- INT1, INT2, INT3, INT4
 
+# Finding species == "Bromus spp." to rename them by species
+# transect2019_bromus <- file_transect_2019_load %>%
+#   filter(grepl("Bromus", species))
+# 
+# transect2019_bromusspp <- file_transect_2019_load %>% 
+#   filter(species == "Bromus spp.")
+
 transect2019 <- file_transect_2019_load %>% 
   dplyr::select(c(site, transect, year, distance, vertical, species)) %>% # select columns to full join with 2024 data
-  filter(year %in% c(2017, 2019)) %>% #filter data to 2019 data
-  dplyr::select(year, site, transect, distance, vertical, species)
+  filter(year %in% c(2017, 2019))  %>% #filter data to 2019 data
+   dplyr::select(year, site, transect, distance, vertical, species) %>% 
+   mutate(species = ifelse(# a condition, a value if the condition is true, and a value if the condition is false
+                              site == 2 & transect == 5 & distance %in% c(2, 6, 9) & species == "Bromus spp.", "Bromus hordeaceus", species)) %>% 
+    mutate(species = ifelse(site == 2 & transect == 5 & distance %in% c(10, 28) & species == "Bromus spp.", "Bromus rubens", species)) %>% 
+    mutate(species = ifelse(site == 2 & transect == 6 & distance %in% c(23, 35, 37) & species == "Bromus spp.", "Bromus hordeaceus", species)) %>% 
+    mutate(species = ifelse(site == "INT1" & transect == 1 & distance %in% c(24) & species == "Bromus spp.", "Bromus diandrus", species))
+
+
+
   
 # View the data (optional)
 #View(transect2019)
@@ -95,7 +110,9 @@ file_transect_2024_load <- read.csv("Transects_2024 - transect.csv", header = TR
 # -- INT5
 transect2024 <- file_transect_2024_load %>%  
   dplyr::select(c(site, transect, year, distance, vertical, species)) %>% 
-  filter(species != "N/A")
+  filter(species != "N/A") %>% 
+   mutate(species = case_when(species == "Bromus spp." ~ "Bromus rubens", # oldname ~ newname
+                              TRUE ~ species))
   
 # View the data (optional)
 #view(transect2024)
