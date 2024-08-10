@@ -73,6 +73,7 @@ colors_status <- c(native, nonnative, unknown)
 
 ```{r load point intercept transect data from csv, include=TRUE}
 file_transect_2019_load <- read_excel("deg_percentcover_byspecies_bylifeform_2024.xlsx", sheet = "2019_data")
+
 # -- years 2017, 2019
 # -- Site 1: transects 1-6
 # -- Site 2: transects 1-6
@@ -96,8 +97,6 @@ transect2019 <- file_transect_2019_load %>%
     mutate(species = ifelse(site == "INT1" & transect == 1 & distance %in% c(24) & species == "Bromus spp.", "Bromus diandrus", species))
 
 
-
-  
 # View the data (optional)
 #View(transect2019)
 #sort(unique(transect2019$transect))
@@ -308,9 +307,12 @@ difsp
 ### left_join species characteristics
 ```{r left_join species characteristics}
 abcover_charateristics <- abcover_full %>% 
-  left_join(specieslist, by = "species")
+  left_join(specieslist, by = "species") %>% 
+  
 
 #sort(unique(abcover_charateristics$species))
+
+# write.csv(abcover_charateristics, file = "processed/ab_specieslistwithcharateristics_08102024.csv") # species and their characteristics :)
 ```
 
 ## leaf type
