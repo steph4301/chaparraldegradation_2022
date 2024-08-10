@@ -43,6 +43,12 @@ c2 <- "#454943"
 c1 <- "#4C5454"
 colors_15 <- c(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15)
 
+# group_3 colors
+cal_palette(name = "grassdry", n = 5, type = "continuous") 
+grass <- "#E1BC8D" 
+css <- "#66512A" 
+chap <- "#4C5454"
+
 # group_4 colors
 cal_palette(name = "grassdry", n = 5, type = "continuous") 
 d <- "#E1BC8D" 
