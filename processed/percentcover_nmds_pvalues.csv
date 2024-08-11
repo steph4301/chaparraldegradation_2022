@@ -1,35 +1,15 @@
-,species,NMDS1,NMDS2,pvals,lifeform,status,lifecycle,family,,
-1,Avena barbata,-0.69053253,-0.2978554,0.001,grass,nonnative,annual,Poaceae,,
-2,Bromus spp.,-0.70963477,0.4993833,0.001,grass,nonnative,annual,Poaceae,,
-3,Ceanothus oliganthus,0.03455099,0.448719,0.018,shrub,native,perennial,Rhamnaceae,,
-4,Galium porrigens,0.3909187,0.2417582,0.017,forb,native,perennial,Rubiaceae,,
-5,Heteromeles arbutifolia,0.49591188,0.63663,0.001,shrub,native,perennial,Rosaceae,,
-6,Hirschfeldia incana,-0.56610391,-0.1746383,0.003,forb,nonnative,annual,Brassicaceae,,
-7,Malacothamnus fasciculatus,0.30231112,-0.2551447,0.031,shrub,native,perennial,Malvaceae,,
-8,Marah macrocarpa,0.04575008,0.4242438,0.039,forb,native,perennial,Cucurbitaceae,,
-9,Rapistrum rugosum,-0.0740724,0.4139058,0.026,forb,nonnative,annual,Brassicaceae,,
-10,Rhamnus ilicifolia,0.3773516,0.3208537,0.002,shrub,native,perennial,Rhamnaceae,,
-11,Rhus ovata,0.39600603,0.1666261,0.027,shrub,native,perennial,Anacardiaceae,,
-12,Salvia leucophylla,0.32644657,-0.7814024,0.001,shrub,native,perennial,Lamiaceae,,
-13,Stipa lepida,0.77544971,0.2014954,0.001,grass,native,perennial,Poaceae,,
-14,unknown2,0.03393348,0.43742,0.05,forb,unknown,unknown,unknown,,
-15,unknown3,0.03393348,0.43742,0.05,unknown,unknown,unknown,unknown,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
-,,,,,,,,,,
+"","species","NMDS1","NMDS2","pvals"
+"1","Avena barbata",-0.756189641736163,-0.189455793983685,0.001
+"2","Bromus diandrus",-0.259690467436892,0.838772749743288,0.001
+"3","Bromus rubens",-0.492600475499078,-0.671952663418409,0.001
+"4","Centaurea melitensis",0.181920144846131,-0.542194830036396,0.001
+"5","Erodium spp.",-0.378500934148495,-0.331675562441549,0.003
+"6","Galium porrigens",0.395212309393631,0.112742615555215,0.026
+"7","Heteromeles arbutifolia",0.667072655557429,0.264191621639994,0.001
+"8","Hirschfeldia incana",-0.607600203491298,-0.225167273411446,0.001
+"9","Lupinus spp.",-0.336229765026493,-0.201276816283985,0.043
+"10","Malacothamnus fasciculatus",0.279452075208231,-0.4357323670242,0.006
+"11","Rhamnus ilicifolia",0.436543005612508,-0.062331434674207,0.001
+"12","Rhus ovata",0.415440073710573,0.0187378738950432,0.012
+"13","Salvia leucophylla",0.40537556623401,-0.390286096902847,0.002
+"14","Stipa lepida",0.761606330611726,-0.00595302848822978,0.001
