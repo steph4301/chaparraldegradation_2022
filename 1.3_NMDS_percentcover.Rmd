@@ -337,7 +337,6 @@ nmds_ab_group15_points <- ggplot(nmds_above_df,
   geom_point(size = 5, alpha = 0.8) +
   theme_bw() +
   labs(title = "NMDS of species percent cover grouped by twinspan groups (n = 15) ", color = "Group_15")
-
 nmds_ab_group15_points
 # ggsave("Ch1_Degradation_figures/nmds_group15_points.png", nmds_ab_group15_points, width = 8, height = 6)
 
@@ -355,6 +354,19 @@ nmds_ab_group15_ellipses
  # 9 groups don't have enough data points to run ellipses on
  # 6 groups have enough data points --> 6 ellipses! --> Groups: chap = 2, css = 5, 8, 9, grass = 11, 13
 # ggsave("Ch1_Degradation_figures/nmds_group15_ellipses.png", nmds_ab_group15_ellipses, width = 8, height = 6)
+
+nmds_ab_group15_scale <- ggplot(nmds_above_df, 
+                                  aes(x = MDS1, y = MDS2, color = group_15, shape = group_3)) +
+  geom_point(size = 5, alpha = 0.8) +
+  theme_bw() +
+   scale_color_manual(values = c("gray1", "green", "gray10", "gray15", "maroon4", "gray25", "gray30","deeppink2", "pink", "gray50", "thistle2", "gray70", "goldenrod", "gray90", "gray95")) +
+  stat_ellipse(level = .95, linetype = 2, linewidth = 1) +
+  labs(title = "NMDS of species percent cover grouped by twinspan groups (n = 15) ", color = "Group_15")
+nmds_ab_group15_scale
+
+
+
+
 
 ```
 
