@@ -9,6 +9,7 @@ output: html_document
 library(here) # similar to set working directory
 library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
 library(rpart) # for classification and regression trees
+library(rpart.plot)
 ```
 
 #### load data
@@ -45,7 +46,53 @@ extracted <- extracted_load%>%
       transect_ID = as.character(transect_ID), 
       fire_history = as.integer(fire_history), 
       twi = as.numeric(twi)
-      )
+      ) %>% 
+  mutate(group_3 = factor(
+     group_3, levels = c("chaparral", "css", "grass")
+    )
+  ) %>% 
+  mutate(group_2 = factor(
+     group_2, levels = c("HEAR", "no HEAR")
+    )
+  ) %>% 
+   mutate(group_4 = factor(
+     group_4, levels = c("HEAR+CEOL", 
+                         "HEAR", 
+                         "SALE+MAFA+ARCA", 
+                         "PHHU")
+    )
+  ) %>% 
+   mutate(group_6 = factor(
+     group_6, levels = c("HEAR+CEOL", "HEAR", 
+                         "SALE+MAFA+ARCA+STLE+CEME", 
+                         "SALE+MAFA+ARCA+HIIN",
+                         "PHHU", "PHHU+RARU")
+    )
+  ) %>% 
+     mutate(group_10 = factor(
+     group_10, levels = c("HEAR+CEOL", "HEAR", 
+                         "SALE+MAFA+ARCA+STLE+CEME+BRDI",
+                         "SALE+MAFA+ARCA+STLE+CEME+Erodium_spp.",
+                         "SALE+MAFA+ARCA+HIIN+BRHO+CEME",
+                         "SALE+MAFA+ARCA+HIIN+Erodium_spp.",
+                         "PHHU",
+                         "PHHU+BRDI",
+                         "PHHU+ARCA",
+                         "PHHU+RARU")
+    )
+  ) %>% 
+     mutate(group_15 = factor(
+     group_15, levels = c("1", "2", 
+                         "3",
+                         "4",
+                         "5",
+                         "6",
+                         "7",
+                         "8",
+                         "9",
+                         "10", "11", "12", "13", "14", "15")
+    )
+  ) 
   
 # view(extracted)
 # length(extracted$transect_ID)    # n = 39
@@ -53,17 +100,17 @@ extracted <- extracted_load%>%
 
 # GROUPS by ALL 
 
-_Notes on Classification Trees (from ChatGPT)_
+Notes on Classification Trees (from ChatGPT)
 
-_Purpose: Classification trees are used to classify an outcome into a discrete set of classes (categories). For example, classifying if an email is spam or not spam._
+Purpose: Classification trees are used to classify an outcome into a discrete set of classes (categories). For example, classifying if an email is spam or not spam.
 
-_How It Works:_
-_- Splitting: The algorithm splits the dataset into subsets based on the value of input features. The goal is to create branches that result in the most homogenous subsets._
-_- Decision Nodes and Leaves: Each internal node represents a "test" on an attribute (e.g., whether a feature is above or below a certain value), each branch represents the outcome of the test, and each leaf node represents a class label (decision taken after computing all attributes)._
-_- Gini Impurity or Entropy: To decide the best splits, the algorithm uses metrics like Gini impurity or entropy to measure the homogeneity of the nodes._
+How It Works:
+- Splitting: The algorithm splits the dataset into subsets based on the value of input features. The goal is to create branches that result in the most homogenous subsets.
+- Decision Nodes and Leaves: Each internal node represents a "test" on an attribute (e.g., whether a feature is above or below a certain value), each branch represents the outcome of the test, and each leaf node represents a class label (decision taken after computing all attributes).
+- Gini Impurity or Entropy: To decide the best splits, the algorithm uses metrics like Gini impurity or entropy to measure the homogeneity of the nodes.
 
-_Example:_
-_A classification tree for predicting whether a patient has a disease based on symptoms might start with a root node testing if the patient has a fever, and then branch into other symptoms like cough and sore throat._
+Example:
+A classification tree for predicting whether a patient has a disease based on symptoms might start with a root node testing if the patient has a fever, and then branch into other symptoms like cough and sore throat.
 
 Environmental variables include:
 - aspect (degrees)
@@ -73,29 +120,129 @@ Environmental variables include:
 --- definition: hillshading computes __surface illumination as values from 0 to 255__ based on a given compass direction to the sun (azimuth) and a certain altitude above the horizon (altitude). Hillshades are often used to produce maps that are visually appealing.
 - southwestness (-1 to 1)
 
+```{r random sampling}
+shuffle_index <- sample(1:nrow(extracted))
+head(shuffle_index)
+train_index <- sample(1:nrow(extracted), 0.7 * nrow(extracted))
+train_data <- extracted[train_index, ]
+test_data <- extracted[-train_index, ]
+
+# tree_model <- rpart(group_15 ~ slope_degrees + elevation_m + southwestness, data = train_data, method = "class")
+# pred <- predict(tree_model, test_data, type = "class")
+# confusion_matrix <- table(Predicted = pred, Actual = test_data$group_15)
+# print(confusion_matrix)
+# 
+# install.packages("caret")     
+# library(caret) # for a small dataset 
+control <- trainControl(method = "cv", number = 10) # 10 folds
+cv_model <- train(group_15 ~ slope_degrees + elevation_m + southwestness, data = extracted, method = "rpart", trControl = control)
+print(cv_model)
+
+set.seed(123)  # For reproducibility
+k <- 10  # Number of folds
+folds <- sample(1:k, nrow(extracted), replace = TRUE)
+
+# Store accuracy results for each fold
+accuracy_results <- numeric(k)
+
+for (i in 1:k) {
+  # Split data into training and validation sets
+  train_data <- extracted[folds != i, ]
+  validation_data <- extracted[folds == i, ]
+  
+  # Build the classification tree model on the training set
+  tree_model <- rpart(group_15 ~ slope_degrees + elevation_m + southwestness, 
+                      data = train_data, 
+                      method = "class")
+  
+  # Predict on the validation set
+  predictions <- predict(tree_model, validation_data, type = "class")
+  
+  # Calculate accuracy for the current fold
+  accuracy <- mean(predictions == validation_data$group_15)
+  accuracy_results[i] <- accuracy
+}
+
+# Calculate the average accuracy across all folds
+mean_accuracy <- mean(accuracy_results)
+print(paste("Mean Accuracy across", k, "folds:", round(mean_accuracy, 3))) # [1] "Mean Accuracy across 10 folds: 0.166" = 16.6% by my classification tree. Random guessing is 1/15 = 6.7%... so my model is better, but still not great 
+
+
+tree_model <- rpart(group_15 ~ slope_degrees + elevation_m + southwestness, data = train_data, method = "class", control = rpart.control(minsplit = 5, minbucket = 1))
+
+# Print the model summary
+print(tree_model)
+rpart.plot(tree_model, type = 3, extra = 102, fallen.leaves = TRUE)
+
+pred <- predict(tree_model, extracted, type = "class")
+table(Predicted = pred, Actual = extracted$group_15)
+```
+
+```{r}
+# Optional: Cross-validation
+printcp(tree_model)
+# Prune the tree
+pruned_tree <- prune(tree_model, cp = tree_model$cptable[which.min(tree_model$cptable[,"xerror"]),"CP"])
+
+# Visualize the pruned tree
+rpart.plot(pruned_tree, type = 3, extra = 102, fallen.leaves = TRUE) # can't prune because there are only three groups predicted
+
+pred_prob <- predict(tree_model, extracted, type = "prob")
+View(pred_prob)  # View the probabilities for each class
+
+
+
+
+extracted_shuffled <- extracted[shuffle_index, ]
+head(extracted_shuffled)
+
+clean_extracted_shuffled <- extracted_shuffled %>% 
+  select(c(elevation_m, slope_degrees, group_15, southwestness))
+glimpse(clean_extracted_shuffled)
+  
+create_train_test <- function(data, size = 0.8, train = TRUE) { # building a function to used in next step
+    n_row = nrow(data)
+    total_row = round(size * n_row)
+    train_sample < - (sample(1:n_row, total_row))
+    if (train == TRUE) {
+        return (data[train_sample, ])
+    } else {
+        return (data[-train_sample, ])
+    }
+}
+
+
+
+data_train <- create_train_test(clean_extracted_shuffled, 0.8, train = TRUE)
+data_test <- create_train_test(clean_extracted_shuffled, 0.8, train = FALSE)
+dim(data_train)
+
+```
 
 ```{r classification tree - group_15}
 
 model_15 <- rpart(group_15 ~ 
                   #aspect_degrees + elevation_m + hillshade + slope_degrees + southwestness,  # tree can't handle interacting terms
+                  # omit aspect_degrees becuase INT transects range from 340 - 20 degrees
                    elevation_m + slope_degrees + southwestness, 
                   data = extracted)
 summary(model_15)
 model_15 # data output
 
-# Plotting the tree
+# Plotting the tree - run 3 lines together
 par(mfrow = c(1,2), xpd = NA)
 plot(model_15)
 text(model_15, use.n = TRUE)
 ```
 
 ```{r classification tree - group_9}
-model_9 <- rpart(group_9 ~ 
+model_10 <- rpart(group_10 ~ 
                    #aspect_degrees + elevation_m + hillshade + slope_degrees + southwestness,  # tree can't handle interacting terms
                      elevation_m + slope_degrees + southwestness, 
                   data = extracted)
 
-summary(model_9) # data output
+summary(model_10) # data output
+model_10
 
 # Plotting the tree
 par(mfrow = c(1,2), xpd = NA)
@@ -120,7 +267,7 @@ text(model_6, use.n = TRUE)
 ```{r classification tree - group_4}
 model_4 <- rpart(group_4 ~ 
                    #aspect_degrees + elevation_m + hillshade + slope_degrees + southwestness,  # tree can't handle interacting terms
-                   elevation_m + slope_degrees + aspect_degrees, # doesn't run with southwestness
+                   elevation_m + slope_degrees + southwestness, # southwestness leads to a root
                  data = extracted)
 
 model_4 # data output
@@ -131,6 +278,21 @@ par(mfrow = c(1,2), xpd = NA)
 plot(model_4)
 text(model_4, use.n = TRUE)
 ```
+
+```{r classification tree - group_3}
+model_3 <- rpart(group_3 ~ 
+                   elevation_m + slope_degrees + aspect_degrees, # doesn't run with southwestness
+                 data = extracted)
+
+model_3 # data output
+summary(model_3)
+
+# Plotting the tree
+par(mfrow = c(1,2), xpd = NA)
+plot(model_3)
+text(model_3, use.n = TRUE)
+```
+
 ```{r classification tree - group_2}
 model_2 <- rpart(group_2 ~ aspect_degrees + elevation_m + hillshade + slope_degrees + southwestness,  # tree can't handle interacting terms
                   data = extracted)
