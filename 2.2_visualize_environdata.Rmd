@@ -97,6 +97,7 @@ extracted <- extracted_load%>%
       group_10 = as.character(group_10),
       group_6 = as.character(group_6),
       group_4 = as.character(group_4),
+      group_3 = as.character(group_3),
       group_2 = as.character(group_2),
       transect_ID = as.character(transect_ID), 
       fire_history = as.integer(fire_history), 
@@ -104,8 +105,8 @@ extracted <- extracted_load%>%
       lat = as.numeric(lat), 
       long = as.numeric(long)
    )   %>% 
-   mutate(group_typeconvert = factor(
-     group_typeconvert, levels = c("chaparral", "css", "grass")
+   mutate(group_3 = factor(
+     group_3, levels = c("chaparral", "css", "grass")
     )
   ) %>% 
   mutate(group_2 = factor(
@@ -196,10 +197,10 @@ ggplot(data = extracted,
        title = "Community Groups by Southwestness")
  
 ggplot(data = extracted, 
-       aes(y = southwestness, x = group_9)) + 
+       aes(y = southwestness, x = group_10)) + 
   geom_boxplot() +
   theme_classic() +
-  labs(x = "Community Groups (n = 9)", 
+  labs(x = "Community Groups (n = 10)", 
        y = "Southwestness (-1 = northeast, 1 = southwest)", 
        title = "Community Groups by Southwestness") +
   scale_x_discrete(guide = guide_axis(angle = 45)) +
