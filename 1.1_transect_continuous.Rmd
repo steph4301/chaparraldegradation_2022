@@ -10,8 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Code to hang on to
-- create a new third column by: mutate(site_rep = paste(site, transect, sep = "_")) %>% # create a new third column
-- combine two columns into one column: unite("lifeform_total", 2:3, sep = "_") # consolidate columns
+- mutate(site_rep = paste(site, transect, sep = "_")) %>% # create a new third column
+- unite("lifeform_status", 6:5, sep = "_") #combines characters in two columns to one column, withoutcreating a third column
 - line types
 -- "solid": A solid line.
 -- "dashed": A dashed line.
@@ -373,26 +373,33 @@ abcover_charateristics_leaftype %>%
 # sort(unique(abcover_full$site_rep))
 ```
 - omit ground
+### edit df 
 ```{r omit ground as a status}
 abcover_omitground <- abcover_charateristics_leaftype %>% 
   filter(vertical != "ground", 
          vertical != "ground cover") %>% 
   filter(species != "no_species", 
-         species != "thatch")
+         species != "thatch") %>% 
+  mutate(lifeform_status = paste(lifeform, status, sep = "_")) %>% 
+  mutate(lifeform_status_leaftype = paste(lifeform_status, leaftype, sep = "_"))
 
-#sort(unique(abcover_omitground$status))
+# sort(unique(abcover_omitground$status))
+# names(abcover_omitground)
 ```
 
-### percent cover by native or non-native stauts - organized by SITE
+### transect percent cover by native or non-native stauts
 ```{r hist percent cover by site and status}
-cover_bystatus <- abcover_omitground %>%
-  group_by(site, transect, site_rep, year, status) %>%
-  dplyr::summarize(
-    count_per_transect = n_distinct(site_rep_dist),
-    percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect, lifeform, and status
-    )
 
-# #view(cover_bystatus)
+# I'm not interested in cover by total native vs. total non-native
+
+# cover_bystatus <- abcover_omitground %>% 
+#   group_by(site, transect, site_rep, year, status) %>%
+#   dplyr::summarize(
+#     count_per_transect = n_distinct(site_rep_dist),
+#     percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect, lifeform, and status
+#     ) 
+
+# # view(cover_bystatus)
 # hist(cover_bystatus$percentcover)
 # 
 # # jitter - by site and status
@@ -403,17 +410,34 @@ cover_bystatus <- abcover_omitground %>%
 
 ```
 
-### percent cover by lifeform x status
+### percent cover by lifeform_status
 ```{r hist percent cover by lifeform and status}
 
-cover_bylfstatus <- abcover_omitground %>%
-  group_by(site, transect, site_rep, year, status, lifeform) %>%
+cover_bylfstatus <- abcover_omitground %>% # total percent cover of shrubs_native
+   group_by(site_rep, lifeform_status) %>%
   dplyr::summarize(
-    count_per_transect = n_distinct(site_rep_dist),
-    percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect, lifeform, and status
-    ) %>%
-  ungroup() %>%
-  unite("lifeform_status", 6:5, sep = "_") #combines characters in two columns to one column, withoutcreating a third column
+    lfstatus_count_per_transect = n_distinct(site_rep_dist),
+    lifeform_status_percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect, lifeform, and status
+    ) %>%  
+    dplyr::select(!c(lfstatus_count_per_transect)) %>% 
+  ungroup() %>% 
+ unite("join", 1:2, sep = "_")
+  
+percentcover <- abcover_omitground %>% 
+   group_by(year, site, transect, site_rep, lifeform_status, lifeform_status_leaftype) %>%
+   dplyr::summarize(
+    leaftype_count_per_transect = n_distinct(site_rep_dist),
+    lifeform_status_leaftype_percentcover = n_distinct(site_rep_dist)/41
+    ) %>%  
+   dplyr::select(!c(leaftype_count_per_transect)) %>% 
+  ungroup() %>% 
+  mutate(join = paste(site_rep, lifeform_status, sep = "_")) %>% 
+  left_join(cover_bylfstatus, by = "join") %>% 
+   dplyr::select(!c(join))
+
+  
+ 
+  
 
 # #view(cover_bystatus_bylf)
 # hist(cover_bylfstatus$percentcover) 
@@ -438,24 +462,21 @@ cover_bylfstatus <- abcover_omitground %>%
 
 ```
 
-### subset data by leaftype
-```{r}
+### percent cover by leaftype
+```{r percent cover by leaftype}
 cover_byleaftype <- abcover_omitground %>% 
-  group_by(site, transect, site_rep, year, status, lifeform, leaftype) %>% 
+  group_by(site_rep, lifeform_status_leaftype) %>% 
   dplyr::summarize(
     count_per_transect = n_distinct(site_rep_dist),
     percentcover = n_distinct(site_rep_dist)/41
-    ) %>% 
-  ungroup() %>% 
-  unite("lifeform_status_leaftype", 5:7, sep = "_") %>% 
-  dplyr::select(!c(count_per_transect))
+    ) 
 ```
 
 - Here I'm transposing the dataframes from long to wide  because I want to visualize native shrub cover by non-native grass cover.
 ```{r transpose}
 cover_bylfstatus_wide <- cover_bylfstatus %>%
    dplyr::select(!c(count_per_transect)) %>%
-   pivot_wider(names_from = lifeform_status, values_from = percentcover) %>%
+   pivot_wider(names_from = lifeform_status_leaftype, values_from = percentcover) %>%
    replace_na(replace = list(grass_native = 0, grass_nonnative = 0,
                              forb_native = 0, forb_nonnative = 0, forb_unknown = 0,
                              shrub_native = 0,
