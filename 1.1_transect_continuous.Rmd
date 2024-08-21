@@ -410,20 +410,23 @@ abcover_omitground <- abcover_charateristics_leaftype %>%
 
 ```
 
-### percent cover by lifeform_status
+### percent cover - by lifeform_status and lifeform_status_leaftype
 ```{r hist percent cover by lifeform and status}
 
 cover_bylfstatus <- abcover_omitground %>% # total percent cover of shrubs_native
-   group_by(site_rep, lifeform_status) %>%
+   group_by(year, site, transect, site_rep, lifeform_status) %>%
   dplyr::summarize(
     lfstatus_count_per_transect = n_distinct(site_rep_dist),
     lifeform_status_percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect, lifeform, and status
     ) %>%  
     dplyr::select(!c(lfstatus_count_per_transect)) %>% 
-  ungroup() %>% 
- unite("join", 1:2, sep = "_")
+  ungroup() 
+
+join_cover <- cover_bylfstatus %>% 
+   dplyr::select(site_rep, lifeform_status, lifeform_status_percentcover) %>%
+  unite("join", 1:2, sep = "_")
   
-percentcover <- abcover_omitground %>% 
+cover_bylfstatusleaftype <- abcover_omitground %>% 
    group_by(year, site, transect, site_rep, lifeform_status, lifeform_status_leaftype) %>%
    dplyr::summarize(
     leaftype_count_per_transect = n_distinct(site_rep_dist),
@@ -432,22 +435,22 @@ percentcover <- abcover_omitground %>%
    dplyr::select(!c(leaftype_count_per_transect)) %>% 
   ungroup() %>% 
   mutate(join = paste(site_rep, lifeform_status, sep = "_")) %>% 
-  left_join(cover_bylfstatus, by = "join") %>% 
+  left_join(join_cover, by = "join") %>% 
    dplyr::select(!c(join))
 
-  
- 
-  
+# view(percentcover)
+```
 
-# #view(cover_bystatus_bylf)
-# hist(cover_bylfstatus$percentcover) 
+```{r view data - lifeform_status_leaftype_percentcover }
+
+# hist(percentcover$lifeform_status_leaftype_percentcover) 
 # 
 # # jitter - all sites
-# cover1 <- ggplot(data = cover_bylfstatus, 
-#        aes(y = percentcover*100, x = site, color = lifeform_status)) + 
-#   geom_point() + 
+# cover1 <- ggplot(data = percentcover,
+#        aes(y = lifeform_status_leaftype_percentcover*100, x = site, color = lifeform_status)) +
+#   geom_point() +
 #   facet_wrap(~lifeform_status)
-# 
+# # 
 # # exclude INT transects
 # ggplot(data = cover_bylfstatus %>% filter(site == "1" | site == "2"), 
 #        aes(y = percentcover*100, x = site, color = lifeform_status)) +
