@@ -123,20 +123,28 @@ Environmental variables include:
 ```{r random sampling}
 shuffle_index <- sample(1:nrow(extracted))
 head(shuffle_index)
+
+tree_model <- rpart(group_15 ~ slope_degrees + elevation_m + southwestness, data = extracted, method = "class", control = rpart.control(minsplit = 5, minbucket = 1))
+tree_model
+rpart.plot(tree_model, type = 3, extra = 102, fallen.leaves = TRUE)
+
+
 train_index <- sample(1:nrow(extracted), 0.7 * nrow(extracted))
 train_data <- extracted[train_index, ]
 test_data <- extracted[-train_index, ]
 
-# tree_model <- rpart(group_15 ~ slope_degrees + elevation_m + southwestness, data = train_data, method = "class")
-# pred <- predict(tree_model, test_data, type = "class")
-# confusion_matrix <- table(Predicted = pred, Actual = test_data$group_15)
-# print(confusion_matrix)
-# 
-# install.packages("caret")     
-# library(caret) # for a small dataset 
-control <- trainControl(method = "cv", number = 10) # 10 folds
-cv_model <- train(group_15 ~ slope_degrees + elevation_m + southwestness, data = extracted, method = "rpart", trControl = control)
-print(cv_model)
+tree_model <- rpart(group_15 ~ slope_degrees + elevation_m + southwestness, data = train_data, method = "class")
+pred <- predict(tree_model, test_data, type = "class")
+confusion_matrix <- table(Predicted = pred, Actual = test_data$group_15)
+print(confusion_matrix)
+
+# with Cross-Validation - instead of shuffling the transects 
+#install.packages("caret")
+library(caret) # for a small dataset
+
+# control <- trainControl(method = "cv", number = 10) # 10 folds
+# cv_model <- train(group_15 ~ slope_degrees + elevation_m + southwestness, data = extracted, method = "rpart", trControl = control)
+# print(cv_model)
 
 set.seed(123)  # For reproducibility
 k <- 10  # Number of folds
@@ -144,31 +152,39 @@ folds <- sample(1:k, nrow(extracted), replace = TRUE)
 
 # Store accuracy results for each fold
 accuracy_results <- numeric(k)
+models <- list() # Initialize a list to store models from each fold
 
-for (i in 1:k) {
+for (i in 1:k) { # function
   # Split data into training and validation sets
   train_data <- extracted[folds != i, ]
   validation_data <- extracted[folds == i, ]
-  
   # Build the classification tree model on the training set
   tree_model <- rpart(group_15 ~ slope_degrees + elevation_m + southwestness, 
                       data = train_data, 
                       method = "class")
-  
   # Predict on the validation set
   predictions <- predict(tree_model, validation_data, type = "class")
-  
   # Calculate accuracy for the current fold
   accuracy <- mean(predictions == validation_data$group_15)
   accuracy_results[i] <- accuracy
+  models[[i]] <- tree_model
 }
 
 # Calculate the average accuracy across all folds
 mean_accuracy <- mean(accuracy_results)
 print(paste("Mean Accuracy across", k, "folds:", round(mean_accuracy, 3))) # [1] "Mean Accuracy across 10 folds: 0.166" = 16.6% by my classification tree. Random guessing is 1/15 = 6.7%... so my model is better, but still not great 
 
+# Visualize the tree from one of the folds (e.g., the first fold)
+selected_model <- models[[1]]
 
-tree_model <- rpart(group_15 ~ slope_degrees + elevation_m + southwestness, data = train_data, method = "class", control = rpart.control(minsplit = 5, minbucket = 1))
+# Plot the tree
+rpart.plot(selected_model, 
+           type = 2,  # Type of plot (0-4), 2 is standard
+           extra = 104,  # Display probability at each leaf
+           under = TRUE,  # Display the split criterion below each node
+           main = "Classification Tree for Fold 1")
+
+tree_model <- rpart(group_15 ~ slope_degrees + elevation_m + southwestness, data = validation_data, method = "class", control = rpart.control(minsplit = 5, minbucket = 1))
 
 # Print the model summary
 print(tree_model)
