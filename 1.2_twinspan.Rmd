@@ -48,10 +48,10 @@ data_sppprep <- abcover_charateristics %>%
     site_rep == "INT1_1" & species == "Bromus spp." ~ "Bromus diandrus",
     TRUE ~ species
         )) %>% 
-  filter(!(species %in% c("bare_ground", "moss", "rock", "litter", "thatch", "no_species")))  
+  filter(!(species %in% c("bare_ground", "moss", "rock", "litter", "thatch", "no_species")))    %>%
 
   # run the code below if you want to omit "dead" species
-  %>%
+
   mutate(species = case_when(species == "Acmispon glaber dead" ~ "Acmispon glaber",
                              species == "Artemisia californica dead" ~ "Artemisia californica",
                              species == "Ceanothus oliganthus dead" ~ "Ceanothus oliganthus",
