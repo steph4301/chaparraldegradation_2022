@@ -522,6 +522,7 @@ nmds.1
 # ggsave("Ch1_Degradation_figures/nmds_transectbyspecies_simplified.png", nmds.1, width = 8, height = 6)
 ```
 
+
 # EXTRA CODE BELOW 
 
 ```{r}
