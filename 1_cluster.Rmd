@@ -1,27 +1,33 @@
 ---
-title: "Using cluster analysis to identify plant groupings among chaparral transects"
+title: "1_cluster_analysis"
 author: "Stephanie Lucero"
 date: "2024-06-13"
 output: html_document
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##### Rmarkdown for Using cluster analysis to identify plant groupings among chaparral transects
+
 load libraries
 ```{r}
-library(MASS)
+# library(MASS)
 library(tidyverse)
 library(here)
-library(stringr)
-library(factoextra)
+# library(stringr)
+# library(factoextra)
 library(cluster)
 library(vegan)
 library(indicspecies)
 library(plotly)
-library(dunn.test)
-library(caret)
-library(rpart)
-library(ggrepel)
-library(ggparty)
-library(factoextra)
+# library(dunn.test)
+# library(caret)
+# library(rpart)
+# library(ggrepel)
+# library(ggparty)
+# library(factoextra)
 
 # Set seed for analyses
 set.seed(3980)
@@ -34,9 +40,6 @@ data_pc <- read.csv("twinspan_percentcover.csv")
 
 rownames(data_pc) <- data_pc[,1]
 data_pc[,1] <- NULL
-
-
-
 
 ```
 
@@ -186,12 +189,11 @@ names(m) <- c( "average", "single", "complete", "ward", "gaverage")
 
 # function to compute coefficient
 ac <- function(x) {
-  agnes(diss_matrix, method = x, diss = TRUE, par.method = -0.25)$ac}
+  agnes(d, method = x, diss = TRUE, par.method = -0.25)$ac}
 
 # Best method?
 map_dbl(m, ac)
-
-# Best method is g average at 0.8563148 
+# Best method is g average at 0.8563148 = Flexible Beta method
 
 
 #########################
@@ -347,6 +349,9 @@ ggplot(isa.diff.sum,
 # Doing 5 clusters! 
 # Beta average
 hcluster.abs.cover <- agnes(d, method = "gaverage", par.method = -0.25)
+# Negative values of beta (e.g., -0.25) make the clustering process more similar to single linkage (minimum distance between clusters).
+
+# Positive values of beta make the process more similar to complete linkage (maximum distance). beta = 0 corresponds to the standard average linkage (UPGMA).
 
 plot(hcluster.abs.cover)
 rect.hclust(hcluster.abs.cover, k = 5)
@@ -355,18 +360,20 @@ rect.hclust(hcluster.abs.cover, k = 5)
 # Cut tree into groups
 sub_grp <- cutree(hcluster.abs.cover, k = 5)
 
-
 # Number of members in each cluster
 table(sub_grp)
 
 # Combine group labels into species matrix
-temp.df <- abs.cover.species.matrix.df %>% 
-  rownames_to_column() 
-
-my_groups <- as.data.frame(sub_grp) %>% 
+temp.df <- data_pc %>%
   rownames_to_column()
 
-abs.cover.subgrp.df <- left_join(temp.df, my_groups, by = "rowname")
+my_groups <- as.data.frame(sub_grp) %>%
+  rownames_to_column()
+
+cluster.subgrp.df <- left_join(temp.df, my_groups, by = "rowname")
+
+plot(hcluster.abs.cover, labels = cluster.subgrp.df$sub_grp, main = "Hierarchical Clustering Dendrogram")
+rect.hclust(hcluster.abs.cover, k = 5)
 
 
 
@@ -392,6 +399,7 @@ trt <- as.character(my_groups$sub_grp)
 
 # There is significant dispersion within groups, and groups are unbalanced --- cannot use MANOVA (adonis)
 anova(betadisper(d, trt))
+# A low p-value (e.g., < 0.05) indicates that the dispersion (variance) among groups is significantly different, meaning that the assumption of homogeneity of dispersion is violated.
 
 mod <- betadisper(d, trt)
 
@@ -404,23 +412,178 @@ plot(mod)
 # Best option is MRPP
 # The key idea is simple: if groups differ, the mean within-group dissimilarity should be smaller
 # than the mean dissimilarity among randomly selected groups of the same size.
-# Sort of low effect size but groups are meaningful!
 results <- mrpp(d, grouping = sub_grp, permutations = 999)
 results
+# Call:
+# mrpp(dat = d, grouping = sub_grp, permutations = 999) 
+# 
+# Dissimilarity index: bray 
+# Weights for groups:  n 
+# 
+# Class means and counts:
+# 
+#       1      2      3      4      5     
+# delta 0.2092 0.2408 0.1518 0.1582 0.1561 <- within-group dissimilarity
+# n     10     7      10     8      5     
+# 
+# Chance corrected within-group agreement A: 0.592 
+# Based on observed delta 0.1835 and expected delta 0.4498  <- randomly selected groups
+# 
+# Significance of delta: 0.001 <- p-value yay!
+# Permutation: free
+# Number of permutations: 999
+```
 
+
+### NMDS
+#### Visualize community differences 
+
+```{r}
+
+######
+######### NMDS abs cover
+
+# Define cluster groupings from above
+
+# NAME data set
+# df <- abs.cover.species.matrix.df %>% 
+#   column_to_rownames("RowNames")
+
+# Calculate distance measure matrix, Bray is the best for community data
+d <- vegdist(df, method = "bray") 
+hcluster <- agnes(d, method = "gaverage", par.method = -0.25)
+
+# Cut tree into groups
+hcluster.abs.cover <- agnes(d, method = "gaverage", par.method = -0.25)
+sub_grp <- cutree(hcluster.abs.cover, k = 5)
+
+my_groups <- as.data.frame(sub_grp) %>% 
+  rownames_to_column()
+
+# NMDS
+# dimcheckMDS(df,
+         #   distance = "bray",
+         #   k = 10,
+          #  trymax = 400,
+          #  autotransform = FALSE)
+
+
+# Picking k=3 for small stress value, and interpretation
+mds <- metaMDS(df, k = 3, trymax = 400, autotransform = FALSE)
+
+mds$stress
+# k = 2D: stress test = 0.1648784
+# k = 3D: stress test = 0.1128948
+# k = 4D: stress test = 0.0831275
+
+stressplot(mds) # A Shepard plot compares the observed dissimilarities (distances in the original data) to the fitted distances (distances in the reduced NMDS space).
+gof <- goodness(mds) # Higher values indicate points that are poorly represented in the reduced-dimensional space, contributing more to the stress
+gof
+# min(gof) = 0.010
+# max(gof) = 0.031 <- relationships in your data are well represented!
+
+plot(mds, display = "sites", type = "none")
+points(mds, display = "sites", cex = 2* # 2x for visibility
+         gof/mean(gof)) # standardized by the mean
+# larger points = less well represented
+
+
+# Plot NMDS
+mds.df <- vegan::scores(mds, display = "sites") %>% 
+  as.data.frame() %>% 
+  rownames_to_column("Sites") %>% 
+  rownames_to_column("rowname") %>% 
+  full_join(my_groups, by = "rowname") %>%
+  mutate(sub_grp = as.character(sub_grp))
+
+
+ggplot(mds.df,
+       aes(x = NMDS1,
+           y = NMDS2,
+           color = sub_grp,
+           shape = sub_grp)) +
+  geom_point(size = 3, alpha = 0.8) +
+  stat_ellipse() + 
+  theme(axis.title = element_text(size = 20)) +
+  theme(axis.text = element_text(size = 16))
+
+
+ggplot(mds.df,
+       aes(x = NMDS2,
+           y = NMDS3,
+           color = sub_grp,
+           shape = sub_grp)) +
+  geom_point(size = 3, alpha = 0.8) +
+  stat_ellipse() + 
+  theme(axis.title = element_text(size = 20)) +
+  theme(axis.text = element_text(size = 16))
+
+
+p <- plot_ly(mds.df,
+        x = ~NMDS1,
+        y = ~NMDS2,
+        z = ~NMDS3,
+        type =  "scatter3d",
+        color=sub_grp)
+p
+
+# vectors
+genp <- envfit(mds, df, perm = 999) # generate p-values 
+
+pv <- pval$vectors$pvals %>% # extract p-values for each species
+  as.data.frame() %>% 
+  rownames_to_column("species") %>% 
+  dplyr::rename("pvals" = ".")
+
+
+# extract coordinates for species, only keep species with p-val = 0.05
+spp <- genp %>% 
+  scores(., display = "vectors") %>% # NMDS1, NMDS2 values
+  as.data.frame() %>% 
+  rownames_to_column("species") %>% 
+  full_join(., pv, by = "species") %>% # join pvalues and spp
+  filter(pvals <= 0.001)# <-- p-value 
+length(spp$species) #  <- limited number for visual clarity
+
+ggplot(mds.df,
+       aes(x = NMDS1,
+           y = NMDS2
+           )) +
+  geom_point(size = 3, alpha = 0.8, aes(color = sub_grp)) +
+   stat_ellipse(aes(color = sub_grp)) +  # Apply color here
+  theme(axis.title = element_text(size = 20)) +
+  theme(axis.text = element_text(size = 16)) +
+  geom_segment(data = spp, 
+               aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
+               arrow = arrow(length = unit(0.25, "cm")),
+               col = "black") +
+  geom_text(data = spp, aes(label = species),  
+            position = position_jitter(width = 0.0, height = 0.1)) +
+   scale_color_manual(values = c("1" = "black", "2" = "red", "3" = "green", "4" = "blue", "5" = "cyan"),
+                     labels = c("1" = "LuHiAv", "2" = "CeStBr", "3" = "HiAvBr", "4" = "FeCeAv", "5" = "HeRhRh")) +
+  scale_shape_manual(values = c("1" = 16, "2" = 17, "3" = 18, "4" = 19, "5" = 20),
+                     labels = c("1" = "LuHiAv", "2" = "CeStBr", "3" = "HiAvBr", "4" = "FeCeAv", "5" = "HeRhRh")) +
+  theme_bw()
 
 ```
 
 
 
+
+
 ```{r}
 
+# NAME data set
+df <- data_pc %>% 
+  dplyr::select(!c(site, site_rep))
+
+d <- vegdist(df, method = "bray")  # Bray-Curtis dissimilarity
 
 # Step 3: Perform hierarchical clustering
-clustering <- hclust(diss_matrix, method = "ward.D2")  # Ward's method
+clustering <- agnes(d, method = "gaverage", par.method = -0.25)
 
 # Step 4: Plot the dendrogram
-plot(clustering, labels = rownames(data), main = "Hierarchical Clustering Dendrogram")
+# plot(clustering, labels = rownames(data), main = "Hierarchical Clustering Dendrogram")
 plot(clustering, labels = data_pc$site_rep, main = "Hierarchical Clustering Dendrogram")
 
 
@@ -437,7 +600,7 @@ cluster_4 <- cutree(clustering, k = 4)  # Cut the tree into 4 clusters
 table(cluster_4)
 data_pc$cluster_4 <- cluster_4
 
-cluster_5 <- cutree(clustering, k = 5)  # Cut the tree into 4 clusters
+cluster_5 <- cutree(clustering, k = 5)  # Cut the tree into 5 clusters
 table(cluster_5)
 data_pc$cluster_5 <- cluster_5
 
@@ -507,6 +670,10 @@ significant_species_4
 
 isa_results_5 <- multipatt(data, cluster_5, control = how(nperm=999)) # <- 5 clusters
 summary(isa_results_5)
+species_pvalues_5 <- isa_results_5$sign
+significant_species_5 <- species_pvalues_5 %>% 
+  filter(p.value <= 0.05)
+significant_species_5
 
 summary()isa_results <- multipatt(data, cluster_6, control = how(nperm=999)) # <- 6 clusters
 
