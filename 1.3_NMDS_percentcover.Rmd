@@ -246,7 +246,7 @@ abcover_byspecies_nmdsprep_num <- abcover_byspecies_nmdsprep %>%
 abcover_byspecies_NMDS <- metaMDS(abcover_byspecies_nmdsprep_num,
                                   autotransform = F, # or T
                                   distance = "bray",   # bray or "raup"
-                  k = 2, #dimentions
+                  k = 2, #dimentions 2D or 3D
                  try = 100, #runs
                  trymax = 100) # this is more appropriate for my data
 
