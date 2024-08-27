@@ -1,5 +1,5 @@
 ---
-title: "ab species richness"
+title: "above ground species richness"
 author: "Stephanie Ma Lucero"
 date: "2024-02-19"
 output: html_document
@@ -10,69 +10,67 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-useful code:
-- names() = column titles
-- head()
-- tail()
-- sort(unique(df$column))
-- class() = tibble or data.frame?
+##### Rmarkdown for analyzing total above ground species richness 
+- combining species lists from point-intercept transects and belt transects
 
-
-# Above ground species richness
-### load 
 ```{r install libraries, message=FALSE}
 
+# Packages
 library(tidyverse) # includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
-library(ggplot2) # data visualization
-library(readr)
-library(dplyr)
-library(ggpubr) # customize ggplot2 for publication
-library(broom)
-library(AICcmodavg)
 library(vegan)
-library(readxl) # for .xls and .xlsx sheets
-library(janitor)
-library(calecopal) 
-library(multcompView)
-library(plotly)
-if (!require(devtools)) {
-  install.packages("devtools")
-}
-devtools::install_github("gavinsimpson/ggvegan")
 library(here)
-library(ggpmisc)
+# library(ggpubr) # customize ggplot2 for publication
+# library(broom)
+# library(AICcmodavg)
+# library(janitor)
+# library(multcompView)
+# library(plotly)
+# if (!require(devtools)) {
+#   install.packages("devtools")
+# }
+# devtools::install_github("gavinsimpson/ggvegan")
+# library(ggpmisc)
 ```
 
 
-```{r load csv}
+
+```{r }
+
+# load colors
+
+# library(calecopal) 
+ 
 # Stand colors: INTACT, MATRIX, DEGRADED 
-cal_palette(name = "chaparral3", n = 3, type = "continuous") 
-deg <- "#D3E3CA"
-mat <- "#92A587"
-int <- "#2F3525"
-standcolors <- c(int, mat, deg)
-
-# Lifeform colors: shrub, grass, forb
-cal_palette(name = "chaparral3", n = 3, type = "continuous") 
-shrub <- "#D3E3CA"
-grass <- "#92A587"
-forb <- "#2F3525"
-lifeformcolors <- c(int, mat, deg)
-
-# Status colors: native, exotic 
-cal_palette(name = "chaparral1", n = 6, type = "continuous") 
-native <- "#AEBFA8"
-exotic <- "#F19B34"
-statuscolors <- c(native, exotic)
+# cal_palette(name = "chaparral3", n = 3, type = "continuous") 
+# deg <- "#D3E3CA"
+# mat <- "#92A587"
+# int <- "#2F3525"
+# standcolors <- c(int, mat, deg)
+# 
+# # Lifeform colors: shrub, grass, forb
+# cal_palette(name = "chaparral3", n = 3, type = "continuous") 
+# shrub <- "#D3E3CA"
+# grass <- "#92A587"
+# forb <- "#2F3525"
+# lifeformcolors <- c(int, mat, deg)
+# 
+# # Status colors: native, exotic 
+# cal_palette(name = "chaparral1", n = 6, type = "continuous") 
+# native <- "#AEBFA8"
+# exotic <- "#F19B34"
+# statuscolors <- c(native, exotic)
 ```
 
 
 ## data prep
 - point intercept transect 
-```{r data prep, include=FALSE}
+```{r}
 
-# point intercept transects
-abcover_full_load <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA"))
+# Read in data
+
+abcover_full_load <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA")) # point-intercept data
+
+file_transect_2019_load <- read_excel("deg_percentcover_byspecies_bylifeform_2024.xlsx", sheet = "2019_data")
 
 ab_sppr_raw <- abcover_full_load %>% 
   dplyr::select(!c(species.1, distance, vertical)) %>% # unselect species.1
@@ -841,6 +839,13 @@ summary(sppdiv_aov)
 ```
 
 
+
+# USEFUL CODE
+- names() = column titles
+- head()
+- tail()
+- sort(unique(df$column))
+- class() = tibble or data.frame?
 
 
 ```{r above ground - species richness - native richness, include = FALSE}
