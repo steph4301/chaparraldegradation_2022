@@ -74,7 +74,7 @@ List of seven unknown species: chaparraldegradation2022 > chaparraldegradation20
 # 2019 belt transect data 
 belt.spp_2019_load <- read.csv(here("deg_beltdensity_byspecies.csv")) 
 
-belt.spp_2019 <- belt_spp_load %>% 
+belt.spp_2019 <- belt.spp_2019_load %>% 
   dplyr::select(site, rep, species) %>% 
   mutate(site_rep = paste(site, rep, sep = ".")) %>% 
   mutate(species = case_when(species == "Bromus madritensis" ~ "Bromus rubens", # old name ~ new name
@@ -91,19 +91,21 @@ belt.spprich <- bind_rows(belt.spp_2019, belt.spp_2024)
 
 ### species characteristics
 sppchar <- read.csv("processed/specieslist.csv") %>% # species and their characteristics :) Created in 1.1_transect_continuous.Rmd
-  dplyr::select(!c(X)) 
+  dplyr::select(!c(X, notes, ejepson)) 
 
 list <- belt.spprich %>% 
-  full_join(sppchar, by = "species")
+  left_join(sppchar, by = "species")
 
 #These are the species that are in belt.spprich that are NOT in the species characteristics list
 a <- sort(unique(belt.spprich$species))
 b <- sort(unique(sppchar$species))
-difbelt <- setdiff(a, b)
-difbelt 
 
-difchar <- setdiff(b, a)
-difchar 
+speciesmissingfrom.sppchar <- setdiff(a, b)
+speciesmissingfrom.sppchar 
+
+speciesmissingfrom.belt <- setdiff(b, a)
+speciesmissingfrom.belt
+
 
 # list of seven unknown species
 unknown.spp <- read_excel("unknown_spp.xlsx")

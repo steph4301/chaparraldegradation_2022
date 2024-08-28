@@ -1,71 +1,112 @@
-"","species","lifeform","status","lifecycle","family"
-"1","Acmispon glaber","forb","native","annual","Fabaceae"
-"2","Acmispon maritimus","forb","native","annual","Fabaceae"
-"3","Acmispon strigosus","forb","native","annual","Fabaceae"
-"4","Apiastrum angustifolium","forb","native","annual","Apiaceae"
-"5","Artemisia californica","shrub","native","perennial","Asteraceae"
-"6","Artemisia californica dead","shrub","native","perennial","Asteraceae"
-"7","Astragalus trichopodus","forb","native","perennial","Fabaceae"
-"8","Avena barbata","grass","nonnative","annual","Poaceae"
-"9","Baccharis pilularis","shrub","native","perennial","Asteraceae"
-"10","bare_ground","ground","ground","ground","ground"
-"11","Bromus diandrus","grass","nonnative","annual","Poaceae"
-"12","Bromus hordeaceus","grass","nonnative","annual","Poaceae"
-"13","Bromus rubens","grass","nonnative","annual","Poaceae"
-"14","Bromus spp.","grass","nonnative","annual","Poaceae"
-"15","Calochortus clavatus","forb","native","perennial","Liliaceae"
-"16","Calystegia macrostegia","forb","native","perennial","Convolvulaceae¬†¬†"
-"17","Carduus pycnocephalus","forb","nonnative","annual","Asteraceae"
-"18","Ceanothus oliganthus","shrub","native","perennial","Rhamnaceae"
-"19","Ceanothus oliganthus dead","shrub","native","perennial","Rhamnaceae"
-"20","Centaurea melitensis","forb","nonnative","annual","Asteraceae"
-"21","Chenopodium californicum","forb","native","perennial","Chenopodiaceae¬†¬†"
-"22","Claytonia perfoliata","forb","native","annual","Montiaceae"
-"23","Croton setiger","forb","native","annual","Euphorbiaceae¬†¬†"
-"24","Heteromeles arbutifolia dead","shrub","native","perennial","Rosaceae"
-"25","Malacothamnus fasciculatus dead","shrub","native","perennial","Malvaceae"
-"26","Rhamnus ilicifolia dead","shrub","native","perennial","Rhamnaceae"
-"27","Dipterostemon capitatus","forb","native","perennial","Themidaceae"
-"28","Elymus condensatus","grass","native","perennial","Poaceae"
-"29","Elymus condensatus dead","grass","native","perennial","Poaceae"
-"30","Eriodictyon crassifolium","shrub","native","perennial","Namaceae"
-"31","Eriogonum fasciculatum","shrub","native","perennial","Polygonaceae"
-"32","Erodium cicutarium","forb","nonnative","annual","Geraniaceae"
-"33","Erodium spp.","forb","nonnative","annual","Geraniaceae"
-"34","Eschscholzia californica","forb","native","annual","Papaveraceae¬†¬†"
-"35","Euphorbia albomarginata","forb","native","perennial","Euphorbiaceae"
-"36","Festuca myros","grass","nonnative","annual","Poaceae"
-"37","Galium porrigens","forb","native","perennial","Rubiaceae"
-"38","Heteromeles arbutifolia","shrub","native","perennial","Rosaceae"
-"39","Hirschfeldia incana","forb","nonnative","annual","Brassicaceae"
-"40","litter","ground","ground","ground","ground"
-"41","Lupinus spp.","forb","native","annual","Fabaceae"
-"42","Lysimachia arvensis","forb","nonnative","annual","Myrsinaceae¬†¬†"
-"43","Malacothamnus fasciculatus","shrub","native","perennial","Malvaceae"
-"44","Marah macrocarpa","forb","native","perennial","Cucurbitaceae"
-"45","Marah macrocarpa dead","forb","native","perennial","Cucurbitaceae"
-"46","Mirabilis laevis","forb","native","perennial","Nyctaginaceae¬†¬†"
-"47","moss","ground","ground","ground","ground"
-"48","no_species",NA,NA,NA,NA
-"49","thatch","ground","ground","ground","ground"
-"50","Pellaea andromedifolia","fern","native","perennial","Pteridaceae"
-"51","Phacelia hubbyi","forb","native","annual","Hydrophyllaceae¬†¬†"
-"52","Pseudognaphalium luteoalbum","forb","nonnative","annual","Asteraceae"
-"53","Pterostegia drymarioides","forb","native","annual","Polygonaceae"
-"54","Rapistrum rugosum","forb","nonnative","annual","Brassicaceae"
-"55","Rhamnus ilicifolia","shrub","native","perennial","Rhamnaceae"
-"56","Rhus ovata","shrub","native","perennial","Anacardiaceae"
-"57","rock","ground","ground","ground","ground"
-"58","Salvia leucophylla","shrub","native","perennial","Lamiaceae"
-"59","Salvia leucophylla dead","shrub","native","perennial","Lamiaceae"
-"60","Sambucus mexicana","shrub","native","perennial","Virburnaceae"
-"61","Solanum xanti","forb","native","perennial","Solanacaeae"
-"62","Sonchus oleraceus","forb","nonnative","annual","Asteraceae"
-"63","Stephanomeria virgata","forb","native","annual","Asteraceae"
-"64","Stipa lepida","grass","native","perennial","Poaceae"
-"65","Stipa lepida dead","grass","native","perennial","Poaceae"
-"66","unknown2","forb","unknown","unknown","unknown"
-"67","unknown3","unknown","unknown","unknown","unknown"
-"68","Cryptantha spp.","forb","native","annual","Boraginaceae "
-"69","Acmispon glaber dead","forb","native","annual","Fabaceae "
-"70","Uropappus lindleyi","forb","native","annual","Asteraceae   "
+,species,lifeform,status,lifecycle,family,notes,ejepson
+1,Acmispon glaber,forb,native,annual,Fabaceae,,
+102,Acmispon glaber dead,forb,native,annual,Fabaceae ,,
+2,Acmispon maritimus,forb,native,annual,Fabaceae,,
+3,Acmispon strigosus,forb,native,annual,Fabaceae,,
+107,Acourtia microcephala,forb,native,perennial,Asteraceae,,
+109,Adiantum capillus-veneris,fern,native,perennial,Pteridaceae,,
+4,Apiastrum angustifolium,forb,native,annual,Apiaceae,,
+5,Artemisia californica,shrub,native,perennial,Asteraceae,,
+6,Artemisia californica dead,shrub,native,perennial,Asteraceae,,
+7,Asclepias fascicularis,forb,native,perennial,Apocynaceae,,Asclepias fascicularis Decne.
+8,Astragalus trichopodus,forb,native,perennial,Fabaceae,,
+9,Avena barbata,grass,nonnative,annual,Poaceae,,
+10,Baccharis pilularis,shrub,native,perennial,Asteraceae,,
+11,bare_ground,ground,ground,ground,ground,,
+12,Blitum californicum,forb,native,perennial,Chenopodiaceae  ,,
+13,Bromus diandrus,grass,nonnative,annual,Poaceae,,
+14,Bromus hordeaceus,grass,nonnative,annual,Poaceae,,
+15,Bromus rubens,grass,nonnative,annual,Poaceae,,
+16,Bromus spp.,grass,nonnative,annual,Poaceae,,
+17,Calochortus clavatus,forb,native,perennial,Liliaceae,,
+18,Calystegia macrostegia,forb,native,perennial,Convolvulaceae,,
+19,Camissoniopsis micrantha,forb,native,annual,Onagraceae  ,,
+20,Carduus pycnocephalus,forb,nonnative,annual,Asteraceae,,
+21,Ceanothus cuneatus,shrub,native,perennial,Rhamnaceae,,
+22,Ceanothus oliganthus,shrub,native,perennial,Rhamnaceae,,
+23,Ceanothus oliganthus dead,shrub,native,perennial,Rhamnaceae,,
+110,Centaurea calcitrapa,forb,nonnative,annual,Asteraceae,purple star thistle,
+24,Centaurea melitensis,forb,nonnative,annual,Asteraceae,,
+25,Chenopodium californicum,forb,native,perennial,Chenopodiaceae,,
+28,Chlorogalum pomeridianum,forb,native,perennial,Agavaceae  ,soap plant,
+31,Claytonia parviflora,forb,native,annual,Montiaceae,,
+27,Claytonia perfoliata,forb,native,annual,Montiaceae,,
+29,Clematis lasiantha,forb,native,perennial,Ranunculaceae  ,herb or vine,
+30,Croton setiger,forb,native,annual,Euphorbiaceae,,
+100,Cryptantha spp.,forb,native,annual,Boraginaceae ,,
+103,Daucus pusillus,forb,native,annual,Apiaceae,American wild carrot,
+36,Dipterostemon capitatus,forb,native,perennial,Themidaceae,,
+37,Elymus condensatus,grass,native,perennial,Poaceae,,
+38,Elymus condensatus dead,grass,native,perennial,Poaceae,,
+39,Emmenanthe penduliflora,forb,native,annual,Hydrophyllaceae,,
+41,Erigeron canadensis,forb,native,annual,Asteraceae,,
+40,Eriodictyon crassifolium,shrub,native,perennial,Namaceae,,
+42,Eriogonum fasciculatum,shrub,native,perennial,Polygonaceae,,
+43,Erodium cicutarium,forb,nonnative,annual,Geraniaceae,,
+44,Erodium spp.,forb,nonnative,annual,Geraniaceae,,
+45,Eschscholzia californica,forb,native,annual,Papaveraceae,,
+46,Eucrypta chrysanthemifolia,forb,native,annual,Hydrophyllaceae,,
+47,Euphorbia albomarginata,forb,native,perennial,Euphorbiaceae,,
+111,Festuca myuros,grass,nonnative,annual,Poaceae,,
+112,Galium californicum,forb,native,perennial,Rubiaceae,,
+48,Galium porrigens,forb,native,perennial,Rubiaceae,,
+49,Galium spp.,forb,native,perennial,Rubiaceae,,
+51,Hesperocnide tenella,forb,native,annual,Urticaceae  ,Western stinging nettle,
+50,Heteromeles arbutifolia,shrub,native,perennial,Rosaceae,,
+32,Heteromeles arbutifolia dead,shrub,native,perennial,Rosaceae,,
+52,Hirschfeldia incana,forb,nonnative,annual,Brassicaceae,,
+53,Lactuca serriola,forb,nonnative,annual,Asteraceae,,
+54,litter,ground,ground,ground,ground,,
+55,Lupinus bicolor,forb,native,annual,Fabaceae,,
+56,Lupinus spp.,forb,native,annual,Fabaceae,,
+57,Lupinus succulentus,forb,native,annual,Fabaceae,,
+58,Lysimachia arvensis,forb,nonnative,annual,Myrsinaceae,,
+59,Malacothamnus fasciculatus,shrub,native,perennial,Malvaceae,,
+33,Malacothamnus fasciculatus dead,shrub,native,perennial,Malvaceae,,
+34,Malacothrix saxitilis,forb,native,perennial,Asteraceae,,
+60,Marah macrocarpa,forb,native,perennial,Cucurbitaceae,,
+61,Marah macrocarpa dead,forb,native,perennial,Cucurbitaceae,,
+62,Medicago polymorpha,forb,nonnative,annual,Fabaceae,,
+63,Mirabilis laevis,forb,native,perennial,Nyctaginaceae,,
+64,moss,ground,ground,ground,ground,,
+65,no_species,NA,NA,NA,NA,,
+67,Pellaea andromedifolia,fern,native,perennial,Pteridaceae,,
+69,Phacelia distans,forb,native,annual,Hydrophyllaceae,,
+70,Phacelia hubbyi,forb,native,annual,Hydrophyllaceae,,
+72,Phacelia spp.,forb,native,annual,Hydrophyllaceae,,
+75,Phacelia tanacetifolia,forb,native,annual,Hydrophyllaceae,,
+78,Phacelia viscida,forb,native,annual,Hydrophyllaceae,,
+82,Pseudognaphalium californicum,forb,native,annual,Asteraceae,,
+73,Pseudognaphalium luteoalbum,forb,nonnative,annual,Asteraceae,,
+76,Pterostegia drymarioides,forb,native,annual,Polygonaceae,,
+79,Quercus agrifolia,tree,native,perennial,Fagaceae  ,,
+83,Rafinesquia californica,forb,native,annual,Asteraceae,California chicory,
+80,Rapistrum rugosum,forb,nonnative,annual,Brassicaceae,,
+84,Rhamnus ilicifolia,shrub,native,perennial,Rhamnaceae,,
+35,Rhamnus ilicifolia dead,shrub,native,perennial,Rhamnaceae,,
+85,Rhus ovata,shrub,native,perennial,Anacardiaceae,,
+86,rock,ground,ground,ground,ground,,
+87,Salvia apiana,shrub,native,perennial,Lamiaceae,,
+88,Salvia leucophylla,shrub,native,perennial,Lamiaceae,,
+89,Salvia leucophylla dead,shrub,native,perennial,Lamiaceae,,
+90,Sambucus mexicana,shrub,native,perennial,Virburnaceae,Sambucus nigra ssp. caerulea is an outdated name,
+91,Sanicula crassicaulis,forb,native,perennial,Apiaceae,,
+93,Solanum douglasii,forb,native,perennial,Solanacaeae,,
+92,Solanum xanti,forb,native,perennial,Solanacaeae,,
+94,Sonchus oleraceus,forb,nonnative,annual,Asteraceae,,
+95,Stephanomeria virgata,forb,native,annual,Asteraceae,,
+96,Stipa lepida,grass,native,perennial,Poaceae,,
+97,Stipa lepida dead,grass,native,perennial,Poaceae,,
+66,thatch,ground,ground,ground,ground,,
+68,Thysanocarpus curvipes,forb,native,annual,Brassicaceae,,
+71,Toxicodendron diversilobum,shrub,native,perennial,Anacardiaceae,shrub or vine,
+74,Trifolium gracilentum,forb,native,annual,Fabaceae,,
+77,Trifolium spp.,forb,native,annual,Fabaceae,,
+81,Trifolium wildenovii,forb,native,annual,Fabaceae,,
+98,unknown2,forb,unknown,unknown,unknown,,
+99,unknown3,unknown,unknown,unknown,unknown,,
+101,unknown4 forb (Aster Family),forb,unknown,unknown,Asteraceae,,
+104,unknown5 shrub,shrub,unknown,perennial,unknown,,
+105,unknown6 forb,forb,unknown,unknown,unknown,,
+108,unknown7 forb,forb,unknown,unknown,unknown,,
+106,Uropappus lindleyi,forb,native,annual,Asteraceae,,
