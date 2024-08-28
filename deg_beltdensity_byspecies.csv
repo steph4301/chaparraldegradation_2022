@@ -1,993 +1,993 @@
-standtype,transectstand,site,transectsite,origin,lifeform,family,species,lifespan,lifestage
-degraded,1,DEG1,1,native,herb,Fabaceae,Acmispon maritimus,annual,not a shrub
-degraded,4,DEG2,1,native,herb,Fabaceae,Acmispon maritimus,annual,not a shrub
-degraded,6,DEG2,3,native,herb,Fabaceae,Acmispon maritimus,annual,not a shrub
-intact,1,Intact1,1,native,fern,Pteridaceae,Adiantum capillus-veneris,Perennial,not a shrub
-degraded,1,DEG1,1,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-degraded,1,DEG1,1,native,shrub,Asteraceae,Artemisia californica,perennial,immature
-degraded,1,DEG1,1,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-degraded,2,DEG1,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-degraded,2,DEG1,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-degraded,3,DEG1,3,native,shrub,Asteraceae,Artemisia californica,perennial,immature
-degraded,3,DEG1,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-degraded,3,DEG1,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-degraded,6,DEG2,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-matrix,1,ENH1,1,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-matrix,2,ENH1,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-matrix,2,ENH1,2,native,shrub,Asteraceae,Artemisia californica,perennial,immature
-matrix,3,ENH1,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-matrix,4,ENH2,1,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-matrix,4,ENH2,1,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-matrix,4,ENH2,1,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-matrix,5,ENH2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-matrix,5,ENH2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-matrix,6,ENH2,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-matrix,6,ENH2,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-matrix,6,ENH2,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,1,Intact1,1,native,shrub,Asteraceae,Artemisia californica,perennial,immature
-intact,1,Intact1,1,native,shrub,Asteraceae,Artemisia californica,perennial,immature
-intact,1,Intact1,1,native,shrub,Asteraceae,Artemisia californica,perennial,immature
-intact,1,Intact1,1,native,shrub,Asteraceae,Artemisia californica,perennial,immature
-intact,1,Intact1,1,native,shrub,Asteraceae,Artemisia californica,perennial,immature
-intact,1,Intact1,1,native,shrub,Asteraceae,Artemisia californica,perennial,immature
-intact,1,Intact1,1,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,1,Intact1,1,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,1,Intact1,1,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,1,Intact1,1,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,immature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,immature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,immature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,immature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,immature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,immature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,immature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,seedling
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,dead
-intact,3,Intact3,3,native,shrub,Asteraceae,Artemisia californica,perennial,immature
-intact,3,Intact3,3,native,shrub,Asteraceae,Artemisia californica,perennial,immature
-intact,3,Intact3,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,3,Intact3,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,3,Intact3,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,3,Intact3,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,3,Intact3,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-intact,3,Intact3,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-matrix,3,ENH1,3,native,shrub,Asteraceae,Artemisia californica,perennial,immature
-matrix,3,ENH1,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-matrix,3,ENH1,3,native,shrub,Asteraceae,Artemisia californica,perennial,immature
-matrix,3,ENH1,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature
-degraded,1,DEG1,1,non-native,grass,Poaceae,Avena barbata,annual,not a shrub
-degraded,3,DEG1,3,non-native,grass,Poaceae,Avena barbata,annual,not a shrub
-intact,1,Intact1,1,non-native,grass,Poaceae,Avena barbata,annual,not a shrub
-degraded,2,DEG1,2,native,shrub,Asteraceae,Baccharis pilularis,perennial,mature
-matrix,3,ENH1,3,native,shrub,Asteraceae,Baccharis pilularis,perennial,resprout
-degraded,5,DEG2,2,native,herb,Amaranthaceae,Chenopodium californicum,perennial,not a shrub
-degraded,6,DEG2,3,native,herb,Amaranthaceae,Chenopodium californicum,perennial,not a shrub
-intact,1,Intact1,1,non-native,grass,Poaceae,Bromus diandrus,annual,not a shrub
-intact,2,Intact2,2,non-native,grass,Poaceae,Bromus diandrus,annual,not a shrub
-intact,3,Intact3,3,non-native,grass,Poaceae,Bromus diandrus,annual,not a shrub
-intact,3,Intact3,3,non-native,grass,Poaceae,Bromus hordeaceus,annual,not a shrub
-intact,3,Intact3,3,non-native,grass,Poaceae,Bromus madritensis,annual,not a shrub
-degraded,1,DEG1,1,non-native,grass,Poaceae,Bromus rubens,annual,not a shrub
-degraded,3,DEG1,3,non-native,grass,Poaceae,Bromus rubens,annual,not a shrub
-intact,1,Intact1,1,non-native,grass,Poaceae,Bromus rubens,annual,not a shrub
-intact,2,Intact2,2,non-native,grass,Poaceae,Bromus rubens,annual,not a shrub
-matrix,1,ENH1,1,native,herb,Convolvulaceae,Calystegia macrostegia,perennial,not a shrub
-matrix,1,ENH1,1,native,herb,Liliaceae,Calochortus clavatus,perennial,not a shrub
-intact,2,Intact2,2,native,herb,Liliaceae,Calochortus clavatus,perennial,not a shrub
-intact,1,Intact1,1,native,herb,Asteraceae,Carduus pycnocephalus,annual,not a shrub
-intact,3,Intact3,3,native,shrub,Rhamnaceae,Cenothus oliganthus,perennial,immature
-intact,3,Intact3,3,native,shrub,Rhamnaceae,Cenothus oliganthus,perennial,mature
-intact,1,Intact1,1,native,herb,Agavaceae,Chlorogalum pomeridianum,perennial,not a shrub
-intact,2,Intact2,2,native,herb,Apiaceae,Apiastrum angustifolium,annual,not a shrub
-matrix,2,ENH1,2,native,herb,Montiaceae,Claytonia perfoliata,annual,not a shrub
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,mature
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,mature
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,mature
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,mature
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead
-intact,3,Intact3,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,seedling
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,mature
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,mature
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,mature
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,mature
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,immature
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,seedling
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,immature
-matrix,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,immature
-degraded,4,DEG2,1,native,shrub,Polygonaceae,Eriogonum fasciculatum,perennial,mature
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,immature
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,immature
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,2,Intact2,2,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,immature
-intact,2,Intact2,2,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,2,Intact2,2,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,2,Intact2,2,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,2,Intact2,2,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,2,Intact2,2,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,2,Intact2,2,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,2,Intact2,2,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,2,Intact2,2,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,3,Intact3,3,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,immature
-intact,3,Intact3,3,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,immature
-intact,3,Intact3,3,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,3,Intact3,3,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,3,Intact3,3,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,3,Intact3,3,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,3,Intact3,3,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-intact,3,Intact3,3,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-degraded,1,DEG1,1,native,herb,Themidaceae,Dipterostemon capitatus,perennial,not a shrub
-degraded,2,DEG1,2,native,herb,Themidaceae,Dipterostemon capitatus,perennial,not a shrub
-degraded,3,DEG1,3,native,herb,Themidaceae,Dipterostemon capitatus,perennial,not a shrub
-degraded,4,DEG2,1,native,herb,Themidaceae,Dipterostemon capitatus,perennial,not a shrub
-degraded,5,DEG2,2,native,herb,Themidaceae,Dipterostemon capitatus,perennial,not a shrub
-matrix,1,ENH1,1,native,herb,Themidaceae,Dipterostemon capitatus,perennial,not a shrub
-matrix,2,ENH1,2,native,herb,Themidaceae,Dipterostemon capitatus,perennial,not a shrub
-matrix,3,ENH1,3,native,herb,Themidaceae,Dipterostemon capitatus,perennial,not a shrub
-matrix,2,ENH1,2,native,grass,Poaceae,Elymus condensatus,perennial,not a shrub
-intact,2,Intact2,2,native,grass,Poaceae,Elymus condensatus,perennial,not a shrub
-degraded,1,DEG1,1,non-native,herb,Geraniaceae,Erodium cicutarium,annual,not a shrub
-matrix,2,ENH1,2,non-native,herb,Geraniaceae,Erodium cicutarium,annual,not a shrub
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-intact,2,Intact2,2,non-native,herb,Geraniaceae,Erodium spp.,annual,not a shrub
-intact,1,Intact1,1,native,herb,Montiaceae,Claytonia perfoliata,annual,not a shrub
-intact,2,Intact2,2,native,herb,Hydrophyllaceae,Eucrypta chrysanthemifolia,annual,not a shrub
-intact,1,Intact1,1,native,herb,Hydrophyllaceae,Eucrypta chrysanthemifolia,annual,not a shrub
-intact,1,Intact1,1,native,herb,Rubiaceae,Galium porrigens,perennial,not a shrub
-intact,2,Intact2,2,native,herb,Rubiaceae,Galium porrigens,perennial,not a shrub
-intact,3,Intact3,3,native,herb,Hydrophyllaceae,Eucrypta chrysanthemifolia,annual,not a shrub
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-degraded,1,DEG1,1,non-native,herb,Brassicaceae,Hirschfeldia incana,annual,not a shrub
-degraded,3,DEG1,3,non-native,herb,Brassicaceae,Hirschfeldia incana,annual,not a shrub
-matrix,1,ENH1,1,native,herb,Fabaceae,Lupinus bicolor,annual,not a shrub
-degraded,2,DEG1,2,native,herb,Fabaceae,Lupinus bicolor,annual,not a shrub
-degraded,1,DEG1,1,native,herb,Fabaceae,Lupinus spp.,annual,not a shrub
-degraded,3,DEG1,3,native,herb,Fabaceae,Lupinus spp.,annual,not a shrub
-degraded,4,DEG2,1,native,herb,Fabaceae,Lupinus spp.,annual,not a shrub
-matrix,2,ENH1,2,native,herb,Fabaceae,Lupinus spp.,annual,not a shrub
-matrix,3,ENH1,3,native,herb,Fabaceae,Lupinus spp.,annual,not a shrub
-degraded,2,DEG1,2,native,herb,Fabaceae,Lupinus succulentus,annual,not a shrub
-matrix,1,ENH1,1,native,herb,Fabaceae,Lupinus succulentus,annual,not a shrub
-degraded,1,DEG1,1,native,herb,Hydrophyllaceae,Phacelia hubbyi,annual,not a shrub
-degraded,4,DEG2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-degraded,4,DEG2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,4,DEG2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,4,DEG2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-degraded,4,DEG2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-degraded,4,DEG2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,4,DEG2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-degraded,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-degraded,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-degraded,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-degraded,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,seedling
-degraded,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,seedling
-degraded,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,seedling
-degraded,6,DEG2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,6,DEG2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,6,DEG2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,6,DEG2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,6,DEG2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,6,DEG2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-degraded,6,DEG2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,seedling
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,seedling
-matrix,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-intact,3,Intact3,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,seedling
-intact,3,Intact3,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,seedling
-intact,3,Intact3,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,seedling
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,seedling
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,resprout
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,resprout
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-matrix,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature
-degraded,4,DEG2,1,native,herb,Cucurbitaceae,Marah macrocarpa,perennial,not a shrub
-matrix,2,ENH1,2,native,herb,Cucurbitaceae,Marah macrocarpa,perennial,not a shrub
-intact,1,Intact1,1,native,herb,Cucurbitaceae,Marah macrocarpa,perennial,not a shrub
-intact,2,Intact2,2,native,herb,Cucurbitaceae,Marah macrocarpa,perennial,not a shrub
-intact,3,Intact3,3,native,herb,Cucurbitaceae,Marah macrocarpa,perennial,not a shrub
-intact,1,Intact1,1,native,fern,Pteridaceae,Pellaea andromedifolia,Perennial,not a shrub
-degraded,2,DEG1,2,native,herb,Hydrophyllaceae,Phacelia hubbyi,annual,not a shrub
-degraded,3,DEG1,3,native,herb,Hydrophyllaceae,Phacelia hubbyi,annual,not a shrub
-degraded,4,DEG2,1,native,herb,Hydrophyllaceae,Phacelia hubbyi,annual,not a shrub
-degraded,6,DEG2,3,native,herb,Hydrophyllaceae,Phacelia hubbyi,annual,not a shrub
-matrix,1,ENH1,1,native,herb,Hydrophyllaceae,Phacelia hubbyi,annual,not a shrub
-intact,2,Intact2,2,native,herb,Hydrophyllaceae,Phacelia viscida,annual,not a shrub
-intact,3,Intact3,3,non-native,herb,Asteraceae,Centaurea calcitrapa,annual,not a shrub
-intact,1,Intact1,1,native,shrub,Rhamnaceae,Rhamnus ilicifolia,perennial,immature
-intact,1,Intact1,1,native,shrub,Rhamnaceae,Rhamnus ilicifolia,perennial,mature
-intact,2,Intact2,2,native,shrub,Rhamnaceae,Rhamnus ilicifolia,perennial,mature
-intact,3,Intact3,3,native,shrub,Rhamnaceae,Rhamnus ilicifolia,perennial,resprout
-intact,3,Intact3,3,native,shrub,Rhamnaceae,Rhamnus ilicifolia,perennial,mature
-matrix,2,ENH1,2,native,shrub,Anacardiaceae,Rhus ovata,perennial,immature
-matrix,2,ENH1,2,native,shrub,Anacardiaceae,Rhus ovata,perennial,immature
-intact,1,Intact1,1,native,shrub,Anacardiaceae,Rhus ovata,perennial,immature
-intact,2,Intact2,2,native,shrub,Anacardiaceae,Rhus ovata,perennial,immature
-intact,2,Intact2,2,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature
-intact,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,seedling
-intact,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature
-intact,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature
-intact,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature
-intact,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature
-intact,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature
-intact,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature
-intact,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature
-intact,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature
-intact,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature
-intact,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,dead
-matrix,3,ENH1,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,immature
-matrix,3,ENH1,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,immature
-matrix,3,ENH1,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,immature
-matrix,1,ENH1,1,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature
-degraded,3,DEG1,3,native,shrub,Lamiaceae,Salvia apiana,perennial,mature
-matrix,4,ENH2,1,native,shrub,Lamiaceae,Salvia apiana,perennial,mature
-degraded,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-degraded,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-degraded,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-degraded,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-degraded,3,DEG1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,resprout
-degraded,3,DEG1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,3,DEG1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,3,DEG1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,3,DEG1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-degraded,3,DEG1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,4,DEG2,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,4,DEG2,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,4,DEG2,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,4,DEG2,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,5,DEG2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,5,DEG2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-degraded,5,DEG2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-matrix,1,ENH1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,1,ENH1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,1,ENH1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,1,ENH1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,1,ENH1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,1,ENH1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,1,ENH1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,1,ENH1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,1,ENH1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,5,ENH2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,6,ENH2,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,6,ENH2,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,6,ENH2,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,6,ENH2,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,6,ENH2,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,6,ENH2,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,6,ENH2,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,6,ENH2,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,1,Intact1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,1,Intact1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,1,Intact1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,1,Intact1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,1,Intact1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,1,Intact1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,1,Intact1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,1,Intact1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,seedling
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,seedling
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-intact,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-matrix,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature
-matrix,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature
-matrix,1,ENH1,1,native,shrub,Virburnaceae,Sambucus mexicana,perennial,immature
-matrix,2,ENH1,2,native,herb,Asteraceae,Stephanomeria virgata,annual,not a shrub
-matrix,2,ENH1,2,native,herb,Solanacaeae,Solanum xanti,perennial,not a shrub
-intact,3,Intact3,3,native,herb,Solanacaeae,Solanum xanti,perennial,not a shrub
-intact,2,Intact2,2,non-native,herb,Asteraceae,Centaurea melitensis,annual,not a shrub
-degraded,4,DEG2,1,native,herb,Asteraceae,Stephanomeria virgata,annual,not a shrub
-matrix,1,ENH1,1,native,herb,Asteraceae,Stephanomeria virgata,annual,not a shrub
-intact,1,Intact1,1,native,herb,Asteraceae,Stephanomeria virgata,annual,not a shrub
-intact,2,Intact2,2,native,herb,Asteraceae,Stephanomeria virgata,annual,not a shrub
-matrix,2,ENH1,2,native,grass,Poaceae,Stipa lepida,perennial,not a shrub
-intact,1,Intact1,1,native,grass,Poaceae,Stipa lepida,perennial,not a shrub
-intact,2,Intact2,2,native,grass,Poaceae,Stipa lepida,perennial,not a shrub
-intact,3,Intact3,3,native,grass,Poaceae,Stipa lepida,perennial,not a shrub
-degraded,5,DEG2,2,native,herb,Asteraceae,Stephanomeria virgata,annual,not a shrub
-intact,3,Intact3,3,native,herb,Asteraceae,Stephanomeria virgata,annual,not a shrub
-intact,2,Intact2,2,native,herb,Brassicaceae,Thysanocarpus curvipes,annual,not a shrub
-degraded,6,DEG2,3,native,herb,Brassicaceae,Thysanocarpus curvipes,annual,not a shrub
-degraded,5,DEG2,2,native,herb,Brassicaceae,Thysanocarpus curvipes,annual,not a shrub
-matrix,2,ENH1,2,native,herb,Brassicaceae,Thysanocarpus curvipes,annual,not a shrub
-degraded,2,DEG1,2,native,herb,Fabaceae,Trifolium gracilentum,annual,not a shrub
-intact,2,Intact2,2,native,fern,Pteridaceae,Pellaea andromedifolia,Perennial,not a shrub
-degraded,1,DEG1,1,native,herb,Fabaceae,Trifolium gracilentum,annual,not a shrub
-degraded,5,DEG2,2,native,herb,Fabaceae,Trifolium gracilentum,annual,not a shrub
-matrix,2,ENH1,2,Unknown,herb,Asteraceae,unknown forb (Aster Family),annual,not a shrub
-matrix,3,ENH1,3,Unknown,herb,Asteraceae,unknown forb (Aster Family),annual,not a shrub
-matrix,2,ENH1,2,native,herb,Fabaceae,Trifolium gracilentum,annual,not a shrub
-degraded,4,DEG2,1,native,herb,Fabaceae,Trifolium gracilentum,annual,not a shrub
-intact,2,Intact2,2,native,herb,Asteraceae,Uropappus lindleyi,annual,not a shrub
-matrix,1,ENH1,1,native,herb,Asteraceae,Uropappus lindleyi,annual,not a shrub
-matrix,6,ENH2,3,Unknown,shrub,,unknown shrub,,mature
-matrix,1,ENH1,1,native,herb,Asteraceae,Uropappus lindleyi,annual,not a shrub
+year,site,rep,standtype,transectsite,status,lifeform,family,species,lifespan,lifestage,link to tab: belt_byspecies => https://docs.google.com/spreadsheets/d/1JG8udkjru26Z6zy7LwNiDczkgRrB42tNG_wnW2O2R60/edit?usp=sharing
+2019,1,1,DEG1,1,native,herb,Fabaceae,Acmispon maritimus,annual,not a shrub,
+2019,2,4,DEG2,1,native,herb,Fabaceae,Acmispon maritimus,annual,not a shrub,
+2019,2,6,DEG2,3,native,herb,Fabaceae,Acmispon maritimus,annual,not a shrub,
+2019,INT1,1,Intact1,1,native,fern,Pteridaceae,Adiantum capillus-veneris,Perennial,not a shrub,
+2019,1,1,DEG1,1,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,1,1,DEG1,1,native,shrub,Asteraceae,Artemisia californica,perennial,immature,
+2019,1,1,DEG1,1,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,1,2,DEG1,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,1,2,DEG1,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,1,3,DEG1,3,native,shrub,Asteraceae,Artemisia californica,perennial,immature,
+2019,1,3,DEG1,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,1,3,DEG1,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,2,6,DEG2,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Asteraceae,Artemisia californica,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,2,5,ENH2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,2,5,ENH2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT1,1,Intact1,1,native,shrub,Asteraceae,Artemisia californica,perennial,immature,
+2019,INT1,1,Intact1,1,native,shrub,Asteraceae,Artemisia californica,perennial,immature,
+2019,INT1,1,Intact1,1,native,shrub,Asteraceae,Artemisia californica,perennial,immature,
+2019,INT1,1,Intact1,1,native,shrub,Asteraceae,Artemisia californica,perennial,immature,
+2019,INT1,1,Intact1,1,native,shrub,Asteraceae,Artemisia californica,perennial,immature,
+2019,INT1,1,Intact1,1,native,shrub,Asteraceae,Artemisia californica,perennial,immature,
+2019,INT1,1,Intact1,1,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT1,1,Intact1,1,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT1,1,Intact1,1,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT1,1,Intact1,1,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,immature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,immature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,immature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,immature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,immature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,immature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,immature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,seedling,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Asteraceae,Artemisia californica,perennial,dead,
+2019,INT3,3,Intact3,3,native,shrub,Asteraceae,Artemisia californica,perennial,immature,
+2019,INT3,3,Intact3,3,native,shrub,Asteraceae,Artemisia californica,perennial,immature,
+2019,INT3,3,Intact3,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Asteraceae,Artemisia californica,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Asteraceae,Artemisia californica,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Asteraceae,Artemisia californica,perennial,mature,
+2019,1,1,DEG1,1,non-native,grass,Poaceae,Avena barbata,annual,not a shrub,
+2019,1,3,DEG1,3,non-native,grass,Poaceae,Avena barbata,annual,not a shrub,
+2019,INT1,1,Intact1,1,non-native,grass,Poaceae,Avena barbata,annual,not a shrub,
+2019,1,2,DEG1,2,native,shrub,Asteraceae,Baccharis pilularis,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Asteraceae,Baccharis pilularis,perennial,resprout,
+2019,2,5,DEG2,2,native,herb,Amaranthaceae,Chenopodium californicum,perennial,not a shrub,
+2019,2,6,DEG2,3,native,herb,Amaranthaceae,Chenopodium californicum,perennial,not a shrub,
+2019,INT1,1,Intact1,1,non-native,grass,Poaceae,Bromus diandrus,annual,not a shrub,
+2019,INT2,2,Intact2,2,non-native,grass,Poaceae,Bromus diandrus,annual,not a shrub,
+2019,INT3,3,Intact3,3,non-native,grass,Poaceae,Bromus diandrus,annual,not a shrub,
+2019,INT3,3,Intact3,3,non-native,grass,Poaceae,Bromus hordeaceus,annual,not a shrub,
+2019,INT3,3,Intact3,3,non-native,grass,Poaceae,Bromus madritensis,annual,not a shrub,
+2019,1,1,DEG1,1,non-native,grass,Poaceae,Bromus rubens,annual,not a shrub,
+2019,1,3,DEG1,3,non-native,grass,Poaceae,Bromus rubens,annual,not a shrub,
+2019,INT1,1,Intact1,1,non-native,grass,Poaceae,Bromus rubens,annual,not a shrub,
+2019,INT2,2,Intact2,2,non-native,grass,Poaceae,Bromus rubens,annual,not a shrub,
+2019,1,1,ENH1,1,native,herb,Convolvulaceae,Calystegia macrostegia,perennial,not a shrub,
+2019,1,1,ENH1,1,native,herb,Liliaceae,Calochortus clavatus,perennial,not a shrub,
+2019,INT2,2,Intact2,2,native,herb,Liliaceae,Calochortus clavatus,perennial,not a shrub,
+2019,INT1,1,Intact1,1,native,herb,Asteraceae,Carduus pycnocephalus,annual,not a shrub,
+2019,INT3,3,Intact3,3,native,shrub,Rhamnaceae,Cenothus oliganthus,perennial,immature,
+2019,INT3,3,Intact3,3,native,shrub,Rhamnaceae,Cenothus oliganthus,perennial,mature,
+2019,INT1,1,Intact1,1,native,herb,Agavaceae,Chlorogalum pomeridianum,perennial,not a shrub,
+2019,INT2,2,Intact2,2,native,herb,Apiaceae,Apiastrum angustifolium,annual,not a shrub,
+2019,1,2,ENH1,2,native,herb,Montiaceae,Claytonia perfoliata,annual,not a shrub,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead,
+2019,INT3,3,Intact3,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,seedling,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,seedling,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Namaceae,Eriodictyon crassifolium,perennial,immature,
+2019,2,4,DEG2,1,native,shrub,Polygonaceae,Eriogonum fasciculatum,perennial,mature,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,immature,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,immature,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,dead,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT1,1,Intact1,1,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,immature,
+2019,INT2,2,Intact2,2,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,immature,
+2019,INT3,3,Intact3,3,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,immature,
+2019,INT3,3,Intact3,3,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Rosaceae,Heteromeles arbutifolia,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,1,DEG1,1,native,herb,Themidaceae,Dipterostemon capitatus,perennial,not a shrub,
+2019,1,2,DEG1,2,native,herb,Themidaceae,Dipterostemon capitatus,perennial,not a shrub,
+2019,1,3,DEG1,3,native,herb,Themidaceae,Dipterostemon capitatus,perennial,not a shrub,
+2019,2,4,DEG2,1,native,herb,Themidaceae,Dipterostemon capitatus,perennial,not a shrub,
+2019,2,5,DEG2,2,native,herb,Themidaceae,Dipterostemon capitatus,perennial,not a shrub,
+2019,1,1,ENH1,1,native,herb,Themidaceae,Dipterostemon capitatus,perennial,not a shrub,
+2019,1,2,ENH1,2,native,herb,Themidaceae,Dipterostemon capitatus,perennial,not a shrub,
+2019,1,3,ENH1,3,native,herb,Themidaceae,Dipterostemon capitatus,perennial,not a shrub,
+2019,1,2,ENH1,2,native,grass,Poaceae,Elymus condensatus,perennial,not a shrub,
+2019,INT2,2,Intact2,2,native,grass,Poaceae,Elymus condensatus,perennial,not a shrub,
+2019,1,1,DEG1,1,non-native,herb,Geraniaceae,Erodium cicutarium,annual,not a shrub,
+2019,1,2,ENH1,2,non-native,herb,Geraniaceae,Erodium cicutarium,annual,not a shrub,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,INT2,2,Intact2,2,non-native,herb,Geraniaceae,Erodium spp.,annual,not a shrub,
+2019,INT1,1,Intact1,1,native,herb,Montiaceae,Claytonia perfoliata,annual,not a shrub,
+2019,INT2,2,Intact2,2,native,herb,Hydrophyllaceae,Eucrypta chrysanthemifolia,annual,not a shrub,
+2019,INT1,1,Intact1,1,native,herb,Hydrophyllaceae,Eucrypta chrysanthemifolia,annual,not a shrub,
+2019,INT1,1,Intact1,1,native,herb,Rubiaceae,Galium porrigens,perennial,not a shrub,
+2019,INT2,2,Intact2,2,native,herb,Rubiaceae,Galium porrigens,perennial,not a shrub,
+2019,INT3,3,Intact3,3,native,herb,Hydrophyllaceae,Eucrypta chrysanthemifolia,annual,not a shrub,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,1,DEG1,1,non-native,herb,Brassicaceae,Hirschfeldia incana,annual,not a shrub,
+2019,1,3,DEG1,3,non-native,herb,Brassicaceae,Hirschfeldia incana,annual,not a shrub,
+2019,1,1,ENH1,1,native,herb,Fabaceae,Lupinus bicolor,annual,not a shrub,
+2019,1,2,DEG1,2,native,herb,Fabaceae,Lupinus bicolor,annual,not a shrub,
+2019,1,1,DEG1,1,native,herb,Fabaceae,Lupinus spp.,annual,not a shrub,
+2019,1,3,DEG1,3,native,herb,Fabaceae,Lupinus spp.,annual,not a shrub,
+2019,2,4,DEG2,1,native,herb,Fabaceae,Lupinus spp.,annual,not a shrub,
+2019,1,2,ENH1,2,native,herb,Fabaceae,Lupinus spp.,annual,not a shrub,
+2019,1,3,ENH1,3,native,herb,Fabaceae,Lupinus spp.,annual,not a shrub,
+2019,1,2,DEG1,2,native,herb,Fabaceae,Lupinus succulentus,annual,not a shrub,
+2019,1,1,ENH1,1,native,herb,Fabaceae,Lupinus succulentus,annual,not a shrub,
+2019,1,1,DEG1,1,native,herb,Hydrophyllaceae,Phacelia hubbyi,annual,not a shrub,
+2019,2,4,DEG2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,2,4,DEG2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,DEG2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,DEG2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,2,4,DEG2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,2,4,DEG2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,DEG2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,2,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,2,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,2,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,2,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,seedling,
+2019,2,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,seedling,
+2019,2,5,DEG2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,seedling,
+2019,2,6,DEG2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,DEG2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,DEG2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,DEG2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,DEG2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,DEG2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,DEG2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,1,ENH1,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,seedling,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,2,ENH1,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,2,4,ENH2,1,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,seedling,
+2019,2,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,5,ENH2,2,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,INT3,3,Intact3,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,seedling,
+2019,INT3,3,Intact3,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,seedling,
+2019,INT3,3,Intact3,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,seedling,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,seedling,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,resprout,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,resprout,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Malvaceae,Malacothamnus fasciculatus,perennial,immature,
+2019,2,4,DEG2,1,native,herb,Cucurbitaceae,Marah macrocarpa,perennial,not a shrub,
+2019,1,2,ENH1,2,native,herb,Cucurbitaceae,Marah macrocarpa,perennial,not a shrub,
+2019,INT1,1,Intact1,1,native,herb,Cucurbitaceae,Marah macrocarpa,perennial,not a shrub,
+2019,INT2,2,Intact2,2,native,herb,Cucurbitaceae,Marah macrocarpa,perennial,not a shrub,
+2019,INT3,3,Intact3,3,native,herb,Cucurbitaceae,Marah macrocarpa,perennial,not a shrub,
+2019,INT1,1,Intact1,1,native,fern,Pteridaceae,Pellaea andromedifolia,Perennial,not a shrub,
+2019,1,2,DEG1,2,native,herb,Hydrophyllaceae,Phacelia hubbyi,annual,not a shrub,
+2019,1,3,DEG1,3,native,herb,Hydrophyllaceae,Phacelia hubbyi,annual,not a shrub,
+2019,2,4,DEG2,1,native,herb,Hydrophyllaceae,Phacelia hubbyi,annual,not a shrub,
+2019,2,6,DEG2,3,native,herb,Hydrophyllaceae,Phacelia hubbyi,annual,not a shrub,
+2019,1,1,ENH1,1,native,herb,Hydrophyllaceae,Phacelia hubbyi,annual,not a shrub,
+2019,INT2,2,Intact2,2,native,herb,Hydrophyllaceae,Phacelia viscida,annual,not a shrub,
+2019,INT3,3,Intact3,3,non-native,herb,Asteraceae,Centaurea calcitrapa,annual,not a shrub,
+2019,INT1,1,Intact1,1,native,shrub,Rhamnaceae,Rhamnus ilicifolia,perennial,immature,
+2019,INT1,1,Intact1,1,native,shrub,Rhamnaceae,Rhamnus ilicifolia,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Rhamnaceae,Rhamnus ilicifolia,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Rhamnaceae,Rhamnus ilicifolia,perennial,resprout,
+2019,INT3,3,Intact3,3,native,shrub,Rhamnaceae,Rhamnus ilicifolia,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Anacardiaceae,Rhus ovata,perennial,immature,
+2019,1,2,ENH1,2,native,shrub,Anacardiaceae,Rhus ovata,perennial,immature,
+2019,INT1,1,Intact1,1,native,shrub,Anacardiaceae,Rhus ovata,perennial,immature,
+2019,INT2,2,Intact2,2,native,shrub,Anacardiaceae,Rhus ovata,perennial,immature,
+2019,INT2,2,Intact2,2,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,seedling,
+2019,INT3,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,dead,
+2019,1,3,ENH1,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Anacardiaceae,Rhus ovata,perennial,immature,
+2019,1,1,ENH1,1,native,shrub,Anacardiaceae,Rhus ovata,perennial,mature,
+2019,1,3,DEG1,3,native,shrub,Lamiaceae,Salvia apiana,perennial,mature,
+2019,2,4,ENH2,1,native,shrub,Lamiaceae,Salvia apiana,perennial,mature,
+2019,1,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,1,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,1,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,1,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,DEG1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,DEG1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,1,3,DEG1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,resprout,
+2019,1,3,DEG1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,3,DEG1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,3,DEG1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,3,DEG1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,1,3,DEG1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,2,4,DEG2,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,2,4,DEG2,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,2,4,DEG2,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,2,4,DEG2,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,2,5,DEG2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,2,5,DEG2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,2,5,DEG2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,1,1,ENH1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,2,ENH1,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,2,5,ENH2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,2,6,ENH2,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT1,1,Intact1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT1,1,Intact1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT1,1,Intact1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT1,1,Intact1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT1,1,Intact1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT1,1,Intact1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT1,1,Intact1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT1,1,Intact1,1,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT2,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT2,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT2,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT2,2,Intact2,2,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,seedling,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,seedling,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,INT3,3,Intact3,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,immature,
+2019,1,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,3,ENH1,3,native,shrub,Lamiaceae,Salvia leucophylla,perennial,mature,
+2019,1,1,ENH1,1,native,shrub,Virburnaceae,Sambucus mexicana,perennial,immature,
+2019,1,2,ENH1,2,native,herb,Asteraceae,Stephanomeria virgata,annual,not a shrub,
+2019,1,2,ENH1,2,native,herb,Solanacaeae,Solanum xanti,perennial,not a shrub,
+2019,INT3,3,Intact3,3,native,herb,Solanacaeae,Solanum xanti,perennial,not a shrub,
+2019,INT2,2,Intact2,2,non-native,herb,Asteraceae,Centaurea melitensis,annual,not a shrub,
+2019,2,4,DEG2,1,native,herb,Asteraceae,Stephanomeria virgata,annual,not a shrub,
+2019,1,1,ENH1,1,native,herb,Asteraceae,Stephanomeria virgata,annual,not a shrub,
+2019,INT1,1,Intact1,1,native,herb,Asteraceae,Stephanomeria virgata,annual,not a shrub,
+2019,INT2,2,Intact2,2,native,herb,Asteraceae,Stephanomeria virgata,annual,not a shrub,
+2019,1,2,ENH1,2,native,grass,Poaceae,Stipa lepida,perennial,not a shrub,
+2019,INT1,1,Intact1,1,native,grass,Poaceae,Stipa lepida,perennial,not a shrub,
+2019,INT2,2,Intact2,2,native,grass,Poaceae,Stipa lepida,perennial,not a shrub,
+2019,INT3,3,Intact3,3,native,grass,Poaceae,Stipa lepida,perennial,not a shrub,
+2019,2,5,DEG2,2,native,herb,Asteraceae,Stephanomeria virgata,annual,not a shrub,
+2019,INT3,3,Intact3,3,native,herb,Asteraceae,Stephanomeria virgata,annual,not a shrub,
+2019,INT2,2,Intact2,2,native,herb,Brassicaceae,Thysanocarpus curvipes,annual,not a shrub,
+2019,2,6,DEG2,3,native,herb,Brassicaceae,Thysanocarpus curvipes,annual,not a shrub,
+2019,2,5,DEG2,2,native,herb,Brassicaceae,Thysanocarpus curvipes,annual,not a shrub,
+2019,1,2,ENH1,2,native,herb,Brassicaceae,Thysanocarpus curvipes,annual,not a shrub,
+2019,1,2,DEG1,2,native,herb,Fabaceae,Trifolium gracilentum,annual,not a shrub,
+2019,INT2,2,Intact2,2,native,fern,Pteridaceae,Pellaea andromedifolia,Perennial,not a shrub,
+2019,1,1,DEG1,1,native,herb,Fabaceae,Trifolium gracilentum,annual,not a shrub,
+2019,2,5,DEG2,2,native,herb,Fabaceae,Trifolium gracilentum,annual,not a shrub,
+2019,1,2,ENH1,2,Unknown,herb,Asteraceae,unknown4 forb (Aster Family),annual,not a shrub,
+2019,1,3,ENH1,3,Unknown,herb,Asteraceae,unknown4 forb (Aster Family),annual,not a shrub,
+2019,1,2,ENH1,2,native,herb,Fabaceae,Trifolium gracilentum,annual,not a shrub,
+2019,2,4,DEG2,1,native,herb,Fabaceae,Trifolium gracilentum,annual,not a shrub,
+2019,INT2,2,Intact2,2,native,herb,Asteraceae,Uropappus lindleyi,annual,not a shrub,
+2019,1,1,ENH1,1,native,herb,Asteraceae,Uropappus lindleyi,annual,not a shrub,
+2019,2,6,ENH2,3,Unknown,shrub,unknown,unknown5 shrub,perennial,mature,
+2019,1,1,ENH1,1,native,herb,Asteraceae,Uropappus lindleyi,annual,not a shrub,
