@@ -19,6 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse) # includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
 library(vegan)
 library(here)
+library(readxl) 
 # library(ggpubr) # customize ggplot2 for publication
 # library(broom)
 # library(AICcmodavg)
@@ -63,10 +64,107 @@ library(here)
 
 
 ## data prep
-- point intercept transect 
-```{r}
+
+List of seven unknown species: chaparraldegradation2022 > chaparraldegradation2022 > unknown_spp.xlsx
+
+```{r load belt intercept transect data}
 
 # Read in data
+
+# 2019 belt transect data 
+belt.spp_2019_load <- read.csv(here("deg_beltdensity_byspecies.csv")) 
+
+belt.spp_2019 <- belt_spp_load %>% 
+  dplyr::select(site, rep, species) %>% 
+  mutate(site_rep = paste(site, rep, sep = ".")) %>% 
+  mutate(species = case_when(species == "Bromus madritensis" ~ "Bromus rubens", # old name ~ new name
+                             TRUE ~ species))
+### 2024 belt transect data
+belt.spp_2024_load <- read.csv(here("belt_spprich_2024.csv")) 
+
+belt.spp_2024 <- belt.spp_2024_load %>% 
+  dplyr::select(site, rep, species) %>% 
+  mutate(site_rep = paste(site, rep, sep = ".")) %>% 
+  filter(species != "moss")
+
+belt.spprich <- bind_rows(belt.spp_2019, belt.spp_2024) 
+
+### species characteristics
+sppchar <- read.csv("processed/specieslist.csv") %>% # species and their characteristics :) Created in 1.1_transect_continuous.Rmd
+  dplyr::select(!c(X)) 
+
+list <- belt.spprich %>% 
+  full_join(sppchar, by = "species")
+
+#These are the species that are in belt.spprich that are NOT in the species characteristics list
+a <- sort(unique(belt.spprich$species))
+b <- sort(unique(sppchar$species))
+difbelt <- setdiff(a, b)
+difbelt 
+
+difchar <- setdiff(b, a)
+difchar 
+
+# list of seven unknown species
+unknown.spp <- read_excel("unknown_spp.xlsx")
+
+```
+
+### SPECIES RICHNESS
+```{r}
+
+# sort(unique(belt.spprich$species))
+
+belt.spprich_total <- belt.spprich %>% 
+  filter(species != "Erodium spp.") %>% 
+  filter(species != "Galium spp.") %>% 
+  filter(species != "Lupinus spp.") %>% 
+    filter(species != "Phacelia spp.") %>% 
+    filter(species != "Trifolium spp.")
+
+length(unique(belt.spprich_total$species))
+# 90 species  
+
+
+    
+  
+sppr <- specnumber(belt.spprich) # need matrix 
+
+
+  
+erodium <- belt.spp_2019 %>%  filter(grepl("Erodium", species))
+lupin <- belt.spp_2019 %>%  filter(grepl("Lupinus", species))
+
+belt.spp_2019 %>% 
+  filter(!(species == "Lupinus spp." & site_rep == "1.1")) %>% 
+  filter(!(species == "Lupinus spp." & site_rep == "1.2"))
+```
+
+
+```{r}
+  
+
+
+
+
+
+
+
+belttrans_raw <- belttrans_byspecies_load %>% 
+  dplyr::select(!c(transectstand, lifestage)) %>% 
+  rename(rep = transectsite, 
+         status = origin, 
+         lifecycle = lifespan) %>%  #rename(new_name = old_name) 
+   mutate(species = case_when(
+    species == "Bromus madritensis" ~ "Bromus rubens", # old name ~ new name
+     TRUE ~ as.character(species))) %>% 
+  mutate(status = case_when(
+    status == "non-native" ~ "nonnative", # old name ~ new name
+     TRUE ~ as.character(status))) %>% 
+   mutate(site_rep = paste(site, rep, sep = "_"))
+
+# point-intercept transect data
+
 
 abcover_full_load <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA")) # point-intercept data
 
@@ -118,23 +216,8 @@ length(unique(ab_sppr_raw$site_rep_species))
 
 ptintcp_list <- list(unique(ab_sppr_raw$site_rep_species))
 ```
-- belt transect 
-```{r load belt intercept transect data}
-belttrans_byspecies_load <- read.csv("deg_beltdensity_byspecies.csv") 
 
-belttrans_raw <- belttrans_byspecies_load %>% 
-  dplyr::select(!c(transectstand, lifestage)) %>% 
-  rename(rep = transectsite, 
-         status = origin, 
-         lifecycle = lifespan) %>%  #rename(new_name = old_name) 
-   mutate(species = case_when(
-    species == "Bromus madritensis" ~ "Bromus rubens", # old name ~ new name
-     TRUE ~ as.character(species))) %>% 
-  mutate(status = case_when(
-    status == "non-native" ~ "nonnative", # old name ~ new name
-     TRUE ~ as.character(status))) %>% 
-   mutate(site_rep = paste(site, rep, sep = "_"))
-```
+
 
 - union join
 ```{r left join}
