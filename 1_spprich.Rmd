@@ -78,6 +78,7 @@ belt.spp_2019 <- belt.spp_2019_load %>%
   dplyr::select(site, rep, species) %>% 
   mutate(site_rep = paste(site, rep, sep = ".")) %>% 
   mutate(species = case_when(species == "Bromus madritensis" ~ "Bromus rubens", # old name ~ new name
+                             species == "Eucrypta\xcachrysanthemifolia" ~ "Eucrypta chrysanthemifolia",
                              TRUE ~ species))
 ### 2024 belt transect data
 belt.spp_2024_load <- read.csv(here("belt_spprich_2024.csv")) 
@@ -87,7 +88,7 @@ belt.spp_2024 <- belt.spp_2024_load %>%
   mutate(site_rep = paste(site, rep, sep = ".")) %>% 
   filter(species != "moss")
 
-belt.spprich <- bind_rows(belt.spp_2019, belt.spp_2024) 
+belt.spprich <- bind_rows(belt.spp_2019, belt.spp_2024)
 
 ### species characteristics
 sppchar <- read.csv("processed/specieslist.csv") %>% # species and their characteristics :) Created in 1.1_transect_continuous.Rmd
@@ -100,8 +101,9 @@ list <- belt.spprich %>%
 a <- sort(unique(belt.spprich$species))
 b <- sort(unique(sppchar$species))
 
-speciesmissingfrom.sppchar <- setdiff(a, b)
+speciesmissingfrom.sppchar <- setdiff(a, b) # <- KIT - can you help resolve this issue? I added the missing species and their characteristics to "processed/specieslist.csv" but they're not joining
 speciesmissingfrom.sppchar 
+
 
 speciesmissingfrom.belt <- setdiff(b, a)
 speciesmissingfrom.belt
@@ -130,7 +132,7 @@ length(unique(belt.spprich_total$species))
 
     
   
-sppr <- specnumber(belt.spprich) # need matrix 
+# sppr <- specnumber(belt.spprich) # need matrix 
 
 
   
