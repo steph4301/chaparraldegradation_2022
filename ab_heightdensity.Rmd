@@ -15,12 +15,11 @@ knitr::opts_chunk$set(echo = TRUE)
 library(here) # similar to set working directory
 library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
 library(readxl) # for .xls and .xlsx sheets
-library(multcomp) # functions: multcompLetters2, multcompLetters3, multcompLetters4 using aov object
-library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD, dist{stats}, simint, simtest, csimint, csimtest{multcomp}, friedmanmc, 
+# library(multcomp) # functions: multcompLetters2, multcompLetters3, multcompLetters4 using aov object
+# library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD, dist{stats}, simint, simtest, csimint, csimtest{multcomp}, friedmanmc, 
 library(plotly)
 library(calecopal) 
-library(googlesheets4 ) 
-gs4_auth()
+ # gs4_auth()
 
 #library(vegan) #community ecology package - includes, MASS, cluster, mgcv
 # library(lubridate) # dates and times
@@ -40,83 +39,58 @@ gs4_auth()
 ```{r load csv - canopy height, include=TRUE}
 # stand height 
 
-standheight_full <- read_csv("deg_maxheight.csv",
+standheight <- read_csv("deg_maxheight.csv",
                              col_types = cols(
-                               standtype = col_character(),
+                               year = col_character(),
                                site = col_character(),
-                               Transect_rep = col_character(),
-                               Reading = col_character(),
-                               Species = col_character(),
-                               height_cm = col_double(),
-                               next_tallest = col_character())) %>%
-  dplyr::select('standtype', 'site', 'Transect_rep', 'Reading', 'Species', 'height_cm') %>% 
-  rename(rep = Transect_rep, 
-         reading = Reading, 
-         species = Species) %>% 
-  mutate(site = case_when(site == "ENH_1" ~ "ENH1", # old name ~ new name
-                          site == "ENH_2" ~ "ENH2",
-                          site == "ENH_3" ~ "ENH3", 
-                          site == "DEG_1" ~ "DEG1",
-                          site == "DEG_2" ~ "DEG2", 
-                          site == "DEG_3" ~ "DEG3", 
-                          site == "Intact_1" ~ "Intact1", 
-                           site == "Intact_2" ~ "Intact2", 
-                           site == "Intact_3" ~ "Intact3", 
-                          TRUE ~ site)) %>% 
-    filter(site!= "Intact_4") %>% 
-  mutate(site_rep = paste(site, rep, sep = "_")) %>%  # combine site and rep to one column
-  mutate(site_rep = case_when(site_rep == "DEG2_4" ~ "DEG2_1", # old name ~ new name
-                          site_rep == "DEG2_5" ~ "DEG2_2",
-                          site_rep == "DEG2_6" ~ "DEG2_3", 
-                          site_rep == "ENH2_4" ~ "ENH2_1",
-                          site_rep == "ENH2_5" ~ "ENH2_2",
-                          site_rep == "ENH2_6" ~ "ENH2_3", 
-                          TRUE ~ site_rep)) %>% 
-    mutate(standtype = fct_relevel(standtype, "Intact", "Matrix", "Degraded")) %>% 
-    mutate(site_rep = fct_relevel(site_rep, "Intact1_1", "Intact2_2", "Intact3_3", 
-                                  "ENH1_1", "ENH1_2", "ENH1_3", "ENH2_1", "ENH2_2", "ENH2_3",
-                                  "DEG1_1", "DEG1_2", "DEG1_3", "DEG2_1", "DEG2_2", "DEG2_3")) 
+                               rep = col_character(),
+                               distance = col_character(),
+                               species = col_character(),
+                               height_cm = col_double()
+                               )) %>%
+  dplyr::select('site', 'rep', 'species', 'height_cm') %>% 
+  mutate(site_rep = paste(site, rep, sep = "_"))
+# 
+# nativecover_load <- read.csv("processed/abcover_nativecover_nngrasscover.csv") %>% 
+#  dplyr::select(c(site_rep, nonnative_grass, native_shrub)) %>% 
+#   mutate(site_rep = case_when(
+#     site_rep == "Intact_1_1" ~ "Intact1_1", # old name ~ new name
+#     site_rep == "Intact_2_2" ~ "Intact2_2",
+#     site_rep == "Intact_3_3" ~ "Intact3_3",
+#     site_rep == "DEG2_4" ~ "DEG2_1",
+#     site_rep == "DEG2_5" ~ "DEG2_2",
+#     site_rep == "DEG2_6" ~ "DEG2_3",
+#     site_rep == "ENH2_4" ~ "ENH2_1",
+#        site_rep == "ENH2_5" ~ "ENH2_2",
+#        site_rep == "ENH2_6" ~ "ENH2_3",
+#     TRUE ~ as.character(site_rep)  # Keep other observations unchanged
+#   ))
 
-nativecover_load <- read.csv("processed/abcover_nativecover_nngrasscover.csv") %>% 
- dplyr::select(c(site_rep, nonnative_grass, native_shrub)) %>% 
-  mutate(site_rep = case_when(
-    site_rep == "Intact_1_1" ~ "Intact1_1", # old name ~ new name
-    site_rep == "Intact_2_2" ~ "Intact2_2",
-    site_rep == "Intact_3_3" ~ "Intact3_3",
-    site_rep == "DEG2_4" ~ "DEG2_1",
-    site_rep == "DEG2_5" ~ "DEG2_2",
-    site_rep == "DEG2_6" ~ "DEG2_3",
-    site_rep == "ENH2_4" ~ "ENH2_1",
-       site_rep == "ENH2_5" ~ "ENH2_2",
-       site_rep == "ENH2_6" ~ "ENH2_3",
-    TRUE ~ as.character(site_rep)  # Keep other observations unchanged
-  ))
-
-standheight <- standheight_full %>% 
-    left_join(nativecover_load, by = 'site_rep') 
+# standheight <- standheight_full %>% 
+#     left_join(nativecover_load, by = 'site_rep') 
 ```
 
 ### colors
 ```{r}
-# Stand colors: INTACT, MATRIX, DEGRADED 
-cal_palette(name = "chaparral3", n = 3, type = "continuous") 
-deg <- "#D3E3CA"
-mat <- "#92A587"
-int <- "#2F3525"
-standcolors <- c(int, mat, deg)
-
-# Lifeform colors: shrub, grass, forb
-cal_palette(name = "chaparral3", n = 3, type = "continuous") 
-shrub <- "#D3E3CA"
-grass <- "#92A587"
-forb <- "#2F3525"
-lifeformcolors <- c(int, mat, deg)
-
-# Status colors: native, exotic 
-cal_palette(name = "chaparral1", n = 6, type = "continuous") 
-native <- "#AEBFA8"
-exotic <- "#F19B34"
-statuscolors <- c(native, exotic)
+# Stand colors: INTACT, MATRIX, DEGRADED
+# cal_palette(name = "chaparral3", n = 3, type = "continuous") 
+# deg <- "#D3E3CA"
+# mat <- "#92A587"
+# int <- "#2F3525"
+# standcolors <- c(int, mat, deg)
+# 
+# # Lifeform colors: shrub, grass, forb
+# cal_palette(name = "chaparral3", n = 3, type = "continuous") 
+# shrub <- "#D3E3CA"
+# grass <- "#92A587"
+# forb <- "#2F3525"
+# lifeformcolors <- c(int, mat, deg)
+# 
+# # Status colors: native, exotic 
+# cal_palette(name = "chaparral1", n = 6, type = "continuous") 
+# native <- "#AEBFA8"
+# exotic <- "#F19B34"
+# statuscolors <- c(native, exotic)
 ```
 
 ### - data visualization
@@ -124,7 +98,10 @@ statuscolors <- c(native, exotic)
 
 hist(standheight_full$height_cm)
 
-ggplot(standheight_full, aes(x = as.integer(reading)/2, y = height_cm/100, group = site_rep, color = standtype)) +
+```
+
+```{r}
+ggplot(standheight, aes(x = as.integer(reading)/2, y = height_cm/100, group = site_rep, color = standtype)) +
  # facet_wrap(~ standtype, scales = "free_y", ncol = 1) +
   geom_line() +
   labs(
