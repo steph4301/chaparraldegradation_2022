@@ -972,3 +972,52 @@ ggplot(data = height_cover) +
 
 
 ### shrub density
+```{r}
+# native shrub density 
+shrubdensitylife_load <- read_csv("deg_beltdensity_bylifestage.csv", 
+    col_types = cols(
+       site = col_character(),
+      transect = col_character(), 
+      species = col_character(), 
+      dead = col_integer(),
+      immature = col_integer(),
+      mature = col_integer(), 
+      resprout = col_integer(), 
+      seedling = col_integer()
+      )
+     ) %>% 
+  dplyr::select(-StandType, -hillslope) %>% 
+  as_tibble() %>% 
+  rename("rep" = "transect") %>% 
+  pivot_longer(cols = 4:8, names_to = "lifestage", values_to = "density_80m2") %>% 
+  mutate(site_rep = paste(site, rep, sep = "_")) %>% 
+   mutate(density_m2 = (density_80m2 / 80)) %>% 
+  dplyr::select(-site, -rep, -density_80m2) %>% 
+  mutate(#### need too rename INT2_2 to INT2_1 and INT3_3 to INT3_1) ################# 
+  
+shrubdensity_2024 <- read_csv("shrubdensity_2024.csv", 
+      col_types = cols(
+      site = col_character(),
+      transect = col_character(), 
+      species = col_character(), 
+      lifestage = col_character(),
+      density_80m2 = col_integer()
+      )
+      ) %>% 
+  dplyr::select(site, transect, species, lifestage, density_80m2) %>% 
+  rename("rep" = "transect") %>% 
+  mutate(density_m2 = (density_80m2 / 80)) %>% 
+ na.omit() %>% 
+  mutate(site_rep = paste(site, rep, sep = "_")) %>% 
+  dplyr::select(site_rep, species, lifestage, density_m2)
+
+density <- shrubdensitylife_load %>%  full_join(shrubdensity_2024)
+
+density2 <- density %>% # 39 transects becuase no INT4 density
+  group_by(site_rep) %>% 
+  summarise(totaldensty_m2 = sum(density_m2, na.rm = TRUE)) %>% 
+  ungroup()  
+
+density_cover <- height_cover %>% left_join(density2, by = "site_rep")
+
+```
