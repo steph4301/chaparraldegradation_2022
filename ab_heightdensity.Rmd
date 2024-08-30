@@ -730,7 +730,12 @@ shrubdensitylife_load <- read_csv("deg_beltdensity_bylifestage.csv",
       )
      ) %>% 
   dplyr::select(-StandType, -hillslope) %>% 
-  as_tibble()
+  as_tibble() %>% 
+  pivot_longer(cols = 2:10, names_to = "Cluster", values_to = "ISA_SCORE")
+
+
+
+
 
 # transpose data from wide to long format
 shrubdensity_2019 <- gather(shrubdensitylife_load, "lifestage", "density_80m2", 4:8) %>% 
@@ -756,7 +761,7 @@ shrubdensity_2024 <- read_sheet(shrubdensity2024_loadfromgoogle, sheet = "shrub_
 
 shrubdensity <-  full_join(shrubdensity_2019, shrubdensity_2024, by = c("site", "transect", "species", "lifestage", "density_80m2", "year")) %>% # Perform the join using all common columns
   mutate(site_transect = paste(site, transect, sep = "_")) %>%  # combine site and transect to one column
-   mutate(site_transect_species = paste(site_transect, species, sep = "_"))
+ 
 
 shrubdensity %>% 
   group_by(site, transect) %>% 
