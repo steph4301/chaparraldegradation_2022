@@ -79,23 +79,26 @@ belt.spp_2019 <- belt.spp_2019_load %>%
   mutate(site_rep = paste(site, rep, sep = ".")) %>% 
   mutate(species = case_when(species == "Bromus madritensis" ~ "Bromus rubens", # old name ~ new name
                              species == "Eucrypta\xcachrysanthemifolia" ~ "Eucrypta chrysanthemifolia",
-                             TRUE ~ species))
+                             TRUE ~ species)) %>%
+  mutate(species = str_replace(species, " ", "_"))
+
 ### 2024 belt transect data
 belt.spp_2024_load <- read.csv(here("belt_spprich_2024.csv")) 
 
 belt.spp_2024 <- belt.spp_2024_load %>% 
   dplyr::select(site, rep, species) %>% 
   mutate(site_rep = paste(site, rep, sep = ".")) %>% 
-  filter(species != "moss")
+  filter(species != "moss") %>%
+  mutate(species = str_replace(species, " ", "_"))
 
 belt.spprich <- bind_rows(belt.spp_2019, belt.spp_2024)
 
 ### species characteristics
 sppchar <- read.csv("processed/specieslist.csv") %>% # species and their characteristics :) Created in 1.1_transect_continuous.Rmd
-  dplyr::select(!c(X, notes, ejepson)) 
-
-list <- belt.spprich %>% 
-  left_join(sppchar, by = "species")
+  dplyr::select(!c(X, notes, ejepson)) %>%
+  mutate(species = str_replace(species, " ", "_")) %>%
+  mutate(species = gsub("\u00A0", " ", b, fixed = TRUE)) %>%
+  mutate(species = str_replace(species, g, "_"))
 
 #These are the species that are in belt.spprich that are NOT in the species characteristics list
 a <- sort(unique(belt.spprich$species))
