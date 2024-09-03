@@ -316,7 +316,7 @@ abcover_charateristics <- abcover_full %>%
 ```
 
 ## leaf type
-```{r load schlero leaf data, echo=FALSE, eval=F}
+```{r}
 #shrub_leaftype <- read_excel("shrub_leaftype.xlsx") #original data
 
 shrub_leaftype <- read.csv("shrub_leaftype.csv") %>% 
@@ -986,14 +986,19 @@ shrubdensitylife_load <- read_csv("deg_beltdensity_bylifestage.csv",
       seedling = col_integer()
       )
      ) %>% 
+  mutate(transect = ifelse(
+    site == "INT2", "1", transect
+  )) %>% 
+   mutate(transect = ifelse(
+    site == "INT3", "1", transect
+  )) %>% 
   dplyr::select(-StandType, -hillslope) %>% 
   as_tibble() %>% 
   rename("rep" = "transect") %>% 
   pivot_longer(cols = 4:8, names_to = "lifestage", values_to = "density_80m2") %>% 
   mutate(site_rep = paste(site, rep, sep = "_")) %>% 
    mutate(density_m2 = (density_80m2 / 80)) %>% 
-  dplyr::select(-site, -rep, -density_80m2) %>% 
-  mutate(#### need too rename INT2_2 to INT2_1 and INT3_3 to INT3_1) ################# 
+  dplyr::select(-site, -rep, -density_80m2)
   
 shrubdensity_2024 <- read_csv("shrubdensity_2024.csv", 
       col_types = cols(
