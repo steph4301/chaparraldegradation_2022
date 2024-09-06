@@ -23,6 +23,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(here) # similar to set working directory
 library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
 library(readxl) 
+library(gridExtra)
+library(cowplot)
 ```
 # colors
 ```{r colors, include=TRUE}
@@ -637,6 +639,141 @@ scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-
 
 ### x = total shrub
 
+- y = non-native forb cover
+```{r}
+############ non-native slope
+# Fit the linear model
+model.nnf <- lm(forb_nonnative ~ shrub_native, data = cover_bylfstatus_wide) # response variable ~ independent variable
+
+# Print the summary of the model
+model.nnf_summary <- summary(model.nnf)
+# Extract the intercept, slope, and R^2 values
+interceptnnf <- round(coef(model.nnf)[1], 2)
+slopennf <- round(coef(model.nnf)[2], 2)
+r_squarednnf <- round(model.nnf_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squarednnf))
+# [1] "Multiple R^2: 0.108"
+# Create the label for the equation and R^2
+eq_label_nnf <- paste0("Non-native forb: y = ", slopennf, "x + ", interceptnnf, "\n", "R² = ", r_squarednnf)
+
+
+######### native forb slope
+# Fit the linear model
+model.nf <- lm(forb_native ~ shrub_native, data = cover_bylfstatus_wide) # response variable ~ independent variable
+model.nf_summary <- summary(model.nf)
+# Extract the intercept, slope, and R^2 values
+interceptnf <- round(coef(model.nf)[1], 2)
+slopenf <- round(coef(model.nf)[2], 2)
+r_squarednf <- round(model.nf_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squarednf))
+# [1] "Multiple R^2: 0.002"
+# Create the label for the equation and R^2
+eq_label_nf <- paste0("Native forb: y = ", slopenf, "x + ", interceptnf, "\n", "R² = ", r_squarednf)
+
+fig.1d <- ggplot(data = cover_bylfstatus_wide) + #%>%  filter(forb_native > 0.01 | forb_nonnative > 0.01 | forb_unknown > 0.01)) +
+  geom_point(aes(x = shrub_native * 100, y = forb_native * 100, color = "forb_native"), show.legend = TRUE) +
+  geom_smooth(aes(x = shrub_native * 100, y = forb_native * 100, color = "forb_native"), 
+              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
+  geom_point(aes(x = shrub_native * 100, y = forb_nonnative * 100, color = "forb_nonnative"), show.legend = TRUE) +
+  geom_smooth(aes(x = shrub_native * 100, y = forb_nonnative * 100, color = "forb_nonnative"), 
+              method = "lm", se = TRUE, linetype = "dashed", show.legend = TRUE) +
+  labs(
+     # title = "Comparison of native and non-native forb percent cover by Nonnative Grass percent cover",
+      color = "Status",
+    x = "Native shrub cover (%)",
+    y = "Forb cover (%)"
+    ) +
+  scale_color_manual(values = c("forb_native" = "blue", "forb_nonnative" = "red"),
+                     labels = c("Native ", "Non-native")) +
+  xlim(0, 100) +
+  ylim(0, 100) +
+  theme_bw() +
+  annotate("text", x = 60, y = 95, label = eq_label_nnf, color = "black", size = 4, hjust = 0) +
+  annotate("text", x = 60, y = 80
+           , label = eq_label_nf, color = "black", size = 4, hjust = 0)
+
+fig.1d
+```
+
+- y = native and non-native grass cover 
+```{r}
+
+############ non-native slope
+# Fit the linear model
+model.nng <- lm(grass_nonnative ~ shrub_native, data = cover_bylfstatus_wide) # response variable ~ independent variable
+
+# Print the summary of the model
+model.nng_summary <- summary(model.nng)
+# Extract the intercept, slope, and R^2 values
+interceptnng <- round(coef(model.nng)[1], 2)
+slopenng <- round(coef(model.nng)[2], 2)
+r_squarednng <- round(model.nng_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squarednng))
+# [1] "Multiple R^2: 0.734"
+# Create the label for the equation and R^2
+eq_label_nng <- paste0("Non-native grass: y = ", slopenng, "x + ", interceptnng, "\n", "R² = ", r_squarednng)
+
+######### native grass slope
+# Fit the linear model
+model.ng <- lm(grass_native ~ shrub_native, data = cover_bylfstatus_wide) # response variable ~ independent variable
+model.ng_summary <- summary(model.ng)
+# Extract the intercept, slope, and R^2 values
+interceptng <- round(coef(model.ng)[1], 2)
+slopeng <- round(coef(model.ng)[2], 2)
+r_squaredng <- round(model.ng_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squaredng))
+# [1] "Multiple R^2: 0.261"
+# Create the label for the equation and R^2
+eq_label_ng <- paste0("Native grass: y = ", slopeng, "x + ", interceptng, "\n", "R² = ", r_squaredng)
+
+fig.1f <- ggplot(data = cover_bylfstatus_wide) + #%>%  filter(forb_native > 0.01 | forb_nonnative > 0.01 | forb_unknown > 0.01)) +
+  geom_point(aes(x = shrub_native * 100, y = grass_native * 100, color = "grass_native"), show.legend = TRUE) +
+  geom_smooth(aes(x = shrub_native * 100, y = grass_native * 100, color = "grass_native"), 
+              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
+  geom_point(aes(x = shrub_native * 100, y = grass_nonnative * 100, color = "grass_nonnative"), show.legend = TRUE) +
+  geom_smooth(aes(x = shrub_native * 100, y = grass_nonnative * 100, color = "grass_nonnative"), 
+              method = "lm", se = TRUE, linetype = "dashed", show.legend = TRUE) +
+  labs(
+     # title = "Comparison of native and non-native forb percent cover by Nonnative Grass percent cover",
+      color = "Status",
+    x = "Native shrub cover (%)",
+    y = "Grass cover (%)"
+    ) +
+  scale_color_manual(values = c("grass_native" = "blue", "grass_nonnative" = "red"),
+                     labels = c("Native ", "Non-native")) +
+  xlim(0, 100) +
+  ylim(0, 100) +
+  theme_bw() +
+  annotate("text", x = 0, y = 40, label = eq_label_nng, color = "black", size = 4, hjust = 0) +
+  annotate("text", x = 0, y = 25, label = eq_label_ng, color = "black", size = 4, hjust = 0)
+
+fig.1f
+```
+
+- y = non-native grass cover 
+```{r}
+
+ggplot(data = (cover_bylfstatus_wide), 
+       aes(x = shrub_native*100,
+           y = grass_nonnative*100
+           )) + 
+   geom_point(aes(color = site), size = 3) +
+  scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
+  labs(
+    x = "Native shrub cover (%)",
+    y = "Non-native grass cover (%)",
+   # title = "Linear regression of non-native grass by sclerophyllous shrub percent cover"
+   color = "Site"
+    ) +
+scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+  theme_bw() +
+   annotate("text", x = 0, y = 5, label = eq_label_nng, color = "black", size = 4, hjust = 0) 
+
+```
+
+
 - y = shrub cover by leaftype
 ```{r}
 ggplot(data = (cover_bylfstatusleaftype %>%  
@@ -755,31 +892,18 @@ print(paste("Multiple R^2:", r_squared))
 
 - y = total shrub cover
 ```{r}
-ggplot(data = cover_bylfstatus_wide,
-       aes(x = grass_nonnative*100, 
-         y = shrub_native*100)) + 
-      geom_point(aes(color = site), size = 3) +
-   scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
-  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
-  labs(
-    x = "Non-native grass cover (%)",
-    y = "Total shrub cover (%)",
-    title = "Linear regression of  total shrub cover by non-native grass cover"
-    ) +
-  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
-  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
-  theme_bw()
-
 # Fit the linear model
 model.s <- lm(grass_nonnative ~ shrub_native, data = cover_bylfstatus_wide) # response variable ~ independent variable
 
 # Print the summary of the model
 model.s_summary <- summary(model.s)
-
+intercept <- round(coef(model.s)[1], 2)
+slope <- round(coef(model.s)[2], 2)
 # Extract the R^2 value
 r_squared <- round(model.s_summary$r.squared, 3)
 print(paste("Multiple R^2:", r_squared))
 # [1] "Multiple R^2: 0.734"
+
 
 # adjusted_r_squared <- round(model.s_summary$adj.r.squared, 3)
 # print(paste("Adjusted R^2:", adjusted_r_squared))
@@ -787,6 +911,28 @@ print(paste("Multiple R^2:", r_squared))
 # Multiple R-squared = variance in the dependent variable that is predictable from the independent variables.  It indicates how well the independent variables explain the variation in the dependent variable. 
 
 # Adjusted R-squared = adjusts for the number of predictors in the model.  It provides a more accurate measure when comparing models with a different number of predictors.
+
+# Create the label for the equation and R^2
+eq_label <- paste0("y = ", slope, "x + ", intercept, "\n", "R² = ", r_squared)
+
+fig.1a <- ggplot(data = cover_bylfstatus_wide,
+       aes(x = grass_nonnative*100, 
+         y = shrub_native*100)) + 
+      geom_point(aes(color = site), size = 3) +
+   scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
+  labs(
+    #  title = "Linear regression of  total shrub cover by non-native grass cover",
+    x = "Non-native grass cover (%)",
+    y = "Total shrub cover (%)", 
+     color = "Site"
+    ) +
+  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+  theme_bw() + 
+  annotate("text", x = 5, y = 5, label = eq_label, color = "black", size = 4, hjust = 0)
+  
+fig.1a
 ```
 
 
@@ -833,7 +979,36 @@ print(paste("Multiple R^2:", r_squared))
 
 - y = native and non-native forb cover
 ```{r regression forb x grass}
-ggplot(data = cover_bylfstatus_wide) + #%>%  filter(forb_native > 0.01 | forb_nonnative > 0.01 | forb_unknown > 0.01)) +
+############ non-native slope
+# Fit the linear model
+model.nnf <- lm(forb_nonnative ~ grass_nonnative, data = cover_bylfstatus_wide) # response variable ~ independent variable
+
+# Print the summary of the model
+model.nnf_summary <- summary(model.nnf)
+# Extract the intercept, slope, and R^2 values
+interceptnnf <- round(coef(model.nnf)[1], 2)
+slopennf <- round(coef(model.nnf)[2], 2)
+r_squarednnf <- round(model.nnf_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squarednnf))
+# [1] "Multiple R^2: 0.097"
+# Create the label for the equation and R^2
+eq_label_nnf <- paste0("Non-native forb: y = ", slopennf, "x + ", interceptnnf, "\n", "R² = ", r_squarednnf)
+
+
+######### native forb slope
+# Fit the linear model
+model.nf <- lm(forb_native ~ grass_nonnative, data = cover_bylfstatus_wide) # response variable ~ independent variable
+model.nf_summary <- summary(model.nf)
+# Extract the intercept, slope, and R^2 values
+interceptnf <- round(coef(model.nf)[1], 2)
+slopenf <- round(coef(model.nf)[2], 2)
+r_squarednf <- round(model.nf_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squarednf))
+# [1] "Multiple R^2: 0.01"
+# Create the label for the equation and R^2
+eq_label_nf <- paste0("Native forb: y = ", slopenf, "x + ", interceptnf, "\n", "R² = ", r_squarednf)
+
+fig.1c <- ggplot(data = cover_bylfstatus_wide) + #%>%  filter(forb_native > 0.01 | forb_nonnative > 0.01 | forb_unknown > 0.01)) +
   geom_point(aes(x = grass_nonnative * 100, y = forb_native * 100, color = "forb_native"), show.legend = TRUE) +
   geom_smooth(aes(x = grass_nonnative * 100, y = forb_native * 100, color = "forb_native"), 
               method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
@@ -841,63 +1016,59 @@ ggplot(data = cover_bylfstatus_wide) + #%>%  filter(forb_native > 0.01 | forb_no
   geom_smooth(aes(x = grass_nonnative * 100, y = forb_nonnative * 100, color = "forb_nonnative"), 
               method = "lm", se = TRUE, linetype = "dashed", show.legend = TRUE) +
   labs(
-    x = "Percent cover non-native grass (%)",
-    y = "Percent cover native forb (%)",
-    title = "Comparison of native and non-native forb percent cover by Nonnative Grass percent cover",
-    color = "Legend"
+     # title = "Comparison of native and non-native forb percent cover by Nonnative Grass percent cover",
+      color = "Status",
+    x = "Non-native grass cvoer (%)",
+    y = "Forb cover (%)"
     ) +
   scale_color_manual(values = c("forb_native" = "blue", "forb_nonnative" = "red"),
                      labels = c("Native ", "Non-native")) +
   xlim(0, 100) +
   ylim(0, 100) +
-  theme_bw()
+  theme_bw() +
+  annotate("text", x = 0, y = 95, label = eq_label_nnf, color = "black", size = 4, hjust = 0) +
+  annotate("text", x = 0, y = 80
+           , label = eq_label_nf, color = "black", size = 4, hjust = 0)
 
-
-# Fit the linear model
-model.s <- lm(forb_native ~ grass_nonnative, data = cover_bylfstatus_wide) # response variable ~ independent variable
-
-# Print the summary of the model
-model.s_summary <- summary(model.s)
-
-# Extract the R^2 value
-r_squared <- round(model.s_summary$r.squared, 3)
-print(paste("Multiple R^2:", r_squared))
-# [1] "Multiple R^2: 0.01"
-
-
-# Fit the linear model
-model.s <- lm(forb_nonnative ~ grass_nonnative, data = cover_bylfstatus_wide) # response variable ~ independent variable
-
-# Print the summary of the model
-model.s_summary <- summary(model.s)
-
-# Extract the R^2 value
-r_squared <- round(model.s_summary$r.squared, 3)
-print(paste("Multiple R^2:", r_squared))
-# [1] "Multiple R^2: 0.097"
+fig.1c
 ```
 
 - y = native grass
 ```{r regression grass x grass}
-ggplot(data = cover_bylfstatus_wide) +
+
+# Fit the linear model
+model.g <- lm(grass_native ~ grass_nonnative, data = cover_bylfstatus_wide) # response variable ~ independent variable
+model.g_summary <- summary(model.g)
+# Extract the intercept, slope, and R^2 values
+interceptg <- round(coef(model.g)[1], 2)
+slopeg <- round(coef(model.g)[2], 2)
+r_squaredg <- round(model.g_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squaredg))
+# [1] "Multiple R^2: 0.497"
+# Create the label for the equation and R^2
+eq_label_g <- paste0("y = ", slopeg, "x + ", interceptg, "\n", "R² = ", r_squaredg)
+
+fig.1e <- ggplot(data = cover_bylfstatus_wide) +
   geom_point(aes(x = grass_nonnative * 100, y = grass_native * 100, color = "grass_native"), show.legend = TRUE) +
   geom_smooth(aes(x = grass_nonnative * 100, y = grass_native * 100, color = "grass_native"), 
               method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
   labs(
-    x = "Percent cover non-native grass (%)",
-    y = "Percent cover native grass (%)",
-    title = "Comparison of Native grass percent cover by Nonnative Grass percent cover",
+    x = "Non-native grass cover (%)",
+    y = "Native grass cover (%)",
+    #title = "Comparison of Native grass percent cover by Nonnative Grass percent cover",
     color = "Legend"
     ) +
   scale_color_manual(values = c("grass_native" = "blue"),
                      labels = c("Native ", "Non-native")) +
   xlim(0, 100) +
   ylim(0, 100) +
-  theme_bw()
-
+  theme_bw() + 
+ annotate("text", x = 0, y = 95, label = eq_label_g, color = "black", size = 4, hjust = 0) 
+ 
 #14 transecrs have native grass present - mostly at Site 1 and at INT transects
 #cover_bylfstatus_wide %>% filter(grass_native > 0) %>% group_by(site_rep, year) %>%  summarize(native_grass = grass_native)
 
+fig.1e
 ```
 
 ### canopy height
@@ -998,7 +1169,11 @@ shrubdensitylife_load <- read_csv("deg_beltdensity_bylifestage.csv",
   pivot_longer(cols = 4:8, names_to = "lifestage", values_to = "density_80m2") %>% 
   mutate(site_rep = paste(site, rep, sep = "_")) %>% 
    mutate(density_m2 = (density_80m2 / 80)) %>% 
-  dplyr::select(-site, -rep, -density_80m2)
+  dplyr::select(-site, -rep, -density_80m2) 
+  
+density2019 <- shrubdensitylife_load %>% 
+  group_by(site_rep, lifestage) %>% 
+  summarise(sum_density_m2 = sum(density_m2)) # 75 rows
   
 shrubdensity_2024 <- read_csv("shrubdensity_2024.csv", 
       col_types = cols(
@@ -1016,13 +1191,70 @@ shrubdensity_2024 <- read_csv("shrubdensity_2024.csv",
   mutate(site_rep = paste(site, rep, sep = "_")) %>% 
   dplyr::select(site_rep, species, lifestage, density_m2)
 
-density <- shrubdensitylife_load %>%  full_join(shrubdensity_2024)
+density2024 <- shrubdensity_2024 %>%  
+  group_by(site_rep, lifestage) %>% 
+  summarise(sum_density_m2 = sum(density_m2)) # 104 rows
+
+density <- density2019 %>%  
+  bind_rows(density2024) # 179 rows
 
 density2 <- density %>% # 39 transects becuase no INT4 density
   group_by(site_rep) %>% 
-  summarise(totaldensty_m2 = sum(density_m2, na.rm = TRUE)) %>% 
+  summarise(totaldensty_m2 = sum(sum_density_m2, na.rm = TRUE)) %>% 
   ungroup()  
 
-density_cover <- height_cover %>% left_join(density2, by = "site_rep")
+density_cover <- height_cover %>% 
+  dplyr::select(site, site_rep, grass_nonnative) %>% 
+  left_join(density, by = "site_rep")
 
+# Fit the linear model: canopy height x nn grass cover
+model.seedling <- lm(sum_density_m2 ~ grass_nonnative, 
+   data = density_cover %>% filter(lifestage == "seedling")) # response variable ~ independent variable
+
+# Print the summary of the model
+model.seedling.summary <- summary(model.seedling)
+
+# Extract the R^2 value
+r_squared <- round(model.seedling.summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squared))
+# [1] "Multiple R^2: 0.273"
+# print slope and intercept
+cf <- round(coef(model.den), 3)
+cat("Intercept:", cf[1], "\n")
+cat("Slope:", cf[2], "\n")
+# > cat("Intercept:", cf[1], "\n")
+# Intercept: 1.056 
+# > cat("Slope:", cf[2], "\n")
+# Slope: -1.139 
+
+ggplot(data = density_cover %>% filter(lifestage == "seedling")) + 
+  geom_point(aes(x = grass_nonnative * 100, 
+                 y = sum_density_m2))
+```
+
+### Figure 1 - cover regressions
+```{r}
+
+# Save the plot to a PDF file with specified size
+pdf("fig.cover_regression.pdf", width = 8, height = 10)  # 8x10 inches (portrait size)
+
+# Add labels to the plots using cowplot's draw_label() function
+fig.1a_labeled <- ggdraw(fig.1a) + draw_label("A", x = 0.85, y = 0.92, size = 15)  # Add letter "A" in the top-right corner
+fig.1c_labeled <- ggdraw(fig.1c) + draw_label("B", x = 0.85, y = 0.92, size = 15)  # Add letter "B"
+fig.1d_labeled <- ggdraw(fig.1d) + draw_label("C", x = 0.85, y = 0.92, size = 15)  # Add letter "C"
+fig.1e_labeled <- ggdraw(fig.1e) + draw_label("D", x = 0.85, y = 0.92, size = 15)  # Add letter "D"
+fig.1f_labeled <- ggdraw(fig.1f) + draw_label("E", x = 0.85, y = 0.92, size = 15)  # Add letter "E"
+
+# Combine the plots in a 2x3 layout
+grid.arrange(fig.1a_labeled, NULL,
+             fig.1c_labeled, fig.1d_labeled, 
+             fig.1e_labeled, fig.1f_labeled,
+             nrow = 3, 
+             ncol = 2, 
+             widths = c(1, 1), # Custom widths for each column
+             heights = c(1, 1, 1) # Custom heights for each row
+             ) 
+
+
+dev.off()  # Close the PDF device
 ```
