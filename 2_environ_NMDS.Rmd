@@ -24,12 +24,19 @@ library(ggpmisc)
 #### load data
 
 ```{r load data}
-extracted_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) 
 
+################### environmental data
+extracted_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) %>% 
+  dplyr::select(system_ind, aspect, elevation, hillshade, slope, site, southwestness, lat, long, cluster)
 # names(extracted_load)
 
-extracted_prep <- extracted_load%>% 
-  dplyr::select(c(elevation, slope, hillshade, system_ind, southwestness, lat, long)) %>% # twi, fire history
+twi_fire_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_TWI_Fire_20m.csv", header = TRUE, na.strings = c("", "NA")) %>% 
+  dplyr::select(system_ind, twi, fire_event_count, last_fire)
+
+extracted_join <- extracted_load %>% 
+  left_join(twi_fire_load, by = "system_ind")
+
+extracted_prep <- extracted_join%>% 
     rename(site_rep = system_ind) %>% 
  filter(site_rep != "1.03") %>% 
 # “southwest-ness” is calculated using: cos (aspect - 225°)
@@ -43,85 +50,54 @@ extracted_prep <- extracted_load%>%
                                     site_rep == "INT5" ~ "INT5_1",
                                    TRUE ~ site_rep)) %>% 
      mutate(
-      hillshade = as.numeric(hillshade),
-      elevation = as.integer(elevation),
-      slope = as.numeric(slope),
-      site_rep = as.character(site_rep)
+      aspect = as.numeric(aspect),
+      elevation = as.integer(elevation), # meters
+      hillshade = as.numeric(hillshade), 
+      slope = as.numeric(slope), # degrees
+      site_rep = as.character(site_rep), 
+      site = as.character(site)
       ) 
 
 extracted_prep$site_rep <- gsub("\\.", "_", extracted_prep$site_rep)
 
-# view(extracted)
-# length(extracted$site_rep)    # n = 39
+# view(extracted_prep)
+# length(extracted_prep$site_rep)    # n = 39
+
+ 
 ```
 
-# load cluster data
-```{r}
-clusters_load <- read.csv("twinspan_percentcover.csv")
-
-rownames(clusters_load) <- clusters_load[,1]
-clusters_load[,1] <- NULL
-
-clusters_spp <- clusters_load %>% 
-  dplyr::select(!c(site, site_rep))
-
-diss_matrix <- vegdist(clusters_spp, method = "bray")  # Bray-Curtis dissimilarity
-
-# Step 3: Perform hierarchical clustering
-clustering <- hclust(diss_matrix, method = "ward.D2")  # Ward's method
-
-# Step 4: Plot the dendrogram
-# plot(clustering, labels = rownames(data), main = "Hierarchical Clustering Dendrogram")
-plot(clustering, labels = clusters_load$site_rep, main = "Hierarchical Clustering Dendrogram")
-
-
-# Optionally, cut the tree to form clusters
-cluster_5 <- cutree(clustering, k = 5)  # Cut the tree into 4 clusters
-table(cluster_5)
-clusters_load$cluster_5 <- cluster_5
-
-cluster_6 <- cutree(clustering, k = 6)  # Cut the tree into 4 clusters
-table(cluster_6)
-clusters_load$cluster_6 <- cluster_6
-
-clusters_lables <- clusters_load %>% 
-  dplyr::select(c(site_rep, cluster_5, cluster_6)) %>% 
-   mutate(site_rep = case_when(site_rep == "1_1" ~ "1_01", # old ~ new
-                               site_rep == "1_2" ~ "1_02",
-                               site_rep == "1_3" ~ "1_03",
-                               site_rep == "1_4" ~ "1_04",
-                               site_rep == "1_5" ~ "1_05",
-                               site_rep == "1_6" ~ "1_06",
-                               site_rep == "1_7" ~ "1_07",
-                               site_rep == "1_8" ~ "1_08",
-                               site_rep == "1_9" ~ "1_09",
-                               site_rep == "2_1" ~ "2_01",
-                               site_rep == "2_2" ~ "2_02",
-                               site_rep == "2_3" ~ "2_03",
-                               site_rep == "2_4" ~ "2_04",
-                               site_rep == "2_5" ~ "2_05",
-                               site_rep == "2_6" ~ "2_06",
-                               site_rep == "2_7" ~ "2_07",
-                               site_rep == "2_8" ~ "2_08",
-                               site_rep == "2_9" ~ "2_09",
-                                   TRUE ~ site_rep)) %>% 
-    mutate(
-      cluster_5 = as.character(cluster_5),
-    cluster_6 = as.character(cluster_6)
-      ) 
-
-
-extracted <- extracted_prep %>% 
-  left_join(clusters_lables, by = "site_rep")
-```
-
-# Prepare data for an NMDS (numbers only)
+# Prepare environ data for an NMDS (numbers only)
 
 ```{r}
-prep <- extracted %>%  
-  dplyr::select(c(elevation, slope, hillshade, southwestness, lat, long))
+prep <- extracted_prep %>%  
+  dplyr::select(!c("site_rep", "aspect", "last_fire"))
 ```
 
+### means (SD)
+```{r}
+
+means <- prep %>% 
+  group_by(cluster) %>% 
+   summarize(elev_mean = mean(elevation),
+            elev_sd = sd(elevation),
+            hill_mean = mean(hillshade),
+            hill_sd = sd(hillshade),
+            slope_mean = mean(slope),
+            slope_sd = sd(slope),
+            sw_mean = mean(southwestness),
+            sw_sd = sd(southwestness),
+            fire_mean = mean(fire_event_count),
+            fire_sd = sd(fire_event_count),
+            lat_mean = mean(lat),
+            lat_sd = sd(lat),
+             long_mean = mean(long),
+            long_sd = sd(long)
+            ) %>% 
+  pivot_longer(cols = 2:15, values_to = "mean", names_to = "variable") %>% 
+  pivot_wider(id_cols = cluster, names_from = variable, values_from = mean)
+
+means
+```
 
 # NMDS
 ```{r nmds by species percent cover}
