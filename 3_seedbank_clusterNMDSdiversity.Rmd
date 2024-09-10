@@ -59,6 +59,7 @@ str(seedbank_load)
 # sort(unique(seedbank_load$family))
 # sort(unique(seedbank_load$lifeform))
 # sort(unique(seedbank_load$lifescycle))
+
 ```
 
 (1) Organize the seed bank data by converting the df into a tibble.
@@ -162,7 +163,7 @@ length(sort(unique(seed_genera$Genus))) - 1
 length(sort(unique(seedbank_load_v_omitpretreatment$family))) - 1
 # n = 24 <-- 25 families - unknown family
 
-# write.csv(seedbank_load_v_omitpretreatment, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/processed//old_processed/seedbank_load_v_omitpretreatment.csv")
+# write.csv(seedbank_load_v_omitpretreatment, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/processed/seedbank_load_v_omitpretreatment.csv")
 ```
 
 ```{r}
@@ -496,7 +497,7 @@ summary(ISA.abs.cover, indvalcomp=TRUE)
 
 
 ##############
-# Does community composition differ among sites?
+# Does community composition differ among groups?
 
 # Check for homogeneity of dispersion among groups, required for MANOVA
 trt <- as.character(my_groups$sub_grp)
@@ -507,8 +508,15 @@ anova(betadisper(d, trt))
 mod <- betadisper(d, trt)
 
 TukeyHSD(mod)
+# $group
+#            diff         lwr         upr     p adj
+# 2-1 -0.10959209 -0.22252937 0.003345181 0.0583159
+# 3-1  0.02930223 -0.08363504 0.142239508 0.7943526
+# 3-2  0.13889433  0.02932908 0.248459576 0.0113293
 
 boxplot(mod)
+# groups 1 and 3 are similar
+# group 2 is biologically different from 1 and 3
 
 plot(mod)
 
@@ -523,8 +531,6 @@ results
 
 
 ```
-
-
 ### - stress tests
 ```{r updated stress tests}
 # USE THIS ONE!
@@ -659,6 +665,51 @@ ggplot(mds.df,
 
 
 ```
+
+
+
+### DIVERSITY
+```{r}
+
+seed_div <- left_join(temp.df, my_groups, by = "rowname") %>% # n_per_g
+  rename(cluster = sub_grp) %>%  # rename column   
+  pivot_longer(cols = 5:60, names_to = "species_diversity", values_to = "n_per_g") %>% 
+   mutate(species_diversity = case_when(
+     species_diversity == "Unknown Phrymaceae¬†¬†" ~ "Unknown D - brown dicot", # old name ~ new name
+       TRUE ~ as.character(species_diversity)))  
+# length(unique(shrub_spplist$species_diversity))
+
+
+shrub_spplist <- unique(germination_m2_raw %>% 
+  dplyr::select(species_diversity, lifeform, status, lifescycle, family))
+# #  length(unique(seed_div$species_diversity)) 
+# 
+# in_spplist <- sort(unique(shrub_spplist$species_diversity))
+# in_seeddiv <- sort(unique(seed_div$species_diversity))
+# 
+# #These are the species that are in abcover_full that are NOT in the species list
+# diffspplist <- setdiff(in_spplist, in_seeddiv)
+# diffspplist
+# 
+# difseeddiv <- setdiff(in_seeddiv, in_spplist)
+# difseeddiv
+
+
+shrub_list <- seed_div %>% 
+  left_join(shrub_spplist, by = "species_diversity") %>% 
+  filter(lifeform == "shrub") %>% 
+  ungroup() %>% 
+  dplyr::select(cluster, species_diversity, n_per_g) %>% 
+  group_by(cluster, species_diversity) %>% 
+   summarize(mean_n_per_g = round(mean(n_per_g), 6)) %>% 
+  pivot_wider(names_from = cluster, values_from = mean_n_per_g, names_prefix = "Group ")
+shrub_list
+
+kable(shrub_list)
+
+```
+
+
 
 
 
