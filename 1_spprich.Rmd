@@ -97,8 +97,8 @@ belt.spprich <- bind_rows(belt.spp_2019, belt.spp_2024)
 sppchar <- read.csv("processed/specieslist.csv") %>% # species and their characteristics :) Created in 1.1_transect_continuous.Rmd
   dplyr::select(!c(X, notes, ejepson)) %>%
   mutate(species = str_replace(species, " ", "_")) %>%
-  mutate(species = gsub("\u00A0", " ", b, fixed = TRUE)) %>%
-  mutate(species = str_replace(species, g, "_"))
+  mutate(species = gsub("\u00A0", " ", species, fixed = TRUE)) %>%
+  mutate(species = str_replace(species, " ", "_"))
 
 #These are the species that are in belt.spprich that are NOT in the species characteristics list
 a <- sort(unique(belt.spprich$species))
