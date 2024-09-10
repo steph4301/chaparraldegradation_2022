@@ -1071,6 +1071,36 @@ fig.1e <- ggplot(data = cover_bylfstatus_wide) +
 fig.1e
 ```
 
+
+### Figure 1 - cover regressions
+```{r}
+
+# Save the plot to a PDF file with specified size
+pdf("fig.cover_regression.pdf", width = 8, height = 10)  # 8x10 inches (portrait size)
+
+# Add labels to the plots using cowplot's draw_label() function
+fig.1a_labeled <- ggdraw(fig.1a) + draw_label("A", x = 0.85, y = 0.92, size = 15)  # Add letter "A" in the top-right corner
+fig.1c_labeled <- ggdraw(fig.1c) + draw_label("B", x = 0.85, y = 0.92, size = 15)  # Add letter "B"
+fig.1d_labeled <- ggdraw(fig.1d) + draw_label("D", x = 0.85, y = 0.92, size = 15)  # Add letter "C"
+fig.1e_labeled <- ggdraw(fig.1e) + draw_label("C", x = 0.85, y = 0.92, size = 15)  # Add letter "D"
+fig.1f_labeled <- ggdraw(fig.1f) + draw_label("E", x = 0.85, y = 0.92, size = 15)  # Add letter "E"
+
+# Combine the plots in a 2x3 layout
+grid.arrange(fig.1a_labeled, NULL,
+             fig.1c_labeled, fig.1d_labeled, 
+             fig.1e_labeled, fig.1f_labeled,
+             nrow = 3, 
+             ncol = 2, 
+             widths = c(1, 1), # Custom widths for each column
+             heights = c(1, 1, 1) # Custom heights for each row
+             ) 
+
+
+dev.off()  # Close the PDF device
+```
+
+
+
 ### canopy height
 ```{r}
 # stand height 
@@ -1110,10 +1140,12 @@ model.h <- lm(avgheight_cm ~ grass_nonnative, data = height_cover) # response va
 # Print the summary of the model
 model.h.summary <- summary(model.h)
 
-# Extract the R^2 value
+# Extract the intercept, slope, and R^2 values
+intercept <- round(coef(model.h)[1], 2)
+slope <- round(coef(model.h)[2], 2)
 r_squared <- round(model.h.summary$r.squared, 3)
 print(paste("Multiple R^2:", r_squared))
-# [1] "Multiple R^2: 0.366"
+# [1] "Multiple R^2: 0.365"
 # print slope and intercept
 cf <- round(coef(model.h), 3)
 cat("Intercept:", cf[1], "\n")
@@ -1123,6 +1155,11 @@ cat("Slope:", cf[2], "\n")
 # > cat("Slope:", cf[2], "\n")
 # Slope: -93.231 
 
+intercepth <- round(coef(model.h)[1], 2)
+slopeh <- round(coef(model.h)[2], 2)
+
+# Create the label for the equation and R^2
+eq_label_h <- paste0("y = ", slopeh, "x + ", intercepth, "\n", "R² = ", r_squared)
 
 ggplot(data = height_cover) + 
   geom_point(aes(x = grass_nonnative * 100, 
@@ -1130,15 +1167,18 @@ ggplot(data = height_cover) +
     xlim(0, 100) +
   ylim(0, 300) +
   labs(
-    x = "Percent cover non-native grass (%)",
+    x = "Non-native grass (%)",
     y = "Average stand height (cm)",
-    title = "Mean stand height by Nonnative Grass percent cover",
+  #  title = "Mean stand height by Nonnative Grass percent cover",
      color = "Legend") +
    # scale_y_continuous(breaks = seq(0, max(300), by = 50)) +
   geom_smooth(aes(x = grass_nonnative * 100, 
                   y = avgheight_cm), 
               method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
-  theme_bw()
+  theme_bw() + 
+   annotate("text", x = 0, y = 15, label = eq_label_h, color = "black", size = 4, hjust = 0) 
+
+# (linear regression: y = -93.23x + 164.52; R² = 0.365) 
 ```
 
 
@@ -1230,31 +1270,4 @@ cat("Slope:", cf[2], "\n")
 ggplot(data = density_cover %>% filter(lifestage == "seedling")) + 
   geom_point(aes(x = grass_nonnative * 100, 
                  y = sum_density_m2))
-```
-
-### Figure 1 - cover regressions
-```{r}
-
-# Save the plot to a PDF file with specified size
-pdf("fig.cover_regression.pdf", width = 8, height = 10)  # 8x10 inches (portrait size)
-
-# Add labels to the plots using cowplot's draw_label() function
-fig.1a_labeled <- ggdraw(fig.1a) + draw_label("A", x = 0.85, y = 0.92, size = 15)  # Add letter "A" in the top-right corner
-fig.1c_labeled <- ggdraw(fig.1c) + draw_label("B", x = 0.85, y = 0.92, size = 15)  # Add letter "B"
-fig.1d_labeled <- ggdraw(fig.1d) + draw_label("C", x = 0.85, y = 0.92, size = 15)  # Add letter "C"
-fig.1e_labeled <- ggdraw(fig.1e) + draw_label("D", x = 0.85, y = 0.92, size = 15)  # Add letter "D"
-fig.1f_labeled <- ggdraw(fig.1f) + draw_label("E", x = 0.85, y = 0.92, size = 15)  # Add letter "E"
-
-# Combine the plots in a 2x3 layout
-grid.arrange(fig.1a_labeled, NULL,
-             fig.1c_labeled, fig.1d_labeled, 
-             fig.1e_labeled, fig.1f_labeled,
-             nrow = 3, 
-             ncol = 2, 
-             widths = c(1, 1), # Custom widths for each column
-             heights = c(1, 1, 1) # Custom heights for each row
-             ) 
-
-
-dev.off()  # Close the PDF device
 ```
