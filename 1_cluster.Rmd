@@ -16,18 +16,21 @@ load libraries
 # library(MASS)
 library(tidyverse)
 library(here)
-# library(stringr)
-# library(factoextra)
 library(cluster)
 library(vegan)
 library(indicspecies)
 library(plotly)
+library(gridExtra)
+
 # library(dunn.test)
 # library(caret)
 # library(rpart)
 # library(ggrepel)
 # library(ggparty)
 # library(factoextra)
+# library(stringr)
+# library(factoextra)
+
 
 # Set seed for analyses
 set.seed(3980)
@@ -90,6 +93,25 @@ transect2024 <- file_transect_2024_load %>%
 #view(transect2024)
 #sort(unique(transect2024$transect))
 #sort(unique(transect2024$site))
+
+################ leaf traits
+# shrub_leaftype <- read.csv("shrub_leaftype.csv") %>% 
+#   dplyr::select("species", "leaftype") %>% 
+#    mutate(
+#       species = as.character(species),
+#       leaftype = as.character(leaftype)
+#       ) %>% 
+#   mutate(
+#     leaftype = if_else(grepl("dead", species, ignore.case = TRUE), "dead_shrub", leaftype)
+#   )
+
+################ species characteristic list
+sppchar <- read.csv("processed/specieslist.csv") %>%  # species and their characteristics :) Created in 1.1_transect_continuous.Rmd
+  dplyr::select(!c(X, notes, ejepson)) %>%
+   mutate(species = str_replace(species, " ", "_")) %>%
+  mutate(species = gsub("\u00A0", " ", species, fixed = TRUE)) %>%
+  mutate(species = str_replace(species, " ", "_")) %>% 
+    mutate(species = str_replace(species, "_", "."))
 ```
 
 ## full join transect data
@@ -137,6 +159,7 @@ abcover_full <- abcover_fulljoin_tib %>%
                               species == "Sambucus nigra" ~ "Sambucus mexicana",
                               species == "Blitum californicum" ~ "Chenopodium californicum",
                               species == "Cryptantha sp." ~ "Cryptantha spp.",
+                                species == "Festuca myros" ~ "Festuca myuros",
                               TRUE ~ species)) %>% 
    mutate(
       year = as.character(year),
@@ -151,13 +174,13 @@ glimpse(abcover_full) # look at new columns
 
 sort(unique(abcover_full$species))
 
-abcover_omitground <- abcover_charateristics_leaftype %>% 
+abcover_omitground <- abcover_full %>% 
   filter(vertical != "ground", 
          vertical != "ground cover") %>% 
   filter(species != "no_species", 
-         species != "thatch") %>% 
-  mutate(lifeform_status = paste(lifeform, status, sep = "_")) %>% 
-  mutate(lifeform_status_leaftype = paste(lifeform_status, leaftype, sep = "_"))
+         species != "thatch") # %>% 
+  # mutate(lifeform_status = paste(lifeform, status, sep = "_")) %>% 
+  # mutate(lifeform_status_leaftype = paste(lifeform_status, leaftype, sep = "_"))
 ```
 
 
@@ -527,14 +550,17 @@ p <- plot_ly(mds.df,
         color=sub_grp)
 p
 
+
 # vectors
 genp <- envfit(mds, df, perm = 999) # generate p-values 
+genp
 
-pv <- pval$vectors$pvals %>% # extract p-values for each species
+pv <- genp$vectors$pvals %>% # extract p-values for each species
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
-  dplyr::rename("pvals" = ".")
-
+  dplyr::rename("pvals" = ".") %>% 
+  left_join(sppchar, by = "species")
+pv
 
 # extract coordinates for species, only keep species with p-val = 0.05
 spp <- genp %>% 
@@ -542,10 +568,12 @@ spp <- genp %>%
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   full_join(., pv, by = "species") %>% # join pvalues and spp
-  filter(pvals <= 0.001)# <-- p-value 
+  filter(pvals <= 0.05)# <-- p-value 
 length(spp$species) #  <- limited number for visual clarity
 
-ggplot(mds.df,
+
+#### native species
+nmds_nat <- ggplot(mds.df,
        aes(x = NMDS1,
            y = NMDS2
            )) +
@@ -553,17 +581,51 @@ ggplot(mds.df,
    stat_ellipse(aes(color = sub_grp)) +  # Apply color here
   theme(axis.title = element_text(size = 20)) +
   theme(axis.text = element_text(size = 16)) +
-  geom_segment(data = spp, 
+  geom_segment(data = spp %>%  filter(status == "native"), 
                aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
                arrow = arrow(length = unit(0.25, "cm")),
                col = "black") +
-  geom_text(data = spp, aes(label = species),  
+  geom_text(data = spp %>%  filter(status == "native"), 
+            aes(label = species),  
             position = position_jitter(width = 0.0, height = 0.1)) +
    scale_color_manual(values = c("1" = "black", "2" = "red", "3" = "green", "4" = "blue", "5" = "cyan"),
                      labels = c("1" = "LuHiAv", "2" = "CeStBr", "3" = "HiAvBr", "4" = "FeCeAv", "5" = "HeRhRh")) +
   scale_shape_manual(values = c("1" = 16, "2" = 17, "3" = 18, "4" = 19, "5" = 20),
                      labels = c("1" = "LuHiAv", "2" = "CeStBr", "3" = "HiAvBr", "4" = "FeCeAv", "5" = "HeRhRh")) +
   theme_bw()
+
+
+#### non-native species
+nmds_nn <- ggplot(mds.df,
+       aes(x = NMDS1,
+           y = NMDS2
+           )) +
+  geom_point(size = 3, alpha = 0.8, aes(color = sub_grp)) +
+   stat_ellipse(aes(color = sub_grp)) +  # Apply color here
+  theme(axis.title = element_text(size = 20)) +
+  theme(axis.text = element_text(size = 16)) +
+  geom_segment(data = spp %>%  filter(status == "nonnative"), 
+               aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
+               arrow = arrow(length = unit(0.25, "cm")),
+               col = "black") +
+  geom_text(data = spp %>%  filter(status == "nonnative"), 
+            aes(label = species),  
+            position = position_jitter(width = 0.0, height = 0.1)) +
+   scale_color_manual(values = c("1" = "black", "2" = "red", "3" = "green", "4" = "blue", "5" = "cyan"),
+                     labels = c("1" = "LuHiAv", "2" = "CeStBr", "3" = "HiAvBr", "4" = "FeCeAv", "5" = "HeRhRh")) +
+  scale_shape_manual(values = c("1" = 16, "2" = 17, "3" = 18, "4" = 19, "5" = 20),
+                     labels = c("1" = "LuHiAv", "2" = "CeStBr", "3" = "HiAvBr", "4" = "FeCeAv", "5" = "HeRhRh")) +
+  theme_bw()
+
+# Combine plots
+grid.arrange(nmds_nat, 
+             nmds_nn,
+             nrow = 2, 
+             ncol = 1, 
+             widths = c(1), # Custom widths for each column
+             heights = c(1, 1) # Custom heights for each row
+             ) 
+
 
 ```
 
