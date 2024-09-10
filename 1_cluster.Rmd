@@ -395,6 +395,17 @@ my_groups <- as.data.frame(sub_grp) %>%
 
 cluster.subgrp.df <- left_join(temp.df, my_groups, by = "rowname")
 
+
+
+# # Create a combined label
+# combined_labels <- paste(seed.subgrp.df$sub_grp, seed.subgrp.df$stand_core, sep = " - ")
+# 
+# # Plot the hierarchical clustering dendrogram with the combined labels
+# plot(hcluster.abs.cover, labels = combined_labels, main = "Hierarchical Clustering Dendrogram")
+# rect.hclust(hcluster.abs.cover, k = 3)
+
+
+
 plot(hcluster.abs.cover, labels = cluster.subgrp.df$sub_grp, main = "Hierarchical Clustering Dendrogram")
 rect.hclust(hcluster.abs.cover, k = 5)
 
