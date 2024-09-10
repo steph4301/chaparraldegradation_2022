@@ -1133,7 +1133,7 @@
 2019,enhanced,ENH1,1,0,surface,oven,1,Artemisia californica,Artemisia californica,shrub,native,perennial,Asteraceae,3,small leaf
 2019,enhanced,ENH1,1,0,surface,oven,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,36,
 2019,enhanced,ENH1,1,0,surface,oven,1,Centaurea melitensis,Centaurea melitensis,forb,nonnative,annual,Asteraceae,2,
-2019,enhanced,ENH1,1,0,surface,oven,1,Diplacus aurantiacus,Diplacus aurantiacus,shrub,native,perennial,Phrymaceae  ,1,
+2019,enhanced,ENH1,1,0,surface,oven,1,Diplacus aurantiacus,Diplacus aurantiacus,shrub,native,perennial,Phrymaceae,1,
 2019,enhanced,ENH1,1,0,surface,oven,1,Sonchus oleraceus,Sonchus oleraceus,forb,nonnative,annual,Asteraceae,1,
 2019,enhanced,ENH1,1,0,surface,oven,1,Typha domingensis,Typha domingensis,forb,native,perennial,Typhaceae,4,
 2019,enhanced,ENH1,1,0,surface,ovenchar,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,68,
@@ -1323,7 +1323,7 @@
 2019,enhanced,ENH2,6,0,surface,oven,1,Festuca myuros ,Festuca myuros,grass,nonnative,annual,Poaceae,2,
 2019,enhanced,ENH2,6,0,surface,oven,1,Malacothamnus fasciculatus,Malacothamnus fasciculatus,shrub,native,perennial,Malvaceae,4,
 2019,enhanced,ENH2,6,0,surface,oven,1,Typha domingensis,Typha domingensis,forb,native,perennial,Typhaceae,1,
-2019,enhanced,ENH2,6,0,surface,oven,1,Unknown D - brown dicot,Unknown Phrymaceae  ,shrub,native,perennial,Phrymaceae  ,1,unknown 2 - unknown brown dicot - Diplacus aurantiacus ?
+2019,enhanced,ENH2,6,0,surface,oven,1,Unknown D - brown dicot,Unknown Phrymaceae  ,shrub,native,perennial,Phrymaceae,1,unknown 2 - unknown brown dicot - Diplacus aurantiacus ?
 2019,enhanced,ENH2,6,0,surface,ovenchar,1,Artemisia californica,Artemisia californica,shrub,native,perennial,Asteraceae,2,
 2019,enhanced,ENH2,6,0,surface,ovenchar,1,Avena barbara,Avena spp.,grass,nonnative,annual,Poaceae,5,Either barbata or fatua
 2019,enhanced,ENH2,6,0,surface,ovenchar,1,Bromus hordeaceus,Bromus spp.,grass,nonnative,annual,Poaceae,2,
