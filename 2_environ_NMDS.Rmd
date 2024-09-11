@@ -538,9 +538,22 @@ df <-  extracted_prep %>%
 
 
 ######### take home
-# Group 1 is at lower elevation, more shady, more negative TWI, higher lat, less negative long, one fire. 13 of 17 transects burned in 2007. The three transects that burned in 2003 and 2007 were INT 1, INT2, and 1.10. === GROUP 1 includes transects from Site 1 and INT 1, 2, 3, 5.
+# Group 1 is at lower elevation, more shady, more negative TWI, higher lat, less negative long, one fire. 14 or 14 transects burned in 2007. The three transects that burned in 2003 and 2007 were INT 1, INT2, and 1.10. === GROUP 1 includes transects from Site 1 and INT 1, 3. (n = 14 transects)
 
-# Group 2 at higher elevation, less shady, less negative TWI, lower lat, more negative long, two fires. All transects in Group 2 burned in 2003 and 2007. 25 transects
+length(
+  df %>%  
+    filter(environ_cluster == "1") %>% 
+    filter(last_fire == "2007") %>% 
+         pull(environ_cluster)
+       )
+
+# Group 2 at higher elevation, less shady, less negative TWI, lower lat, more negative long, two fires. 21 transects in Group 2 burned in 2003 and 2007. Most transects are from Site 2. 4 transects are not from Site 2: INT1, INT2, INT4, 1.10. Only 3 burned in 2007 only (INT1, INT2, 1.10) (n = 25 transects) INT4 burned twice.
+
+length(
+  df %>%  
+    filter(environ_cluster == "2") %>% 
+         pull(environ_cluster)
+       )
 
 # southwestness, slope was the same between Group 1 and Group 2
 
