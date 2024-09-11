@@ -63,13 +63,13 @@ library(readxl)
 ```
 
 
-## data prep
+## BELT DATA 
 
 List of seven unknown species: chaparraldegradation2022 > chaparraldegradation2022 > unknown_spp.xlsx
 
 ```{r load belt intercept transect data}
 
-# Read in data
+################## load belt transect data
 
 # 2019 belt transect data 
 belt.spp_2019_load <- read.csv(here("deg_beltdensity_byspecies.csv")) 
@@ -82,23 +82,41 @@ belt.spp_2019 <- belt.spp_2019_load %>%
                              TRUE ~ species)) %>%
   mutate(species = str_replace(species, " ", "_"))
 
+
 ### 2024 belt transect data
-belt.spp_2024_load <- read.csv(here("belt_spprich_2024.csv")) 
+belt.spp_2024_load <- read.csv(here("belt_spprich_2024.csv"))  
 
 belt.spp_2024 <- belt.spp_2024_load %>% 
   dplyr::select(site, rep, species) %>% 
   mutate(site_rep = paste(site, rep, sep = ".")) %>% 
   filter(species != "moss") %>%
-  mutate(species = str_replace(species, " ", "_"))
+  mutate(species = str_replace(species, " ", "_")) %>% 
+  mutate(species = case_when(species == "Toxicodendron_pubescens" ~ "Toxicodendron_diversilobum", # old name ~ new name
+                             species == "Sambucus_nigra" ~ "Sambucus_mexicana",
+                             TRUE ~ species))
 
-belt.spprich <- bind_rows(belt.spp_2019, belt.spp_2024)
+belt.spprich <- bind_rows(belt.spp_2019, belt.spp_2024) 
+# sort(unique(belt.spprich$species))
+
+
+
+
+################## join species characteristics
 
 ### species characteristics
 sppchar <- read.csv("processed/specieslist.csv") %>% # species and their characteristics :) Created in 1.1_transect_continuous.Rmd
   dplyr::select(!c(X, notes, ejepson)) %>%
   mutate(species = str_replace(species, " ", "_")) %>%
   mutate(species = gsub("\u00A0", " ", species, fixed = TRUE)) %>%
-  mutate(species = str_replace(species, " ", "_"))
+  mutate(species = str_replace(species, " ", "_")) %>% 
+  mutate(family = case_when(family == "Agavaceae  " ~ "Agavaceae", # old name ~ new name
+                             family == "Boraginaceae " ~ "Boraginaceae",
+                              family == "Chenopodiaceae  " ~ "Chenopodiaceae",
+                              family == "Fagaceae  " ~ "Fagaceae",
+                            family == "Onagraceae  " ~ "Onagraceae",
+                            family == "Ranunculaceae  " ~ "Ranunculaceae",
+                            family == "Urticaceae  " ~ "Urticaceae",
+                             TRUE ~ family))
 
 #These are the species that are in belt.spprich that are NOT in the species characteristics list
 a <- sort(unique(belt.spprich$species))
@@ -107,47 +125,103 @@ b <- sort(unique(sppchar$species))
 speciesmissingfrom.sppchar <- setdiff(a, b) # <- KIT - can you help resolve this issue? I added the missing species and their characteristics to "processed/specieslist.csv" but they're not joining
 speciesmissingfrom.sppchar 
 
-
 speciesmissingfrom.belt <- setdiff(b, a)
 speciesmissingfrom.belt
 
-
 # list of seven unknown species
-unknown.spp <- read_excel("unknown_spp.xlsx")
+# unknown.spp <- read_excel("unknown_spp.xlsx")
 
+belt <- belt.spprich %>% 
+  left_join(sppchar, by = "species")
 ```
 
 ### SPECIES RICHNESS
+
 ```{r}
 
 # sort(unique(belt.spprich$species))
 
-belt.spprich_total <- belt.spprich %>% 
-  filter(species != "Erodium spp.") %>% 
-  filter(species != "Galium spp.") %>% 
-  filter(species != "Lupinus spp.") %>% 
-    filter(species != "Phacelia spp.") %>% 
-    filter(species != "Trifolium spp.")
+belt.spprich_total <- belt %>% 
+  filter(species != "Erodium_spp.") %>% 
+  filter(species != "Galium_spp.") %>% 
+  filter(species != "Lupinus_spp.") %>% 
+    filter(species != "Phacelia_spp.") %>% 
+    filter(species != "Trifolium_spp.")
+sort(unique(belt.spprich_total$species))
 
-length(unique(belt.spprich_total$species))
-# 90 species  
+length(sort(unique(belt.spprich_total$species)))
+# 87 species  
 
+   
+# erodium <- belt.spp_2019 %>%  filter(grepl("Erodium", species))
+# lupin <- belt.spp_2019 %>%  filter(grepl("Lupinus", species))
+# 
+# belt.spp_2019 %>% 
+#   filter(!(species == "Lupinus spp." & site_rep == "1.1")) %>% 
+#   filter(!(species == "Lupinus spp." & site_rep == "1.2"))
 
-    
-  
-# sppr <- specnumber(belt.spprich) # need matrix 
-
-
-  
-erodium <- belt.spp_2019 %>%  filter(grepl("Erodium", species))
-lupin <- belt.spp_2019 %>%  filter(grepl("Lupinus", species))
-
-belt.spp_2019 %>% 
-  filter(!(species == "Lupinus spp." & site_rep == "1.1")) %>% 
-  filter(!(species == "Lupinus spp." & site_rep == "1.2"))
 ```
 
+# GENERA 
+```{r}
+belt.genrich <- belt %>% 
+  separate(col = species, into = c("Genus", "Species"), sep = "_") %>%
+  dplyr::select("Genus") 
+length(sort(unique(belt.genrich$Genus))) - 4 # minus 4 unknowns
+# 67 
 
+```
+
+# FAMILY
+```{r}
+belt_famrich <- belt %>% 
+   dplyr::select("family") 
+# sort(unique(belt_famrich$family))
+length(sort(unique(belt_famrich$family))) - 1 # duplicate Chenopodiaceae
+```
+# NATIVE lifeforms
+```{r}
+
+####### shrub
+length(sort(unique(
+  belt %>% 
+  filter(status == "native") %>% 
+  filter(lifeform == "shrub") %>% 
+    pull(species))))
+
+####### grass
+length(sort(unique(
+  belt %>% 
+  filter(status == "native") %>% 
+  filter(lifeform == "grass") %>% 
+    pull(species))))
+
+####### forb
+length(sort(unique(
+  belt %>% 
+  filter(status == "native") %>% 
+  filter(lifeform == "forb") %>% 
+    pull(species)))) - 4 # remove four "spp." -->  "Galium_spp."     "Lupinus_spp."    "Phacelia_spp."  "Trifolium_spp." 
+
+
+```
+
+# NN lifeforms
+```{r}
+
+####### grass
+length(sort(unique(
+  belt %>% 
+  filter(status == "native") %>% 
+  filter(lifeform == "grass") %>% 
+    pull(species))))
+
+
+####### forb
+
+
+
+```
 ```{r}
   
 
@@ -937,6 +1011,11 @@ summary(sppdiv_aov)
 - sort(unique(df$column))
 - class() = tibble or data.frame?
 
+f <-  belt %>% 
+  filter(status == "native") %>% 
+  filter(lifeform == "forb") %>% 
+   filter(grepl("spp\\.", species))
+sort(unique(f$species)) 
 
 ```{r above ground - species richness - native richness, include = FALSE}
 
