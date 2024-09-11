@@ -9,8 +9,10 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Load libraries
-```{r install libraries, message=FALSE}
+
+```{r install libraries}
+
+###### load libraries
 
 library(tidyverse) # includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
 library(vegan)
@@ -36,9 +38,11 @@ library(factoextra)
 set.seed(8003)
 ```
 
-# DATA - raw counts
+
 ```{r load deg_seedbank csv}
-# 
+
+######### load data
+
 seedbank_load_raw <- read.csv("deg_seedbank_202407.csv", header = TRUE, na.strings=c("","NA"))
 
 seedbank_load <- seedbank_load_raw %>% 
@@ -166,20 +170,13 @@ length(sort(unique(seedbank_load_v_omitpretreatment$family))) - 1
 # write.csv(seedbank_load_v_omitpretreatment, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/processed/seedbank_load_v_omitpretreatment.csv")
 ```
 
-```{r}
-##### number of species, genera, family 
-
-# N = 62 species = 64 - Erodium spp. - Phacelia spp
-
-df <- df %>%
-  separate(col = species_full, into = c("Genus", "Species"), sep = " ")
 
 
-````
-
-# DATA - germination by depth and treatment 
 
 ```{r load standardized germination data, inlude = TRUE}
+
+######## load data - germination by depth and treatment 
+
 germination_m2_raw <- read_xlsx("processed/old_processed/germination_m2.xlsx")
 average_cover <- read.csv("nat_nn_cover.csv", header = TRUE, na.strings=c("","NA"))
 
@@ -193,8 +190,11 @@ germination_depthtreat <- germination_m2_raw %>%
 
 glimpse(germination_depthtreat)
 ```
-# UPDATED STACKED FIGURE: Stacked germination by family (January 2024)
-### - germination (n/g soil) by family
+
+ UPDATED STACKED FIGURE: Stacked germination by family (January 2024)
+
+### GERMINATION
+- germination (n/g soil) by family
 ```{r germination (n/g soil) by family}
 
 # updated code on jan 21, 2024
@@ -251,8 +251,10 @@ ggdraw() +
   draw_plot_label(label = c("A", "B"), size = 10,
                   x = c(0, 0), y = c(1, .5))
 ```
-# UPDATED NMDS FIGURE: NMDS by genus (January 2024)
-### - data prep
+
+# data prep for ...
+Data preparation for running NMDS and Cluster analysis
+- data prep
 ```{r updated nmds data prep}
 # species in columns
 # sites or observations in rows
@@ -267,7 +269,7 @@ head(seedbank_nperg_bysamplocation) # df before transpose - use for ellipses
 dim(seedbank_nperg_bysamplocation) #330   5
 ```
 
-### - transpose data 
+ - transpose data 
 ```{r updated transpose data by species for nmds, include=TRUE}
 
 # species in columns down
@@ -282,7 +284,7 @@ seedbank_nperg_bysamplocation_nmdsprep <- seedbank_nperg_bysamplocation %>%
 # write.csv(seedbank_nperg_bysamplocation_nmdsprep, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/seedbank_NMDS_202401.csv")
 ```
 
-### - replace NAs with zeros
+ - replace NAs with zeros
 ```{r updated replace NAs with zeros}
 seedbank_nperg_bysamplocation_nmdsprep_num <- seedbank_nperg_bysamplocation_nmdsprep %>% 
     ungroup() %>% 
@@ -293,7 +295,9 @@ seedbank_nperg_bysamplocation_nmdsprep_num <- seedbank_nperg_bysamplocation_nmds
 dim(seedbank_nperg_bysamplocation_nmdsprep_num) # 26 55
 ```
 
-### Hierarchical Agglomerative Clustering
+### CLUSTER
+
+Hierarchical Agglomerative Clustering
 ```{r}
 
 
@@ -531,7 +535,7 @@ results
 
 
 ```
-### - stress tests
+### NMDS
 ```{r updated stress tests}
 # USE THIS ONE!
 
@@ -669,6 +673,17 @@ ggplot(mds.df,
 
 
 ### DIVERSITY
+
+```{r}
+##### number of species, genera, family 
+
+# N = 62 species = 64 - Erodium spp. - Phacelia spp
+
+df <- df %>% 
+  separate(col = species_full, into = c("Genus", "Species"), sep = " ")
+
+```
+
 ```{r}
 
 seed_div <- left_join(temp.df, my_groups, by = "rowname") %>% # n_per_g
