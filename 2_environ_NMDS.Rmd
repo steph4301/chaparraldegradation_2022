@@ -120,10 +120,10 @@ df <- extracted_prep %>%
 
 ```
 
-### means (SD)
+### TABLE plant
 ```{r}
 
-######### Table of means and SD of environmental variables
+######### Table of means and SD of environmental variables by plant cluster
 
 means <- df %>% 
   group_by(plant_cluster) %>% 
@@ -158,10 +158,10 @@ means_combined <- df %>%
   )
 
 # Print as a gt table
-means_combined %>%
+table_plant <- means_combined %>%
   gt() %>%
   tab_header(
-    title = "Summary Statistics by Cluster",
+    title = "Summary Statistics by Plant Cluster",
     subtitle = "Mean ± Standard Deviation for Elevation, Hillshade, Slope, Southwestness, Fire Events, and Coordinates"
   ) %>%
   cols_align(
@@ -171,6 +171,8 @@ means_combined %>%
   tab_options(
     table.width = pct(100) # Make the table width 100%
   )
+
+table_plant
 
 ```
 
@@ -859,4 +861,58 @@ boxplot(long ~ plant_cluster, boxdf)
 ########################################## fire_event_count
 boxplot(fire_event_count ~ plant_cluster, boxdf)
 
+```
+### TABLE env
+```{r}
+
+############ summary table by environmental cluster 
+
+means_2 <- boxdf %>% 
+  group_by(environ_cluster) %>% 
+   summarize(elev_mean = mean(elevation),
+            elev_sd = sd(elevation),
+            hill_mean = mean(hillshade),
+            hill_sd = sd(hillshade),
+            slope_mean = mean(slope),
+            slope_sd = sd(slope),
+            sw_mean = mean(southwestness),
+            sw_sd = sd(southwestness),
+            fire_mean = mean(fire_event_count),
+            fire_sd = sd(fire_event_count),
+            lat_mean = mean(lat),
+            lat_sd = sd(lat),
+             long_mean = mean(long),
+            long_sd = sd(long)
+            ) %>% 
+  pivot_longer(cols = 2:15, values_to = "mean", names_to = "variable") %>% 
+  pivot_wider(id_cols = environ_cluster, names_from = variable, values_from = mean)
+
+means_combined_2 <- boxdf %>%
+  group_by(environ_cluster) %>%
+  summarize(
+    elev = paste0(round(mean(elevation), 2), " ± ", round(sd(elevation), 2)),
+    hillshade = paste0(round(mean(hillshade), 2), " ± ", round(sd(hillshade), 2)),
+    slope = paste0(round(mean(slope), 2), " ± ", round(sd(slope), 2)),
+    southwestness = paste0(round(mean(southwestness), 2), " ± ", round(sd(southwestness), 2)),
+    fire_events = paste0(round(mean(fire_event_count), 2), " ± ", round(sd(fire_event_count), 2)),
+    latitude = paste0(round(mean(lat), 4), " ± ", round(sd(lat), 4)),
+    longitude = paste0(round(mean(long), 4), " ± ", round(sd(long), 4))
+  )
+
+# Print as a gt table
+table_env <- means_combined_2 %>%
+  gt() %>%
+  tab_header(
+    title = "Summary Statistics by Environmental Cluster",
+    subtitle = "Mean ± Standard Deviation for Elevation, Hillshade, Slope, Southwestness, Fire Events, and Coordinates"
+  ) %>%
+  cols_align(
+    align = "center", # Center alignment
+    columns = "environ_cluster" # Specify the "cluster" column
+  ) %>% 
+  tab_options(
+    table.width = pct(100) # Make the table width 100%
+  )
+
+table_env
 ```
