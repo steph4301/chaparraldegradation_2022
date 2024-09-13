@@ -636,30 +636,31 @@ PCA_plantcluster
 
 ```{r}
 
-df <-  extracted_prep %>% 
+boxdf <-  extracted_prep %>% 
    full_join(my_groups, by = "rowname") %>% 
   rename(environ_cluster = sub_grp) %>% 
      mutate(environ_cluster = as.character(environ_cluster)) %>% 
    mutate(plant_cluster = as.character(plant_cluster))
 
 
+
 ######### take home
 # Group 1 is at lower elevation, more shady, more negative TWI, higher lat, less negative long, one fire. 14 or 14 transects burned in 2007. The three transects that burned in 2003 and 2007 were INT 1, INT2, and 1.10. === GROUP 1 includes transects from Site 1 and INT 1, 3. (n = 14 transects)
 
 length(
-  df %>%  
+  boxdf %>%  
     filter(environ_cluster == "1") %>% 
     filter(last_fire == "2007") %>% 
          pull(environ_cluster)
-       )
+       ) # n = 14
 
 # Group 2 at higher elevation, less shady, less negative TWI, lower lat, more negative long, two fires. 21 transects in Group 2 burned in 2003 and 2007. Most transects are from Site 2. 4 transects are not from Site 2: INT1, INT2, INT4, 1.10. Only 3 burned in 2007 only (INT1, INT2, 1.10) (n = 25 transects) INT4 burned twice.
 
 length(
-  df %>%  
+  boxdf %>%  
     filter(environ_cluster == "2") %>% 
          pull(environ_cluster)
-       )
+       ) # n = 25
 
 # southwestness, slope was the same between Group 1 and Group 2
 
@@ -667,98 +668,98 @@ length(
 
 ########################################## elevation
 
-hist(df$elevation)
-shapiro.test(df$elevation) # not normal
+hist(boxdf$elevation)
+shapiro.test(boxdf$elevation) # not normal
 
-kruskal.test(elevation ~ environ_cluster, data = df)
-pairwise.wilcox.test(df$elevation, df$environ_cluster, p.adjust.method = "BH")
+kruskal.test(elevation ~ environ_cluster, data = boxdf)
+pairwise.wilcox.test(boxdf$elevation, boxdf$environ_cluster, p.adjust.method = "BH")
 #   1      
 # 2 3.2e-07
 
-boxplot(elevation ~ environ_cluster, df)
+boxplot(elevation ~ environ_cluster, boxdf)
 
 
 ########################################## hillshade
-hist(df$hillshade)
-shapiro.test(df$hillshade) # normally distributed
+hist(boxdf$hillshade)
+shapiro.test(boxdf$hillshade) # normally distributed
 
-summary(aov((hillshade ~ environ_cluster), data = df))
+summary(aov((hillshade ~ environ_cluster), data = boxdf))
 #                Df Sum Sq Mean Sq F value Pr(>F)  
 # environ_cluster  1   1450  1450.1   4.249 0.0463 *
 # Residuals       37  12627   341.3                      
 
-TukeyHSD(aov(hillshade ~ environ_cluster, df), conf.level=.95) 
+TukeyHSD(aov(hillshade ~ environ_cluster, boxdf), conf.level=.95) 
 # $environ_cluster
 #         diff       lwr      upr     p adj
 # 2-1 12.71143 0.2168144 25.20604 0.0463482 <- sig
 
-boxplot(hillshade ~ environ_cluster, df)
+boxplot(hillshade ~ environ_cluster, boxdf)
 
 
 
 ########################################## southwestness
-hist(df$southwestness)
-shapiro.test(df$southwestness) # <- not normal
+hist(boxdf$southwestness)
+shapiro.test(boxdf$southwestness) # <- not normal
 
-kruskal.test(southwestness ~ environ_cluster, data = df) # p-value = 0.6818
+kruskal.test(southwestness ~ environ_cluster, data = boxdf) # p-value = 0.6818
 
-pairwise.wilcox.test(df$southwestness, df$environ_cluster, p.adjust.method = "BH")
-boxplot(southwestness ~ environ_cluster, df)
+pairwise.wilcox.test(boxdf$southwestness, boxdf$environ_cluster, p.adjust.method = "BH")
+boxplot(southwestness ~ environ_cluster, boxdf)
 
 
 ########################################## twi
-hist(df$twi)
-shapiro.test(df$twi) # 0.033 <- not normal
+hist(boxdf$twi)
+shapiro.test(boxdf$twi) # 0.033 <- not normal
 
-kruskal.test(twi ~ environ_cluster, data = df) 
+kruskal.test(twi ~ environ_cluster, data = boxdf) 
 # Kruskal-Wallis chi-squared = 4.57, df = 1, p-value = 0.03254
-pairwise.wilcox.test(df$twi, df$environ_cluster, p.adjust.method = "BH")
+pairwise.wilcox.test(boxdf$twi, boxdf$environ_cluster, p.adjust.method = "BH")
 
-boxplot(twi ~ environ_cluster, df)
+boxplot(twi ~ environ_cluster, boxdf)
 
 ########################################## slope
-hist(df$slope)
-shapiro.test(df$slope) # <- normal
+hist(boxdf$slope)
+shapiro.test(boxdf$slope) # <- normal
 
-summary(aov(slope ~ environ_cluster, df))
-TukeyHSD(aov(slope ~ environ_cluster, df), conf.level = .95) # not sig diff
+summary(aov(slope ~ environ_cluster, boxdf))
+TukeyHSD(aov(slope ~ environ_cluster, boxdf), conf.level = .95) # not sig diff
 # $environ_cluster
 #          diff       lwr      upr     p adj
 # 2-1 -3.707741 -8.831239 1.415758 0.1510141
 
-boxplot(slope ~ environ_cluster, df)
+boxplot(slope ~ environ_cluster, boxdf)
 
 ########################################## lat
-hist(df$lat)
-shapiro.test(df$lat) # not normal
+hist(boxdf$lat)
+shapiro.test(boxdf$lat) # not normal
 
-kruskal.test(lat ~ environ_cluster, data = df) 
+kruskal.test(lat ~ environ_cluster, data = boxdf) 
 # Kruskal-Wallis chi-squared = 13.181, df = 1, p-value = 0.0002828
-pairwise.wilcox.test(df$lat, df$environ_cluster, p.adjust.method = "BH")
+pairwise.wilcox.test(boxdf$lat, boxdf$environ_cluster, p.adjust.method = "BH")
 
-boxplot(lat ~ environ_cluster, df)
+boxplot(lat ~ environ_cluster, boxdf)
 
 ########################################## long
-hist(df$long)
-shapiro.test(df$long) # not normal
+hist(boxdf$long)
+shapiro.test(boxdf$long) # not normal
 
-kruskal.test(long ~ environ_cluster, data = df) 
-pairwise.wilcox.test(df$long, df$environ_cluster, p.adjust.method = "BH")
+kruskal.test(long ~ environ_cluster, data = boxdf) 
+pairwise.wilcox.test(boxdf$long, boxdf$environ_cluster, p.adjust.method = "BH")
 #  1     
 # 2 0.0022
 
-boxplot(long ~ environ_cluster, df)
+boxplot(long ~ environ_cluster, boxdf)
 
 ########################################## fire_event_count
-hist(df$fire_event_count)
-shapiro.test(df$fire_event_count) # not normal
+hist(boxdf$fire_event_count)
+shapiro.test(boxdf$fire_event_count) # not normal
 
-kruskal.test(fire_event_count ~ environ_cluster, data = df) 
-pairwise.wilcox.test(df$fire_event_count, df$environ_cluster, p.adjust.method = "BH")
+kruskal.test(fire_event_count ~ environ_cluster, data = boxdf) 
+pairwise.wilcox.test(boxdf$fire_event_count, boxdf$environ_cluster, p.adjust.method = "BH")
 #   1      
 # 2 1.7e-07
 
-boxplot(fire_event_count ~ environ_cluster, df)
+boxplot(fire_event_count ~ environ_cluster, boxdf)
 
 ```
 
@@ -768,15 +769,15 @@ boxplot(fire_event_count ~ environ_cluster, df)
 
 ########################################## elevation
 
-hist(df$elevation)
-shapiro.test(df$elevation)
+hist(boxdf$elevation)
+shapiro.test(boxdf$elevation)
 # Shapiro-Wilk normality test
 # 
 # data:  df$elevation
 # W = 0.88322, p-value = 0.0007544 <-- not normally distributed
 
-kruskal.test(elevation ~ plant_cluster, data = df)
-pairwise.wilcox.test(df$elevation, df$plant_cluster, p.adjust.method = "BH")
+kruskal.test(elevation ~ plant_cluster, data = boxdf)
+pairwise.wilcox.test(df$elevation, boxdf$plant_cluster, p.adjust.method = "BH")
 # data:  df$elevation and df$cluster 
 # 
 #   1       2         3         4    
@@ -784,22 +785,22 @@ pairwise.wilcox.test(df$elevation, df$plant_cluster, p.adjust.method = "BH")
 # 3 0.366   0.036     -        -    
 # 4 0.351  0.181      0.151     -    
 # 5 0.366   0.366     0.221     0.943
-boxplot(elevation ~ plant_cluster, df)
+boxplot(elevation ~ plant_cluster, boxdf)
 ## 2 is diff from 1 and 3
 
 ########################################## hillshade
-hist(df$hillshade)
-shapiro.test(df$hillshade)
+hist(boxdf$hillshade)
+shapiro.test(boxdf$hillshade)
 # Shapiro-Wilk normality test
 # 
 # data:  df$hillshade
 # W = 0.97317, p-value = 0.467 <-- normally distributed
-summary(aov((hillshade ~ plant_cluster), data = df))
+summary(aov((hillshade ~ plant_cluster), data = boxdf))
 #  Df Sum Sq Mean Sq F value Pr(>F)   
 # cluster      4   4559  1139.7   4.071 0.0084 **
 # Residuals   34   9518   279.9                  
 
-TukeyHSD(aov(hillshade ~ plant_cluster, df), conf.level=.95) 
+TukeyHSD(aov(hillshade ~ plant_cluster, boxdf), conf.level=.95) 
 # $cluster
 #           diff         lwr        upr     p adj
 # 2-1 -25.126984 -49.4070518 -0.8469164 0.0395528 <-- 2 is shadier than 1
@@ -813,27 +814,27 @@ TukeyHSD(aov(hillshade ~ plant_cluster, df), conf.level=.95)
 # 5-3   7.100000 -19.2888706 33.4888706 0.9361425
 # 5-4  23.525000  -3.9414074 50.9914074 0.1225369
 
-boxplot(hillshade ~ plant_cluster, df)
+boxplot(hillshade ~ plant_cluster, boxdf)
 # 0 degrees = dark aka. lots of hillshading
 # 255 degrees = bright aka. lots of sun exposure
 
 
 ########################################## southwestness
-hist(df$southwestness)
-shapiro.test(df$southwestness) # <- not normal
-kruskal.test(southwestness ~ plant_cluster, data = df)
-pairwise.wilcox.test(df$southwestness, df$plant_cluster, p.adjust.method = "BH")
-boxplot(southwestness ~ plant_cluster, df)
+hist(boxdf$southwestness)
+shapiro.test(boxdf$southwestness) # <- not normal
+kruskal.test(southwestness ~ plant_cluster, data = boxdf)
+pairwise.wilcox.test(boxdf$southwestness, boxdf$plant_cluster, p.adjust.method = "BH")
+boxplot(southwestness ~ plant_cluster, boxdf)
 
 
 ########################################## twi
-boxplot(twi ~ plant_cluster, df)
+boxplot(twi ~ plant_cluster, boxdf)
 
 ########################################## slope
-boxplot(slope ~ plant_cluster, df)
-shapiro.test(df$slope) # <- normal
-summary(aov(slope ~ plant_cluster, df))
-TukeyHSD(aov(slope ~ plant_cluster, df), conf.level = .95)
+boxplot(slope ~ plant_cluster, boxdf)
+shapiro.test(boxdf$slope) # <- normal
+summary(aov(slope ~ plant_cluster, boxdf))
+TukeyHSD(aov(slope ~ plant_cluster, boxdf), conf.level = .95)
 # Fit: aov(formula = slope ~ plant_cluster, data = df)
 # $cluster
 #          diff         lwr       upr     p adj
@@ -850,12 +851,12 @@ TukeyHSD(aov(slope ~ plant_cluster, df), conf.level = .95)
 
 
 ########################################## lat
-boxplot(lat ~ plant_cluster, df)
+boxplot(lat ~ plant_cluster, boxdf)
 
 ########################################## long
-boxplot(long ~ plant_cluster, df)
+boxplot(long ~ plant_cluster, boxdf)
 
 ########################################## fire_event_count
-boxplot(fire_event_count ~ plant_cluster, df)
+boxplot(fire_event_count ~ plant_cluster, boxdf)
 
 ```
