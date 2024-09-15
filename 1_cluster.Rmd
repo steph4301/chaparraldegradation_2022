@@ -3,6 +3,8 @@ title: "1_cluster_analysis"
 author: "Stephanie Lucero"
 date: "2024-06-13"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -13,23 +15,26 @@ knitr::opts_chunk$set(echo = TRUE)
 
 load libraries
 ```{r}
-# library(MASS)
-library(tidyverse)
-library(here)
+
 library(cluster)
-library(vegan)
+library(factoextra)
+library(gridExtra)
+library(gt)
+library(ggrepel) # avoid overlaping labes in ggplot2
+library(here)
 library(indicspecies)
 library(plotly)
-library(gridExtra)
+library(readxl)
+library(tidyverse)
+library(vegan)
 
+
+# library(MASS)
 # library(dunn.test)
 # library(caret)
 # library(rpart)
-# library(ggrepel)
 # library(ggparty)
-# library(factoextra)
 # library(stringr)
-# library(factoextra)
 
 
 # Set seed for analyses
@@ -386,6 +391,17 @@ sub_grp <- cutree(hcluster.abs.cover, k = 5)
 # Number of members in each cluster
 table(sub_grp)
 
+# Calculate the distance to centroid for each cluster
+bd <- betadisper(d, sub_grp)
+centroid_coords <- bd$centroids
+centroid_distances <- round(vegdist(centroid_coords, method = "euclidean"), 2) # Calculate the distances between the centroids
+#      1    2    3    4
+# 2 0.62               
+# 3 0.64 0.69          
+# 4 0.60 0.41 0.54     
+# 5 0.83 0.71 0.73 0.65
+
+
 # Combine group labels into species matrix
 temp.df <- data_pc %>%
   rownames_to_column()
@@ -395,20 +411,12 @@ my_groups <- as.data.frame(sub_grp) %>%
 
 cluster.subgrp.df <- left_join(temp.df, my_groups, by = "rowname")
 
-
-
 # # Create a combined label
-# combined_labels <- paste(seed.subgrp.df$sub_grp, seed.subgrp.df$stand_core, sep = " - ")
-# 
-# # Plot the hierarchical clustering dendrogram with the combined labels
-# plot(hcluster.abs.cover, labels = combined_labels, main = "Hierarchical Clustering Dendrogram")
-# rect.hclust(hcluster.abs.cover, k = 3)
+cluster.subgrp.df$combined_labels <- paste(cluster.subgrp.df$sub_grp, cluster.subgrp.df$site_rep, sep = " - ")
 
-
-
-plot(hcluster.abs.cover, labels = cluster.subgrp.df$sub_grp, main = "Hierarchical Clustering Dendrogram")
+# Plot the hierarchical clustering dendrogram with the combined labels
+plot(hcluster.abs.cover, labels = cluster.subgrp.df$combined_labels, main = "Hierarchical Clustering Dendrogram")
 rect.hclust(hcluster.abs.cover, k = 5)
-
 
 
 
@@ -640,8 +648,37 @@ grid.arrange(nmds_nat,
 
 ```
 
+### TABLE
+```{r}
+table_clustercover <- cluster.subgrp.df %>% 
+  pivot_longer(cols = 4:55, names_to = "species", values_to = "percent_cover") %>% 
+  group_by(sub_grp, species) %>% 
+  summarise(mean_percentcover = round(mean(percent_cover), 3)) %>% 
+  pivot_wider(names_from = sub_grp, values_from = mean_percentcover) #%>% 
+  # mutate(species = str_replace(species, ".", ""))
 
+# Print as a gt table
+table_cover <- table_clustercover %>%
+  gt() %>%
+  tab_header(
+    title = "Mean Percent Cover by Cluster",
+    #subtitle = "Mean ± Standard Deviation for Elevation, Hillshade, Slope, Southwestness, Fire Events, and Coordinates"
+  ) %>%
+  cols_align(
+    align = "left", # Center alignment
+    columns = "species" # Specify the "cluster" column
+  ) %>% 
+  tab_options(
+    table.width = pct(100) # Make the table width 100%
+  )
 
+table_cover
+
+```
+
+# END 
+
+Old code below
 
 
 ```{r}
