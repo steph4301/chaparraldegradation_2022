@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ##### Rmarkdown for analyzing total above ground species richness 
 - combining species lists from point-intercept transects and belt transects
 
+# library
 ```{r install libraries, message=FALSE}
 
 # Packages
@@ -20,6 +21,7 @@ library(tidyverse) # includes ggplot2, dplyr, tidyr, readr, purr, tibble, string
 library(vegan)
 library(here)
 library(readxl) 
+
 # library(ggpubr) # customize ggplot2 for publication
 # library(broom)
 # library(AICcmodavg)
@@ -32,7 +34,6 @@ library(readxl)
 # devtools::install_github("gavinsimpson/ggvegan")
 # library(ggpmisc)
 ```
-
 
 
 ```{r }
@@ -63,9 +64,10 @@ library(readxl)
 ```
 
 
-## BELT DATA 
 
-List of seven unknown species: chaparraldegradation2022 > chaparraldegradation2022 > unknown_spp.xlsx
+## data
+
+
 
 ```{r load belt intercept transect data}
 
@@ -99,11 +101,10 @@ belt.spprich <- bind_rows(belt.spp_2019, belt.spp_2024)
 # sort(unique(belt.spprich$species))
 
 
+# List of seven unknown species: chaparraldegradation2022 > chaparraldegradation2022 > unknown_spp.xlsx
 
 
-################## join species characteristics
-
-### species characteristics
+### join species characteristics
 sppchar <- read.csv("processed/specieslist.csv") %>% # species and their characteristics :) Created in 1.1_transect_continuous.Rmd
   dplyr::select(!c(X, notes, ejepson)) %>%
   mutate(species = str_replace(species, " ", "_")) %>%
@@ -132,12 +133,94 @@ speciesmissingfrom.belt
 # unknown.spp <- read_excel("unknown_spp.xlsx")
 
 belt <- belt.spprich %>% 
-  left_join(sppchar, by = "species")
+  left_join(sppchar, by = "species") %>% 
+   mutate(site_rep_species = paste(site_rep, species, sep = "_")) 
+
+
+
+################## load point intercept transect data
+
+abcover_full_load <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA")) # point-intercept data
+
+file_transect_2019_load <- read_excel("deg_percentcover_byspecies_bylifeform_2024.xlsx", sheet = "2019_data")
+
+ab_sppr_raw <- abcover_full_load %>% 
+  dplyr::select(!c(X, distance, vertical)) %>% 
+  filter(status != "ground") %>% # unselect ground
+   mutate(site = case_when(
+    site == "Intact_1" ~ "Intact1",
+      site == "Intact_2" ~ "Intact2",
+      site == "Intact_3" ~ "Intact3",
+    TRUE ~ as.character(site)  # Keep other observations unchanged
+  )) %>% 
+  mutate(site_rep = paste(site, rep, sep = "_")) %>%
+   mutate(site_rep = case_when(
+    site_rep == "DEG2_4" ~ "DEG2_1", # old name ~ new name
+      site_rep == "DEG2_5" ~ "DEG2_2",
+      site_rep == "DEG2_6" ~ "DEG2_3",
+     site_rep == "ENH2_4" ~ "ENH2_1",
+      site_rep == "ENH2_5" ~ "ENH2_2",
+     site_rep == "ENH2_6" ~ "ENH2_3",
+    TRUE ~ as.character(site_rep))) %>%   # Keep other observations unchanged
+   filter(!is.na(site)) %>% # omit blank cells in species 
+    as_tibble() %>% 
+  mutate(species = case_when(
+    species == "Avena barbata dead" ~ "Avena barbata", # old name ~ new name
+    species == "Bromus diandrus dead" ~ "Bromus diandrus", 
+     species == "Bromus madritensis" ~ "Bromus rubens", 
+     species == "Bromus rubens dead" ~ "Bromus rubens", 
+       species == "Bromus spp. dead" ~ "Bromus spp.", 
+     species == "Centaurea melitensis dead" ~ "Centaurea melitensis", 
+    species == "Elymus condensatus dead" ~ "Elymus condensatus", 
+   species == "Heteromeles arbutifolia dead" ~ "Heteromeles arbutifolia",
+   species == "Hirschfeldia incana dead" ~ "Hirschfeldia incana",
+    species == "Malacothamnus fasciculatus dead" ~ "Malacothamnus fasciculatus", 
+   species == "Salvia leucophylla dead" ~ "Salvia leucophylla",
+   species == "Stipa lepida dead" ~ "Stipa lepida",
+   TRUE ~ as.character(species)
+  )) %>% 
+   mutate(site_rep_species = paste(site_rep, species, sep = "_")) 
+
+sort(unique(ab_sppr_raw$species))
+length(unique(ab_sppr_raw$site_rep_species))
+# 107
+
+ptintcp_list <- list(unique(ab_sppr_raw$site_rep_species))
+
+
+################################ shrub density
+
+
+# native shrub density 
+shrubdensitylife_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_bylifestage.csv", 
+    col_types = cols(
+      StandType = col_character(), 
+      Site = col_character(),
+      rep = col_integer(),
+      ScientificName = col_character(), 
+      dead = col_integer(),
+      immature = col_integer(),
+      mature = col_integer(), 
+      resprout = col_integer(), 
+      seedling = col_integer()
+      )
+     ) %>% 
+  rename()
+  
+
+
+shrubdensityspp_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_byspecies.csv")
+# shrubdensityalive_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_beltdensity_seperatealive.csv")
 ```
 
-### SPECIES RICHNESS
+
+
+### RICHNESS: spp, genera, family
 
 ```{r}
+
+################ species richness
+
 
 # sort(unique(belt.spprich$species))
 
@@ -160,25 +243,75 @@ length(sort(unique(belt.spprich_total$species)))
 #   filter(!(species == "Lupinus spp." & site_rep == "1.1")) %>% 
 #   filter(!(species == "Lupinus spp." & site_rep == "1.2"))
 
-```
 
-# GENERA 
-```{r}
+
+################ genera richness
+
 belt.genrich <- belt %>% 
   separate(col = species, into = c("Genus", "Species"), sep = "_") %>%
   dplyr::select("Genus") 
 length(sort(unique(belt.genrich$Genus))) - 4 # minus 4 unknowns
 # 67 
 
-```
+################ family richness
 
-# FAMILY
-```{r}
 belt_famrich <- belt %>% 
    dplyr::select("family") 
 # sort(unique(belt_famrich$family))
 length(sort(unique(belt_famrich$family))) - 1 # duplicate Chenopodiaceae
+# 36
+
 ```
+
+
+```{r duplicate sppr, include=FALSE}
+
+# total spp richness using ab_sppr_raw and belt dfs - same calculation as above (n = 87)
+
+ab_sppr_raw2 <- ab_sppr_raw %>% 
+  dplyr::select(site, rep, species, site_rep, lifeform, status, lifecycle, family, site_rep_species)
+
+
+belt2 <- belt %>% 
+   mutate(species = str_replace(species, "_", " "))
+  sort(unique(belt2$species))
+  
+ab_totalsppr <- dplyr::union(ab_sppr_raw2, belt2) 
+length(unique(ab_totalsppr$species)) -6 # Bromus spp., Erodium spp.,  "Galium spp."  , Lupinus spp., Phacelia spp, Trifolium spp.
+# 87
+
+```
+
+```{r}
+# difference in n species in point intercept transect vs. belt transect
+trans_n <- length(unique(ab_sppr_raw %>% 
+  dplyr::select(species) %>% 
+  pull(species))) - 2 # Bromus spp, Erodium spp
+trans_n
+# 31
+
+# z <- ab_sppr_raw %>% 
+#   dplyr::select(species)
+# sort(unique(z$species))
+
+belt_n <- length(unique(belt %>% 
+  dplyr::select(species) %>% 
+  pull(species))) - 5 # erodium sop., galium spp, lupinus spp., phacelia spp., trifolium spp
+belt_n
+# 87
+
+# y <- belt %>%
+#   dplyr::select(species)
+# sort(unique(y$species))
+
+87-31
+# 56
+
+round(31/87*100, 2)
+# [1] 35.63
+```
+
+
 # NATIVE lifeforms
 ```{r}
 
@@ -188,6 +321,8 @@ length(sort(unique(
   filter(status == "native") %>% 
   filter(lifeform == "shrub") %>% 
     pull(species))))
+# 14
+
 
 ####### grass
 length(sort(unique(
@@ -195,6 +330,8 @@ length(sort(unique(
   filter(status == "native") %>% 
   filter(lifeform == "grass") %>% 
     pull(species))))
+#2
+
 
 ####### forb
 length(sort(unique(
@@ -202,8 +339,9 @@ length(sort(unique(
   filter(status == "native") %>% 
   filter(lifeform == "forb") %>% 
     pull(species)))) - 4 # remove four "spp." -->  "Galium_spp."     "Lupinus_spp."    "Phacelia_spp."  "Trifolium_spp." 
+# 48
 
-
+# and one fern 
 ```
 
 # NN lifeforms
@@ -212,116 +350,30 @@ length(sort(unique(
 ####### grass
 length(sort(unique(
   belt %>% 
-  filter(status == "native") %>% 
+  filter(status == "nonnative") %>% 
   filter(lifeform == "grass") %>% 
     pull(species))))
-
+# 5
 
 ####### forb
+length(sort(unique(
+  belt %>% 
+  filter(status == "nonnative") %>% 
+  filter(lifeform == "forb") %>% 
+    pull(species))))
+# 12
 
 
-
-```
-```{r}
-  
-
-
-
-
-
-
-
-belttrans_raw <- belttrans_byspecies_load %>% 
-  dplyr::select(!c(transectstand, lifestage)) %>% 
-  rename(rep = transectsite, 
-         status = origin, 
-         lifecycle = lifespan) %>%  #rename(new_name = old_name) 
-   mutate(species = case_when(
-    species == "Bromus madritensis" ~ "Bromus rubens", # old name ~ new name
-     TRUE ~ as.character(species))) %>% 
-  mutate(status = case_when(
-    status == "non-native" ~ "nonnative", # old name ~ new name
-     TRUE ~ as.character(status))) %>% 
-   mutate(site_rep = paste(site, rep, sep = "_"))
-
-# point-intercept transect data
-
-
-abcover_full_load <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA")) # point-intercept data
-
-file_transect_2019_load <- read_excel("deg_percentcover_byspecies_bylifeform_2024.xlsx", sheet = "2019_data")
-
-ab_sppr_raw <- abcover_full_load %>% 
-  dplyr::select(!c(species.1, distance, vertical)) %>% # unselect species.1
-  filter(status != "ground") %>% # unselect ground
-   mutate(site = case_when(
-    site == "Intact_1" ~ "Intact1",
-      site == "Intact_2" ~ "Intact2",
-      site == "Intact_3" ~ "Intact3",
-    TRUE ~ as.character(site)  # Keep other observations unchanged
-  )) %>% 
-  mutate(site_rep = paste(site, rep, sep = "_")) %>%
-   mutate(site_rep = case_when(
-    site_rep == "DEG2_4" ~ "DEG2_1", # old name ~ new name
-      site_rep == "DEG2_5" ~ "DEG2_2",
-      site_rep == "DEG2_6" ~ "DEG2_3",
-     site_rep == "ENH2_4" ~ "ENH2_1",
-      site_rep == "ENH2_5" ~ "ENH2_2",
-     site_rep == "ENH2_6" ~ "ENH2_3",
-    TRUE ~ as.character(site_rep))) %>%   # Keep other observations unchanged
-  mutate(site_rep = fct_relevel(site_rep, 
-                                "Intact1_1", "Intact2_2", "Intact3_3",
-                                "ENH1_1", "ENH1_2", "ENH1_3", "ENH2_1", "ENH2_2", "ENH2_3",
-      "DEG1_1", "DEG1_2", "DEG1_3", "DEG2_1", "DEG2_2", "DEG2_3"  
-          )) %>%
-   filter(!is.na(site)) %>% # omit blank cells in species 
-    as_tibble() %>% 
-  mutate(species = case_when(
-    species == "Avena barbata dead" ~ "Avena barbata", # old name ~ new name
-    species == "Bromus diandrus dead" ~ "Bromus diandrus", 
-     species == "Bromus madritensis" ~ "Bromus rubens", 
-     species == "Bromus rubens dead" ~ "Bromus rubens", 
-       species == "Bromus spp. dead" ~ "Bromus spp.", 
-     species == "Centaurea melitensis dead" ~ "Centaurea melitensis", 
-    species == "Elymus condensatus dead" ~ "Elymus condensatus", 
-   species == "Heteromeles arbutifolia dead" ~ "Heteromeles arbutifolia",
-   species == "Hirschfeldia incana dead" ~ "Hirschfeldia incana",
-    species == "Malacothamnus fasciculatus dead" ~ "Malacothamnus fasciculatus", 
-   species == "Salvia leucophylla dead" ~ "Salvia leucophylla",
-   species == "Stipa lepida dead" ~ "Stipa lepida",
-   TRUE ~ as.character(species)
-  )) 
-
-sort(unique(ab_sppr_raw$species))
-length(unique(ab_sppr_raw$site_rep_species))
-
-ptintcp_list <- list(unique(ab_sppr_raw$site_rep_species))
 ```
 
 
 
-- union join
-```{r left join}
-ab_totalsppr <- dplyr::union(ab_sppr_raw, belttrans_raw) %>% 
-   mutate(site_rep_species = paste(site_rep, species, sep = "_")) %>% 
-   mutate(site = case_when(
-    site == "Intact1" ~ "SD1",
-      site == "Intact2" ~ "SD2",
-      site == "Intact3" ~ "SD3",
-    site == "ENH1" ~ "MX1",
-      site == "ENH2" ~ "MX2",
-      site == "DEG1" ~ "GD1",
-      site == "DEG2" ~ "GD2",
-    TRUE ~ as.character(site)  # Keep other observations unchanged
-  )) %>% 
-   mutate(site = fct_relevel(site, 
-            "SD1", "SD2", "SD3", "MX1", "MX2", "GD1", "GD2"))
-```
+END
 
 
-### overall native richness
+overall native richness
 - sppr
-```{r native species richness}
+```{r native species richness, include=FALSE}
 native_spp <- ab_totalsppr %>% 
    filter(status == "native") # %>% 
   # filter(species! = "Lupinus spp.") # unselect spp.
@@ -337,7 +389,7 @@ sort(unique(native_spp$family))
 length(unique(native_spp$family))  # 24 families
 ```
 
-### overall non-native richness
+overall non-native richness
 - sppr
 ```{r nnnative species richness}
 nn_sppr <- ab_totalsppr %>% 
@@ -352,7 +404,7 @@ length(unique(nn_sppr$species))-2 # for Bromus spp. and "Erodium spp." ; 10 spec
 sort(unique(nn_sppr$family))
 length(unique(nn_sppr$family)) # 4 families
 ```
-# stats - categorical by hillslope (n = 15)
+ stats - categorical by hillslope (n = 15)
 - data prep
 ```{r}
 ab_totalsppr_hillslope <- ab_totalsppr %>%  # n = 15
@@ -381,7 +433,7 @@ shapiro.test(ab_totalsppr_hillslope$sppr)
 # W = 0.91175, p-value = 0.1441 <-- normally distributed
 ```
 
-### - anova - hillslope
+ - anova - hillslope
 ```{r}
 summary(aov(sppr ~ site, ab_totalsppr_hillslope))
 #  Df Sum Sq Mean Sq F value   Pr(>F)    
@@ -430,6 +482,7 @@ TukeyHSD(aov(sppr ~ site, ab_totalsppr_hillslope))
 
 
 ```
+
 ```{r}
 ggplot(ab_totalsppr_hillslope) +
   stat_summary(
@@ -502,7 +555,7 @@ ggplot(data = sppr_bystatus,
 
 ```
 
-### - anova - status x hillslope
+ - anova - status x hillslope
 
 - normality - native
 ```{r native anova sppr}
@@ -597,7 +650,6 @@ shapiro.test((sppr_bystatus %>%
 ```
 
 
-END
 
 
 ```{r}
@@ -661,8 +713,8 @@ ab_diversity <- ab_diversity_load %>%
 #write.csv(ab_diversity, "processed/ab_diversity.csv")
 ```
 
-# Belt transect data
-### load data
+ Belt transect data
+ load data
 ```{r SHRUB species richness by belt transect, include = TRUE}
 belttrans_byspecies <- read.csv("deg_beltdensity_byspecies.csv")
 sort(unique(belttrans_byspecies$species))
@@ -746,7 +798,7 @@ belt_point_join_sppr %>%
 ```
 
 
-# Join transect and belt sppr.
+ Join transect and belt sppr.
 ```{r species richness above ground, include=TRUE}
 
 # created ab_diversity_2 in EXCEL
@@ -868,14 +920,14 @@ ab_diversity_2_native_nn %>%
   
 ```
 
-### normal
+normal
 ```{r}
 shapiro.test(ab_div_bysiterep$num_species)
 # data:  ab_div_bysiterep$num_species
 # W = 0.96712, p-value = 0.742 <-- normally distrubuted
 ```
 
-### figure regressions by Kit
+figure regressions by Kit
 ```{r scatterplot species diversity by nn grass cover, include=TRUE} 
 
 # KIT's code: this section
@@ -922,7 +974,8 @@ ab_sppr_nngrass <- ggplot(data = abcover_diversity_plot,
 
 print(ab_sppr_nngrass)
 ```
-### stats
+
+stats
 ```{r species richness df from An code}
 sppr <- specnumber(abcover_byspecies_nmdsprep_num)
 sppr
@@ -986,21 +1039,7 @@ plot_sppr
 
 ```
 
-# Shannon Diversity
 
-```{r shannon diversity}
-# this doesn't make sense for % cover, but I could run it on shrub density. I could also run it on the seedbank data. 
-shannondiv <- diversity(abcover_byspecies_nmdsprep_num)
-head(shannondiv)
-
-sppdiv_aov <- aov(shannondiv ~ standtype, data = abcover_byspecies_nmdsprep)
-summary(sppdiv_aov)
-
-#     Df Sum Sq Mean Sq F value Pr(>F)  
-#standtype    2 0.2899 0.14493   3.924 0.0489 *
-#Residuals   12 0.4433 0.03694        
-
-```
 
 
 
@@ -1016,6 +1055,23 @@ f <-  belt %>%
   filter(lifeform == "forb") %>% 
    filter(grepl("spp\\.", species))
 sort(unique(f$species)) 
+
+- Shannon Diversity
+```{r shannon diversity}
+# this doesn't make sense for % cover, but I could run it on shrub density. I could also run it on the seedbank data. 
+shannondiv <- diversity(abcover_byspecies_nmdsprep_num)
+head(shannondiv)
+
+sppdiv_aov <- aov(shannondiv ~ standtype, data = abcover_byspecies_nmdsprep)
+summary(sppdiv_aov)
+
+#     Df Sum Sq Mean Sq F value Pr(>F)  
+#standtype    2 0.2899 0.14493   3.924 0.0489 *
+#Residuals   12 0.4433 0.03694        
+
+```
+
+# old code
 
 ```{r above ground - species richness - native richness, include = FALSE}
 
@@ -1033,25 +1089,5 @@ abrich_full <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chapar
          family = Family)
 glimpse(abrich_full)
 
-# native shrub density 
-shrubdensitylife_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_bylifestage.csv", 
-    col_types = cols(
-      StandType = col_character(), 
-      Site = col_character(),
-      rep = col_integer(),
-      ScientificName = col_character(), 
-      dead = col_integer(),
-      immature = col_integer(),
-      mature = col_integer(), 
-      resprout = col_integer(), 
-      seedling = col_integer()
-      )
-     ) %>% 
-  rename()
-  
-
-
-shrubdensityspp_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_byspecies.csv")
-# shrubdensityalive_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_beltdensity_seperatealive.csv")
 
 ```
