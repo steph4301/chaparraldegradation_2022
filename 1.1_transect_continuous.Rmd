@@ -1,5 +1,5 @@
 ---
-title: "transect_continuous"
+title: "Stand Deg: percent cover regressions, canopy height, shrub density"
 author: "Stephanie Ma Lucero"
 date: "2024-04-23"
 output: html_document
@@ -25,6 +25,9 @@ library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, pur
 library(readxl) 
 library(gridExtra)
 library(cowplot)
+library(MASS)
+
+
 ```
 # colors
 ```{r colors, include=TRUE}
@@ -329,7 +332,19 @@ shrub_leaftype <- read.csv("shrub_leaftype.csv") %>%
       ) %>% 
   mutate(
     leaftype = if_else(grepl("dead", species, ignore.case = TRUE), "dead_shrub", leaftype)
-  )
+  ) %>% 
+  add_row(species = "Salvia apiana",
+           leaftype = "nonsclero") %>% 
+    add_row(species = "Cenothus oliganthus",
+           leaftype = "nonsclero") %>% 
+   add_row(species = "Quercus agrifolia",
+           leaftype = "sclerophyllous") %>% 
+    add_row(species = "no_shrubs",
+           leaftype = "no_shrubs") %>% 
+  add_row(species = "Ceanothus cuneatus", 
+          leaftype = "sclerophyllous") %>% 
+  add_row(species = "unknown5 shrub",
+           leaftype = "unknown") 
 
 print(sort(shrub_leaftype$species))
 ```
@@ -1183,8 +1198,13 @@ ggplot(data = height_cover) +
 
 
 ### shrub density
+
 ```{r}
-# native shrub density 
+
+###################### shrub density - native
+
+
+######## 2019 
 shrubdensitylife_load <- read_csv("deg_beltdensity_bylifestage.csv", 
     col_types = cols(
        site = col_character(),
@@ -1209,12 +1229,14 @@ shrubdensitylife_load <- read_csv("deg_beltdensity_bylifestage.csv",
   pivot_longer(cols = 4:8, names_to = "lifestage", values_to = "density_80m2") %>% 
   mutate(site_rep = paste(site, rep, sep = "_")) %>% 
    mutate(density_m2 = (density_80m2 / 80)) %>% 
-  dplyr::select(-site, -rep, -density_80m2) 
-  
-density2019 <- shrubdensitylife_load %>% 
-  group_by(site_rep, lifestage) %>% 
-  summarise(sum_density_m2 = sum(density_m2)) # 75 rows
-  
+  dplyr::select(-site, -rep, -density_80m2) %>% 
+  mutate(lifestage = case_when(lifestage == "resprout" ~ "immature", 
+                               TRUE ~ lifestage)) %>% 
+   mutate(species = case_when(species == "Cenothus oliganthus" ~ "Ceanothus oliganthus", 
+                               TRUE ~ species))
+
+
+######## 2024   
 shrubdensity_2024 <- read_csv("shrubdensity_2024.csv", 
       col_types = cols(
       site = col_character(),
@@ -1229,45 +1251,144 @@ shrubdensity_2024 <- read_csv("shrubdensity_2024.csv",
   mutate(density_m2 = (density_80m2 / 80)) %>% 
  na.omit() %>% 
   mutate(site_rep = paste(site, rep, sep = "_")) %>% 
-  dplyr::select(site_rep, species, lifestage, density_m2)
+  dplyr::select(site_rep, species, lifestage, density_m2) %>% 
+   mutate(lifestage = case_when(lifestage == "resprout" ~ "immature", 
+                               TRUE ~ lifestage))
 
+
+########## bind with shrub species
+denspp  <- shrubdensitylife_load  %>% 
+  bind_rows(shrubdensity_2024)
+denspp_cover <- height_cover %>%  # left join nn grass cover
+  dplyr::select(site, site_rep, grass_nonnative) %>% 
+  left_join(denspp, by = "site_rep") %>% 
+  filter(site_rep != "INT4_1") %>% # omit INT4_1
+  left_join(shrub_leaftype, by = "species") %>% 
+  mutate(lifestage = factor(lifestage, levels = c("seedling", "immature", "mature", "dead")))
+
+
+##### bind WITHspecies##### bind WITHOUT shrub species
+density2019 <- shrubdensitylife_load %>% # group shrub density by lifestage
+  group_by(site_rep, lifestage) %>% 
+  summarise(sum_density_m2 = sum(density_m2)) # 75 rows
 density2024 <- shrubdensity_2024 %>%  
   group_by(site_rep, lifestage) %>% 
   summarise(sum_density_m2 = sum(density_m2)) # 104 rows
-
 density <- density2019 %>%  
   bind_rows(density2024) # 179 rows
-
-density2 <- density %>% # 39 transects becuase no INT4 density
-  group_by(site_rep) %>% 
-  summarise(totaldensty_m2 = sum(sum_density_m2, na.rm = TRUE)) %>% 
-  ungroup()  
-
-density_cover <- height_cover %>% 
+density_cover <- height_cover %>%  # left join nn grass cover
   dplyr::select(site, site_rep, grass_nonnative) %>% 
-  left_join(density, by = "site_rep")
+  left_join(density, by = "site_rep") %>% 
+  filter(site_rep != "INT4_1") # omit INT4_1
 
+
+```
+
+```{r}
+
+######################## shrub density - linear models
+
+hist(density_cover$sum_density_m2)
+shapiro.test(density_cover$sum_density_m2) # not normal
+
+# test residuals
+plot(model.seedling)
+
+qqnorm(residuals(model.seedling)) # run together
+qqline(residuals(model.seedling))
+
+
+
+##################### seedling
 # Fit the linear model: canopy height x nn grass cover
-model.seedling <- lm(sum_density_m2 ~ grass_nonnative, 
+# a GLM is better for count data - negative binomial distribution
+model.seedling <- glm.nb(sum_density_m2 ~ grass_nonnative, 
    data = density_cover %>% filter(lifestage == "seedling")) # response variable ~ independent variable
+# AIC: 49.263 - AIC: 150.4 when I ran glm.nb(sum_density_m2 ~ grass_nonnative + lifestage)
 
 # Print the summary of the model
 model.seedling.summary <- summary(model.seedling)
+# Summary of Fit:
+# Pseudo R²: Offers insight into explained variance.
+# AIC: Useful for comparing models.
+# Residual Deviance: Should be close to degrees of freedom, which in your case, it is.
+# Significance of predictors: Your predictor (grass_nonnative) is significant, indicating a strong relationship.
+null_model <- glm.nb(sum_density_m2 ~ 1, data = density_cover %>% filter(lifestage == "seedling"))
+pseudo_r2 <- 1 - (logLik(model.seedling) / logLik(null_model))
+round(pseudo_r2, 3) # 'log Lik.' 0.1976203 (df=3)
 
-# Extract the R^2 value
-r_squared <- round(model.seedling.summary$r.squared, 3)
-print(paste("Multiple R^2:", r_squared))
-# [1] "Multiple R^2: 0.273"
-# print slope and intercept
-cf <- round(coef(model.den), 3)
-cat("Intercept:", cf[1], "\n")
-cat("Slope:", cf[2], "\n")
-# > cat("Intercept:", cf[1], "\n")
-# Intercept: 1.056 
-# > cat("Slope:", cf[2], "\n")
-# Slope: -1.139 
+model.seedling <- glm.nb(sum_density_m2 ~ grass_nonnative, 
+   data = density_cover %>% filter(lifestage == "seedling"))
+# Residual deviance: 24.132  on 33  degrees of freedom
+# AIC: 47.985
 
-ggplot(data = density_cover %>% filter(lifestage == "seedling")) + 
+##################### mature
+model.mature <- glm.nb(sum_density_m2 ~ grass_nonnative, 
+   data = density_cover %>% filter(lifestage == "mature"))
+model.mature.summary <- summary(model.mature)
+null_model2 <- glm.nb(sum_density_m2 ~ 1, data = density_cover %>% filter(lifestage == "mature"))
+pseudo2_r2 <- 1 - (logLik(model.seedling) / logLik(null_model2))
+round(pseudo2_r2, 3) # 'log Lik.' 0.045 (df=3)
+
+
+
+ggplot(data = density_cover %>% filter(lifestage == "mature")
+       ) + 
   geom_point(aes(x = grass_nonnative * 100, 
                  y = sum_density_m2))
+
+ggplot(data = density_cover) + 
+  geom_point(aes(x = grass_nonnative * 100, 
+                 y = sum_density_m2)) +
+ facet_wrap(~lifestage)
+```
+
+
+```{r}
+################# density figures
+
+ggplot(data = density_cover %>% filter(sum_density_m2 > 0)) + 
+  geom_point(aes(x = grass_nonnative * 100, 
+                 y = sum_density_m2), 
+             size = 3) +
+  theme_bw() 
+
+plot_denspp <- ggplot(data = denspp_cover %>% 
+         filter(density_m2 > 0) %>% 
+         filter(species != "unknown5 shrub") %>% 
+         filter(leaftype == "nonsclero"), 
+       aes(color = species, shape = site)) + 
+  geom_point(aes(x = grass_nonnative * 100, 
+                 y = density_m2), 
+             size = 3) +
+   scale_color_manual(values = c("darkolivegreen3", "green", "dodgerblue", "plum", "orange3", "pink", "purple", "purple4", "blue")) +
+  theme_bw() +
+  facet_grid(~ lifestage) +
+  ylim(0,3)
+plot_denspp
+
+plot_denspp_scl <- ggplot(data = denspp_cover %>% 
+         filter(density_m2 > 0) %>% 
+         filter(species != "unknown5 shrub") %>% 
+         filter(leaftype == "sclerophyllous"), 
+       aes(color = species)) + 
+  geom_point(aes(x = grass_nonnative * 100, 
+                 y = density_m2), 
+             size = 3) +
+   scale_color_manual(values = c("dodgerblue", "darkolivegreen", "green", "red", "orchid")) +
+  theme_bw() +
+  facet_grid(~ lifestage) +
+  ylim(0,3)
+plot_denspp_scl
+
+# Combine plots
+grid.arrange(plot_denspp, 
+             plot_denspp_scl,
+             nrow = 2, 
+             ncol = 1, 
+             widths = c(1), # Custom widths for each column
+             heights = c(1, 1) # Custom heights for each row
+             ) 
+
+
 ```
