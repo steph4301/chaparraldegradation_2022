@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ### library
-```{r install libraries, message=FALSE}
+```{r install libraries, message=FALSE, echo=FALSE}
 
 library(tidyverse) # includes ggplot2 - data visulization, dplyr, tidyr, readr, purr, tibble, stringr, forcats
 library(ggpubr) # customize ggplot2 for publication
