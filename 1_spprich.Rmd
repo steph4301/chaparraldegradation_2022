@@ -192,7 +192,7 @@ ptintcp_list <- list(unique(ab_sppr_raw$site_rep_species))
 
 
 # native shrub density 
-shrubdensitylife_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_bylifestage.csv", 
+shrubdensitylife_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/deg_beltdensity_bylifestage.csv", 
     col_types = cols(
       StandType = col_character(), 
       Site = col_character(),
@@ -365,6 +365,27 @@ length(sort(unique(
 
 
 ```
+
+
+# sampling effort
+
+```{r}
+
+# Calculate species accumulation
+species_accum <- specaccum(species_data)
+
+# Plot the species accumulation curve
+plot(species_accum, xlab = "Sampling Sites", ylab = "Species Richness", main = "Species Accumulation Curve")
+
+# Add confidence intervals
+plot(species_accum, ci.type="polygon", col="blue", ci.col="lightblue", xlab = "Sampling Sites", ylab = "Species Richness", main = "Species Accumulation Curve with CI")
+
+# Add species richness estimator (Chao, Jackknife, etc.)
+chao <- estimateR(belt.spp_2019)
+chao
+
+```
+
 
 
 
