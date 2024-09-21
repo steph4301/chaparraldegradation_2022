@@ -1128,7 +1128,7 @@ fig.1c
 ```{r regression grass x grass}
 
 # Fit the linear model
-model.g <- lm(grass_native ~ grass_nonnative, data = cover_bylfstatus_wide) # response variable ~ independent variable
+model.g <- lm(grass_native ~ grass_nonnative, data = cover_bylfstatus_wide %>%  filter(grass_native >0)) # response variable ~ independent variable
 model.g_summary <- summary(model.g)
 # Extract the intercept, slope, and R^2 values
 interceptg <- round(coef(model.g)[1], 2)
@@ -1139,7 +1139,8 @@ print(paste("Multiple R^2:", r_squaredg))
 # Create the label for the equation and R^2
 eq_label_g <- paste0("y = ", slopeg, "x + ", interceptg, "\n", "R² = ", r_squaredg)
 
-fig.1e <- ggplot(data = cover_bylfstatus_wide) +
+fig.1e <- ggplot(data = cover_bylfstatus_wide %>%  
+                   filter(grass_native >0)) +
   geom_point(aes(x = grass_nonnative * 100, y = grass_native * 100, color = "grass_native"), show.legend = TRUE) +
   geom_smooth(aes(x = grass_nonnative * 100, y = grass_native * 100, color = "grass_native"), 
               method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
