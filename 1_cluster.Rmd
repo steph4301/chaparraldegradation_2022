@@ -591,6 +591,11 @@ spp <- genp %>%
 length(spp$species) #  <- limited number for visual clarity
 
 
+# Convert sub_grp to a factor with the desired order
+mds.df$sub_grp <- factor(mds.df$sub_grp, 
+                         levels = c("1", "3", "2", "4", "5"))  # Reorder as needed
+
+
 #### native species
 nmds_nat <- ggplot(mds.df,
        aes(x = NMDS1,
@@ -650,13 +655,27 @@ grid.arrange(nmds_nat,
 
 ### TABLE
 ```{r}
-table_clustercover <- cluster.subgrp.df %>% 
-  pivot_longer(cols = 4:55, names_to = "species", values_to = "percent_cover") %>% 
-  group_by(sub_grp, species) %>% 
-  summarise(mean_percentcover = round(mean(percent_cover), 3)) %>% 
-  pivot_wider(names_from = sub_grp, values_from = mean_percentcover) #%>% 
-  # mutate(species = str_replace(species, ".", ""))
 
+table_clustercover <- cluster.subgrp.df %>%
+   mutate(sub_grp = recode(sub_grp, 
+                           `1` = "NNG", 
+                           `2` = "ssF", 
+                           `3` = "ssG", 
+                           `4` = "ssFG", 
+                           `5` = "EVG")) %>%
+   pivot_longer(cols = 4:55, names_to = "Species", values_to = "percent_cover") %>%
+   group_by(sub_grp, Species) %>%
+   summarise(mean_percentcover = round(mean(percent_cover, na.rm = TRUE), 3)) %>%
+   pivot_wider(names_from = sub_grp, values_from = mean_percentcover) %>%
+   mutate(Species = str_replace_all(Species, "\\.", " ")) %>%
+   mutate(Species = str_trim(Species)) %>%
+   mutate(Species = case_when(
+      Species == "Cryptantha spp" ~ "Cryptantha spp.", # old name ~ new name
+      Species == "Erodium spp" ~ "Erodium spp.",
+       Species == "Lupinus spp" ~ "Lupinus spp.",
+      TRUE ~ Species
+   ))
+  
 # Print as a gt table
 table_cover <- table_clustercover %>%
   gt() %>%
@@ -666,15 +685,20 @@ table_cover <- table_clustercover %>%
   ) %>%
   cols_align(
     align = "left", # Center alignment
-    columns = "species" # Specify the "cluster" column
+    columns = "Species" # Specify the "cluster" column
   ) %>% 
   tab_options(
-    table.width = pct(100) # Make the table width 100%
+    table.width = pct(80) # Make the table width 100%
   )
 
 table_cover
 
+# Export the table as a PDF
+gtsave(table_cover, "Ch1_Degradation_figures/table_spp_clustergroups.png", 
+       expand = 10)
+
 ```
+
 
 # END 
 
