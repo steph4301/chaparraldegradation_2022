@@ -209,7 +209,7 @@ shrubdensitylife_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertat
   
 
 
-shrubdensityspp_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/deg_beltdensity_byspecies.csv")
+shrubdensityspp_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/deg_beltdensity_byspecies.csv")
 # shrubdensityalive_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_beltdensity_seperatealive.csv")
 ```
 
