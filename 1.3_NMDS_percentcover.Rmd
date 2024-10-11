@@ -591,9 +591,17 @@ status_lifecycle_plot <- ggplot(abcover_bystatuslifecycle,
        aes(x = status_lifecycle, y = percentcover * 100, fill = status_lifecycle)) +
   geom_boxplot() +
    facet_wrap(~ cluster, nrow = 1) +
-  labs(x = "Cluster", y = "Percent Cover", fill = "Status Lifecycle") +
+  labs(x = "Status and Lifecycle", y = "Percent Cover", fill = "Status Lifecycle") +
   
-  theme_bw()
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels if needed
+    legend.position = "right"
+  ) +
+  scale_fill_manual(values = c("native_perennial" = "black", 
+                               "native_annual" = "grey", 
+                               "nonnative_annual" = "white"))
+
 status_lifecycle_plot
 ```
 
