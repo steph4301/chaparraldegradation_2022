@@ -55,7 +55,7 @@ set.seed(8003)
 seedbank_load_raw <- read.csv("deg_seedbank_202407.csv", header = TRUE, na.strings=c("","NA"))
 
 seedbank_load <- seedbank_load_raw %>% 
-  dplyr::select(c("stand", "site", "soilcore", "depth_name", "treatment", "rep", "species_diversity", "genus_abundance", "lifeform", "status", "lifescycle", "family", "count"))
+  dplyr::select(c("stand", "site", "soilcore", "depth_name", "treatment", "rep", "species_diversity", "genus_abundance", "lifeform", "status", "lifescycle", "family", "count")) 
   
 seedbank_load$count <- as.numeric(seedbank_load$count)
 str(seedbank_load)
@@ -72,6 +72,53 @@ str(seedbank_load)
 # sort(unique(seedbank_load$family))
 # sort(unique(seedbank_load$lifeform))
 # sort(unique(seedbank_load$lifescycle))
+
+abcover_charateristics_load <- read.csv("processed/ab_specieslistwithcharateristics_08102024.csv", header = TRUE, na.strings=c("","NA")) %>% 
+  select(!c(X)) %>% 
+  dplyr::select(species, lifeform, status, lifecycle, family)
+spp_charateristics <- abcover_charateristics_load %>% 
+  distinct(species, .keep_all = TRUE) %>% 
+  mutate(species = case_when(species == "Acmispon glaber" ~ "Acmispon spp.", # oldname ~ newname
+                             species == "Bromus rubens" ~ "Bromus spp.",
+                             species == "Claytonia perfoliata" ~ "Claytonia spp.",
+                             species == "Festuca myros" ~ "Festuca myuros",
+                              TRUE ~ species)) %>% 
+    add_row(species = "Erigeron canadensis",
+          lifeform = "forb",
+          status = "native",
+          lifecycle = "annual",
+          family = "Asteraceae") %>% 
+      add_row(species = "Eucrypta chrysanthemifolia",
+          lifeform = "forb",
+          status = "native",
+          lifecycle = "annual",
+          family = "Hydrophyllaceae") %>% 
+         add_row(species = "Lactuca serriola",
+          lifeform = "forb",
+          status = "nonnative",
+          lifecycle = "annual",
+          family = "Asteraceae") %>% 
+        add_row(species = "Nicotiana glauca",
+          lifeform = "shrub",
+          status = "nonnative",
+          lifecycle = "perennial",
+          family = "Solanacaeae") %>%
+        add_row(species = "Pseudognaphalium californicum",
+          lifeform = "forb",
+          status = "native",
+          lifecycle = "annual",
+          family = "Asteraceae") %>% 
+       add_row(species = "Ribes spp.",
+          lifeform = "shrub",
+          status = "native",
+          lifecycle = "perennial",
+          family = "Grossulariaceae") %>% 
+  add_row(species = "Typha domingensis",
+          lifeform = "forb",
+          status = "native",
+          lifecycle = "perennial",
+          family = "Typhaceae")
+      
 
 
 ```
@@ -340,7 +387,7 @@ ac <- function(x) {
 # Best method?
 map_dbl(m, ac)
 
-# Best method is g average at 0.83 (flexible beta)
+# Best method is g average at 0.8253737 (flexible beta)
 
 
 
@@ -667,10 +714,11 @@ spp <- genp %>%
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   full_join(., pv, by = "species") %>% # join pvalues and spp
-  filter(pvals <= 0.05)# <-- p-value 
-length(spp$species) #  <- limited number for visual clarity
-
-
+  filter(pvals <= 0.05) %>% # <-- p-value   
+  mutate(species = case_when(species == "Avena spp." ~ "Avena barbata", # oldname ~ newname
+                              TRUE ~ species)) %>% 
+  left_join(spp_charateristics, by = "species")
+length(spp$species) #  <- limited number for visual clarity; n = 24
 
 
 seed.nmds <- ggplot(mds.df,
@@ -697,7 +745,59 @@ seed.nmds <- ggplot(mds.df,
 
 
 
+seed.nmds_nat <- ggplot(mds.df,
+       aes(x = NMDS1,
+           y = NMDS2
+           )) +
+  geom_point(size = 3, alpha = 0.8, aes(color = sub_grp, shape = sub_grp)) +
+   stat_ellipse(aes(color = sub_grp)) +  # Apply color here
+  theme(axis.title = element_text(size = 20)) +
+  theme(axis.text = element_text(size = 16)) +
+  geom_segment(data = spp %>%  filter(status == "native"), 
+               aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
+               arrow = arrow(length = unit(0.25, "cm")),
+               col = "black") +
+  geom_text_repel(data = spp  %>%  filter(status == "native"), 
+            aes(label = species),  
+            position = position_jitter(width = 0.0, height = 0.1)) +
+   scale_color_manual(values = c("1" = "orange", "2" = "purple", "3" = "green"),
+                     labels = c("1" = "DEG", "2" = "ENH", "3" = "INT")) +
+  scale_shape_manual(values = c("1" = 16, "2" = 17, "3" = 18),
+                     labels = c("1" = "DEG", "2" = "ENH", "3" = "INT")) +
+  theme_bw() +
+  xlim(-3, 2)
 
+seed.nmds_nn <- ggplot(mds.df,
+       aes(x = NMDS1,
+           y = NMDS2
+           )) +
+  geom_point(size = 3, alpha = 0.8, aes(color = sub_grp, shape = sub_grp)) +
+   stat_ellipse(aes(color = sub_grp)) +  # Apply color here
+  theme(axis.title = element_text(size = 20)) +
+  theme(axis.text = element_text(size = 16)) +
+  geom_segment(data = spp %>%  filter(status == "nonnative"), 
+               aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
+               arrow = arrow(length = unit(0.25, "cm")),
+               col = "black") +
+  geom_text_repel(data = spp  %>%  filter(status == "nonnative"), 
+            aes(label = species),  
+            position = position_jitter(width = 0.0, height = 0.1)) +
+   scale_color_manual(values = c("1" = "orange", "2" = "purple", "3" = "green"),
+                     labels = c("1" = "DEG", "2" = "ENH", "3" = "INT")) +
+  scale_shape_manual(values = c("1" = 16, "2" = 17, "3" = 18),
+                     labels = c("1" = "DEG", "2" = "ENH", "3" = "INT")) +
+  theme_bw() +
+  xlim(-3, 2)
+
+
+# Combine plots
+grid.arrange(seed.nmds_nat, 
+             seed.nmds_nn,
+             nrow = 2, 
+             ncol = 1, 
+             widths = c(1), # Custom widths for each column
+             heights = c(1, 1) # Custom heights for each row
+             ) 
 
 ```
 
