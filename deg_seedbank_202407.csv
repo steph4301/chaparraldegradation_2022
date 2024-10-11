@@ -1122,7 +1122,7 @@
 2019,enhanced,ENH1,1,0,surface,charate,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,36,
 2019,enhanced,ENH1,1,0,surface,charate,1,Centaurea melitensis,Centaurea melitensis,forb,nonnative,annual,Asteraceae,2,
 2019,enhanced,ENH1,1,0,surface,charate,1,Eriodictyon crassifolium,Eriodictyon crassifolium,shrub,native,perennial,Namaceae  ,2,"unknown dicot - looks like eriodictyon. March 5, March 15"
-2019,enhanced,ENH1,1,0,surface,charate,1,Salvia leucophylla ,Salvia leucophylla,shrub,native,perennial,Grossulariaceae,1,
+2019,enhanced,ENH1,1,0,surface,charate,1,Salvia leucophylla ,Salvia leucophylla,shrub,native,perennial,Lamiaceae,1,
 2019,enhanced,ENH1,1,0,surface,charate,1,Typha domingensis,Typha domingensis,forb,native,perennial,Typhaceae,1,
 2019,enhanced,ENH1,1,0,surface,control,1,Acmispon maritimus,Acmispon spp.,forb,native,annual,Fabaceae,1,
 2019,enhanced,ENH1,1,0,surface,control,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,48,
@@ -1166,11 +1166,11 @@
 2019,enhanced,ENH1,2,0,surface,charate,1,Hirschfeldia incana,Hirschfeldia incana,forb,nonnative,annual,Brassicaceae,1,likely brassica or hiin - heart shaped leaf
 2019,enhanced,ENH1,2,0,surface,charate,1,Hirschfeldia incana,Hirschfeldia incana,forb,nonnative,annual,Brassicaceae,1,tall seedling with small leaves; made decisiion based on photos; no RARU observed in above ground 2x2 or belt transects
 2019,enhanced,ENH1,2,0,surface,charate,1,Malacothamnus fasciculatus,Malacothamnus fasciculatus,shrub,native,perennial,Malvaceae,1,
-2019,enhanced,ENH1,2,0,surface,charate,1,Salvia leucophylla ,Salvia leucophylla,shrub,native,perennial,Grossulariaceae,1,
+2019,enhanced,ENH1,2,0,surface,charate,1,Salvia leucophylla ,Salvia leucophylla,shrub,native,perennial,Lamiaceae,1,
 2019,enhanced,ENH1,2,0,surface,control,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,35,
 2019,enhanced,ENH1,2,0,surface,control,1,Erodium spp. ,Erodium spp.,forb,nonnative,annual,Geraniaceae,9,either cicutarium or moschatum
 2019,enhanced,ENH1,2,0,surface,control,1,Malacothamnus fasciculatus,Malacothamnus fasciculatus,shrub,native,perennial,Malvaceae,1,
-2019,enhanced,ENH1,2,0,surface,control,1,Salvia leucophylla ,Salvia leucophylla,shrub,native,perennial,Grossulariaceae,7,
+2019,enhanced,ENH1,2,0,surface,control,1,Salvia leucophylla ,Salvia leucophylla,shrub,native,perennial,Lamiaceae,7,
 2019,enhanced,ENH1,2,0,surface,control,1,Typha domingensis,Typha domingensis,forb,native,perennial,Typhaceae,2,
 2019,enhanced,ENH1,2,0,surface,oven,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,24,
 2019,enhanced,ENH1,2,0,surface,oven,1,Centaurea melitensis,Centaurea melitensis,forb,nonnative,annual,Asteraceae,4,
@@ -1188,7 +1188,7 @@
 2019,enhanced,ENH1,2,4,deep,control,1,Acmispon glaber,Acmispon spp.,forb,native,perennial,Fabaceae,1,need to check images - ACGL?; unknown - long leaved skinny dicot
 2019,enhanced,ENH1,2,4,deep,control,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,9,
 2019,enhanced,ENH1,2,4,deep,oven,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,7,
-2019,enhanced,ENH1,2,4,deep,oven,1,Salvia leucophylla ,Salvia leucophylla,shrub,native,perennial,Grossulariaceae,1,
+2019,enhanced,ENH1,2,4,deep,oven,1,Salvia leucophylla ,Salvia leucophylla,shrub,native,perennial,Lamiaceae,1,
 2019,enhanced,ENH1,2,4,deep,ovenchar,1,Acmispon glaber,Acmispon spp.,forb,native,perennial,Fabaceae,3,ACMGLA?; unknown - long leaved dicot
 2019,enhanced,ENH1,2,4,deep,ovenchar,1,Acmispon maritimus,Acmispon spp.,forb,native,annual,Fabaceae,3,
 2019,enhanced,ENH1,2,4,deep,ovenchar,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,5,
@@ -1225,7 +1225,7 @@
 2019,enhanced,ENH1,3,0,surface,pretreatment,1,Centaurea melitensis,Centaurea melitensis,forb,nonnative,annual,Asteraceae,,star thistle
 2019,enhanced,ENH1,3,0,surface,pretreatment,1,Dipterostemon capitatus,Dipterostemon capitatus,forb,native,perennial,Themidaceae  ,,
 2019,enhanced,ENH1,3,4,deep,charate,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,5,
-2019,enhanced,ENH1,3,4,deep,charate,1,Salvia leucophylla ,Salvia leucophylla,shrub,native,perennial,Grossulariaceae,1,
+2019,enhanced,ENH1,3,4,deep,charate,1,Salvia leucophylla ,Salvia leucophylla,shrub,native,perennial,Lamiaceae,1,
 2019,enhanced,ENH1,3,4,deep,charate,1,Asclepias fascicularis,Asclepias fascicularis,forb,native,annual,Asteraceae,1,unknown B - dinosaur egg
 2019,enhanced,ENH1,3,4,deep,control,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,4,
 2019,enhanced,ENH1,3,4,deep,control,1,Juncus bufonius,Juncus bufonius,forb,native,annual,Juncaceae  ,3,
@@ -1237,7 +1237,7 @@
 2019,enhanced,ENH1,3,4,deep,ovenchar,1,Emmenanthe penduliflora,Emmenanthe penduliflora,forb,native,annual,Hydrophyllaceae,1,
 2019,enhanced,ENH1,4,0,surface,charate,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,23,
 2019,enhanced,ENH1,4,0,surface,charate,1,Centaurea melitensis,Centaurea melitensis,forb,nonnative,annual,Asteraceae,3,
-2019,enhanced,ENH1,4,0,surface,charate,1,Salvia leucophylla ,Salvia leucophylla,shrub,native,perennial,Grossulariaceae,1,
+2019,enhanced,ENH1,4,0,surface,charate,1,Salvia leucophylla ,Salvia leucophylla,shrub,native,perennial,Lamiaceae,1,
 2019,enhanced,ENH1,4,0,surface,charate,1,Asclepias fascicularis,Asclepias fascicularis,forb,native,annual,Asteraceae,1,unknown B - dinosaur egg
 2019,enhanced,ENH1,4,0,surface,charate,1,Uropappus lindleyi,Uropappus lindleyi,forb,native,annual,Asteraceae,4,"unknown - long skinny seedling, likely non-native grass"
 2019,enhanced,ENH1,4,0,surface,control,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,29,
@@ -1262,7 +1262,7 @@
 2019,enhanced,ENH1,4,4,deep,charate,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,5,
 2019,enhanced,ENH1,4,4,deep,control,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,5,
 2019,enhanced,ENH1,4,4,deep,control,1,Pseudognaphalium luteoalbum,Pseudognaphalium luteoalbum,forb,nonnative,annual,Asteraceae,1,unknown - gray cotolydon seedling
-2019,enhanced,ENH1,4,4,deep,control,1,Salvia leucophylla ,Salvia leucophylla,shrub,native,perennial,Grossulariaceae,1,
+2019,enhanced,ENH1,4,4,deep,control,1,Salvia leucophylla ,Salvia leucophylla,shrub,native,perennial,Lamiaceae,1,
 2019,enhanced,ENH1,4,4,deep,control,1,Uropappus lindleyi,Uropappus lindleyi,forb,native,annual,Asteraceae,1,JUNBUF; unknown - monocot or dicot with long leaves
 2019,enhanced,ENH1,4,4,deep,oven,1,Artemisia californica,Artemisia californica,shrub,native,perennial,Asteraceae,1,unknown - bright green round leaf
 2019,enhanced,ENH1,4,4,deep,oven,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,6,
@@ -1271,7 +1271,7 @@
 2019,enhanced,ENH1,4,4,deep,ovenchar,1,Lactuca serriola ,Lactuca serriola ,forb,nonnative,annual,Asteraceae,1,likely Lactuca serriola from field surveys and Calfora
 2019,enhanced,ENH1,4,4,deep,ovenchar,1,Malacothamnus fasciculatus,Malacothamnus fasciculatus,shrub,native,perennial,Malvaceae,1,
 2019,enhanced,ENH1,4,4,deep,ovenchar,1,Phacelia spp.,Phacelia spp.,forb,native,annual,Hydrophyllaceae,1,"unknown - long leaved seedling, erodium?; my and Carla's best guess based on the photo taken on March 11, 2020 of 9A oven"
-2019,enhanced,ENH1,4,4,deep,ovenchar,1,Salvia leucophylla ,Salvia leucophylla,shrub,native,perennial,Grossulariaceae,1,
+2019,enhanced,ENH1,4,4,deep,ovenchar,1,Salvia leucophylla ,Salvia leucophylla,shrub,native,perennial,Lamiaceae,1,
 2019,enhanced,ENH1,4,4,deep,ovenchar,1,Sonchus oleraceus,Sonchus oleraceus,forb,nonnative,annual,Asteraceae,1,
 2019,enhanced,ENH1,4,4,deep,pretreatment,1,Avena barbara,Avena spp.,grass,nonnative,annual,Poaceae,,
 2019,enhanced,ENH1,5,0,surface,charate,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,20,
@@ -1428,7 +1428,7 @@
 2019,enhanced,ENH2,9,0,surface,charate,1,Hirschfeldia incana,Hirschfeldia incana,forb,nonnative,annual,Brassicaceae,1,"unknown - skinny dicot - DO I CALL THIS LUPINUS BICOLOR BECAUSE BOTH ARE ""SKINNY"" OR HIIN BECUASE IT CAN BE TALL AND SKINNY OR SOXA BEUCASE THEY CAN BE TALL AND SKINNY ALTHOUGH THE COTYL ARE PRETTY DISTINCT, OR DO I KEEP IT AS UNKNOWN ""I"""
 2019,enhanced,ENH2,9,0,surface,charate,1,Lupinus bicolor ,Lupinus bicolor ,forb,native,annual,Fabaceae  ,1,
 2019,enhanced,ENH2,9,0,surface,charate,1,Malacothamnus fasciculatus,Malacothamnus fasciculatus,shrub,native,perennial,Malvaceae,1,
-2019,enhanced,ENH2,9,0,surface,charate,1,Salvia leucophylla ,Salvia leucophylla,shrub,native,perennial,Grossulariaceae,1,
+2019,enhanced,ENH2,9,0,surface,charate,1,Salvia leucophylla ,Salvia leucophylla,shrub,native,perennial,Lamiaceae,1,
 2019,enhanced,ENH2,9,0,surface,charate,1,Solanum xanti,Solanum xanti,forb,native,perennial,Solanaceae,2,unknown - tear drop leaf
 2019,enhanced,ENH2,9,0,surface,control,1,Avena barbara,Avena spp.,grass,nonnative,annual,Poaceae,9,
 2019,enhanced,ENH2,9,0,surface,control,1,Bromus hordeaceus,Bromus spp.,grass,nonnative,annual,Poaceae,48,
@@ -1499,7 +1499,7 @@
 2019,enhanced,ENH2,10,0,surface,oven,1,Centaurea melitensis,Centaurea melitensis,forb,nonnative,annual,Asteraceae,2,
 2019,enhanced,ENH2,10,0,surface,oven,1,Festuca myuros ,Festuca myuros,grass,nonnative,annual,Poaceae,23,
 2019,enhanced,ENH2,10,0,surface,oven,1,Malacothamnus fasciculatus,Malacothamnus fasciculatus,shrub,native,perennial,Malvaceae,2,
-2019,enhanced,ENH2,10,0,surface,oven,1,Salvia leucophylla ,Salvia leucophylla,shrub,native,perennial,Grossulariaceae,1,
+2019,enhanced,ENH2,10,0,surface,oven,1,Salvia leucophylla ,Salvia leucophylla,shrub,native,perennial,Lamiaceae,1,
 2019,enhanced,ENH2,10,0,surface,ovenchar,1,Artemisia californica,Artemisia californica,shrub,native,perennial,Asteraceae,1,
 2019,enhanced,ENH2,10,0,surface,ovenchar,1,Avena barbara,Avena spp.,grass,nonnative,annual,Poaceae,12,
 2019,enhanced,ENH2,10,0,surface,ovenchar,1,Bromus diandrus,Bromus spp.,grass,nonnative,annual,Poaceae,2,
@@ -1760,7 +1760,7 @@
 2023,intact,INT2,4,0,surface,ovenchar,1,Centaurea melitensis,Centaurea melitensis,forb,nonnative,annual,Asteraceae,1,
 2023,intact,INT2,4,0,surface,ovenchar,1,Nicotiana glauca,Nicotiana glauca,shrub,nonnative,perennial,Solanaceae,1,"pink; plucked April 1, 2023"
 2023,intact,INT2,4,0,surface,ovenchar,1,Phacelia viscida,Phacelia spp.,forb,native,annual,Hydrophyllaceae,4,
-2023,intact,INT2,4,0,surface,ovenchar,1,Salvia leucophylla,Salvia leucophylla,shrub,native,perennial,Grossulariaceae,1,"pink; transplanted april 6, 2023"
+2023,intact,INT2,4,0,surface,ovenchar,1,Salvia leucophylla,Salvia leucophylla,shrub,native,perennial,Lamiaceae,1,"pink; transplanted april 6, 2023"
 2023,intact,INT2,4,4,deep,charate,1,Apiastrum angustifolium,Apiastrum angustifolium,forb,native,annual,Apiaceae,1,
 2023,intact,INT2,4,4,deep,charate,1,Apiastrum angustifolium,Apiastrum angustifolium,forb,native,annual,Apiaceae,1,
 2023,intact,INT2,4,4,deep,charate,1,Artemisia californica,Artemisia californica,shrub,native,perennial,Asteraceae  ,1,
@@ -1768,7 +1768,7 @@
 2023,intact,INT2,4,4,deep,charate,1,Centaurea melitensis,Centaurea melitensis,forb,nonnative,annual,Asteraceae,1,threw away
 2023,intact,INT2,4,4,deep,charate,1,Centaurea melitensis,Centaurea melitensis,forb,nonnative,annual,Asteraceae,1,"pink; transplanted april 6, 2023"
 2023,intact,INT2,4,4,deep,charate,1,Pseudognaphalium californicum,Pseudognaphalium californicum,forb,native,annual,Asteraceae,1,named based on there being more PSCA than PSLU amoung sites INT1 and INT2 TOP and MID
-2023,intact,INT2,4,4,deep,charate,1,Salvia leucophylla,Salvia leucophylla,shrub,native,perennial,Grossulariaceae,1,"yellow toothpick; transplanted april 6, 2023 "
+2023,intact,INT2,4,4,deep,charate,1,Salvia leucophylla,Salvia leucophylla,shrub,native,perennial,Lamiaceae,1,"yellow toothpick; transplanted april 6, 2023 "
 2023,intact,INT2,4,4,deep,control,1,Artemisia californica,Artemisia californica,shrub,native,perennial,Asteraceae  ,1,
 2023,intact,INT2,4,4,deep,control,1,Astragalus trichopodus,Astragalus trichopodus,forb,native,perennial,Fabaceae,1,
 2023,intact,INT2,4,4,deep,control,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,1,
@@ -1833,7 +1833,7 @@
 2023,intact,INT2,5,4,deep,charate,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,1,Ided as BRMA based on other emergence in INT2_5 soil core
 2023,intact,INT2,5,4,deep,charate,1,Eucrypta chrysanthemifolia,Eucrypta chrysanthemifolia,forb,native,annual,Hydrophyllaceae,1,"green toothpick; plucked march 3, 2023"
 2023,intact,INT2,5,4,deep,charate,1,Phacelia viscida,Phacelia spp.,forb,native,annual,Hydrophyllaceae,2,
-2023,intact,INT2,5,4,deep,charate,1,Salvia leucophylla,Salvia leucophylla,shrub,native,perennial,Grossulariaceae,1,"pink; transplanted March 3, 2023"
+2023,intact,INT2,5,4,deep,charate,1,Salvia leucophylla,Salvia leucophylla,shrub,native,perennial,Lamiaceae,1,"pink; transplanted March 3, 2023"
 2023,intact,INT2,5,4,deep,control,1,Artemisia californica,Artemisia californica,shrub,native,perennial,Asteraceae  ,3,"pink, germinated before distrub"
 2023,intact,INT2,5,4,deep,control,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,2,hairs on stems and leaves
 2023,intact,INT2,5,4,deep,control,1,Erigeron canadensis,Erigeron canadensis,forb,native,annual,Asteraceae,1,
@@ -2036,7 +2036,7 @@
 2023,intact,INT3,8,0,surface,ovenchar,1,Pseudognaphalium luteoalbum,Pseudognaphalium luteoalbum,forb,nonnative,annual,Asteraceae,1,"ID and tossed July 20, 2023"
 2023,intact,INT3,8,0,surface,ovenchar,1,Pseudognaphalium luteoalbum,Pseudognaphalium luteoalbum,forb,nonnative,annual,Asteraceae,1,"transplanted may 22, flowered and IDed june 5, 2023"
 2023,intact,INT3,8,0,surface,ovenchar,1,Ribes spp.,Ribes spp.,shrub,native,perennial,Grossulariaceae,1,"died and tossed june 5, 2023"
-2023,intact,INT3,8,0,surface,ovenchar,1,Salvia leucophylla,Salvia leucophylla,shrub,native,perennial,Grossulariaceae,1,died
+2023,intact,INT3,8,0,surface,ovenchar,1,Salvia leucophylla,Salvia leucophylla,shrub,native,perennial,Lamiaceae,1,died
 2023,intact,INT3,8,0,surface,ovenchar,1,Solanum xanti,Solanum xanti,forb,native,perennial,Solanaceae,3,"pink, plucked on may 22"
 2023,intact,INT3,8,0,surface,ovenchar,1,Solanum xanti,Solanum xanti,forb,native,perennial,Solanaceae,1,"previously unnamed, died"
 2023,intact,INT3,8,0,surface,ovenchar,1,Solanum xanti,Solanum xanti,forb,native,perennial,Solanaceae,1,"unsure unknown, transplanted on june 5.  Looks like SOXA - July 20, 2023 pictures. Pictures and tossed on July 31, 2023 - justification: the seedling looks like SOXA with fuzzy purple stem with non-branching hairs, pointy leaves with similar veination, and based on many other SOXA that germinated from this soil core (soil core H)"
@@ -2110,7 +2110,7 @@
 2023,intact,INT3,9,4,deep,charate,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,2,10/13/2023Ided as BRMA based on other germination from INT3_9
 2023,intact,INT3,9,4,deep,charate,1,Ribes spp.,Ribes spp.,shrub,native,perennial,Grossulariaceae,1,"Yellow Toothpick; transplanted april 24, 2023"
 2023,intact,INT3,9,4,deep,control,1,Bromus madritensis,Bromus spp.,grass,nonnative,annual,Poaceae,1,
-2023,intact,INT3,9,4,deep,control,1,Salvia leucophylla,Salvia leucophylla,shrub,native,perennial,Grossulariaceae,1,"pink; transplanted april 24, 2023"
+2023,intact,INT3,9,4,deep,control,1,Salvia leucophylla,Salvia leucophylla,shrub,native,perennial,Lamiaceae,1,"pink; transplanted april 24, 2023"
 2023,intact,INT3,9,4,deep,control,1,Stipa lepida,Stipa lepida,grass,native,perennial,Poaceae  ,1,
 2023,intact,INT3,9,4,deep,oven,1,Bromus diandrus,Bromus spp.,grass,nonnative,annual,Poaceae,1,
 2023,intact,INT3,9,4,deep,oven,1,Bromus diandrus,Bromus spp.,grass,nonnative,annual,Poaceae,1,"yellow toothpick, PULLED ON 2/14/2023; Ided as BRDI based on INT3_9 deep - 10/13/2023"
@@ -2122,5 +2122,5 @@
 2023,intact,INT3,9,4,deep,ovenchar,1,Festuca myuros,Festuca myuros,grass,nonnative,annual,Poaceae,1,
 2023,intact,INT3,9,4,deep,ovenchar,1,Polypogon monspeliensis,Polypogon monspeliensis,grass,nonnative,annual,Poaceae,1,named for the other #26 from this location (INT3 LOW)
 2023,intact,INT3,9,4,deep,ovenchar,1,Ribes spp.,Ribes spp.,shrub,native,perennial,Grossulariaceae,1,"pink; transplanted april 24, 2023"
-2023,intact,INT3,9,4,deep,ovenchar,1,Salvia leucophylla,Salvia leucophylla,shrub,native,perennial,Grossulariaceae,1,
+2023,intact,INT3,9,4,deep,ovenchar,1,Salvia leucophylla,Salvia leucophylla,shrub,native,perennial,Lamiaceae,1,
 2023,intact,INT3,9,4,deep,ovenchar,1,Stipa lepida,Stipa lepida,grass,native,perennial,Poaceae  ,7,"could be big seed stipa if not 17. Three of 7 flowered - may 22, 2023"
