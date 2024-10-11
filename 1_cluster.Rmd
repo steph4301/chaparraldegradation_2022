@@ -665,7 +665,7 @@ table_clustercover <- cluster.subgrp.df %>%
                            `5` = "EVG")) %>%
    pivot_longer(cols = 4:55, names_to = "Species", values_to = "percent_cover") %>%
    group_by(sub_grp, Species) %>%
-   summarise(mean_percentcover = round(mean(percent_cover, na.rm = TRUE), 3)) %>%
+   summarise(mean_percentcover = round(mean(percent_cover, na.rm = TRUE)*100, 2)) %>%
    pivot_wider(names_from = sub_grp, values_from = mean_percentcover) %>%
    mutate(Species = str_replace_all(Species, "\\.", " ")) %>%
    mutate(Species = str_trim(Species)) %>%
