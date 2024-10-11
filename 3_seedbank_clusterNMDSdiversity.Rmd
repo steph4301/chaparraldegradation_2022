@@ -23,6 +23,7 @@ library(here)
 library(cowplot)
 library(factoextra)
 library(ggrepel) # avoid overlaping labes in ggplot2
+library(cluster)
 
 # library(ggpubr) # customize ggplot2 for publication
 # library(broom)
@@ -381,8 +382,7 @@ m <- c( "average", "single", "complete", "ward", "gaverage")
 names(m) <- c( "average", "single", "complete", "ward", "gaverage")
 
 # function to compute coefficient
-ac <- function(x) {
-  agnes(d, method = x, diss = TRUE, par.method = -0.25)$ac}
+ac <- function(x) {agnes(d, method = x, diss = TRUE, par.method = -0.25)$ac}
 
 # Best method?
 map_dbl(m, ac)
