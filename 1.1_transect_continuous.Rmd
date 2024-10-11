@@ -26,8 +26,7 @@ library(readxl)
 library(gridExtra)
 library(cowplot)
 library(MASS)
-
-
+library(multcompView) # for significance letters
 ```
 # colors
 ```{r colors, include=TRUE}
@@ -122,6 +121,29 @@ transect2024 <- file_transect_2024_load %>%
 #view(transect2024)
 #sort(unique(transect2024$transect))
 #sort(unique(transect2024$site))
+
+
+groups_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) 
+
+groups <- groups_load %>% 
+  dplyr::select(c(system_ind, cluster)) %>% 
+  rename(site_rep = system_ind) %>% 
+  mutate(site_rep = case_when(site_rep == "INT1" ~ "INT1.1", # old name ~ new name
+                              site_rep == "INT2" ~ "INT2.1",
+                              site_rep == "INT3" ~ "INT3.1",
+                              site_rep == "INT4" ~ "INT4.1",
+                              site_rep == "INT5" ~ "INT5.1",
+                                  TRUE ~ site_rep))   %>% 
+  mutate(site_rep = case_when(site_rep == "1.1" ~ "1.10", # old ~ new
+                                 site_rep == "2.1" ~ "2.10",
+                                 site_rep == "2.2" ~ "2.20",
+                                   TRUE ~ site_rep)) %>% 
+   mutate(
+      site_rep = as.character(site_rep)
+      ) %>% 
+  as_tibble() 
+
+groups
 ```
 
 ## full join transect data
@@ -1191,9 +1213,170 @@ grid.arrange(fig.1a_labeled, NULL,
 dev.off()  # Close the PDF device
 ```
 
+### by CLUSTER
+```{r}
+
+# making a figure of mean forb x annual/perennia cover by cluster group
+
+cover_bylifecycle <- abcover_omitground %>% 
+  dplyr::select(!c(site_rep, site_rep_dist)) %>% 
+  mutate(transect = case_when(transect == "1" ~ "01", # oldname ~ newname
+                         transect == "2" ~ "02",
+                         transect == "3" ~ "03",
+                         transect == "4" ~ "04",
+                         transect == "5" ~ "05",
+                         transect == "6" ~ "06",
+                         transect == "7" ~ "07",
+                         transect == "8" ~ "08",
+                         transect == "9" ~ "09",
+                              TRUE ~ transect)) %>%
+  mutate(site_rep = paste(site, transect, sep = ".")) %>%
+  mutate(site_rep = case_when(site_rep == "INT1.01" ~ "INT1.1",
+                              site_rep == "INT2.01" ~ "INT2.1",
+                              site_rep == "INT3.01" ~ "INT3.1",
+                              site_rep == "INT4.01" ~ "INT4.1",
+                              site_rep == "INT5.01" ~ "INT5.1",
+                              TRUE ~ site_rep)) %>% 
+  left_join(groups, by = "site_rep") %>% 
+  
+  mutate(site_rep_dist = paste(site_rep, distance, sep = "_")) %>%
+  mutate(lifeform_lifecycle = paste(lifeform, lifecycle, sep = "_")) %>% 
+  mutate(lifeform_lifecycle_status = paste(lifeform_lifecycle, status, sep = "_")) %>% 
+  
+  group_by(year, site, transect, site_rep, lifeform, lifecycle, lifeform_lifecycle, cluster) %>%
+  dplyr::summarize(
+    lifeform_lifecycle_count_per_transect = n_distinct(site_rep_dist),
+    lifeform_lifecycle_percentcover = (n_distinct(site_rep_dist)/41)*100 # <-- calculate percent cover by transect, lifeform, and lifecycle
+    ) %>% 
+  ungroup() %>% 
+  mutate(cluster = factor(cluster, levels = c(1, 3, 2, 4, 5)))
+  # mutate(cluster = case_when(cluster == "1" ~ "NNG",
+  #                             cluster == "2" ~ "ssF",
+  #                             cluster == "3" ~ "ssG",
+  #                             cluster == "4" ~ "ssFG",
+  #                             cluster == "5" ~ "EVG",
+  #                             TRUE ~ cluster)) %>% 
+  # mutate(cluster = factor(cluster, levels = c("NNG", "ssG", "ssF", "ssFG", "EVG")))
+  
+cover_bylifecycle_bygroup <- cover_bylifecycle %>% 
+  group_by(cluster, lifeform, lifecycle, lifeform_lifecycle) %>% 
+  dplyr::summarise(
+    mean_cover = mean(lifeform_lifecycle_percentcover, na.rm = TRUE), 
+    n = n_distinct(site_rep), 
+    sd = sd(lifeform_lifecycle_percentcover, na.rm = TRUE), 
+    se = sd / sqrt(n)
+  )
 
 
-### canopy height
+############################## figures of lifeform_lifecycle by cluster group
+
+# # Split lifeform_lifecycle into two separate columns: lifeform and lifecycle
+# cover_bylifecycle_bygroup <- cover_bylifecycle_bygroup %>%
+#   separate(lifeform_lifecycle, into = c("lifeform", "lifecycle"), sep = "_")
+
+ggplot(cover_bylifecycle_bygroup %>%
+         filter(lifeform_lifecycle %in% c("forb_annual", "grass_annual", "forb_perennial", "grass_perennial")),
+       aes(x = cluster, 
+           y = mean_cover, 
+           shape = lifeform,   # Shape by lifeform
+           color = lifecycle   # Color by lifecycle
+           )) +
+  geom_point(size = 3, position = position_dodge(width = 0.3)) +  # Mean points
+  geom_errorbar(aes(ymin = mean_cover - se, ymax = mean_cover + se), 
+                width = 0.2, position = position_dodge(width = 0.3)) +  # SE bars
+  labs(x = "Plant Cluster", 
+       y = "Mean Percent Cover (%)", 
+       color = "Lifecycle",  # Label for color legend
+       shape = "Lifeform") +  # Label for shape legend
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 1),  # Rotate x-axis labels if needed
+    legend.position = "right"
+  ) +
+  ylim(0, 100) +
+  facet_wrap(~lifeform) +  # Facet by lifeform
+  scale_shape_manual(values = c("forb" = 16, "grass" = 16)) +  # Square for forb, circle for grass
+  scale_color_manual(values = c("annual" = "grey70", "perennial" = "black")) +  # Orange for annual, green for perennial
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG"))  # Relabel clusters
+
+
+ggplot(cover_bylifecycle_bygroup %>%
+         filter(lifeform_lifecycle %in% c("shrub_perennial")),
+       aes(x = cluster, 
+           y = mean_cover, 
+           shape = lifeform,   # Shape by lifeform
+           color = lifecycle   # Color by lifecycle
+           )) +
+  geom_point(size = 3, position = position_dodge(width = 0.3)) +  # Mean points
+  geom_errorbar(aes(ymin = mean_cover - se, ymax = mean_cover + se), 
+                width = 0.2, position = position_dodge(width = 0.3)) +  # SE bars
+  labs(x = "Plant Cluster", 
+       y = "Mean Percent Cover (%)", 
+       color = "Lifecycle",  # Label for color legend
+       shape = "Lifeform") +  # Label for shape legend
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 1),  # Rotate x-axis labels if needed
+    legend.position = "right"
+  ) +
+  ylim(0, 100) +
+ # facet_wrap(~lifeform) +  # Facet by lifeform
+  scale_shape_manual(values = c("shrub" = 16)) +  
+  scale_color_manual(values = c("perennial" = "black")) +  
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG"))  # Relabel clusters
+
+
+
+
+############################## stats among groups
+
+shrub_perennial_data <- cover_bylifecycle %>%
+  filter(lifeform_lifecycle == "shrub_perennial")
+
+hist(shrub_perennial_data$lifeform_lifecycle_percentcover)
+shapiro.test(shrub_perennial_data$lifeform_lifecycle_percentcover)
+# data:  shrub_perennial_data$lifeform_lifecycle_percentcover
+# W = 0.94181, p-value = 0.06355 <-- normal
+
+aov(lifeform_lifecycle_percentcover ~ cluster, data = shrub_perennial_data)
+summary(aov(lifeform_lifecycle_percentcover ~ cluster, data = shrub_perennial_data))
+# Df Sum Sq Mean Sq F value   Pr(>F)    
+# cluster      4  14974    3743   14.48 1.08e-06 ***
+# Residuals   30   7755     258                     
+tukey_result <- TukeyHSD(aov(lifeform_lifecycle_percentcover ~ cluster, data = shrub_perennial_data), conf.level=.95) 
+# $cluster
+#         diff        lwr      upr     p adj
+# 3-1 14.54704  -9.588734 38.68281 0.4212663
+# 2-1 35.45296  11.317190 59.58873 0.0016217 <- 2, 4, 5 are sig from 1
+# 4-1 45.73171  22.414336 69.04908 0.0000312 <- 
+# 5-1 58.17073  31.584838 84.75663 0.0000050 <- 
+# 2-3 20.90592  -4.021395 45.83324 0.1342625
+# 4-3 31.18467   7.048897 55.32044 0.0063246 <- 4 and 5 are sig from 3
+# 5-3 43.62369  16.317185 70.93020 0.0005853 <- 
+# 4-2 10.27875 -13.857026 34.41452 0.7312299
+# 5-2 22.71777  -4.588739 50.02428 0.1394591
+# 5-4 12.43902 -14.146869 39.02492 0.6586902
+
+
+# Extract the Tukey results
+tukey_df <- as.data.frame(tukey_result$cluster)
+judge$letter <- multcompLetters(tukey_df[,4, drop = FALSE], compare = "<", threshold = 0.05)$letter
+
+
+
+
+# Create a new column with significant letters
+judge$letter <- multcompLetters(tukey_df[,4, drop = FALSE], 
+                                    compare = "<", 
+                                    threshold = 0.05)$letter
+
+
+kruskal.test(lifeform_lifecycle_percentcover ~ cluster, data = shrub_perennial_data)
+
+```
+
+
+# canopy height
 ```{r}
 # stand height 
 
