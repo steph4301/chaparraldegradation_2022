@@ -523,6 +523,83 @@ nmds.1
 ```
 
 
+# FORB, grass
+
+```{r transpose percent cover data by lifeform, include=TRUE}
+
+abcover_bystatuslifecycle <- abcover_full_v_omitground %>% 
+  filter(lifeform == "forb" | lifeform == "grass") %>% 
+   filter(lifecycle == "annual" | lifecycle == "perennial") %>% 
+   mutate(status_lifecycle = paste(status, lifecycle, sep = "_")) %>% 
+  
+    group_by(site, site_rep, status_lifecycle) %>% 
+  dplyr::summarize(
+    count_per_transect = sum(n_distinct(site_rep_dist)), 
+    percentcover = (count_per_transect/41)
+    ) %>% 
+  dplyr::select(!c(count_per_transect)) %>% 
+  mutate(site_rep = gsub("_", ".", site_rep)) %>% 
+  mutate(site_rep = case_when(site_rep == "1.1" ~ "1.01", # old name ~ new name
+                        site_rep == "1.2" ~ "1.02",
+                        site_rep == "1.3" ~ "1.03",
+                        site_rep == "1.4" ~ "1.04",
+                        site_rep == "1.5" ~ "1.05",
+                        site_rep == "1.6" ~ "1.06",
+                        site_rep == "1.7" ~ "1.07",
+                        site_rep == "1.8" ~ "1.08",
+                        site_rep == "1.9" ~ "1.09",
+                        site_rep == "2.1" ~ "2.01",
+                         site_rep == "2.2" ~ "2.02", 
+                         site_rep == "2.3" ~ "2.03",
+                         site_rep == "2.4" ~ "2.04",
+                         site_rep == "2.5" ~ "2.05",
+                         site_rep == "2.6" ~ "2.06",
+                         site_rep == "2.7" ~ "2.07",
+                         site_rep == "2.8" ~ "2.08",
+                         site_rep == "2.9" ~ "2.09",
+   TRUE ~ site_rep)) %>% 
+    left_join(groups, by = "site_rep") %>%  
+  dplyr::select(!c(group_15, group_3, group_10, group_6, group_4, group_2)) %>% 
+   mutate(cluster = recode(cluster,
+                          "5" = "EVG",
+                          "1" = "NNG",
+                          "4" = "ssFG",
+                          "2" = "ssF",
+                          "3" = "ssG"),
+         cluster = factor(cluster, levels = c("EVG", "ssFG", "ssF", "ssG", "NNG"))) %>% 
+  mutate(status_lifecycle = factor(status_lifecycle, levels = c("native_perennial", "native_annual", "nonnative_annual")))
+
+
+status_lifecycle_means <- abcover_bystatuslifecycle %>% 
+  group_by(cluster, status_lifecycle) %>% 
+  summarise(mean_cover = mean(percentcover),
+            n = length(percentcover),
+            sd = sd(percentcover), 
+            se = sd/sqrt(n)
+            )
+
+hist(abcover_bystatuslifecycle$percentcover)
+shapiro.test(abcover_bystatuslifecycle$percentcover) # <-- not normal
+kruskal.test(percentcover ~ status_lifecycle, data = abcover_bystatuslifecycle) 
+# 	Kruskal-Wallis rank sum test
+# 
+# data:  percentcover by status_lifecycle
+# Kruskal-Wallis chi-squared = 43.526, df = 3, p-value = 1.903e-09
+pairwise.wilcox.test(abcover_bystatuslifecycle$percentcover, abcover_bystatuslifecycle$status_lifecycle, p.adjust.method = "BH")
+
+status_lifecycle_plot <- ggplot(abcover_bystatuslifecycle, 
+       aes(x = status_lifecycle, y = percentcover * 100, fill = status_lifecycle)) +
+  geom_boxplot() +
+   facet_wrap(~ cluster, nrow = 1) +
+  labs(x = "Cluster", y = "Percent Cover", fill = "Status Lifecycle") +
+  
+  theme_bw()
+status_lifecycle_plot
+```
+
+
+
+
 # EXTRA CODE BELOW 
 
 ```{r}
