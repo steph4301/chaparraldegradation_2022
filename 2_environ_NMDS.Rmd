@@ -53,6 +53,8 @@ clean_background <- theme(plot.background = element_rect("white"),
 
 ### load data
 
+- hillshade: higher numbers = more sunny. Lower numbers = more north facing
+
 ```{r load data}
 
 ################### load environmental data
