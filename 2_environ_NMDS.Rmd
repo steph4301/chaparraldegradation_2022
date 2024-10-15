@@ -60,14 +60,18 @@ clean_background <- theme(plot.background = element_rect("white"),
 ################### load environmental data
 
 extracted_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) %>% 
-  dplyr::select(system_ind, aspect, elevation, hillshade, slope, site, lat, long, cluster) %>% 
+  dplyr::select(system_ind, aspect, elevation, slope, site, lat, long, cluster) %>% 
   mutate(southwestness = cos(225-aspect))
+# sort(unique(extracted_load$system_ind))
 
-twi_fire_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_TWI_Fire_20m.csv", header = TRUE, na.strings = c("", "NA")) %>% 
-  dplyr::select(system_ind, twi, fire_event_count, last_fire)
+twi_firecount_solarrad_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_20m_20241014_8pm.csv", header = TRUE, na.strings = c("", "NA")) %>% 
+  dplyr::select(system_ind, twi, summer_solarradiation, winter_solarradiation, equinox_solarradiation, fire_event_count) %>% 
+  mutate(total_solrad = summer_solarradiation + winter_solarradiation + equinox_solarradiation + equinox_solarradiation) 
+# sort(unique(twi_firecount_solarrad_load$system_ind))
 
 extracted_join <- extracted_load %>% 
-  left_join(twi_fire_load, by = "system_ind")
+  left_join(twi_firecount_solarrad_load, by = "system_ind")
+# sort(unique(extracted_join$system_ind))
 
 extracted <- extracted_join%>% 
     rename(site_rep = system_ind) %>% 
@@ -83,12 +87,13 @@ extracted <- extracted_join%>%
                                    TRUE ~ site_rep)) %>% 
      rownames_to_column() %>% 
      mutate(
-      aspect = as.numeric(aspect),
+      southwestness = as.numeric(southwestness),
       elevation = as.integer(elevation), # meters
-      hillshade = as.numeric(hillshade), 
       slope = as.numeric(slope), # degrees
       site_rep = as.character(site_rep), 
       site = as.character(site),
+      cluster = as.character(cluster),
+      fire_event_count = as.integer(fire_event_count),
        rowname = as.character(rowname)
       ) %>% 
   rename(plant_cluster = cluster)
@@ -96,7 +101,7 @@ extracted <- extracted_join%>%
 
 extracted$site_rep <- gsub("\\.", "_", extracted$site_rep)
 
-# length(extracted_prep$site_rep)    # n = 39
+# length(extracted$site_rep)    # n = 39
 
 
 ############# load plant clusters (n = 5)
@@ -116,14 +121,19 @@ extracted$site_rep <- gsub("\\.", "_", extracted$site_rep)
 ######### Table of means and SD of environmental variables by plant cluster
 
 means <- extracted %>%
-   dplyr::select(c("plant_cluster", "hillshade", "slope", "southwestness", "twi", "fire_event_count", "site_rep")) %>%
+   dplyr::select(c("site_rep", "plant_cluster", 
+                   "slope", "southwestness", "twi", "fire_event_count", 
+                   "summer_solarradiation", "winter_solarradiation", "equinox_solarradiation", "total_solrad")) %>%
   group_by(plant_cluster) %>% 
   summarize(
-    hillshade = paste0(round(mean(hillshade), 2), " ± ", round(sd(hillshade), 2)),
     slope = paste0(round(mean(slope), 2), " ± ", round(sd(slope), 2)),
     southwestness = paste0(round(mean(southwestness), 2), " ± ", round(sd(southwestness), 2)),
     fire_events = paste0(round(mean(fire_event_count), 2), " ± ", round(sd(fire_event_count), 2)),
-    twi = paste0(round(mean(twi), 2), " ± ", round(sd(twi), 2))
+    twi = paste0(round(mean(twi), 2), " ± ", round(sd(twi), 2)),
+    summer_solrad = paste0(round(mean(summer_solarradiation), 0), " ± ", round(sd(summer_solarradiation), 0)),
+      winter_solrad = paste0(round(mean(winter_solarradiation), 0), " ± ", round(sd(winter_solarradiation), 0)),
+      equinox_solrad = paste0(round(mean(summer_solarradiation), 0), " ± ", round(sd(summer_solarradiation), 0)),
+       total_solrad = paste0(round(mean(total_solrad), 0), " ± ", round(sd(total_solrad), 0))
   ) 
 
 
@@ -139,16 +149,19 @@ table_plant <- means %>%
   gt() %>%
   tab_header(
     title = "Summary Statistics by Plant Cluster",
-    subtitle = "Mean ± Standard Deviation for Hillshade, Slope, Southwestness, Fire Events, and Topographic Wetness Index"
+    subtitle = "Mean ± Standard Deviation of Environmental Variables"
   ) %>%
   # Rename the column headers
   cols_label(
     plant_cluster = "Plant Group",        # Rename "plant_cluster" column
-    hillshade = "Hillshade",                # Rename "hillshade" column
     slope = "Slope (%)",                    # Rename "slope" column
     southwestness = "Southwestness",        # Rename "southwestness" column
-    fire_events = "Number of Fires",        # Rename "fire_events" column
-    twi = "Topographic Wetness Index"       # Rename "tpi" column
+    twi = "TWI",       # Rename "tpi" column
+    fire_events = "Fire Count",        # Rename "fire_events" column
+    summer_solrad = "Summer Solstice", 
+    winter_solrad = "Winter Solstice",
+    equinox_solrad = "Equinox", 
+    total_solrad = "Total solar radiation"
   ) %>%
   cols_align(
     align = "center", # Center alignment
@@ -170,7 +183,9 @@ table_plant
 
 df <- extracted %>%  
   column_to_rownames("site_rep") %>% 
-  dplyr::select(c("hillshade", "slope", "southwestness", "twi", "fire_event_count"))
+  dplyr::select(c("slope", "southwestness", "twi", "fire_event_count",  
+                  "summer_solarradiation", "winter_solarradiation", "equinox_solarradiation"))
+
 
 # using data set *** df *** from two chuncks above
 
@@ -200,7 +215,7 @@ map_dbl(m, ac)
 #### Find optimal number of clusters
 
 # Scree plot  
-fviz_nbclust(df, FUN = hcut, diss = d, method = "wss") # 2 groups
+fviz_nbclust(df, FUN = hcut, diss = d, method = "wss") # 2, 3, or 4 groups
 
 # Average Silhouette
 # Measures how similar an object is to its own cluster (cohesion) compared to other clusters (separation). The Average Silhouette Width is the mean of all silhouette scores within a cluster or across all clusters.
@@ -210,7 +225,7 @@ fviz_nbclust(df, FUN = hcut, diss = d, method = "silhouette") # 2 groups
 # Gap Stat
 # Compares the total within-cluster variation for different numbers of clusters with their expected values under a null reference distribution of the data (i.e., uniformly distributed points).
 # The optimal number of clusters is the smallest k such that the Gap Statistic is maximized or the first local maximum occurs, indicating that adding more clusters does not significantly improve the clustering.
-fviz_nbclust(df, FUN = hcut, diss = d, method = "gap_stat")
+fviz_nbclust(df, FUN = hcut, diss = d, method = "gap_stat") # 9 groups, there's also a break at 3 groups
 
 # Above tests suggest at least two, but are also not conclusive...
 
@@ -239,7 +254,7 @@ mantel_results <- compute_mantel_correlation(Hclust.result, d)
 
 # Find the optimal number of clusters based on the largest Mantel correlation, r
 optimal_clusters <- which.max(mantel_results) + 1  # Add 1 to convert index to number of clusters
-print(paste("Optimal Number of Clusters:", optimal_clusters)) # 2 groups
+print(paste("Optimal Number of Clusters:", optimal_clusters)) # 3 groups
 
 
 ######## Use ISA to determine optimal clusters
@@ -312,9 +327,8 @@ isa.diff.sum <- isa.diff.data %>%
   arrange(by = Cluster) %>% 
   group_by(Cluster) %>% 
   summarise(sum = sum(ISA_SCORE))
-# view(isa.diff.sum)
 
-ggplot(isa.diff.sum, # figure is blank because 2 clusters best describes the data
+ggplot(isa.diff.sum, # figure is blank 
        aes(x = Cluster,
            y = sum)) +
   geom_bar(stat = "identity") +
@@ -327,15 +341,19 @@ ggplot(isa.diff.sum, # figure is blank because 2 clusters best describes the dat
 hcluster.environ <- agnes(d, method = "gaverage", par.method = -0.25) # Perform hierarchical clustering (using average linkage)
  
 plot(hcluster.environ)
-rect.hclust(hcluster.environ, k = 2)
+rect.hclust(hcluster.environ, k = 3)
 
 # Cut tree into groups
-sub_grp <- cutree(hcluster.environ, k = 2)
+sub_grp <- cutree(hcluster.environ, k = 3)
 
 
 # Number of members in each cluster
 table(sub_grp)
 # sub_grp
+#  1  2  3 
+# 16 14  9 
+
+# sub_grp <-- with 2 groups
 #  1  2 
 # 27 12
 
@@ -354,7 +372,7 @@ combined_labels <- paste(environ.subgrp.df$sub_grp, environ.subgrp.df$site_rep, 
 
 # Plot the hierarchical clustering dendrogram with the combined labels
 plot(hcluster.environ, labels = combined_labels, main = "Hierarchical Clustering Dendrogram")
-rect.hclust(hcluster.environ, k = 2)
+rect.hclust(hcluster.environ, k = 3)
 
 ################
 # Indicator Species Analysis
@@ -381,9 +399,6 @@ anova(betadisper(d, trt))
 mod <- betadisper(d, trt)
 
 TukeyHSD(mod)
-# $group
-#             diff         lwr       upr     p adj
-# 2-1 -0.001990316 -0.02405513 0.0200745 0.8559771
 
 
 boxplot(mod)
@@ -490,13 +505,13 @@ ggplot(mds.df,
   theme(axis.text = element_text(size = 16))
 
 
-# p <- plot_ly(mds.df,
-#         x = ~NMDS1,
-#         y = ~NMDS2,
-#         z = ~NMDS3,
-#         type =  "scatter3d",
-#         color=mds.df$envion_cluster)
-# p
+p <- plot_ly(mds.df,
+        x = ~NMDS1,
+        y = ~NMDS2,
+        z = ~NMDS3,
+        type =  "scatter3d",
+        color=mds.df$envion_cluster)
+p
 
 ```
 
@@ -509,7 +524,7 @@ ggplot(mds.df,
 ########### Environ PCA - unscaled data
 
 pca_data <- extracted %>% 
-  dplyr::select(c(hillshade, slope, twi, southwestness, fire_event_count, site_rep)) %>% 
+  dplyr::select(c(slope, twi, southwestness, fire_event_count, site_rep, summer_solarradiation, winter_solarradiation, equinox_solarradiation)) %>% 
   column_to_rownames("site_rep")
 
 ########### Environ PCA - scaled data - PCA results are the same with unscaled and scaled data, so I'll stick with the unscaled data (sept. 19, 2024 - SML)
@@ -540,10 +555,10 @@ pca_scores <- pca_result$x  # These are the scores (transformed data)
 # View PCA results
 summary(pca_result)
 # Importance of components:
-#                           PC1    PC2    PC3    PC4     PC5
-# Standard deviation     1.4435 1.0747 0.8609 0.7676 0.65664
-# Proportion of Variance 0.4167 0.2310 0.1482 0.1178 0.08623
-# Cumulative Proportion  0.4167 0.6477 0.7959 0.9138 1.00000
+#                           PC1    PC2    PC3    PC4     PC5     PC6     PC7
+# Standard deviation     1.5361 1.3759 1.0256 0.8627 0.70418 0.67483 0.00746
+# Proportion of Variance 0.3371 0.2705 0.1502 0.1063 0.07084 0.06506 0.00001
+# Cumulative Proportion  0.3371 0.6075 0.7578 0.8641 0.93494 0.99999 1.00000
 summary(pca_scores)
 
 pca_values <- as.data.frame(pca_result$x)
@@ -566,7 +581,7 @@ PCA_plot <- ggplot() +
   geom_point (data = pca_df,
               aes(x = PC1, y = PC2, color = environ_cluster, shape = plant_cluster), 
               size = 4) +  
-  scale_color_manual(values = c("1" = "darkorange", "2" = "darkgreen")) +
+  scale_color_manual(values = c("1" = "orange", "2" = "cyan", "3" = "darkgreen")) +
   
   scale_shape_manual(values = c("1" = 1, "2" = 2, "3" = 3, "4" = 22, "5" = 7),
                      labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
@@ -581,8 +596,8 @@ PCA_plot <- ggplot() +
                   aes(x = PC1, y = PC2, label = rownames(loadings_df)),
                   size = 4, color = "blue") +             # Text labels in blue
   labs(title = "PCA of Environmental Variables", 
-       x = "Principal Component 1 (41.67%)",
-       y = "Principal Component 2 (23.10%)") +                  
+       x = "Principal Component 1 (33.71%)",
+       y = "Principal Component 2 (27.05%)") +                  
   #clean_background +      
   theme_bw()+
   theme(plot.title = element_text(hjust = 0.5)) +         # Center title
@@ -594,7 +609,7 @@ PCA_environcluster <- ggplot() +
   geom_point (data = pca_df,
               aes(x = PC1, y = PC2, color = environ_cluster, shape = environ_cluster), 
               size = 4) +  
-  scale_color_manual(values = c("1" = "darkorange", "2" = "darkgreen")) +
+  scale_color_manual(values = c("1" = "gold", "2" = "green", "3" = "darkgreen")) +
   #scale_shape_manual(values = c("1" = 0, "2" = 4, "3" = 2, "4" = 3, "5" = 7)) +
   geom_vline(xintercept = c(0), color = "grey70", linetype = 2) + 
   geom_hline(yintercept = c(0), color = "grey70", linetype = 2) +
@@ -605,9 +620,9 @@ PCA_environcluster <- ggplot() +
   geom_text_repel(data = loadings_df,                    # Text labels for loadings
                   aes(x = PC1, y = PC2, label = rownames(loadings_df)),
                   size = 4, color = "blue") +             # Text labels in blue
-  labs(title = "PCA of Environmental Variables", 
-       x = "Principal Component 1 (41.67%)",
-       y = "Principal Component 2 (23.10%)") +               
+ labs(title = "PCA of Environmental Variables", 
+       x = "Principal Component 1 (33.71%)",
+       y = "Principal Component 2 (27.05%)") +                  
   #clean_background +      
   theme_bw()+
   theme(plot.title = element_text(hjust = 0.5)) +         # Center title
@@ -637,9 +652,9 @@ PCA_plantcluster <- ggplot() +
   geom_text_repel(data = loadings_df,                    # Text labels for loadings
                   aes(x = PC1, y = PC2, label = rownames(loadings_df)),
                   size = 4, color = "blue") +             # Text labels in blue
-  labs(title = "PCA of Environmental Variables", 
-       x = "Principal Component 1 (41.67%)",
-       y = "Principal Component 2 (23.10%)") +                  
+ labs(title = "PCA of Environmental Variables", 
+       x = "Principal Component 1 (33.71%)",
+       y = "Principal Component 2 (27.05%)") +                   
   #clean_background +      
   theme_bw()+
   theme(plot.title = element_text(hjust = 0.5)) +         # Center title
