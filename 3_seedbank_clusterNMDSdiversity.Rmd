@@ -118,7 +118,7 @@ spp_charateristics <- abcover_charateristics_load %>%
           status = "native",
           lifecycle = "annual",
           family = "Asteraceae") %>% 
-       add_row(species = "Ribes spp.",
+       add_row(species = "Ribes malvaceum",
           lifeform = "shrub",
           status = "native",
           lifecycle = "perennial",
