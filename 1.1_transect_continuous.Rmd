@@ -1216,7 +1216,7 @@ dev.off()  # Close the PDF device
 ### by CLUSTER
 ```{r}
 
-# making a figure of mean forb x annual/perennia cover by cluster group
+# making a figure of mean forb x annual/perennial cover by cluster group
 
 cover_bylifecycle <- abcover_omitground %>% 
   dplyr::select(!c(site_rep, site_rep_dist)) %>% 
@@ -1545,6 +1545,29 @@ density_cover <- height_cover %>%  # left join nn grass cover
   left_join(density, by = "site_rep") %>% 
   filter(site_rep != "INT4_1") # omit INT4_1
 
+########## bind with cluster groups
+
+density_cover_cluster <- density_cover %>% 
+  separate(site_rep, into = c("site", "rep"), sep = "_") %>% 
+   mutate(rep = case_when(rep == "1" ~ "01", # oldname ~ newname
+                         rep == "2" ~ "02",
+                         rep == "3" ~ "03",
+                         rep == "4" ~ "04",
+                         rep == "5" ~ "05",
+                         rep == "6" ~ "06",
+                         rep == "7" ~ "07",
+                         rep == "8" ~ "08",
+                         rep == "9" ~ "09",
+                              TRUE ~ rep)) %>% 
+   mutate(site_rep = paste(site, rep, sep = ".")) %>%
+   mutate(site_rep = case_when(site_rep == "INT1.01" ~ "INT1.1",
+                              site_rep == "INT2.01" ~ "INT2.1",
+                              site_rep == "INT3.01" ~ "INT3.1",
+                              site_rep == "INT4.01" ~ "INT4.1",
+                              site_rep == "INT5.01" ~ "INT5.1",
+                              TRUE ~ site_rep)) %>% 
+   left_join(groups %>%  dplyr::select(site_rep, cluster), by = "site_rep") 
+
 
 ```
 
@@ -1636,6 +1659,117 @@ grid.arrange(m,
              ) 
 
 ```
+
+
+```{r}
+
+######################################## calculate means by cluster (n = 40 transects)
+# 1 = NNG: n = 10 transects
+# 3 = ssG: n = 10 transects
+# 2 = ssF: n = 7 transects
+# 4 = ssFG: n = 8 transects
+# 5 = EVG: n = 5 transects
+
+densitymeans_bycluster <- density_cover_cluster %>% 
+  mutate(cluster = factor(cluster, levels = c(1, 3, 2, 4, 5))) %>% 
+  group_by(cluster, lifestage) %>% 
+  dplyr::summarise(
+    mean_density = mean(sum_density_m2, na.rm = TRUE), 
+    n = n_distinct(site_rep), 
+    sd = sd(sum_density_m2, na.rm = TRUE), 
+    se = sd / sqrt(n)
+  ) 
+  
+
+
+######################################## plot means by cluster
+
+
+ggplot(densitymeans_bycluster %>%
+         filter(lifestage %in% c("seedling", "immature", "mature", "dead")),
+       aes(x = cluster, 
+           y = mean_density)) +
+  geom_point(size = 3, position = position_dodge(width = 0.3)) +  
+  geom_errorbar(aes(ymin = mean_density - se, ymax = mean_density + se), 
+                width = 0.2, position = position_dodge(width = 0.3)) +  # SE bars
+  labs(x = "Plant Cluster", 
+       y = "Mean Shrub Density (#/m2)") + 
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 1),  # Rotate x-axis labels if needed
+    legend.position = "right") +
+  ylim(0, 1) +
+  facet_wrap(~lifestage) +  # Facet by lifeform
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG"))  # Relabel clusters
+
+
+
+
+############################## density stats among groups
+
+# seedling
+density_seedling <- density_cover_cluster %>%
+  filter(lifestage == "seedling")
+
+hist(density_seedling$sum_density_m2)
+shapiro.test(density_seedling$sum_density_m2) # <- not normal
+
+kruskal.test(sum_density_m2 ~ cluster, data = density_seedling)
+# data:  sum_density_m2 by cluster
+# Kruskal-Wallis chi-squared = 18.441, df = 4, p-value = 0.001012 <-- sig
+
+pairwise.wilcox.test(density_seedling$sum_density_m2, 
+                                      density_seedling$cluster,
+                                      p.adjust.method = "bonferroni")
+
+
+# immature
+density_immature <- density_cover_cluster %>%
+  filter(lifestage == "immature")
+
+hist(density_immature$sum_density_m2)
+shapiro.test(density_immature$sum_density_m2) # <- not normal
+
+kruskal.test(sum_density_m2 ~ cluster, data = density_seedling) 
+
+pairwise.wilcox.test(density_immature$sum_density_m2, 
+                                      density_immature$cluster,
+                                      p.adjust.method = "bonferroni") # <- no sig
+# data:  density_immature$sum_density_m2 and density_immature$cluster 
+# 
+#   1    2    3    4   
+# 2 0.29 -    -    -   
+# 3 1.00 0.54 -    -   
+# 4 1.00 1.00 1.00 -   
+# 5 0.18 1.00 0.69 1.00
+# 
+# P value adjustment method: bonferroni 
+
+
+# mature
+density_mature <- density_cover_cluster %>%
+  filter(lifestage == "mature")
+hist(density_mature$sum_density_m2)
+
+shapiro.test(density_mature$sum_density_m2) # <- not normal
+
+kruskal.test(sum_density_m2 ~ cluster, data = density_mature) 
+
+pairwise.wilcox.test(density_mature$sum_density_m2, 
+                                      density_mature$cluster,
+                                      p.adjust.method = "bonferroni")
+# data:  density_mature$sum_density_m2 and density_mature$cluster 
+# 
+#   1      2      3      4     
+# 2 0.1154 -      -      -     
+# 3 1.0000 0.2503 -      -     
+# 4 0.0058 1.0000 0.4266 -     
+# 5 0.2046 1.0000 0.4672 1.0000
+# 
+# P value adjustment method: bonferroni
+
+```
+
 
 
 ```{r}
