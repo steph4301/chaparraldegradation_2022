@@ -25,6 +25,15 @@ library(factoextra)
 library(ggrepel) # avoid overlaping labes in ggplot2
 library(cluster)
 
+# libraries that Rob loaded in his Rmd
+library(MASS)
+library(stringr)
+library(indicspecies)
+library(dunn.test)
+library(caret)
+library(rpart)
+library(ggparty)
+
 # library(ggpubr) # customize ggplot2 for publication
 # library(broom)
 # library(AICcmodavg)
@@ -444,7 +453,6 @@ print(paste("Optimal Number of Clusters:", optimal_clusters))
 
 # Function to run multipatt() on k iterations of clusters and extract ISA values
 run_multipatt_and_extract_ISA <- function(data, max_clusters) {
-  
   # Initialize an empty dataframe to store ISA values
   isa_df <- data.frame(Species = colnames(data))
   
