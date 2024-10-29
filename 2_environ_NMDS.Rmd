@@ -16,6 +16,7 @@ library(calecopal)
 library(factoextra)
 library(gt)
 library(ggrepel) # avoid overlaping labes in ggplot2
+library(scales) # for commas in numbers
 
 # library(ggpubr) # customize ggplot2 for publication
 # library(broom)
@@ -123,18 +124,20 @@ extracted$site_rep <- gsub("\\.", "_", extracted$site_rep)
 means <- extracted %>%
    dplyr::select(c("site_rep", "plant_cluster", 
                    "slope", "southwestness", "twi", "fire_event_count", 
-                   "summer_solarradiation", "winter_solarradiation", "equinox_solarradiation", "total_solrad")) %>%
+                   #"summer_solarradiation", "winter_solarradiation", "equinox_solarradiation",
+                   "total_solrad")) %>%
   group_by(plant_cluster) %>% 
+  mutate(plant_cluster = factor(plant_cluster, levels = c(1, 3, 2, 4, 5))) %>%  # Reorder plant_cluster
   summarize(
     slope = paste0(round(mean(slope), 2), " ± ", round(sd(slope), 2)),
     southwestness = paste0(round(mean(southwestness), 2), " ± ", round(sd(southwestness), 2)),
     fire_events = paste0(round(mean(fire_event_count), 2), " ± ", round(sd(fire_event_count), 2)),
     twi = paste0(round(mean(twi), 2), " ± ", round(sd(twi), 2)),
-    summer_solrad = paste0(round(mean(summer_solarradiation), 0), " ± ", round(sd(summer_solarradiation), 0)),
-      winter_solrad = paste0(round(mean(winter_solarradiation), 0), " ± ", round(sd(winter_solarradiation), 0)),
-      equinox_solrad = paste0(round(mean(summer_solarradiation), 0), " ± ", round(sd(summer_solarradiation), 0)),
-       total_solrad = paste0(round(mean(total_solrad), 0), " ± ", round(sd(total_solrad), 0))
-  ) 
+   # summer_solrad = paste0(round(mean(summer_solarradiation), 0), " ± ", round(sd(summer_solarradiation), 0)),
+    #  winter_solrad = paste0(round(mean(winter_solarradiation), 0), " ± ", round(sd(winter_solarradiation), 0)),
+     # equinox_solrad = paste0(round(mean(summer_solarradiation), 0), " ± ", round(sd(summer_solarradiation), 0)),
+       total_solrad = paste0(comma(round(mean(total_solrad), 0)), " ± ", comma(round(sd(total_solrad), 0)))
+  )
 
 
 # Print as a gt table
@@ -158,9 +161,9 @@ table_plant <- means %>%
     southwestness = "Southwestness",        # Rename "southwestness" column
     twi = "TWI",       # Rename "tpi" column
     fire_events = "Fire Count",        # Rename "fire_events" column
-    summer_solrad = "Summer Solstice", 
-    winter_solrad = "Winter Solstice",
-    equinox_solrad = "Equinox", 
+#    summer_solrad = "Summer Solstice", 
+#    winter_solrad = "Winter Solstice",
+#    equinox_solrad = "Equinox", 
     total_solrad = "Total solar radiation"
   ) %>%
   cols_align(
