@@ -9,6 +9,9 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+# setwd("~/Library/CloudStorage/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022")
+
 ```
 
 ##### Rmarkdown for Using cluster analysis to identify plant groupings among chaparral transects
@@ -225,15 +228,15 @@ map_dbl(m, ac)
 
 
 #########################
-#### Find optimal number of clusters
+#### Find optimal number of clusters - k-means clustering
 
 # Scree plot  
-fviz_nbclust(df, FUN = hcut, diss = d, method = "wss")
+fviz_nbclust(df, FUN = hcut, diss = d, method = "wss") # Elbow method for kmeans
 
 # Average Silhouette
 # Measures how similar an object is to its own cluster (cohesion) compared to other clusters (separation). The Average Silhouette Width is the mean of all silhouette scores within a cluster or across all clusters.
 # S ≈ 1: The point is well clustered
-fviz_nbclust(df, FUN = hcut, diss = d, method = "silhouette")
+fviz_nbclust(df, FUN = hcut, diss = d, method = "silhouette") # Average silhouette for kmeans
 # 4 groups has highest Avg. sillhouete width
 
 # Gap Stat
@@ -281,7 +284,7 @@ print(paste("Optimal Number of Clusters:", optimal_clusters))
 
 
 ####
-#### Use ISA to determine optimal clusters
+#### Use ISA (indicator species analysis) to determine optimal clusters
 
 # Function to run multipatt() on k iterations of clusters and extract ISA values
 run_multipatt_and_extract_ISA <- function(data, max_clusters) {
