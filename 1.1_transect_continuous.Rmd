@@ -241,7 +241,8 @@ specieslist <- file_transect_2019_load %>%
                                 species == "Bromus diandrus BRDI" ~ "Bromus diandrus",
                                 species == "Bromus rubens BRRU" ~ "Bromus rubens",
                                 species == "Bromus hordeaceus BRHO" ~ "Bromus hordeaceus",
-                                species == "Rapistrum rugosum - round pods" ~ "Rapistrum rugosum",
+                              species == "Festuca myros" ~ "Festuca myuros",  
+                              species == "Rapistrum rugosum - round pods" ~ "Rapistrum rugosum",
                                 species == "HIIN Hirschfeldia incana - long pods" ~ "Hirschfeldia incana",
                                 species == "Hirschfeldia incana - long pods" ~ "Hirschfeldia incana",
                                 species == "Salvia lucophylla" ~ "Salvia leucophylla",
@@ -1295,16 +1296,16 @@ fig_forbgrass <- ggplot(cover_bylifecycle_bygroup %>%
            "shrub_perennial_native")),
        aes(x = cluster, 
            y = mean_cover, 
-           shape = status,   
-           color = lifecycle   
+           color = status,   
+           shape = lifecycle   
            )) +
   geom_point(size = 3, position = position_dodge(width = 0.3)) +  # Mean points
   geom_errorbar(aes(ymin = mean_cover - se, ymax = mean_cover + se), 
                 width = 0.5, position = position_dodge(width = 0.3)) +  # SE bars
   labs(x = "Plant Cluster", 
        y = "Mean Percent Cover (%)", 
-       color = "Lifecycle",  # Label for color legend
-       shape = "Status") +  # Label for shape legend
+       shape = "Lifecycle",  # Label for color legend
+       color = "Status") +  # Label for shape legend
   theme_bw() +
   theme(
     axis.text.x = element_text(angle = 0, hjust = 1),  # Rotate x-axis labels if needed
@@ -1312,8 +1313,8 @@ fig_forbgrass <- ggplot(cover_bylifecycle_bygroup %>%
   ) +
   ylim(0, 100) +
   facet_wrap(~lifeform) +  # Facet by lifeform
-  scale_shape_manual(values = c("native" = 16, "nonnative" = 2)) +  
-  scale_color_manual(values = c("annual" = "orange", "perennial" = "darkgreen")) +  
+  scale_shape_manual(values = c("perennial" = 16, "annual" = 6)) +  
+  scale_color_manual(values = c("nonnative" = "orange", "native" = "darkgreen")) +  
   scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG"))  # Relabel clusters
 fig_forbgrass
 
