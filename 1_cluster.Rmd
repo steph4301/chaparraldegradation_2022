@@ -30,7 +30,10 @@ library(plotly)
 library(readxl)
 library(tidyverse)
 library(vegan)
-
+library(stringr)
+library(kableExtra)
+library(htmltools)
+library(webshot2)
 
 # library(MASS)
 # library(dunn.test)
@@ -667,18 +670,67 @@ table_clustercover <- cluster.subgrp.df %>%
                            `4` = "ssFG", 
                            `5` = "EVG")) %>%
    pivot_longer(cols = 4:55, names_to = "Species", values_to = "percent_cover") %>%
-   group_by(sub_grp, Species) %>%
+  rename(species = Species) %>% 
+   group_by(sub_grp, species) %>%
    summarise(mean_percentcover = round(mean(percent_cover, na.rm = TRUE)*100, 2)) %>%
    pivot_wider(names_from = sub_grp, values_from = mean_percentcover) %>%
-   mutate(Species = str_replace_all(Species, "\\.", " ")) %>%
-   mutate(Species = str_trim(Species)) %>%
-   mutate(Species = case_when(
-      Species == "Cryptantha spp" ~ "Cryptantha spp.", # old name ~ new name
-      Species == "Erodium spp" ~ "Erodium spp.",
-       Species == "Lupinus spp" ~ "Lupinus spp.",
-      TRUE ~ Species
-   ))
-  
+  mutate(species = case_when(
+    species == "Festuca.myros" ~	"Festuca.myuros", 
+    TRUE ~ species)) %>% 
+  left_join(sppchar, by = "species") %>% 
+   # mutate(species = ifelse(
+   #    species %in% c("Artemisia.californica", 
+   #                   "Heteromeles.arbutifolia", 
+   #                   "Salvia.apiana", 
+   #                   "Baccharis.pilularis",
+   #                   "Ceanothus.oliganthus",
+   #                   "Eriodictyon.crassifolium",
+   #                   "Eriogonum.fasciculatum",
+   #                   "Malacothamnus.fasciculatus",
+   #                   "Rhamnus.ilicifolia",
+   #                   "Rhus.ovata",
+   #                   "Salvia.leucophylla",
+   #                   "Sambucus.mexicana"
+   #                   ),
+   #    paste0("<b><i>", species, "<b><i>"), # Bold and italicize these species
+   #    paste0("<i>", species, "<i>")              # Italicize all other species
+   # )) %>% 
+   mutate(species = str_replace_all(species, "\\.", " ")) %>%
+   mutate(species = str_trim(species)) %>%
+   mutate(species = case_when(
+      species == "Cryptantha spp" ~ "Cryptantha spp.", # old name ~ new name
+      species == "Erodium spp" ~ "Erodium spp.",
+      species == "Lupinus spp" ~ "Lupinus spp.",
+      TRUE ~ species
+   )) %>% 
+   relocate(status, lifecycle, lifeform, family, NNG, ssG, ssF, ssFG, EVG, .after = species)  %>%  # Move 'lifeform' after 'Species'
+  rename(Species = species, 
+         Status = status, 
+         Lifecycle = lifecycle, 
+         Lifeform = lifeform, 
+         Family = family) %>% 
+  mutate(Status = case_when(
+    Status == "native" ~ "nat", 
+    Status == "nonnative" ~ "nn", 
+    TRUE ~ Status)
+  ) %>% 
+  mutate(Lifecycle = case_when(
+    Lifecycle == "annual" ~ "ann", 
+    Lifecycle == "perennial" ~ "per", 
+    TRUE ~ Lifecycle)
+  ) %>% 
+  #  mutate(Lifeform = case_when(
+  #   Lifeform == "forb" ~ "f", 
+  #   Lifeform == "grass" ~ "g", 
+  #    Lifeform == "shrub" ~ "s", 
+  #   TRUE ~ Lifeform)
+  # ) 
+  mutate(Lifeform = ifelse(Species == "Heteromeles arbutifolia", "shrub (scl)", Lifeform)) %>%  # a condition, a value if the condition is true, and a value if the condition is false
+  mutate(Lifeform = ifelse(Species == "Rhamnus ilicifolia", "shrub (scl)", Lifeform)) %>% 
+  mutate(Lifeform = ifelse(Species == "Rhus ovata", "shrub (scl)", Lifeform)) 
+# view(table_clustercover)
+
+
 # Print as a gt table
 table_cover <- table_clustercover %>%
   gt() %>%
@@ -689,16 +741,23 @@ table_cover <- table_clustercover %>%
   cols_align(
     align = "left", # Center alignment
     columns = "Species" # Specify the "cluster" column
-  ) %>% 
+  ) %>%
   tab_options(
     table.width = pct(80) # Make the table width 100%
   )
-
 table_cover
 
 # Export the table as a PDF
-gtsave(table_cover, "Ch1_Degradation_figures/table_spp_clustergroups.png", 
+gtsave(table_cover, "Ch1_Degradation_figures/table_spp_clustergroups_oct30.png", 
        expand = 10)
+
+
+# # print as a HTML table with KABLE
+# table_cover <- table_clustercover %>%
+#    kable(format = "html", escape = FALSE) %>%
+#    kable_styling("striped", full_width = FALSE)
+# 
+# table_cover
 
 ```
 
