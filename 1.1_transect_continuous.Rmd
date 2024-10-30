@@ -895,7 +895,9 @@ ggplot(data = cover_bylfstatus_wide,
 
 ############ scl slope
 # Fit the linear model
-model.scl <- lm(shrub_native_sclerophyllous ~ grass_nonnative_NA, data = (cover_byleaftype_wide %>%  filter(shrub_native_sclerophyllous > 0))) # response variable ~ independent variable
+model.scl <- lm(shrub_native_sclerophyllous ~ grass_nonnative_NA, data = (cover_byleaftype_wide
+                                                                          # %>%  filter(shrub_native_sclerophyllous > 0)
+                                                                          )) # response variable ~ independent variable
 
 # Print the summary of the model
 model.scl_summary <- summary(model.scl)
@@ -925,19 +927,27 @@ eq_label_ss <- paste0("Nonscl: y = ", slopess, "x + ", interceptss, "\n", "R² =
 
 fig.1a <- ggplot(data = cover_byleaftype_wide) +
   # Sclerophyllous Shrub Cover
-  geom_point(data = cover_byleaftype_wide %>% filter(shrub_native_sclerophyllous > 0),
+  geom_point(data = cover_byleaftype_wide 
+             #%>% filter(shrub_native_sclerophyllous > 0)
+             ,
              aes(x = grass_nonnative_NA * 100, y = shrub_native_sclerophyllous * 100, 
                  color = "sclerophyllous", shape = "sclerophyllous"), 
              size = 3, show.legend = TRUE) +  # Adjust point size here
-  geom_smooth(data = cover_byleaftype_wide %>% filter(shrub_native_sclerophyllous > 0), 
+  geom_smooth(data = cover_byleaftype_wide 
+              #%>% filter(shrub_native_sclerophyllous > 0)
+              , 
               aes(x = grass_nonnative_NA * 100, y = shrub_native_sclerophyllous * 100, color = "sclerophyllous"), 
               method = "lm", se = TRUE, linetype = "dashed", show.legend = TRUE) +
   # Sage Scrub Cover
-  geom_point(data = cover_byleaftype_wide,  #%>% filter(shrub_native_nonsclero > 0)
+  geom_point(data = cover_byleaftype_wide
+             #%>% filter(shrub_native_nonsclero > 0)
+             ,
              aes(x = grass_nonnative_NA * 100, y = shrub_native_nonsclero * 100, 
                  color = "sage scrub", shape = "sage scrub"), 
              size = 3, show.legend = TRUE) +  # Adjust point size here
-  geom_smooth(data = cover_byleaftype_wide, 
+  geom_smooth(data = cover_byleaftype_wide
+               #%>% filter(shrub_native_nonsclero > 0)
+              , 
               aes(x = grass_nonnative_NA * 100, y = shrub_native_nonsclero * 100, color = "sage scrub"), 
               method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
   # Labels
@@ -1193,7 +1203,7 @@ fig.1e
 ```{r}
 
 # Save the plot to a PDF file with specified size
-pdf("fig.cover_regression.pdf", width = 8, height = 10)  # 8x10 inches (portrait size)
+# pdf("fig.cover_regression.pdf", width = 8, height = 10)  # 8x10 inches (portrait size)
 
 # Add labels to the plots using cowplot's draw_label() function
 fig.1a_labeled <- ggdraw(fig.1a) + draw_label("A", x = 0.85, y = 0.92, size = 15)  # Add letter "A" in the top-right corner
@@ -1213,7 +1223,7 @@ grid.arrange(fig.1a_labeled, NULL,
              ) 
 
 
-dev.off()  # Close the PDF device
+# dev.off()  # Close the PDF device
 ```
 
 ### by CLUSTER
@@ -1563,8 +1573,39 @@ denspp_cover <- height_cover %>%  # left join nn grass cover
   left_join(shrub_leaftype, by = "species") %>% 
   mutate(lifestage = factor(lifestage, levels = c("seedling", "immature", "mature", "dead")))
 
+sppbygroup <- denspp %>% 
+    separate(site_rep, into = c("site", "rep"), sep = "_") %>% 
+   mutate(rep = case_when(rep == "1" ~ "01", # oldname ~ newname
+                         rep == "2" ~ "02",
+                         rep == "3" ~ "03",
+                         rep == "4" ~ "04",
+                         rep == "5" ~ "05",
+                         rep == "6" ~ "06",
+                         rep == "7" ~ "07",
+                         rep == "8" ~ "08",
+                         rep == "9" ~ "09",
+                              TRUE ~ rep)) %>% 
+   mutate(site_rep = paste(site, rep, sep = ".")) %>%
+   mutate(site_rep = case_when(site_rep == "INT1.01" ~ "INT1.1",
+                              site_rep == "INT2.01" ~ "INT2.1",
+                              site_rep == "INT3.01" ~ "INT3.1",
+                              site_rep == "INT4.01" ~ "INT4.1",
+                              site_rep == "INT5.01" ~ "INT5.1",
+                              TRUE ~ site_rep)) %>% 
+   left_join(groups %>%  dplyr::select(site_rep, cluster), by = "site_rep") %>% 
+  group_by(cluster, species, lifestage) %>% 
+  summarize(mean_m2 = round(mean(density_m2),2)) %>% 
+  pivot_wider(names_from = cluster, values_from = mean_m2) 
+  
+view(sppbygroup)
 
-##### bind WITHspecies##### bind WITHOUT shrub species
+shrubs_evg <- sppbygroup %>% 
+  dplyr::select(species, lifestage, "5") %>% 
+  filter("5" > 0) %>% 
+  filter(lifestage == "seedling")
+view(shrubs_evg)
+
+##### bind WITHOUT shrub species
 density2019 <- shrubdensitylife_load %>% # group shrub density by lifestage
   group_by(site_rep, lifestage) %>% 
   summarise(sum_density_m2 = sum(density_m2)) # 75 rows
@@ -1713,7 +1754,200 @@ densitymeans_bycluster <- density_cover_cluster %>%
     se = sd / sqrt(n)
   ) 
   
+densitymeans_bycluster_table <- densitymeans_bycluster %>%
+  group_by(cluster) %>% 
+  mutate(cluster = factor(cluster, levels = c(1, 3, 2, 4, 5))) %>%  # Reorder plant_cluster
+  summarize(
+    seedling = paste0(round(mean(mean_density), 2), " ± ", round(sd(mean_density), 2)),
+    immature = paste0(round(mean(mean_density), 2), " ± ", round(sd(mean_density), 2)),
+    mature = paste0(round(mean(mean_density), 2), " ± ", round(sd(mean_density), 2)),
+    dead = paste0(round(mean(mean_density), 2), " ± ", round(sd(mean_density), 2))
+  ) %>% 
+  mutate(seedling_sig = c("a", "ab", "b", "b", "ab")) %>% 
+  mutate(immature_sig = c("a", "a", "a", "a", "a")) %>% 
+  mutate(mature_sig = c("a", "ab", "ab", "b", "ab")) %>% 
+  mutate(dead_sig = c("a", "ac", "bc", "ac", "bc")) %>% 
+  # Add superscripts for significance levels for visualization
+  mutate(
+    seedling = html(paste0(seedling, "<sup>", seedling_sig, "</sup>")),
+    immature = html(paste0(immature, "<sup>", immature_sig, "</sup>")),
+    mature = html(paste0(mature, "<sup>", mature_sig, "</sup>")),
+    dead = html(paste0(dead, "<sup>", dead_sig, "</sup>"))
+  )
 
+
+
+
+# Print as a gt table
+table_shrubden <- densitymeans_bycluster_table %>%
+  # Rename plant_cluster values before passing to gt
+  mutate(cluster = recode(cluster, 
+                                `1` = "NNG", 
+                                `2` = "ssF", 
+                                `3` = "ssG", 
+                                `4` = "ssFG", 
+                                `5` = "EVG")) %>%
+  gt() %>%
+  tab_header(
+    title = "Shrub Density by Lifestage and Plant Cluster",
+    subtitle = "Mean ± Standard Deviation"
+  ) %>%
+  # Rename the column headers
+  cols_label(
+    cluster = "Plant Group",        # rename plant_cluster column
+    seedling = "Seedling",                
+    immature = "Immature",      
+    mature = "Mature",       
+    dead = "Dead"
+  ) %>%
+  cols_align(
+    align = "center", # Center alignment
+    columns = "cluster" # Specify the "cluster" column
+  ) %>% 
+  tab_options(
+    table.width = pct(100) # Make the table width 100%
+  ) #%>% 
+  #gtsave("shrub_density_table2.png")
+
+table_shrubden
+  
+
+# Create the table with superscripts
+densitymeans_with_superscript <- densitymeans_bycluster %>%
+  group_by(cluster) %>%
+  mutate(cluster = factor(cluster, levels = c(1, 3, 2, 4, 5))) %>%
+  summarize(
+    seedling = paste0(round(mean(mean_density), 2), " ± ", round(sd(mean_density), 2)),
+    immature = paste0(round(mean(mean_density), 2), " ± ", round(sd(mean_density), 2)),
+    mature = paste0(round(mean(mean_density), 2), " ± ", round(sd(mean_density), 2)),
+    dead = paste0(round(mean(mean_density), 2), " ± ", round(sd(mean_density), 2))
+  ) %>%
+  mutate(
+    seedling_sig = c("a", "ab", "b", "b", "ab"),
+    immature_sig = c("a", "a", "a", "a", "a"),
+    mature_sig = c("a", "ab", "ab", "b", "ab"),
+    dead_sig = c("a", "ac", "bc", "ac", "bc")
+  ) %>%
+  # Add superscripts for significance levels for visualization
+  mutate(
+    seedling = html(paste0(seedling, "<sup>", seedling_sig, "</sup>")),
+    immature = html(paste0(immature, "<sup>", immature_sig, "</sup>")),
+    mature = html(paste0(mature, "<sup>", mature_sig, "</sup>")),
+    dead = html(paste0(dead, "<sup>", dead_sig, "</sup>"))
+  )
+
+# Print the table as a gt table
+densitymeans_with_superscript %>%
+  gt() %>%
+  tab_header(
+    title = "Shrub Density by Lifestage and Plant Cluster",
+    subtitle = "Mean ± Standard Deviation"
+  ) %>%
+  cols_label(
+    cluster = "Plant Group",
+    seedling = "Seedling",
+    immature = "Immature",
+    mature = "Mature",
+    dead = "Dead"
+  ) %>%
+  cols_align(align = "center", columns = "cluster") %>%
+  tab_options(table.width = pct(100))
+
+############################## density stats among groups
+
+# seedling
+density_seedling <- density_cover_cluster %>%
+  filter(lifestage == "seedling")
+
+hist(density_seedling$sum_density_m2)
+shapiro.test(density_seedling$sum_density_m2) # <- not normal
+
+kruskal.test(sum_density_m2 ~ cluster, data = density_seedling)
+# data:  sum_density_m2 by cluster
+# Kruskal-Wallis chi-squared = 18.441, df = 4, p-value = 0.001012 <-- sig
+
+pairwise.wilcox.test(density_seedling$sum_density_m2, 
+                                      density_seedling$cluster,
+                                      p.adjust.method = "holm") # bonferroni
+#   1      2      3      4     
+# 2 0.0319 -      -      -     
+# 3 0.8217 0.6118 -      -     
+# 4 0.0031 0.8217 0.0810 -     
+# 5 0.2115 0.8534 0.8534 0.8217
+# 
+# P value adjustment method: holm 
+
+# immature
+density_immature <- density_cover_cluster %>%
+  filter(lifestage == "immature")
+
+hist(density_immature$sum_density_m2)
+shapiro.test(density_immature$sum_density_m2) # <- not normal
+
+kruskal.test(sum_density_m2 ~ cluster, data = density_seedling) 
+
+pairwise.wilcox.test(density_immature$sum_density_m2, 
+                                      density_immature$cluster,
+                                      p.adjust.method = "holm") # <- no sig
+# with "holm" adjusted p value
+#   1    2    3    4   
+# 2 0.26 -    -    -   
+# 3 1.00 0.43 -    -   
+# 4 0.78 1.00 0.87 -   
+# 5 0.18 1.00 0.49 1.00
+
+# data:  density_immature$sum_density_m2 and density_immature$cluster - with bonferroni adjused p-value
+# 
+#   1    2    3    4   
+# 2 0.29 -    -    -   
+# 3 1.00 0.54 -    -   
+# 4 1.00 1.00 1.00 -   
+# 5 0.18 1.00 0.69 1.00
+# 
+# P value adjustment method: bonferroni 
+
+
+# mature
+density_mature <- density_cover_cluster %>%
+  filter(lifestage == "mature")
+hist(density_mature$sum_density_m2)
+
+shapiro.test(density_mature$sum_density_m2) # <- not normal
+
+kruskal.test(sum_density_m2 ~ cluster, data = density_mature) 
+
+pairwise.wilcox.test(density_mature$sum_density_m2, 
+                                      density_mature$cluster,
+                                      p.adjust.method = "holm") # bonferroni
+
+# dead
+density_dead <- density_cover_cluster %>%
+  filter(lifestage == "dead")
+
+hist(density_dead$sum_density_m2)
+shapiro.test(density_dead$sum_density_m2) # <- not normal
+
+kruskal.test(sum_density_m2 ~ cluster, data = density_dead)
+# data:  sum_density_m2 by cluster
+# Kruskal-Wallis chi-squared = 18.346, df = 4, p-value = 0.001056 <-- sig
+
+pairwise.wilcox.test(density_dead$sum_density_m2, 
+                                      density_dead$cluster,
+                                      p.adjust.method = "holm")
+
+# data:  density_dead$sum_density_m2 and density_dead$cluster 
+# 
+#   1      2      3      4     
+# 2 0.0113 -      -      -     
+# 3 0.5026 0.0792 -      -     
+# 4 0.0685 0.5026 0.5026 -     
+# 5 0.0095 1.0000 0.2132 0.8748
+# 
+# P value adjustment method: holm 
+
+
+
+  
 
 ######################################## plot means by cluster
 
@@ -1736,70 +1970,6 @@ ggplot(densitymeans_bycluster %>%
   scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG"))  # Relabel clusters
 
 
-
-
-############################## density stats among groups
-
-# seedling
-density_seedling <- density_cover_cluster %>%
-  filter(lifestage == "seedling")
-
-hist(density_seedling$sum_density_m2)
-shapiro.test(density_seedling$sum_density_m2) # <- not normal
-
-kruskal.test(sum_density_m2 ~ cluster, data = density_seedling)
-# data:  sum_density_m2 by cluster
-# Kruskal-Wallis chi-squared = 18.441, df = 4, p-value = 0.001012 <-- sig
-
-pairwise.wilcox.test(density_seedling$sum_density_m2, 
-                                      density_seedling$cluster,
-                                      p.adjust.method = "bonferroni")
-
-
-# immature
-density_immature <- density_cover_cluster %>%
-  filter(lifestage == "immature")
-
-hist(density_immature$sum_density_m2)
-shapiro.test(density_immature$sum_density_m2) # <- not normal
-
-kruskal.test(sum_density_m2 ~ cluster, data = density_seedling) 
-
-pairwise.wilcox.test(density_immature$sum_density_m2, 
-                                      density_immature$cluster,
-                                      p.adjust.method = "bonferroni") # <- no sig
-# data:  density_immature$sum_density_m2 and density_immature$cluster 
-# 
-#   1    2    3    4   
-# 2 0.29 -    -    -   
-# 3 1.00 0.54 -    -   
-# 4 1.00 1.00 1.00 -   
-# 5 0.18 1.00 0.69 1.00
-# 
-# P value adjustment method: bonferroni 
-
-
-# mature
-density_mature <- density_cover_cluster %>%
-  filter(lifestage == "mature")
-hist(density_mature$sum_density_m2)
-
-shapiro.test(density_mature$sum_density_m2) # <- not normal
-
-kruskal.test(sum_density_m2 ~ cluster, data = density_mature) 
-
-pairwise.wilcox.test(density_mature$sum_density_m2, 
-                                      density_mature$cluster,
-                                      p.adjust.method = "bonferroni")
-# data:  density_mature$sum_density_m2 and density_mature$cluster 
-# 
-#   1      2      3      4     
-# 2 0.1154 -      -      -     
-# 3 1.0000 0.2503 -      -     
-# 4 0.0058 1.0000 0.4266 -     
-# 5 0.2046 1.0000 0.4672 1.0000
-# 
-# P value adjustment method: bonferroni
 
 ```
 
