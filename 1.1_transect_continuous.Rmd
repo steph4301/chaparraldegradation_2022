@@ -29,7 +29,9 @@ library(MASS)
 library(multcompView) # for significance letters to p-values
 # library(gt) # for tables - use gt or knitr
 library(knitr) # for tables
+library(rstatix) # for pairwise Wilcoxon test with significance letters 
 ```
+
 # colors
 ```{r colors, include=TRUE}
 devtools::install_github("an-bui/calecopal")
@@ -1310,7 +1312,12 @@ fig_forbgrass
 
 
 
+```
 
+
+##### shrub
+
+```{r}
 ############################## stats among groups
 
 ### SHRUB COVER by CLUSTER
@@ -1379,8 +1386,8 @@ shrub_perennial_data <- (cover_bylifecycle %>% filter(lifeform=="shrub")) %>%
 cluster_shrub_boxorjitter <- ggplot(shrub_perennial_data, 
        aes(x = cluster, 
            y = lifeform_lifecycle_percentcover)) +
-  # geom_jitter(width = 0.2, height = 0.1) + # jitter
   geom_boxplot() + # boxplot
+  geom_jitter(width = 0.2, height = 0.1, color = "darkgreen") + # jitter
   geom_text(aes(label = value, y = max(lifeform_lifecycle_percentcover) + 5), vjust = 0.5) +
   labs(x = "Plant Cluster", 
        y = "Percent Shrub Cover (%)") +
@@ -1413,9 +1420,51 @@ shrub_cluster <- ggplot(cover_bylifecycle_bygroup %>%
   scale_color_manual(values = c("perennial" = "black")) +
   scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG"))  # Relabel clusters
 
+```
 
+
+##### grass
+
+```{r}
 
 ### GRASS cover by CLUSTER
+grass_annual_data <- cover_bylifecycle %>% 
+  filter(lifeform_lifecycle == "grass_annual") # all grass_annual are nonnative
+
+hist(grass_annual_data$lifeform_lifecycle_percentcover)
+shapiro.test(grass_annual_data$lifeform_lifecycle_percentcover)
+# data:  grass_annual_data$lifeform_lifecycle_percentcover
+# W = 0.90111, p-value = 0.002374 <-- not normal
+
+# Pairwise Wilcoxon test with significance letters
+significance_results <- grass_annual_data %>%
+  pairwise_wilcox_test(
+    lifeform_lifecycle_percentcover ~ cluster, 
+    p.adjust.method = "bonferroni"  # Adjust method of your choice # BH
+  ) %>%
+  rstatix::add_xy_position(x = "cluster")  # Adds x-position for plotting
+
+# Add significance letters
+letters <-  significance_results %>%
+  rstatix::get_comparisons(p.adj.signif) #%>%
+  mutate(label = rstatix::get_significance_letters(significance_results$p.adj))  # Generates a, b, etc.
+
+
+ggplot(grass_annual_data, 
+       aes(x = cluster, 
+           y = lifeform_lifecycle_percentcover)) +
+  geom_boxplot() +  # Boxplot
+  geom_jitter(width = 0.2, height = 0.1, color = "orange") +  # Jittered points
+  # Add significance letters
+  geom_text(data = letters, aes(x = as.numeric(group1), y = max(df$mean_percentcover) + 5, label = label), 
+            vjust = 0.5) +
+  labs(x = "Plant Cluster", y = "Non-Native Annual Grass Cover (%)") +
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +  # Relabel clusters
+  theme_bw()
+
+
+
+
 nngrass_cluster <- ggplot(cover_bylifecycle_bygroup %>%
                             filter(status == "nonnative") %>% 
          filter(lifeform_lifecycle %in% c("grass_annual")),
