@@ -117,8 +117,10 @@ transect2024 <- file_transect_2024_load %>%
 #   )
 
 ################ species characteristic list
-sppchar <- read.csv("processed/specieslist.csv") %>%  # species and their characteristics :) Created in 1.1_transect_continuous.Rmd
-  dplyr::select(!c(X, notes, ejepson)) %>%
+sppchar_load <- read.csv("processed/specieslist.csv") 
+
+sppchar <- sppchar_load %>%  # species and their characteristics :) Created in 1.1_transect_continuous.Rmd
+  dplyr::select(!c(X)) %>%
    mutate(species = str_replace(species, " ", "_")) %>%
   mutate(species = gsub("\u00A0", " ", species, fixed = TRUE)) %>%
   mutate(species = str_replace(species, " ", "_")) %>% 
@@ -748,7 +750,7 @@ table_cover <- table_clustercover %>%
 table_cover
 
 # Export the table as a PDF
-gtsave(table_cover, "Ch1_Degradation_figures/table_spp_clustergroups_oct30.png", 
+gtsave(table_cover, "Ch1_Degradation_figures/table_spp_clustergroups_oct31.png", 
        expand = 10)
 
 
