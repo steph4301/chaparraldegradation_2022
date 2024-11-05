@@ -544,6 +544,11 @@ cover_byleaftype_wide <- cover_bylfstatusleaftype %>%
                             grass_nonnative_NA = 0))
 
 # view(cover_byleaftype_wide)
+
+# join two dfs 
+cover_wide <- cover_byleaftype_wide %>% 
+  left_join(cover_bylfstatus_wide, by = "site_rep", "site")
+
 ```
  
 # REGRESSIONS
@@ -671,7 +676,7 @@ ggplot(data = (cover_byleaftype_wide %>%
   labs(
     x = "Sage scrub cover (%)",
     y = "Non-native grass cover (%)",
-    title = "Linear regression of non-native grass by sage scrub shrub percent cover"
+    title = "Non-native grass by mean sage scrub shrub cover per site"
     ) +
 scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
   scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
@@ -794,7 +799,7 @@ fig.1f
 - y = non-native grass cover 
 ```{r}
 
-ggplot(data = (cover_bylfstatus_wide), 
+shrub_50 <- ggplot(data = (cover_bylfstatus_wide %>%  filter(shrub_native >= .50)), 
        aes(x = shrub_native*100,
            y = grass_nonnative*100
            )) + 
@@ -811,6 +816,108 @@ scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-
   scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
   theme_bw() +
    annotate("text", x = 0, y = 5, label = eq_label_nng, color = "black", size = 4, hjust = 0) 
+shrub_50
+
+shrub_0 <- ggplot(data = (cover_bylfstatus_wide %>%  filter(shrub_native < .50)), 
+       aes(x = shrub_native*100,
+           y = grass_nonnative*100
+           )) + 
+   geom_point(aes(color = site), size = 3) +
+  scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
+  labs(
+    x = "Native shrub cover (%)",
+    y = "Non-native grass cover (%)",
+   # title = "Linear regression of non-native grass by sclerophyllous shrub percent cover"
+   color = "Site"
+    ) +
+scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+  theme_bw() +
+   annotate("text", x = 0, y = 5, label = eq_label_nng, color = "black", size = 4, hjust = 0) 
+
+
+
+
+
+shrub_split <- ggplot(data = cover_wide) +
+  
+  #  scl cover >= 50%
+  geom_point(data = cover_wide %>%  filter(shrub_native_sclerophyllous >= .50), 
+             aes(x = shrub_native_sclerophyllous * 100, y = grass_nonnative * 100, 
+                 color = "sclerophyllous", 
+                 shape = "sclerophyllous"
+                 ), 
+             size = 3, 
+             show.legend = TRUE) +  # Adjust point size here
+  geom_smooth(data = cover_wide %>% filter(shrub_native_sclerophyllous >= .50), 
+              aes(x = shrub_native_sclerophyllous * 100, 
+                  y = grass_nonnative * 100, 
+                  color = "sclerophyllous"), 
+              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
+  
+ #  scl cover < 50%
+  geom_point(data = cover_wide %>%  filter( shrub_native_sclerophyllous < .50
+                                            #   & shrub_native_sclerophyllous > 0 
+                                           ), 
+             aes(x = shrub_native_sclerophyllous * 100, y = grass_nonnative * 100, 
+                 color = "sclerophyllous" , 
+                 shape = "sclerophyllous"
+                 ), 
+             size = 3, 
+             show.legend = TRUE) +  # Adjust point size here
+  geom_smooth(data = cover_wide %>% filter(shrub_native_sclerophyllous < .50), 
+              aes(x = shrub_native_sclerophyllous * 100, 
+                  y = grass_nonnative * 100, 
+                  color = "sclerophyllous"), 
+              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
+  
+  #  ss cover >= 50%
+  geom_point(data = cover_wide %>%  filter(shrub_native_nonsclero >= .50), 
+             aes(x = shrub_native_nonsclero * 100, y = grass_nonnative * 100, 
+                 color = "sage scrub", 
+                 shape = "sage scrub"), 
+             size = 3, 
+             show.legend = TRUE) +  # Adjust point size here
+  geom_smooth(data = cover_wide %>% filter(shrub_native_nonsclero >= .50), 
+              aes(x = shrub_native_nonsclero * 100, 
+                  y = grass_nonnative * 100, 
+                  color = "sage scrub"), 
+              method = "lm", se = TRUE, linetype = "dotted", show.legend = TRUE) +
+  
+   #  ss cover < 50%
+  geom_point(data = cover_wide %>%  filter( shrub_native_nonsclero < .50
+                                            #   & shrub_native_nonsclero > 0 
+                                           ), 
+             aes(x = shrub_native_nonsclero * 100, y = grass_nonnative * 100, 
+                 color = "sage scrub", 
+                 shape = "sage scrub"), 
+             size = 3, 
+             show.legend = TRUE) +  # Adjust point size here
+  geom_smooth(data = cover_wide %>% filter(shrub_native_nonsclero < .50), 
+              aes(x = shrub_native_nonsclero * 100, 
+                  y = grass_nonnative * 100, 
+                  color = "sage scrub"), 
+              method = "lm", se = TRUE, linetype = "dotted", show.legend = TRUE) +
+  # Labels
+  labs(
+    color = "Shrub Type",
+    shape = "Shrub Type",
+    x = "Shrub Cover (%)",
+    y = "Non-naive grass cover (%)"
+  ) +
+  # Custom Shapes and Colors for Legend
+  scale_shape_manual(values = c("sclerophyllous" = 7, "sage scrub" = 16)) +  # Square = 15, Circle = 16
+  scale_color_manual(values = c("sclerophyllous" = "black", "sage scrub" = "black")) +
+  # Axis Limits
+  xlim(0, 100) +
+  ylim(0, 100) +
+  # Theme
+  theme_bw() #+
+  # Annotations for Equation Labels
+  annotate("text", x = 70, y = 98, label = eq_label_scl, color = "gray30", size = 4, hjust = 0) +
+  annotate("text", x = 67, y = 80, label = eq_label_ss, color = "grey30", size = 4, hjust = 0)
+
 
 ```
 
@@ -1444,9 +1551,29 @@ significance_results <- grass_annual_data %>%
   ) %>%
   rstatix::add_xy_position(x = "cluster")  # Adds x-position for plotting
 
+ggplot(grass_annual_data, aes(x = factor(cluster), y = lifeform_lifecycle_percentcover)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.2, height = 0.1, color = "darkgreen") +
+  # Add significance annotations
+  stat_pvalue_manual(significance_results, label = "p.adj.signif", y.position = "y.position") +
+  labs(x = "Plant Cluster", y = "Non-Native Annual Grass Cover (%)") +
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
+  theme_bw()
+
+
+
+# Generate compact letter display for significance
+significance_letters <- significance_results %>%
+  rstatix::get_comparisons() %>%
+  rstatix::add_significance(method = compact)  # Automatically generates letters
+
+# Update letters for correct format
+letters <- significance_letters %>%
+  dplyr::select(cluster = group1, label)
+
 # Add significance letters
 letters <-  significance_results %>%
-  rstatix::get_comparisons(p.adj.signif) #%>%
+  rstatix::get_comparisons(p.adj.signif) %>%
   mutate(label = rstatix::get_significance_letters(significance_results$p.adj))  # Generates a, b, etc.
 
 
