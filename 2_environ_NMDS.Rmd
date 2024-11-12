@@ -114,9 +114,10 @@ extracted$site_rep <- gsub("\\.", "_", extracted$site_rep)
 ```
 
 
+### TABLE mean
+- environmental means by plant cluster (n = 5)
 
-### TABLE means
-- environmental means by plant cluster
+
 ```{r}
 
 ######### Table of means and SD of environmental variables by plant cluster
@@ -129,14 +130,11 @@ means <- extracted %>%
   group_by(plant_cluster) %>% 
   mutate(plant_cluster = factor(plant_cluster, levels = c(1, 3, 2, 4, 5))) %>%  # Reorder plant_cluster
   summarize(
-    slope = paste0(round(mean(slope), 2), " ± ", round(sd(slope), 2)),
-    southwestness = paste0(round(mean(southwestness), 2), " ± ", round(sd(southwestness), 2)),
-    fire_events = paste0(round(mean(fire_event_count), 2), " ± ", round(sd(fire_event_count), 2)),
-    twi = paste0(round(mean(twi), 2), " ± ", round(sd(twi), 2)),
-   # summer_solrad = paste0(round(mean(summer_solarradiation), 0), " ± ", round(sd(summer_solarradiation), 0)),
-    #  winter_solrad = paste0(round(mean(winter_solarradiation), 0), " ± ", round(sd(winter_solarradiation), 0)),
-     # equinox_solrad = paste0(round(mean(summer_solarradiation), 0), " ± ", round(sd(summer_solarradiation), 0)),
-       total_solrad = paste0(comma(round(mean(total_solrad), 0)), " ± ", comma(round(sd(total_solrad), 0)))
+    slope = paste0(round(mean(slope), 2), " ± ", round(sd(slope), 2)), # MEAN becuase normally distributed
+    southwestness = paste0(round(median(southwestness), 2), " ± ", round(sd(southwestness), 2)),
+    fire_events = paste0(round(median(fire_event_count), 2), " ± ", round(sd(fire_event_count), 2)),
+    twi = paste0(round(median(twi), 2), " ± ", round(sd(twi), 2)),
+   total_solrad = paste0(comma(round(median(total_solrad), 0)), " ± ", comma(round(sd(total_solrad), 0)))
   )
 
 
@@ -151,9 +149,19 @@ table_plant <- means %>%
                                 `5` = "EVG")) %>%
   gt() %>%
   tab_header(
-    title = "Summary Statistics by Plant Cluster",
-    subtitle = "Mean ± Standard Deviation of Environmental Variables"
+    title = "Summary of Environmental Variables by Plant Cluster"
+    #,
+    #subtitle = "words here"
   ) %>%
+   tab_footnote(
+    footnote = "Means and standard deviations reported for normally distributed variables.", 
+    locations = cells_column_labels(columns = slope)
+  ) %>% 
+   tab_footnote(
+    footnote = "Medians and standard deviations reported for non-normally distributed variables.", 
+    locations = cells_column_labels(c(columns = southwestness, twi, fire_events, total_solrad))
+  ) %>% 
+  
   # Rename the column headers
   cols_label(
     plant_cluster = "Plant Group",        # Rename "plant_cluster" column
@@ -161,9 +169,6 @@ table_plant <- means %>%
     southwestness = "Southwestness",        # Rename "southwestness" column
     twi = "TWI",       # Rename "tpi" column
     fire_events = "Fire Count",        # Rename "fire_events" column
-#    summer_solrad = "Summer Solstice", 
-#    winter_solrad = "Winter Solstice",
-#    equinox_solrad = "Equinox", 
     total_solrad = "Total solar radiation"
   ) %>%
   cols_align(
@@ -513,7 +518,7 @@ p <- plot_ly(mds.df,
         z = ~NMDS3,
         type =  "scatter3d",
         color=mds.df$envion_cluster)
-p
+# p
 
 ```
 
@@ -687,157 +692,9 @@ PCA_plantcluster
 
 ```
 
-- n = 34 transects (omitting INT transects)
-NOTE: On Sept 19, 2024 I ran a PCA analysis omitting INT transects and the values were similar enough that I am deciding to include INT transects in the PCA. This is a more complete analysis (becuase I'm using all data points) and because I think it's a "pro" to include and not having to justify why I am omitting them. 
-```{r}
+### MEAN by plant (n=5) 
 
-########### Environ PCA without INT transects
-
-
-pca_data_woINT <- extracted %>% 
-  dplyr::select(c(hillshade, slope, twi, southwestness, fire_event_count, site_rep, site)) %>% 
-  filter(site == "site_1" | site == "site_2") %>% 
-  column_to_rownames("site_rep") %>% 
-  dplyr::select(-site)
-
-
-# Run PCA on the scaled part of the data only (ignoring the unscaled columns)
-pca_result <- prcomp(pca_data_woINT, center = TRUE, scale = TRUE)
-pca_scores <- pca_result$x  # These are the scores (transformed data)
-
-# View PCA results
-summary(pca_result)
-# Importance of components: ---------- pca_data_woINT ------------------
-#                           PC1    PC2    PC3    PC4     PC5 
-# Standard deviation     1.4952 1.0201 0.8859 0.7524 0.61059
-# Proportion of Variance 0.4471 0.2081 0.1570 0.1132 0.07456
-# Cumulative Proportion  0.4471 0.6553 0.8122 0.9254 1.00000 <-- better explanation by PC1 and PC2 w/o INT transects
-# 
-# # Importance of components: ---------- pca_data ------------------
-#                           PC1    PC2    PC3    PC4     PC5
-# Standard deviation     1.4435 1.0747 0.8609 0.7676 0.65664
-# Proportion of Variance 0.4167 0.2310 0.1482 0.1178 0.08623
-# Cumulative Proportion  0.4167 0.6477 0.7959 0.9138 1.00000
-# 
-summary(pca_scores)
-
-pca_values <- as.data.frame(pca_result$x)
-loadings_df <- as.data.frame(pca_result$rotation) #df with variables' vectors
-loadings_df <- loadings_df * 5 # scale for visuals
-
-pca_df <- pca_values %>% 
-  rownames_to_column("site_rep") %>% 
-  
-  left_join(extracted %>% dplyr::select("site_rep", "plant_cluster"), by = "site_rep") %>% 
-    mutate(plant_cluster = as.character(plant_cluster)) %>% 
-  rownames_to_column() %>% 
-  left_join(my_groups, by = "rowname") %>% 
-  rename(environ_cluster = sub_grp) %>% 
-     mutate(environ_cluster = as.character(environ_cluster)) %>% 
-  dplyr::select(-rowname)
-
-
-PCA_plot_2 <- ggplot() +
-  geom_point (data = pca_df,
-              aes(x = PC1, y = PC2, color = environ_cluster, shape = plant_cluster), 
-              size = 4) +  
-  scale_color_manual(values = c("1" = "darkorange", "2" = "darkgreen")) +
-  
-  scale_shape_manual(values = c("1" = 1, "2" = 2, "3" = 3, "4" = 22, "5" = 7),
-                     labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
-  
-  geom_vline(xintercept = c(0), color = "grey70", linetype = 2) + 
-  geom_hline(yintercept = c(0), color = "grey70", linetype = 2) +
-  geom_segment(data = loadings_df, 
-               aes(x = 0, y = 0, xend = PC1, yend = PC2),  # Vectors for loadings
-               arrow = arrow(length = unit(0.2, "cm")), 
-               color = "black", alpha = 0.8) +             # Vectors in blue, alpha = transparency (0 = transparent, 1 = solid)
-  geom_text_repel(data = loadings_df,                    # Text labels for loadings
-                  aes(x = PC1, y = PC2, label = rownames(loadings_df)),
-                  size = 4, color = "blue") +             # Text labels in blue
-  labs(title = "PCA of Environmental Variables - omit INT", 
-       x = "Principal Component 1 (44.71%)",
-       y = "Principal Component 2 (20.81%)") +                  
-  #clean_background +      
-  theme_bw()+
-  theme(plot.title = element_text(hjust = 0.5)) +         # Center title
-  xlim(-4, 4) +
-  ylim(-5, 4)
-
-
-PCA_environcluster_2 <- ggplot() +
-  geom_point (data = pca_df,
-              aes(x = PC1, y = PC2, color = environ_cluster, shape = environ_cluster), 
-              size = 4) +  
-  scale_color_manual(values = c("1" = "darkorange", "2" = "darkgreen")) +
-  #scale_shape_manual(values = c("1" = 0, "2" = 4, "3" = 2, "4" = 3, "5" = 7)) +
-  geom_vline(xintercept = c(0), color = "grey70", linetype = 2) + 
-  geom_hline(yintercept = c(0), color = "grey70", linetype = 2) +
-  geom_segment(data = loadings_df, 
-               aes(x = 0, y = 0, xend = PC1, yend = PC2),  # Vectors for loadings
-               arrow = arrow(length = unit(0.2, "cm")), 
-               color = "black", alpha = 0.8) +             # Vectors in blue, alpha = transparency (0 = transparent, 1 = solid)
-  geom_text_repel(data = loadings_df,                    # Text labels for loadings
-                  aes(x = PC1, y = PC2, label = rownames(loadings_df)),
-                  size = 4, color = "blue") +             # Text labels in blue
-  labs(title = "PCA of Environmental Variables", 
-       x = "Principal Component 1 (44.71%)",
-       y = "Principal Component 2 (20.81%)") +               
-  #clean_background +      
-  theme_bw()+
-  theme(plot.title = element_text(hjust = 0.5)) +         # Center title
-  xlim(-4, 4) +
-  ylim(-5, 4)
-
-
-PCA_plantcluster_2 <- ggplot() +
-  geom_point (data = pca_df,
-              aes(x = PC1, y = PC2, 
-                  color = plant_cluster, shape = plant_cluster, fill = plant_cluster), 
-              size = 4) +  
-  # how the data points look
-  scale_shape_manual(values = c("1" = 21, "2" = 21, "3" = 21, "4" = 21, "5" = 7),
-                     labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
-  scale_color_manual(values = c("1" = "black", "2" = "black", "3" = "black", "4" = "black", "5" = "black"),
-                     labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
-  scale_fill_manual(values = c("1" = "black", "2" = "grey75", "3" = "grey40", "4" = "white", "5" = "black"),
-                     labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
-  
-  geom_vline(xintercept = c(0), color = "grey70", linetype = 2) + 
-  geom_hline(yintercept = c(0), color = "grey70", linetype = 2) +
-  geom_segment(data = loadings_df, 
-               aes(x = 0, y = 0, xend = PC1, yend = PC2),  # Vectors for loadings
-               arrow = arrow(length = unit(0.2, "cm")), 
-               color = "black", alpha = 0.8) +             # Vectors in blue, alpha = transparency (0 = transparent, 1 = solid)
-  geom_text_repel(data = loadings_df,                    # Text labels for loadings
-                  aes(x = PC1, y = PC2, label = rownames(loadings_df)),
-                  size = 4, color = "blue") +             # Text labels in blue
-  labs(title = "PCA of Environmental Variables", 
-       x = "Principal Component 1 (44.71%)",
-       y = "Principal Component 2 (20.81%)") +                  
-  #clean_background +      
-  theme_bw()+
-  theme(plot.title = element_text(hjust = 0.5)) +         # Center title
-  xlim(-4, 4) +
-  ylim(-5, 4) +
-    guides(color = guide_legend(title = "Plant Group"),
-         shape = guide_legend(title = "Plant Group"),
-         fill = guide_legend(title = "Plant Group"))
-
-PCA_plot_2
-
-PCA_environcluster_2
-
-PCA_plantcluster_2
-
-```
-
-
-
-
-### boxplots
-
-- by plant clusters (n = 5)
+- environmental variables (n = 5): slope, southwestness, total_solrad, fire_event_count, twi
 
 ```{r}
 
@@ -848,58 +705,7 @@ boxdf <-  extracted %>%
    mutate(plant_cluster = as.character(plant_cluster))
 
 
-########################################## hillshade
-hist(boxdf$hillshade)
-shapiro.test(boxdf$hillshade)
-# Shapiro-Wilk normality test
-# 
-# data:  df$hillshade
-# W = 0.97317, p-value = 0.467 <-- normally distributed
-summary(aov((hillshade ~ plant_cluster), data = boxdf))
-#  Df Sum Sq Mean Sq F value Pr(>F)   
-# cluster      4   4559  1139.7   4.071 0.0084 **
-# Residuals   34   9518   279.9                  
 
-TukeyHSD(aov(hillshade ~ plant_cluster, boxdf), conf.level=.95) 
-# $cluster
-#           diff         lwr        upr     p adj
-# 2-1 -25.126984 -49.4070518 -0.8469164 0.0395528 <-- 2 is shadier than 1
-# 3-1  -4.255556 -26.3924005 17.8812893 0.9807491
-# 4-1 -20.680556 -44.0914706  2.7303595 0.1045431
-# 5-1   2.844444 -24.0286660 29.7175549 0.9980272
-# 3-2  20.871429  -2.8715728 44.6144299 0.1072765
-# 4-2   4.446429 -20.4887104 29.3815675 0.9854365
-# 5-2  27.971429  -0.2394608 56.1823179 0.0528871 <-- not sig. 2 is shadier than 5
-# 4-3 -16.425000 -39.2784323  6.4284323 0.2564228 
-# 5-3   7.100000 -19.2888706 33.4888706 0.9361425
-# 5-4  23.525000  -3.9414074 50.9914074 0.1225369
-
-boxplot(hillshade ~ plant_cluster, boxdf)
-# 0 degrees = dark aka. lots of hillshading
-# 255 degrees = bright aka. lots of sun exposure
-
-
-
-########################################## southwestness
-hist(boxdf$southwestness)
-shapiro.test(boxdf$southwestness) # <- not normal
-kruskal.test(southwestness ~ plant_cluster, data = boxdf) # no differences
-pairwise.wilcox.test(boxdf$southwestness, boxdf$plant_cluster, p.adjust.method = "BH")
-boxplot(southwestness ~ plant_cluster, boxdf)
-
-# values range from −1 (northeast) to 1 (southwest)
-
-########################################## twi
-hist(boxdf$twi)
-shapiro.test(boxdf$twi) # <- not normal
-kruskal.test(twi ~ plant_cluster, data = boxdf) # no differences
-pairwise.wilcox.test(boxdf$twi, boxdf$plant_cluster, p.adjust.method = "BH") 
-
-boxplot(twi ~ plant_cluster, boxdf)
-
-# Cells with a lower index value represent areas with steepest slope and tend to be ridges or crests
-# present on the landscape. Higher cell values represent areas with increased accumulated runoff
-# potential. These areas are identified by a low slope and large upslope contributing areas. 
 
 ########################################## slope
 boxplot(slope ~ plant_cluster, boxdf)
@@ -913,12 +719,77 @@ TukeyHSD(aov(slope ~ plant_cluster, boxdf), conf.level = .95)
 # 3-1  1.879894  -7.3893422 11.149131 0.9765639
 # 4-1 -1.014681 -10.8174014  8.788040 0.9981919
 # 5-1 11.216590  -0.0358360 22.469017 0.0510664 <- not sig - 5 is steeper than 1
+# 
 # 3-2 -2.985419 -12.9271919  6.956355 0.9077278
 # 4-2 -5.879994 -16.3209440  4.560957 0.4943670
 # 5-2  6.351278  -5.4613095 18.163865 0.5395130
+# 
 # 4-3 -2.894575 -12.4638642  6.674714 0.9054976
 # 5-3  9.336696  -1.7129674 20.386359 0.1309924
+# 
 # 5-4 12.231271   0.7304168 23.732125 0.0324924 <-- 5 is steeper than 4
+
+# 1 ab
+# 2 ab
+# 3 ab
+# 4 a
+# 5 b steeper than 4
+
+
+########################################## southwestness
+hist(boxdf$southwestness)
+boxplot(southwestness ~ plant_cluster, boxdf)
+shapiro.test(boxdf$southwestness) # <- not normal
+kruskal.test(southwestness ~ plant_cluster, data = boxdf) # no differences
+pairwise.wilcox.test(boxdf$southwestness, boxdf$plant_cluster, p.adjust.method = "BH")
+
+
+# values range from −1 (northeast) to 1 (southwest)
+
+# data:  boxdf$southwestness and boxdf$plant_cluster 
+# 
+#   1    2    3    4   
+# 2 0.94 -    -    -   
+# 3 0.94 0.94 -    -   
+# 4 0.94 0.94 0.94 -   
+# 5 0.94 0.94 0.94 0.94
+
+# 1 a
+# 2 a
+# 3 a
+# 4 a
+# 5 a
+
+########################################## totalsolarrad
+hist(boxdf$total_solrad)
+boxplot(total_solrad ~ plant_cluster, boxdf)
+
+shapiro.test(boxdf$total_solrad) # <- not normal
+kruskal.test(total_solrad ~ plant_cluster, data = boxdf) 
+#	Kruskal-Wallis rank sum test
+# 
+# data:  total_solrad by plant_cluster
+# Kruskal-Wallis chi-squared = 22.611, df = 4, p-value = 0.0001514 <- sig
+
+pairwise.wilcox.test(boxdf$total_solrad, boxdf$plant_cluster, p.adjust.method = "BH")
+# data:  boxdf$total_solrad and boxdf$plant_cluster 
+# 
+#   1      2      3      4     
+# 2 0.2172 -      -      -     
+# 3 0.3687 0.0066 -      -     
+# 4 0.0846 0.3687 0.0053 -     
+# 5 0.0053 0.0053 0.0053 0.0053
+# 
+# P value adjustment method: BH 
+
+# 1 and 5 are sig diff
+# 1 and 2, 3, 4 are same
+
+# 1 ac
+# 2 ac
+# 3 c
+# 4 a
+# 5 b
 
 
 ########################################## fire_event_count
@@ -928,9 +799,152 @@ kruskal.test(fire_event_count ~ plant_cluster, data = boxdf)
 pairwise.wilcox.test(boxdf$fire_event_count, boxdf$plant_cluster, p.adjust.method = "BH") 
 boxplot(fire_event_count ~ plant_cluster, boxdf)
 
+# data:  boxdf$fire_event_count and boxdf$plant_cluster 
+# 
+#   1     2     3     4    
+# 2 0.087 -     -     -    
+# 3 0.954 0.087 -     -    
+# 4 0.679 0.154 0.653 -    
+# 5 0.131 0.954 0.123 0.294
+
+# 1 a
+# 2 a
+# 3 a
+# 4 a
+# 5 a
+
+########################################## twi
+hist(boxdf$twi)
+boxplot(twi ~ plant_cluster, boxdf)
+shapiro.test(boxdf$twi) # <- not normal
+kruskal.test(twi ~ plant_cluster, data = boxdf) # no differences
+pairwise.wilcox.test(boxdf$twi, boxdf$plant_cluster, p.adjust.method = "BH") 
+
+# boxdf$twi and boxdf$plant_cluster 
+# 
+#   1    2    3    4   
+# 2 0.59 -    -    -   
+# 3 0.63 0.63 -    -   
+# 4 0.58 0.78 0.63 -   
+# 5 0.42 0.58 0.42 0.42
+
+# 1 a
+# 2 a
+# 3 a
+# 4 a
+# 5 a
+
+
+
+
+# Cells with a lower index value represent areas with steepest slope and tend to be ridges or crests
+# present on the landscape. Higher cell values represent areas with increased accumulated runoff
+# potential. These areas are identified by a low slope and large upslope contributing areas. 
+
+
+
+table_plant_statsmeans <- means %>%  
+  
+   mutate(
+    slopesig = case_when(
+      plant_cluster == "1" ~ " (ab)",
+      plant_cluster == "2" ~ " (ab)",
+      plant_cluster == "3" ~ " (ab)",
+      plant_cluster == "4" ~ " (a)",
+      plant_cluster == "5" ~ " (b)",
+      TRUE ~ NA_character_  # Optional: fill with NA if no match
+    )
+  ) %>% 
+  mutate(
+    SWsig = case_when(
+      plant_cluster == "1" ~ " (a)",
+      plant_cluster == "2" ~ " (a)",
+      plant_cluster == "3" ~ " (a)",
+      plant_cluster == "4" ~ " (a)",
+      plant_cluster == "5" ~ " (a)",
+      TRUE ~ NA_character_  # Optional: fill with NA if no match
+    )
+  ) %>% 
+  mutate(
+    firesig = case_when(
+      plant_cluster == "1" ~ " (a)",
+      plant_cluster == "2" ~ " (a)",
+      plant_cluster == "3" ~ " (a)",
+      plant_cluster == "4" ~ " (a)",
+      plant_cluster == "5" ~ " (a)",
+      TRUE ~ NA_character_  # Optional: fill with NA if no match
+    )
+  ) %>% 
+   mutate(
+    twisig = case_when(
+      plant_cluster == "1" ~ " (a)",
+      plant_cluster == "2" ~ " (a)",
+      plant_cluster == "3" ~ " (a)",
+      plant_cluster == "4" ~ " (a)",
+      plant_cluster == "5" ~ " (a)",
+      TRUE ~ NA_character_  # Optional: fill with NA if no match
+    )
+  ) %>% 
+    mutate(
+    solarsig = case_when(
+      plant_cluster == "1" ~ " (ac)",
+      plant_cluster == "2" ~ " (ac)",
+      plant_cluster == "3" ~ " (c)",
+      plant_cluster == "4" ~ " (a)",
+      plant_cluster == "5" ~ " (b)",
+      TRUE ~ NA_character_  # Optional: fill with NA if no match
+    )
+  ) %>% 
+  mutate(Slope = paste(slope, slopesig, sep = ""), 
+         Southwestness = paste(southwestness, SWsig, sep = ""), 
+         Fire = paste(fire_events, firesig, sep = ""), 
+          TWI = paste(twi, twisig, sep = ""), 
+          SolarRad = paste(total_solrad, solarsig, sep = ""), 
+          ) %>% 
+  dplyr::select(plant_cluster, Slope, Southwestness, Fire, TWI, SolarRad) %>% 
+  relocate(Slope, Southwestness, Fire, TWI, SolarRad, .after = plant_cluster) %>% 
+  
+  mutate(plant_cluster = recode(plant_cluster, 
+                                `1` = "NNG", 
+                                `2` = "ssF", 
+                                `3` = "ssG", 
+                                `4` = "ssFG", 
+                                `5` = "EVG")) %>%
+
+  gt() %>%
+  tab_header(
+    title = "Summary Statistics by Plant Cluster") %>%
+  tab_footnote(
+    footnote = "Means and standard deviations reported for normally distributed variables.", 
+    locations = cells_column_labels(columns = Slope)
+  ) %>% 
+   tab_footnote(
+    footnote = "Medians and standard deviations reported for non-normally distributed variables.", 
+    locations = cells_column_labels(c(columns = Southwestness, TWI, Fire, SolarRad))
+  ) %>% 
+  # Rename the column headers
+  cols_label(
+    plant_cluster = "Plant Group",        # Rename "plant_cluster" column
+    Slope = "Slope (%)",                    # Rename "slope" column
+    Southwestness = "Southwestness",        # Rename "southwestness" column
+    TWI = "TWI",       # Rename "tpi" column
+    Fire = "Fire Events",        # Rename "fire_events" column
+    SolarRad = "Total solar radiation"
+  ) %>%
+  cols_align(
+    align = "center", # Center alignment
+    columns = "plant_cluster" # Specify the "cluster" column
+  ) %>% 
+  tab_options(
+    table.width = pct(100) # Make the table width 100%
+  ) 
+
+
+table_plant_statsmeans
+
 ```
 
-- by environ clusters (n = 2)
+### MEANS by environ (n=3) 
 
 ```{r}
 
@@ -1059,57 +1073,160 @@ boxplot(elevation ~ environ_cluster, boxdf)
 
 ```
 
-### TABLE env
+
+
+
+
+
+
+
+# END
+
+- n = 34 transects (omitting INT transects)
+NOTE: On Sept 19, 2024 I ran a PCA analysis omitting INT transects and the values were similar enough that I am deciding to include INT transects in the PCA. This is a more complete analysis (becuase I'm using all data points) and because I think it's a "pro" to include and not having to justify why I am omitting them. 
 ```{r}
 
-############ summary table by environmental cluster 
+########### Environ PCA without INT transects
 
-means_2 <- boxdf %>% 
-  group_by(environ_cluster) %>% 
-   summarize(elev_mean = mean(elevation),
-            elev_sd = sd(elevation),
-            hill_mean = mean(hillshade),
-            hill_sd = sd(hillshade),
-            slope_mean = mean(slope),
-            slope_sd = sd(slope),
-            sw_mean = mean(southwestness),
-            sw_sd = sd(southwestness),
-            fire_mean = mean(fire_event_count),
-            fire_sd = sd(fire_event_count),
-            lat_mean = mean(lat),
-            lat_sd = sd(lat),
-             long_mean = mean(long),
-            long_sd = sd(long)
-            ) %>% 
-  pivot_longer(cols = 2:15, values_to = "mean", names_to = "variable") %>% 
-  pivot_wider(id_cols = environ_cluster, names_from = variable, values_from = mean)
 
-means_combined_2 <- boxdf %>%
-  group_by(environ_cluster) %>%
-  summarize(
-    elev = paste0(round(mean(elevation), 2), " ± ", round(sd(elevation), 2)),
-    hillshade = paste0(round(mean(hillshade), 2), " ± ", round(sd(hillshade), 2)),
-    slope = paste0(round(mean(slope), 2), " ± ", round(sd(slope), 2)),
-    southwestness = paste0(round(mean(southwestness), 2), " ± ", round(sd(southwestness), 2)),
-    fire_events = paste0(round(mean(fire_event_count), 2), " ± ", round(sd(fire_event_count), 2)),
-    latitude = paste0(round(mean(lat), 4), " ± ", round(sd(lat), 4)),
-    longitude = paste0(round(mean(long), 4), " ± ", round(sd(long), 4))
-  )
+# pca_data_woINT <- extracted %>% 
+#   dplyr::select(c(hillshade, slope, twi, southwestness, fire_event_count, site_rep, site)) %>% 
+#   filter(site == "site_1" | site == "site_2") %>% 
+#   column_to_rownames("site_rep") %>% 
+#   dplyr::select(-site)
 
-# Print as a gt table
-table_env <- means_combined_2 %>%
-  gt() %>%
-  tab_header(
-    title = "Summary Statistics by Environmental Cluster",
-    subtitle = "Mean ± Standard Deviation for Elevation, Hillshade, Slope, Southwestness, Fire Events, and Coordinates"
-  ) %>%
-  cols_align(
-    align = "center", # Center alignment
-    columns = "environ_cluster" # Specify the "cluster" column
-  ) %>% 
-  tab_options(
-    table.width = pct(100) # Make the table width 100%
-  )
 
-table_env
+### Run PCA on the scaled part of the data only (ignoring the unscaled columns)
+# pca_result <- prcomp(pca_data_woINT, center = TRUE, scale = TRUE)
+# pca_scores <- pca_result$x  # These are the scores (transformed data)
+
+### View PCA results
+# summary(pca_result)
+### Importance of components: ---------- pca_data_woINT ------------------
+###                           PC1    PC2    PC3    PC4     PC5
+### Standard deviation     1.4952 1.0201 0.8859 0.7524 0.61059
+### Proportion of Variance 0.4471 0.2081 0.1570 0.1132 0.07456
+### Cumulative Proportion  0.4471 0.6553 0.8122 0.9254 1.00000 <-- better explanation by PC1 and PC2 w/o INT transects
+### 
+### # Importance of components: ---------- pca_data ------------------
+###                           PC1    PC2    PC3    PC4     PC5
+### Standard deviation     1.4435 1.0747 0.8609 0.7676 0.65664
+### Proportion of Variance 0.4167 0.2310 0.1482 0.1178 0.08623
+### Cumulative Proportion  0.4167 0.6477 0.7959 0.9138 1.00000
+
+# summary(pca_scores)
+
+# pca_values <- as.data.frame(pca_result$x)
+# loadings_df <- as.data.frame(pca_result$rotation) #df with variables' vectors
+# loadings_df <- loadings_df * 5 # scale for visuals
+
+# pca_df <- pca_values %>%
+#   rownames_to_column("site_rep") %>%
+#   
+#   left_join(extracted %>% dplyr::select("site_rep", "plant_cluster"), by = "site_rep") %>% 
+#     mutate(plant_cluster = as.character(plant_cluster)) %>% 
+#   rownames_to_column() %>% 
+#   left_join(my_groups, by = "rowname") %>% 
+#   rename(environ_cluster = sub_grp) %>% 
+#      mutate(environ_cluster = as.character(environ_cluster)) %>% 
+#   dplyr::select(-rowname)
+
+
+# PCA_plot_2 <- ggplot() +
+#   geom_point (data = pca_df,
+#               aes(x = PC1, y = PC2, color = environ_cluster, shape = plant_cluster), 
+#               size = 4) +  
+#   scale_color_manual(values = c("1" = "darkorange", "2" = "darkgreen")) +
+#   
+#   scale_shape_manual(values = c("1" = 1, "2" = 2, "3" = 3, "4" = 22, "5" = 7),
+#                      labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
+#   
+#   geom_vline(xintercept = c(0), color = "grey70", linetype = 2) + 
+#   geom_hline(yintercept = c(0), color = "grey70", linetype = 2) +
+#   geom_segment(data = loadings_df, 
+#                aes(x = 0, y = 0, xend = PC1, yend = PC2),  # Vectors for loadings
+#                arrow = arrow(length = unit(0.2, "cm")), 
+#                color = "black", alpha = 0.8) +             # Vectors in blue, alpha = transparency (0 = transparent, 1 = solid)
+#   geom_text_repel(data = loadings_df,                    # Text labels for loadings
+#                   aes(x = PC1, y = PC2, label = rownames(loadings_df)),
+#                   size = 4, color = "blue") +             # Text labels in blue
+#   labs(title = "PCA of Environmental Variables - omit INT", 
+#        x = "Principal Component 1 (44.71%)",
+#        y = "Principal Component 2 (20.81%)") +                  
+#   #clean_background +      
+#   theme_bw()+
+#   theme(plot.title = element_text(hjust = 0.5)) +         # Center title
+#   xlim(-4, 4) +
+#   ylim(-5, 4)
+
+
+# PCA_environcluster_2 <- ggplot() +
+#   geom_point (data = pca_df,
+#               aes(x = PC1, y = PC2, color = environ_cluster, shape = environ_cluster), 
+#               size = 4) +  
+#   scale_color_manual(values = c("1" = "darkorange", "2" = "darkgreen")) +
+#   #scale_shape_manual(values = c("1" = 0, "2" = 4, "3" = 2, "4" = 3, "5" = 7)) +
+#   geom_vline(xintercept = c(0), color = "grey70", linetype = 2) + 
+#   geom_hline(yintercept = c(0), color = "grey70", linetype = 2) +
+#   geom_segment(data = loadings_df, 
+#                aes(x = 0, y = 0, xend = PC1, yend = PC2),  # Vectors for loadings
+#                arrow = arrow(length = unit(0.2, "cm")), 
+#                color = "black", alpha = 0.8) +             # Vectors in blue, alpha = transparency (0 = transparent, 1 = solid)
+#   geom_text_repel(data = loadings_df,                    # Text labels for loadings
+#                   aes(x = PC1, y = PC2, label = rownames(loadings_df)),
+#                   size = 4, color = "blue") +             # Text labels in blue
+#   labs(title = "PCA of Environmental Variables", 
+#        x = "Principal Component 1 (44.71%)",
+#        y = "Principal Component 2 (20.81%)") +               
+#   #clean_background +      
+#   theme_bw()+
+#   theme(plot.title = element_text(hjust = 0.5)) +         # Center title
+#   xlim(-4, 4) +
+#   ylim(-5, 4)
+
+
+# PCA_plantcluster_2 <- ggplot() +
+#   geom_point (data = pca_df,
+#               aes(x = PC1, y = PC2, 
+#                   color = plant_cluster, shape = plant_cluster, fill = plant_cluster), 
+#               size = 4) +  
+#   # how the data points look
+#   scale_shape_manual(values = c("1" = 21, "2" = 21, "3" = 21, "4" = 21, "5" = 7),
+#                      labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
+#   scale_color_manual(values = c("1" = "black", "2" = "black", "3" = "black", "4" = "black", "5" = "black"),
+#                      labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
+#   scale_fill_manual(values = c("1" = "black", "2" = "grey75", "3" = "grey40", "4" = "white", "5" = "black"),
+#                      labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
+#   
+#   geom_vline(xintercept = c(0), color = "grey70", linetype = 2) + 
+#   geom_hline(yintercept = c(0), color = "grey70", linetype = 2) +
+#   geom_segment(data = loadings_df, 
+#                aes(x = 0, y = 0, xend = PC1, yend = PC2),  # Vectors for loadings
+#                arrow = arrow(length = unit(0.2, "cm")), 
+#                color = "black", alpha = 0.8) +             # Vectors in blue, alpha = transparency (0 = transparent, 1 = solid)
+#   geom_text_repel(data = loadings_df,                    # Text labels for loadings
+#                   aes(x = PC1, y = PC2, label = rownames(loadings_df)),
+#                   size = 4, color = "blue") +             # Text labels in blue
+#   labs(title = "PCA of Environmental Variables", 
+#        x = "Principal Component 1 (44.71%)",
+#        y = "Principal Component 2 (20.81%)") +                  
+#   #clean_background +      
+#   theme_bw()+
+#   theme(plot.title = element_text(hjust = 0.5)) +         # Center title
+#   xlim(-4, 4) +
+#   ylim(-5, 4) +
+#     guides(color = guide_legend(title = "Plant Group"),
+#          shape = guide_legend(title = "Plant Group"),
+#          fill = guide_legend(title = "Plant Group"))
+
+# PCA_plot_2
+
+# PCA_environcluster_2
+
+# PCA_plantcluster_2
+
 ```
+
+
+
+
