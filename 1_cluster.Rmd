@@ -609,8 +609,8 @@ nmds_nat <- ggplot(mds.df,
        aes(x = NMDS1,
            y = NMDS2
            )) +
-  geom_point(size = 3, alpha = 0.8, aes(color = sub_grp)) +
-   stat_ellipse(aes(color = sub_grp)) +  # Apply color here
+  geom_point(size = 3, alpha = 0.8, aes(color = sub_grp, shape = sub_grp, fill = sub_grp)) +
+   stat_ellipse(aes(color = sub_grp), size = 1, alpha = 0.5) +  # Apply color here. Alpha = transparency!
   theme(axis.title = element_text(size = 20)) +
   theme(axis.text = element_text(size = 16)) +
   geom_segment(data = spp %>%  filter(status == "native"), 
@@ -620,11 +620,18 @@ nmds_nat <- ggplot(mds.df,
   geom_text(data = spp %>%  filter(status == "native"), 
             aes(label = species),  
             position = position_jitter(width = 0.0, height = 0.1)) +
-   scale_color_manual(values = c("1" = "black", "2" = "red", "3" = "green", "4" = "blue", "5" = "cyan"),
-                     labels = c("1" = "LuHiAv", "2" = "CeStBr", "3" = "HiAvBr", "4" = "FeCeAv", "5" = "HeRhRh")) +
-  scale_shape_manual(values = c("1" = 16, "2" = 17, "3" = 18, "4" = 19, "5" = 20),
-                     labels = c("1" = "LuHiAv", "2" = "CeStBr", "3" = "HiAvBr", "4" = "FeCeAv", "5" = "HeRhRh")) +
-  theme_bw()
+    # how the data points look
+  scale_shape_manual(values = c("1" = 21, "2" = 21, "3" = 21, "4" = 21, "5" = 7),
+                     labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
+  scale_color_manual(values = c("1" = "black", "2" = "blue", "3" = "orange", "4" = "purple", "5" = "darkgreen"),
+  # scale_color_manual(values = c("1" = "black", "2" = "black", "3" = "black", "4" = "black", "5" = "black"),
+                     labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
+  scale_fill_manual(values = c("1" = "black", "2" = "grey85", "3" = "grey60", "4" = "white", "5" = "black"),
+                     labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
+  theme_bw() +
+   guides(color = guide_legend(title = "Plant Group"),
+          shape = guide_legend(title = "Plant Group"),
+         fill = guide_legend(title = "Plant Group"))
 
 
 #### non-native species
@@ -632,8 +639,8 @@ nmds_nn <- ggplot(mds.df,
        aes(x = NMDS1,
            y = NMDS2
            )) +
-  geom_point(size = 3, alpha = 0.8, aes(color = sub_grp)) +
-   stat_ellipse(aes(color = sub_grp)) +  # Apply color here
+  geom_point(size = 3, alpha = 0.8, aes(color = sub_grp, shape = sub_grp, fill = sub_grp)) +
+   stat_ellipse(aes(color = sub_grp), size = 1, alpha = 0.5) +  # Apply color here
   theme(axis.title = element_text(size = 20)) +
   theme(axis.text = element_text(size = 16)) +
   geom_segment(data = spp %>%  filter(status == "nonnative"), 
@@ -643,11 +650,18 @@ nmds_nn <- ggplot(mds.df,
   geom_text(data = spp %>%  filter(status == "nonnative"), 
             aes(label = species),  
             position = position_jitter(width = 0.0, height = 0.1)) +
-   scale_color_manual(values = c("1" = "black", "2" = "red", "3" = "green", "4" = "blue", "5" = "cyan"),
-                     labels = c("1" = "LuHiAv", "2" = "CeStBr", "3" = "HiAvBr", "4" = "FeCeAv", "5" = "HeRhRh")) +
-  scale_shape_manual(values = c("1" = 16, "2" = 17, "3" = 18, "4" = 19, "5" = 20),
-                     labels = c("1" = "LuHiAv", "2" = "CeStBr", "3" = "HiAvBr", "4" = "FeCeAv", "5" = "HeRhRh")) +
-  theme_bw()
+    # how the data points look
+  scale_shape_manual(values = c("1" = 21, "2" = 21, "3" = 21, "4" = 21, "5" = 7),
+                     labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
+  scale_color_manual(values = c("1" = "black", "2" = "blue", "3" = "orange", "4" = "purple", "5" = "darkgreen"),
+                     labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
+  scale_fill_manual(values = c("1" = "black", "2" = "grey85", "3" = "grey60", "4" = "white", "5" = "black"),
+                     labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
+  theme_bw() +
+   guides(color = guide_legend(title = "Plant Group"),
+          shape = guide_legend(title = "Plant Group"),
+         fill = guide_legend(title = "Plant Group"))
+
 
 # Combine plots
 grid.arrange(nmds_nat, 
