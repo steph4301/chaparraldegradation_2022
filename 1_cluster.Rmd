@@ -764,7 +764,8 @@ table_cover <- table_clustercover %>%
 table_cover
 
 # Export the table as a PDF
-gtsave(table_cover, "Ch1_Degradation_figures/table_spp_clustergroups_oct31.png", 
+gtsave(table_cover, 
+       "Ch1_Degradation_figures/table_spp_clustergroups_oct31.docx", # can also export as .png
        expand = 10)
 
 
