@@ -435,13 +435,14 @@ plot_above_df <- scores(abcover_byspecies_NMDS, display = "sites") %>%
 # envfit() takes the output of metaMDS() and the species matrix you created
 fit_above <- envfit(abcover_byspecies_NMDS, abcover_byspecies_nmdsprep, perm = 999) # pvalues for spp and stand, site, stand_core
 
-# extract p-values for each species
+# extract p-values for each species (n = 52 species)
 fit_above_pvals <- fit_above$vectors$pvals %>% 
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   dplyr::rename("pvals" = ".") %>% 
-  filter(!c(species == "standtype_ID"))
-#view(fit_above_pvals)
+  filter(!c(species == "standtype_ID")) %>% 
+  filter(!c(species == "cluster"))
+# view(fit_above_pvals)
 
 # extract coordinates for species, only keep species with p-val = 0.05
 fit_above_spp <- fit_above %>% 
