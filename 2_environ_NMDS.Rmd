@@ -921,14 +921,14 @@ table_plant_statsmeans <- means %>%
 
   gt() %>%
   tab_header(
-    title = "Summary Statistics by Plant Cluster") %>%
+    title = "Summary Statistics by Plant Association") %>%
   tab_footnote(
     footnote = "Means and standard deviations reported for normally distributed variables.", 
     locations = cells_column_labels(columns = Slope)
   ) %>% 
    tab_footnote(
     footnote = "Medians and standard deviations reported for non-normally distributed variables.", 
-    locations = cells_column_labels(c(columns = Southwestness, TWI, Fire, SolarRad))
+    locations = cells_column_labels(columns = c(Southwestness, TWI, Fire, SolarRad))
   ) %>% 
   # Rename the column headers
   cols_label(
@@ -985,6 +985,10 @@ pairwise.wilcox.test(boxdf$southwestness, boxdf$environ_cluster, p.adjust.method
 boxplot(southwestness ~ environ_cluster, boxdf)
 # no sig diffs
 
+# 1 a
+# 2 a
+# 3 a
+
 ########################################## twi
 hist(boxdf$twi)
 shapiro.test(boxdf$twi) # 0.033 <- not normal
@@ -998,6 +1002,10 @@ boxplot(twi ~ environ_cluster, boxdf)
 # Cells with a lower index value represent areas with steepest slope and tend to be ridges or crests
 # present on the landscape. Higher cell values represent areas with increased accumulated runoff
 # potential. These areas are identified by a low slope and large upslope contributing areas. 
+
+# 1 a
+# 2 a
+# 3 a
 
 ########################################## slope
 hist(boxdf$slope)
@@ -1013,32 +1021,44 @@ TukeyHSD(aov(slope ~ environ_cluster, boxdf), conf.level = .95)
 
 boxplot(slope ~ environ_cluster, boxdf)
 
+# 1 a
+# 2 a
+# 3 a
+
 ########################################## fire_event_count
 hist(boxdf$fire_event_count)
 shapiro.test(boxdf$fire_event_count) # not normal
 
 kruskal.test(fire_event_count ~ environ_cluster, data = boxdf) 
 pairwise.wilcox.test(boxdf$fire_event_count, boxdf$environ_cluster, p.adjust.method = "BH")
-#   1      
-# 2 1.7e-07
+#   1    2   
+# 2 0.37 -   
+# 3 0.23 0.37
 
 boxplot(fire_event_count ~ environ_cluster, boxdf)
 
+# 1 a
+# 2 a
+# 3 a
 
-########################################## total_sol_rad
-hist(boxdf$fire_event_count)
-shapiro.test(boxdf$fire_event_count) # not normal
+########################################## total_solrad
+hist(boxdf$total_solrad)
+shapiro.test(boxdf$total_solrad) # not normal
 
-kruskal.test(fire_event_count ~ environ_cluster, data = boxdf) 
-pairwise.wilcox.test(boxdf$fire_event_count, boxdf$environ_cluster, p.adjust.method = "BH")
-#   1      
-# 2 1.7e-07
+kruskal.test(total_solrad ~ environ_cluster, data = boxdf) # p-value = 6.78e-08
+pairwise.wilcox.test(boxdf$total_solrad, boxdf$environ_cluster, p.adjust.method = "BH")
+#   1       2      
+# 2 1.2e-05 -      
+# 3 6.2e-05 0.00011
+# all are sig diff from each other
 
-boxplot(fire_event_count ~ environ_cluster, boxdf)
+boxplot(total_solrad ~ environ_cluster, boxdf)
 
+#### total solar radiation is the only environ variable that's sig different among environ clusters
 
-
-
+# 1 a
+# 2 b
+# 3 c
 
 ############################### Environ variables by environ cluster
 
@@ -1098,6 +1118,98 @@ table_environ <- Env_means %>%
   ) 
 
 table_environ
+
+
+table_environ_statsmeans <- Env_means %>%  
+  
+   mutate(
+    slopesig = case_when(
+      environ_cluster == "1" ~ " (a)",
+      environ_cluster == "2" ~ " (a)",
+      environ_cluster == "3" ~ " (a)",
+      TRUE ~ NA_character_  # Optional: fill with NA if no match
+    )
+  ) %>% 
+  mutate(
+    SWsig = case_when(
+      environ_cluster == "1" ~ " (a)",
+      environ_cluster == "2" ~ " (a)",
+      environ_cluster == "3" ~ " (a)",
+      TRUE ~ NA_character_  # Optional: fill with NA if no match
+    )
+  ) %>% 
+  mutate(
+    firesig = case_when(
+       environ_cluster == "1" ~ " (a)",
+      environ_cluster == "2" ~ " (a)",
+      environ_cluster == "3" ~ " (a)",
+      TRUE ~ NA_character_  # Optional: fill with NA if no match
+    )
+  ) %>% 
+   mutate(
+    twisig = case_when(
+      environ_cluster == "1" ~ " (a)",
+      environ_cluster == "2" ~ " (a)",
+      environ_cluster == "3" ~ " (a)",
+      TRUE ~ NA_character_  # Optional: fill with NA if no match
+    )
+  ) %>% 
+    mutate(
+    solarsig = case_when(
+      environ_cluster == "1" ~ " (a)",
+      environ_cluster == "2" ~ " (b)",
+      environ_cluster == "3" ~ " (c)",
+      TRUE ~ NA_character_  # Optional: fill with NA if no match
+    )
+  ) %>% 
+  mutate(Slope = paste(slope, slopesig, sep = ""), 
+         SW = paste(southwestness, SWsig, sep = ""), 
+         Fire = paste(fire_events, firesig, sep = ""), 
+          TWI = paste(twi, twisig, sep = ""), 
+          SolarRad = paste(total_solrad, solarsig, sep = ""), 
+          ) %>% 
+  dplyr::select(environ_cluster, Slope, SW, Fire, TWI, SolarRad) %>% 
+  relocate(Slope, SW, Fire, TWI, SolarRad, .after = environ_cluster) %>% 
+  
+  mutate(environ_cluster = recode(environ_cluster, 
+                                `1` = "Sunniest", 
+                                `2` = "Sunny", 
+                                `3` = "Shady")) %>%
+ gt() %>%
+  tab_header(
+    title = "Summary Statistics by Environmental Cluster"
+    #,
+    #subtitle = "words here"
+  ) %>%
+   tab_footnote(
+    footnote = "Means and standard deviations reported for normally distributed variables.", 
+    locations = cells_column_labels(columns = Slope)
+  ) %>% 
+  tab_footnote(
+    footnote = "Medians and standard deviations reported for non-normally distributed variables.", 
+    locations = cells_column_labels(columns = c(SW, Fire, TWI, SolarRad))
+  ) %>% 
+  
+  # Rename the column headers
+  cols_label(
+    environ_cluster = "Environmental Group",        # Rename "plant_cluster" column
+    Slope = "Slope (%)",                    # Rename "slope" column
+    SW = "Southwestness",        # Rename "southwestness" column
+    TWI = "TWI",       # Rename "tpi" column
+    Fire = "Fire Count",        # Rename "fire_events" column
+    SolarRad = "Total solar radiation"
+  ) %>%
+  cols_align(
+    align = "center", # Center alignment
+    columns = "environ_cluster" # Specify the "cluster" column
+  ) %>% 
+  tab_options(
+    table.width = pct(100) # Make the table width 100%
+  ) 
+
+
+table_environ_statsmeans
+
 
 ```
 
