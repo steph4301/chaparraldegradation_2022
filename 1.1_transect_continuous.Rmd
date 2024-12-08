@@ -788,13 +788,13 @@ fig.1f <- ggplot(data = cover_bylfstatus_wide) +
                  y = grass_native * 100), 
              size = 3, shape = 1, show.legend = FALSE) +
   geom_smooth(aes(x = shrub_native * 100, y = grass_native * 100, color = "grass_native"),
-             method = "lm", se = TRUE, linetype = "solid", show.legend = FALSE) +
+             method = "lm", se = TRUE, linetype = "dashed", show.legend = FALSE) +
   
   geom_point(aes(x = shrub_native * 100, 
                  y = grass_nonnative * 100), 
              size = 3, shape = 16 , show.legend = FALSE) +
   geom_smooth(aes(x = shrub_native * 100, y = grass_nonnative * 100, color = "grass_nonnative"), 
-              method = "lm", se = TRUE, linetype = "dashed", show.legend = FALSE) +
+              method = "lm", se = TRUE, linetype = "solid", show.legend = FALSE) +
   labs(
      # title = "Comparison of native and non-native forb percent cover by Nonnative Grass percent cover",
       color = "Status",
@@ -916,12 +916,12 @@ fig.1d <- ggplot(data = cover_bylfstatus_wide) + #%>%  filter(forb_native > 0.01
   geom_point(aes(x = shrub_native * 100, y = forb_native * 100, color = "forb_native"), 
              size = 3, shape = 1, show.legend = FALSE) +
   geom_smooth(aes(x = shrub_native * 100, y = forb_native * 100, color = "forb_native"), 
-              method = "lm", se = TRUE, linetype = "solid", show.legend = FALSE) +
+              method = "lm", se = TRUE, linetype = "dashed", show.legend = FALSE) +
   
   geom_point(aes(x = shrub_native * 100, y = forb_nonnative * 100, color = "forb_nonnative"), 
              size = 3, shape = 16, show.legend = FALSE) +
   geom_smooth(aes(x = shrub_native * 100, y = forb_nonnative * 100, color = "forb_nonnative"), 
-              method = "lm", se = TRUE, linetype = "dashed", show.legend = FALSE) +
+              method = "lm", se = TRUE, linetype = "solid", show.legend = FALSE) +
   labs(
      # title = "Comparison of native and non-native forb percent cover by Nonnative Grass percent cover",
       color = "Status",
@@ -1198,7 +1198,7 @@ fig.1a <- ggplot(data = cover_byleaftype_wide) +
              size = 3, show.legend = FALSE) +  # Adjust point size here
   geom_smooth(data = cover_byleaftype_wide , # %>% filter(shrub_native_sclerophyllous > 0) 
               aes(x = grass_nonnative_NA * 100, y = shrub_native_sclerophyllous * 100, color = "sclerophyllous"), 
-              method = "lm", se = TRUE, linetype = "dashed", show.legend = FALSE) +
+              method = "lm", se = TRUE, linetype = "dotdash", show.legend = FALSE) +
   # Sage Scrub Cover
   geom_point(data = cover_byleaftype_wide, 
              aes(x = grass_nonnative_NA * 100, y = shrub_native_nonsclero * 100, 
@@ -1206,7 +1206,7 @@ fig.1a <- ggplot(data = cover_byleaftype_wide) +
              size = 3, show.legend = FALSE) +  # Adjust point size here
   geom_smooth(data = cover_byleaftype_wide, 
               aes(x = grass_nonnative_NA * 100, y = shrub_native_nonsclero * 100, color = "sage scrub"), 
-              method = "lm", se = TRUE, linetype = "solid", show.legend = FALSE) +
+              method = "lm", se = TRUE, linetype = "dotted", show.legend = FALSE) +
   # Labels
   labs(
     color = "Shrub Type",
@@ -1394,11 +1394,11 @@ fig.1c <- ggplot(data = cover_bylfstatus_wide) + #%>%  filter(forb_native > 0.01
   geom_point(aes(x = grass_nonnative * 100, y = forb_native * 100, color = "forb_native"), 
              shape = 1, size = 3, show.legend = FALSE) +
   geom_smooth(aes(x = grass_nonnative * 100, y = forb_native * 100, color = "forb_native"), 
-              method = "lm", se = TRUE, linetype = "solid", show.legend = FALSE) +
+              method = "lm", se = TRUE, linetype = "dashed", show.legend = FALSE) +
   geom_point(aes(x = grass_nonnative * 100, y = forb_nonnative * 100, color = "forb_nonnative"),  
              shape = 16, size = 3, , show.legend = FALSE) +
   geom_smooth(aes(x = grass_nonnative * 100, y = forb_nonnative * 100, color = "forb_nonnative"), 
-              method = "lm", se = TRUE, linetype = "dashed", show.legend = FALSE) +
+              method = "lm", se = TRUE, linetype = "solid", show.legend = FALSE) +
   labs(
      # title = "Comparison of native and non-native forb percent cover by Nonnative Grass percent cover",
       color = "Status",
@@ -1437,7 +1437,7 @@ fig.1e <- ggplot(data = cover_bylfstatus_wide
   geom_point(aes(x = grass_nonnative * 100, y = grass_native * 100, color = "grass_native"), 
              size = 3, shape = 1, show.legend = FALSE) +
   geom_smooth(aes(x = grass_nonnative * 100, y = grass_native * 100, color = "grass_native"), 
-              method = "lm", se = TRUE, linetype = "solid", show.legend = FALSE) +
+              method = "lm", se = TRUE, linetype = "dashed", show.legend = FALSE) +
   labs(
     x = "Non-native grass cover (%)",
     y = "Native grass cover (%)",
@@ -1473,8 +1473,7 @@ fig.1f_labeled <- ggdraw(fig.1f) + draw_label("A", x = 0.95, y = 0.92, size = 15
 
 # Combine the plots in a 2x3 layout
 figure1 <- plot_grid(fig.1f_labeled, fig.1a_labeled, 
-             fig.1d_labeled, fig.1e_labeled, 
-             NULL, fig.1c_labeled,
+             fig.1d_labeled, fig.1c_labeled,  NULL, fig.1e_labeled,
              nrow = 3, 
              ncol = 2, 
              widths = c(1, 1), # Custom widths for each column
