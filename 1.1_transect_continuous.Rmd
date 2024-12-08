@@ -1560,25 +1560,26 @@ fig_forbgrass <- ggplot(cover_bylifecycle_bygroup %>%
            "shrub_perennial_native")),
        aes(x = cluster, 
            y = mean_cover, 
-           shape = status,   
+           shape = lifecycle,   
            color = lifecycle   
            )) +
-  geom_point(size = 3, position = position_dodge(width = 0.3)) +  # Mean points
+  geom_point(size = 3, position = position_dodge(width = 0.3), show.legend = TRUE) +  # Mean points
   geom_errorbar(aes(ymin = mean_cover - se, ymax = mean_cover + se), 
                 width = 0.5, position = position_dodge(width = 0.3)) +  # SE bars
   labs(x = "Plant Cluster", 
-       y = "Mean Percent Cover (%)", 
+       y = "Mean Percent Cover (%)",
        color = "Lifecycle",  # Label for color legend
-       shape = "Status") +  # Label for shape legend
+        shape = "Lifecycle"
+       ) +  # Label for shape legend
   theme_bw() +
   theme(
     axis.text.x = element_text(angle = 0, hjust = 1),  # Rotate x-axis labels if needed
     legend.position = "right"
   ) +
   ylim(0, 100) +
-  facet_wrap(~lifeform) +  # Facet by lifeform
-  scale_shape_manual(values = c("native" = 16, "nonnative" = 2)) +  
-  scale_color_manual(values = c("annual" = "orange", "perennial" = "darkgreen")) +  
+  facet_grid(~lifeform * status) +  # Facet by lifeform: facet_wrap
+  scale_shape_manual(values = c("annual" = 1, "perennial" = 15)) +  
+  scale_color_manual(values = c("annual" = "black", "perennial" = "black")) +  
   scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG"))  # Relabel clusters
 fig_forbgrass
 
