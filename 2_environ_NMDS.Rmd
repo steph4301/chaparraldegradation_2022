@@ -114,7 +114,7 @@ extracted$site_rep <- gsub("\\.", "_", extracted$site_rep)
 ####################### load Species Percent Cover data 
 ### copied/pasted from 1.3_NMDS_percentcover.Rmd; ~ line 100
 abcover_charateristics_load <- read.csv("processed/ab_specieslistwithcharateristics_08102024.csv", header = TRUE, na.strings=c("","NA")) %>% 
-  select(!c(X)) 
+  dplyr::select(!c(X)) 
 
 sale_load <- abcover_charateristics_load %>% 
   filter(species == c("Salvia leucophylla", "Salvia leucophylla dead")) %>% 
@@ -200,7 +200,7 @@ table_plant <- means %>%
   
   # Rename the column headers
   cols_label(
-    plant_cluster = "Plant Group",        # Rename "plant_cluster" column
+    plant_cluster = "Plant Association",        # Rename "plant_cluster" column
     slope = "Slope (%)",                    # Rename "slope" column
     southwestness = "Southwestness",        # Rename "southwestness" column
     twi = "TWI",       # Rename "tpi" column
@@ -364,7 +364,7 @@ isa.diff.data <- isa_data %>%
   mutate(k9 = `9`-`10`) 
 
 isa.diff.sum <- isa.diff.data %>%
-  select(Species, 11:18) %>% 
+  dplyr::select(Species, 11:18) %>% 
   pivot_longer(cols = 2:9, names_to = "Cluster", values_to = "ISA_SCORE") %>% 
   drop_na() %>%
   filter(ISA_SCORE <= 0)%>% 
@@ -395,7 +395,7 @@ sub_grp <- cutree(hcluster.environ, k = 3)
 table(sub_grp)
 # sub_grp
 #  1  2  3 
-# 16 14  9 
+# 17  13  9 
 
 # sub_grp <-- with 2 groups
 #  1  2 
@@ -426,7 +426,6 @@ ISA.abs.cover <- multipatt(x = df, cluster = sub_grp, duleg = FALSE)
 # A = The values are the **specificity** component of IV for that species in that combination of groups.
 # B = The values are the **fidelity** component of IV for that species in that combination of groups
 summary(ISA.abs.cover, indvalcomp=TRUE)
-
 
 
 
@@ -629,9 +628,18 @@ PCA_environcluster <- ggplot() +
               aes(x = PC1, 
                   y = PC2, 
                   color = environ_cluster, 
-                  shape = environ_cluster), 
+                  shape = environ_cluster, 
+                  fill = environ_cluster), 
               size = 4) +  
-  scale_color_manual(values = c("1" = "gold", "2" = "green", "3" = "darkgreen")) +
+  
+  # how the data points look
+  scale_shape_manual(values = c("1" = 21, "2" = 24, "3" = 22), # circle, triangle, square
+                    labels = c("1" = "Sunniest", "2" = "Sunny", "3" = "Shady")) +
+  scale_color_manual(values = c("1" = "black", "2" = "black", "3" = "black"), 
+                    labels = c("1" = "Sunniest", "2" = "Sunny", "3" = "Shady")) +
+  scale_fill_manual(values = c("1" = "white", "2" = "gray", "3" = "black"),
+                    labels = c("1" = "Sunniest", "2" = "Sunny", "3" = "Shady")) +
+  
   geom_vline(xintercept = c(0), color = "grey70", linetype = 2) + 
   geom_hline(yintercept = c(0), color = "grey70", linetype = 2) +
   
@@ -648,14 +656,16 @@ PCA_environcluster <- ggplot() +
                       y = PC2, 
                       label = rownames(loadings_df)),
                   size = 4, color = "blue") +             # Text labels in blue
-  
  labs(title = "PCA of Environmental Variables", 
        x = "Principal Component 1 (40.54%)",
        y = "Principal Component 2 (20.47%)") +                  
   theme_bw()+
   theme(plot.title = element_text(hjust = 0.5)) +         # Center title
   xlim(-4, 4) +
-  ylim(-5, 4)
+  ylim(-5, 4) +
+    guides(color = guide_legend(title = "Environmental Group"),
+         shape = guide_legend(title = "Environmental Group"),
+         fill = guide_legend(title = "Environmental Group"))
 
 
 PCA_plantcluster <- ggplot() +
@@ -690,9 +700,9 @@ PCA_plantcluster <- ggplot() +
   theme(plot.title = element_text(hjust = 0.5)) +         # Center title
   xlim(-4, 4) +
   ylim(-5, 4) +
-    guides(color = guide_legend(title = "Plant Group"),
-         shape = guide_legend(title = "Plant Group"),
-         fill = guide_legend(title = "Plant Group"))
+    guides(color = guide_legend(title = "Plant Association"),
+         shape = guide_legend(title = "Plant Association"),
+         fill = guide_legend(title = "Plant Association"))
 
 
 
@@ -724,7 +734,10 @@ PCA_plot <- ggplot() +
   theme_bw()+
   theme(plot.title = element_text(hjust = 0.5)) +         # Center title
   xlim(-4, 4) +
-  ylim(-5, 4)
+  ylim(-5, 4) +
+  guides(color = guide_legend(title = "Plant Association"),
+         shape = guide_legend(title = "Plant Association"),
+         fill = guide_legend(title = "Plant Association"))
 
 
 
@@ -968,7 +981,7 @@ table_plant_statsmeans <- means %>%
   ) %>% 
   # Rename the column headers
   cols_label(
-    plant_cluster = "Plant Group",        # Rename "plant_cluster" column
+    plant_cluster = "Plant Association",        # Rename "plant_cluster" column
     Slope = "Slope (%)",                    # Rename "slope" column
     Southwestness = "Southwestness",        # Rename "southwestness" column
     TWI = "TWI",       # Rename "tpi" column
