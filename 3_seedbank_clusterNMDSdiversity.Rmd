@@ -209,7 +209,7 @@ seedbank_load_v <- seedbank_load %>%
      TRUE ~ as.character(species_diversity)  # Keep other observations unchanged
   )) %>% 
    mutate(lifescycle = case_when(
-     lifescycle == "annual or biannual" ~ "biannual", # old name ~ new name
+     lifescycle == "annual or biannual" ~ "annual", # old name ~ new name
        TRUE ~ as.character(lifescycle)  # Keep other observations unchanged
   )) %>% 
   mutate(genus_abundance = case_when(
@@ -264,68 +264,6 @@ seedbank_load_v_omitpretreatment <- seedbank_load_v %>%
 
 
 
-
- UPDATED STACKED FIGURE: Stacked germination by family (January 2024)
-
-### GERMINATION
-- germination (n/g soil) by family
-```{r germination (n/g soil) by family}
-
-# updated code on jan 21, 2024
-seedbank_byfamily_new <- germination_depthtreat %>% # prior df: seedbank_load_v_omitpretreatment
- filter(count > 0) %>% 
-   group_by(stand, site, stand_core, family, status) %>%  
-  # This will give a data point for every species based on germination numbers per species
-  dplyr::summarize(germ_nperg_family = sum(n_per_g), 
-                   N_species = length(unique(species_diversity)), 
-                   total_count = sum(count))
-  
-head(seedbank_byfamily_new)
-
-sort(unique(seedbank_byfamily_new$family)) # df before transpose - use for ellipses
-# N = 26 families - 1 unknown family
-
-n_distinct(seedbank_byfamily_new$family) -1 # 25 
-```
-
-```{r FIGURE germination (n/g soil) by family}
-family_native <- ggplot(seedbank_byfamily_new %>%  
-         dplyr::filter(status == "native"),   
-       aes(fill=family, y=germ_nperg_family, x=stand_core)) + 
-  geom_bar(position="stack", stat="identity") +
-  ylim(0, 2)+
-  #ggtitle("Germination (#/g soil) by Family and Status") +
-  labs(x="Sampling Location", y="Germination (#/g soil)") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  facet_wrap(~ status)
-
-family_native_print <- family_native + theme(legend.position = c(0.1, 0.2)) # Key location offset from (0,0)
-
-family_nn <- ggplot(seedbank_byfamily_new %>%  
-         dplyr::filter(status == "nonnative"),   
-       aes(fill=family, y=germ_nperg_family, x=stand_core)) + 
-  geom_bar(position="stack", stat="identity") +
-  ylim(0, 2)+
-  #ggtitle("Germination (#/g soil) by Family and Status") +
-  labs(x="Sampling Location", y="Germination (#/g soil)") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  facet_wrap(~ status)
-
-# With the par( ) function, you can include the option mfrow=c(nrows, ncols) to create a matrix of nrows x ncols plots that are filled in by row. mfcol=c(nrows, ncols) fills in the matrix by columns.
-
-# option 1
-# ggarrange(family_native, family_nn, 
-#           labels = c("A", "B"),
-#           ncol = 1, nrow = 2)
-# 
-# option 2
-ggdraw() +
-  draw_plot(family_native, x = 0.02, y = .5, width = 1, height = .5) +
-  draw_plot(family_nn, x = 0.02, y = 0, width = 1, height = .5) +
- # draw_plot(bp, x = 0, y = 0, width = 1, height = 0.5) +
-  draw_plot_label(label = c("A", "B"), size = 10,
-                  x = c(0, 0), y = c(1, .5))
-```
 
 # data prep for ...
 Data preparation for running NMDS and Cluster analysis
@@ -579,7 +517,57 @@ ISA.abs.cover <- multipatt(x = df, cluster = sub_grp, duleg = FALSE)
 # B = The values are the **fidelity** component of IV for that species in that combination of groups
 summary(ISA.abs.cover, indvalcomp=TRUE)
 
-
+# Multilevel pattern analysis
+#  ---------------------------
+# 
+#  Association function: IndVal.g
+#  Significance level (alpha): 0.05
+# 
+#  Total number of species: 55
+#  Selected number of species: 22 
+#  Number of species associated to 1 group: 17 
+#  Number of species associated to 2 groups: 5 
+# 
+#  List of species associated to each combination: 
+# 
+#  Group 1  #sps.  1 
+#                  A   B  stat p.value   
+# Croton setiger 1.0 0.5 0.707    0.01 **
+# 
+#  Group 2  #sps.  5 
+#                                 A      B  stat p.value   
+# Malacothamnus fasciculatus 0.8594 1.0000 0.927   0.005 **
+# Centaurea melitensis       0.7596 1.0000 0.872   0.005 **
+# Typha domingensis          0.8829 0.7778 0.829   0.005 **
+# Sonchus oleraceus          0.8101 0.5556 0.671   0.020 * 
+# Avena spp.                 0.9256 0.4444 0.641   0.035 * 
+# 
+#  Group 3  #sps.  11 
+#                                    A      B  stat p.value   
+# Stipa lepida                  0.9721 1.0000 0.986   0.005 **
+# Artemisia californica         0.8895 1.0000 0.943   0.005 **
+# Pseudognaphalium californicum 1.0000 0.8889 0.943   0.005 **
+# Erigeron canadensis           0.9848 0.8889 0.936   0.005 **
+# Eucrypta chrysanthemifolia    0.9701 0.8889 0.929   0.005 **
+# Nicotiana glauca              0.9204 0.8889 0.904   0.005 **
+# Apiastrum angustifolium       1.0000 0.7778 0.882   0.010 **
+# Claytonia spp.                1.0000 0.6667 0.816   0.005 **
+# Malacothrix saxatilis         1.0000 0.5556 0.745   0.010 **
+# Ribes malvaceum               1.0000 0.5556 0.745   0.015 * 
+# Phacelia spp.                 0.9799 0.5556 0.738   0.035 * 
+# 
+#  Group 1+2  #sps.  3 
+#                          A      B  stat p.value   
+# Hirschfeldia incana 1.0000 0.8824 0.939   0.005 **
+# Erodium spp.        1.0000 0.7647 0.874   0.005 **
+# Acmispon spp.       0.9661 0.7647 0.860   0.020 * 
+# 
+#  Group 2+3  #sps.  2 
+#                         A      B  stat p.value   
+# Festuca myuros     1.0000 0.7222 0.850   0.005 **
+# Salvia leucophylla 1.0000 0.5556 0.745   0.020 * 
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1 
 
 
 
@@ -597,9 +585,9 @@ mod <- betadisper(d, trt)
 TukeyHSD(mod)
 # $group
 #            diff         lwr         upr     p adj
-# 2-1 -0.10959209 -0.22252937 0.003345181 0.0583159
+# 2-1 -0.10959209 -0.22252937 0.003345181 0.0583159 <-- 2 and 1
 # 3-1  0.02930223 -0.08363504 0.142239508 0.7943526
-# 3-2  0.13889433  0.02932908 0.248459576 0.0113293
+# 3-2  0.13889433  0.02932908 0.248459576 0.0113293 <-- 2 and 1
 
 boxplot(mod)
 # groups 1 and 3 are similar
@@ -811,6 +799,9 @@ grid.arrange(seed.nmds_nat,
 
 
 # SPP RICH
+
+- TOTAL spp richness
+
 ```{r}
 
 ################## species richness 
@@ -841,18 +832,17 @@ length(sort(unique(seedbank_load_v$family))) - 1
 
 
 
-
 ```
 
-### by seedback cluster
+- SPP RICHNESS by CUSTER
+
 ```{r}
 
-seedbank_cluster <- seedbank_load_v %>%  # left join seedbank clusters
+seedbank_cluster <- seedbank_load_v %>%  # left join seedbank data with seedbank cluster labels
   left_join(seed.subgrp.df, by = c("stand_core", "stand", "site")) %>% 
-  rename(sdbk_clust = sub_grp)
+  rename(sdbk_clust = sub_grp) %>% 
+  mutate(sdbk_clust = as.character(sdbk_clust))
 
-biannual <- seedbank_cluster %>% 
-  filter(lifescycle == "biannual") # Acmispon maritimus, Acmispon strigosus
 
 
 ######## SHRUB spp rich x cluster
@@ -879,7 +869,8 @@ forb_spprich <- seedbank_cluster %>%
   filter(lifeform == "forb" & status == "native" & count > 0) %>% 
   filter(lifescycle == "annual" | lifescycle == "perennial" | lifescycle == "unknown")
 length(sort(unique(forb_spprich$species_diversity))) - 2
-# n = 36 = 38 - 2 (for Trifolium spp. and Phacelia spp.) 
+# n = 36 native forb species total = 38 - 2 (for Trifolium spp. and Phacelia spp.) 
+
 # sort(unique(forb_spprich$species_diversity))
 
 forb_spprich %>% 
@@ -892,34 +883,104 @@ forb_spprich %>%
 
 forb_spprich_bycore <- forb_spprich %>% 
   group_by(sdbk_clust, stand_core)%>% 
-  summarize(spp_rich = length(unique(species_diversity)))
+  summarize(spp_rich = length(unique(species_diversity))) %>% 
+  ungroup()
 hist(forb_spprich_bycore$spp_rich)
 shapiro.test(forb_spprich_bycore$spp_rich) # <--  normal!
-summary(aov(spp_rich ~ sdbk_clust, forb_spprich_bycore))
-
-#TukeyHSD(summary(aov(spp_rich ~ sdbk_clust, forb_spprich_bycore))
+aov(spp_rich ~ sdbk_clust, forb_spprich_bycore, conf.level = .95)
+TukeyHSD(aov(spp_rich ~ sdbk_clust, forb_spprich_bycore), conf.level = .95) 
+# Fit: aov(formula = spp_rich ~ sdbk_clust, data = forb_spprich_bycore)
+# 
+# $sdbk_clust
+#         diff       lwr      upr     p adj
+# 2-1 2.125000 0.3960244 3.853976 0.0141600 <-- spp rich is diff among all clusters
+# 3-1 5.347222 3.6182466 7.076198 0.0000002
+# 3-2 3.222222 1.5448695 4.899575 0.0002129
 
 natforb_cluster_spprich <- forb_spprich_bycore %>% 
   group_by(sdbk_clust) %>% 
-  summarize(spp_rich_mean = mean(spp_rich), 
-            spp_rich_SD = sd(spp_rich)
+  summarize(n_soilcores = length(unique(stand_core)),
+            natforbspp_rich_mean = mean(spp_rich), 
+            natforbspp_rich_SD = sd(spp_rich)
             )
-#  sdbk_clust spp_rich_mean spp_rich_SD
-#        <int>         <dbl>       <dbl>
-# 1          1          2.88       0.835
-# 2          2          5          1.58 
-# 3          3          8.22       1.64
+#  sdbk_clust   n_soilcores   natforbspp_rich_mean    natforbspp_rich_SD
+#  1                    8                 2.88              0.835
+#  2                    9                 5                 1.58 
+#  3                    9                 8.22              1.64 
 
-## native forb spp in cluster 1
+## native forb spp in cluster 1 <-- 12 native forb spp.
 natforb_spp1 <- forb_spprich %>% 
   filter(sdbk_clust == "1") %>% 
  group_by(species_diversity) %>%  # Group by species_diversity
   summarise(across(c(lifeform, lifescycle), ~ unique(.)))
-## native forb spp in cluster 2
+## native forb spp in cluster 2 <-- 19 native forb spp.
 natforb_spp2 <- forb_spprich %>% 
   filter(sdbk_clust == "2") %>% 
  group_by(species_diversity) %>%  # Group by species_diversity
   summarise(across(c(lifeform, lifescycle), ~ unique(.)))
+## native forb spp in cluster 3 <-- 20 native forb spp.
+natforb_spp3 <- forb_spprich %>% 
+  filter(sdbk_clust == "3") %>% 
+ group_by(species_diversity) %>%  # Group by species_diversity
+  summarise(across(c(lifeform, lifescycle), ~ unique(.)))
+
+# unique to Cluser 1
+setdiff(natforb_spp1$species_diversity, 
+        union(natforb_spp2$species_diversity, natforb_spp3$species_diversity))
+# [1] "Croton setiger"            "Fragaria vesca"           
+# [3] "Galium porrigens"          "Trifolium gracelentum"    
+# [5] "Trifolium willdenovii"     "Unknown E - plastic plant"
+
+# unique to Cluser 2
+setdiff(natforb_spp2$species_diversity, 
+        union(natforb_spp1$species_diversity, natforb_spp3$species_diversity))
+#  [1] "Acmispon strigosus"                             
+#  [2] "Asclepias fascicularis"                         
+#  [3] "Calochortus clavatus"                           
+#  [4] "Dipterostemon capitatus"                        
+#  [5] "Juncus bufonius"                                
+#  [6] "Logfia filaginoides"                            
+#  [7] "Lupinus bicolor"                                
+#  [8] "Phacelia spp."                                  
+#  [9] "Thysanocarpus spp."                             
+# [10] "Trifolium spp."                                 
+# [11] "Unknown C - bright green seedling, small leaves"
+
+# unique to Cluser 3
+setdiff(natforb_spp3$species_diversity, 
+        union(natforb_spp1$species_diversity, natforb_spp2$species_diversity))
+# [1] "Apiastrum angustifolium"       "Claytonia parviflora"         
+# [3] "Claytonia perfoliata"          "Laennecia coulteri"           
+# [5] "Madia gracilis"                "Malacothrix saxatilis"        
+# [7] "Marah macrocarpa"              "Phacelia tanacetifolia"       
+# [9] "Phacelia viscida"              "Pseudognaphalium californicum"
+
+
+### species in all 3 soil clusters
+L123 <- list(natforb_spp1$species_diversity, natforb_spp2$species_diversity, natforb_spp3$species_diversity)
+Reduce(intersect, L123)
+# [1] "Astragalus trichopodus"  "Emmenanthe penduliflora"
+
+### in soil cluster 1 and 2
+L12 <- list(natforb_spp1$species_diversity, natforb_spp2$species_diversity)
+Reduce(intersect, L12) 
+# [1] "Acmispon maritimus"      "Astragalus trichopodus"  "Emmenanthe penduliflora"
+
+### in soil cluster 1 and 3
+L13 <- list(natforb_spp1$species_diversity, natforb_spp3$species_diversity)
+Reduce(intersect, L13)
+# [1] "Astragalus trichopodus"     "Cryptantha spp."           
+# [3] "Emmenanthe penduliflora"    "Erigeron canadensis"       
+# [5] "Eucrypta chrysanthemifolia"
+
+### in soil cluster 2 and 3
+L23 <- list(natforb_spp2$species_diversity, natforb_spp3$species_diversity)
+Reduce(intersect, L23)
+# [1] "Acmispon glaber"         "Astragalus trichopodus"  "Emmenanthe penduliflora"
+# [4] "Solanum xanti"           "Stephanomeria virgata"   "Typha domingensis"      
+# [7] "Uropappus lindleyi"  
+
+
 
 forbNN_spprich <- seedbank_cluster %>% 
   filter(lifeform == "forb" & status == "nonnative" &  count > 0)
@@ -933,20 +994,110 @@ forbNN_spprich %>%
 # 2	              6			
 # 3	              5	
 
+```
+
+
+
+UPDATED STACKED FIGURE: Stacked germination by family (January 2024, and December 2024)
+
+### TABLE by CLUSTER
+
+- germination (n/g soil) by family
+```{r germination (n/g soil) by family}
+
+seedbankgerm_cluster_prep <- germination_depthtreat %>% # left join seedbank cluster name to germ data
+  left_join(seed.subgrp.df, by = c("stand_core", "stand", "site")) %>% 
+  rename(sdbk_clust = sub_grp) %>% 
+  mutate(sdbk_clust = as.character(sdbk_clust)) %>% 
+  dplyr::select(species_diversity, status, lifescycle, lifeform, family, sdbk_clust, n_per_g, stand_core, treatment, depth_name, stand_core_depth_treat) 
+
+seedbankgerm_cluster <- seedbankgerm_cluster_prep %>%  
+  group_by(species_diversity, status, lifescycle, lifeform, family, sdbk_clust, stand_core) %>% 
+  summarise(sum_seedden = sum(n_per_g), 
+            n = length(stand_core_depth_treat))
+
+hist(seedbankgerm_cluster$sum_seedden)
+
+median_seedgermcluster <- seedbankgerm_cluster %>% 
+   group_by(species_diversity, status, lifescycle, lifeform, family, sdbk_clust) %>% 
+  summarise(median_seedden = median(sum_seedden), 
+            n_soilcores = length(sum_seedden))
+
+# species, status, lifecycle, lifeform, family, DEG, MTX, INT
+# 
+
 
 ```
 
-```{r}
-##### number of species, genera, family 
+```{r FIGURE germination (n/g soil) by family}
 
-# N = 62 species = 64 - Erodium spp. - Phacelia spp
 
-df <- df %>% 
-  separate(col = species_full, into = c("Genus", "Species"), sep = " ")
+# updated code on jan 21, 2024
+seedbank_byfamily_new <- germination_depthtreat %>% # prior df: seedbank_load_v_omitpretreatment
+ filter(count > 0) %>% 
+   group_by(stand, site, stand_core, family, status) %>%  
+  # This will give a data point for every species based on germination numbers per species
+  dplyr::summarize(germ_nperg_family = sum(n_per_g), 
+                   N_species = length(unique(species_diversity)), 
+                   total_count = sum(count))
+  
+head(seedbank_byfamily_new)
 
+sort(unique(seedbank_byfamily_new$family)) # df before transpose - use for ellipses
+# N = 26 families - 1 unknown family
+
+n_distinct(seedbank_byfamily_new$family) -1 # 25 
+
+
+
+
+family_native <- ggplot(seedbank_byfamily_new %>%  
+         dplyr::filter(status == "native"),   
+       aes(fill=family, y=germ_nperg_family, x=stand_core)) + 
+  geom_bar(position="stack", stat="identity") +
+  ylim(0, 2)+
+  #ggtitle("Germination (#/g soil) by Family and Status") +
+  labs(x="Sampling Location", y="Germination (#/g soil)") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  facet_wrap(~ status)
+
+family_native_print <- family_native + theme(legend.position = c(0.1, 0.2)) # Key location offset from (0,0)
+
+family_nn <- ggplot(seedbank_byfamily_new %>%  
+         dplyr::filter(status == "nonnative"),   
+       aes(fill=family, y=germ_nperg_family, x=stand_core)) + 
+  geom_bar(position="stack", stat="identity") +
+  ylim(0, 2)+
+  #ggtitle("Germination (#/g soil) by Family and Status") +
+  labs(x="Sampling Location", y="Germination (#/g soil)") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  facet_wrap(~ status)
+
+# With the par( ) function, you can include the option mfrow=c(nrows, ncols) to create a matrix of nrows x ncols plots that are filled in by row. mfcol=c(nrows, ncols) fills in the matrix by columns.
+
+# option 1
+# ggarrange(family_native, family_nn, 
+#           labels = c("A", "B"),
+#           ncol = 1, nrow = 2)
+# 
+# option 2
+ggdraw() +
+  draw_plot(family_native, x = 0.02, y = .5, width = 1, height = .5) +
+  draw_plot(family_nn, x = 0.02, y = 0, width = 1, height = .5) +
+ # draw_plot(bp, x = 0, y = 0, width = 1, height = 0.5) +
+  draw_plot_label(label = c("A", "B"), size = 10,
+                  x = c(0, 0), y = c(1, .5))
 ```
 
+
 ```{r}
+
+
+
+
+##### table
+
+
 
 seed_div <- left_join(temp.df, my_groups, by = "rowname") %>% # n_per_g
   rename(cluster = sub_grp) %>%  # rename column   
@@ -990,7 +1141,7 @@ kable(shrub_list)
 
 
 
-### OLD CODE BELOW
+# OLD CODE BELOW
 ### - scores
 ```{r updated scores nmds}
 scores(seedbank_nperg_bysamplocation_nmds)
