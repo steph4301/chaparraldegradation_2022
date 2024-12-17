@@ -86,6 +86,36 @@ str(seedbank_load)
 
 
 
+
+######## load germination by depth and treatment --> calculated n per gram sieved soil
+
+## Trifolium spp. isn't in the germination density list, but it IS in the germination species list.
+
+germination_m2_raw <- read_xlsx("processed/old_processed/germination_m2.xlsx")
+average_cover <- read.csv("nat_nn_cover.csv", header = TRUE, na.strings=c("","NA"))
+
+germination_depthtreat <- germination_m2_raw %>%
+  mutate(site = fct_relevel(site, 
+            "INT1", "INT2", "INT3","ENH1", "ENH2", "DEG1", "DEG2")) %>% 
+  mutate(treatment = fct_relevel(treatment, 
+                                 "control", "charate", "oven", "ovenchar")) %>% 
+  left_join(average_cover, by = 'site') %>% 
+  dplyr::select(stand, site, depth_name, subsample_g, treatment, species_diversity, genus_abundance, lifeform, status, lifescycle, family, count, stand_core, stand_core_depth, stand_core_depth_treat, n_per_g, native_shrub, nonnative_grass) %>% 
+  mutate(lifescycle = case_when(
+     lifescycle == "biannual" ~ "annual", # old name ~ new name
+       TRUE ~ as.character(lifescycle))) %>% # Keep other observations unchanged
+  mutate(species_diversity = case_when(
+    species_diversity == "Ribes spp." ~ "Ribes malvaceum",
+    TRUE ~ as.character(species_diversity)
+  ))
+
+glimpse(germination_depthtreat)
+
+Trifolspp <- germination_depthtreat %>% 
+  filter(str_detect(species_diversity, "Trifolium"))
+sort(unique(Trifolspp$sp))
+
+
 ########### load species characteristics list
 
 abcover_charateristics_load <- read.csv("processed/ab_specieslistwithcharateristics_08102024.csv", header = TRUE, na.strings=c("","NA")) %>% 
@@ -134,24 +164,18 @@ spp_charateristics <- abcover_charateristics_load %>%
           lifecycle = "perennial",
           family = "Typhaceae")
       
+sort(unique(abcover_charateristics_load$species))
 
 
-######## load germination by depth and treatment --> calculated n per gram sieved soil
 
-germination_m2_raw <- read_xlsx("processed/old_processed/germination_m2.xlsx")
-average_cover <- read.csv("nat_nn_cover.csv", header = TRUE, na.strings=c("","NA"))
-
-germination_depthtreat <- germination_m2_raw %>%
-  mutate(site = fct_relevel(site, 
-            "INT1", "INT2", "INT3","ENH1", "ENH2", "DEG1", "DEG2")) %>% 
-  mutate(treatment = fct_relevel(treatment, 
-                                 "control", "charate", "oven", "ovenchar")) %>% 
-  left_join(average_cover, by = 'site') %>% 
-  dplyr::select(stand, site, depth_name, subsample_g, treatment, species_diversity, genus_abundance, lifeform, status, lifescycle, family, count, stand_core, stand_core_depth, stand_core_depth_treat, n_per_g, native_shrub, nonnative_grass)
-
-glimpse(germination_depthtreat)
+Trifolspp1 <- abcover_charateristics_load %>% 
+  filter(str_detect(species, "Trifolium"))
+sort(unique(Trifolspp1$species))
 
 
+##########
+
+setdiff(germination_depthtreat$species_diversity, abcover_charateristics_load$species)
 ```
 
 
@@ -447,7 +471,7 @@ isa.diff.data <- isa_data %>%
   mutate(k9 = `9`-`10`) 
 
 isa.diff.sum <- isa.diff.data %>%
-  select(Species, 11:18) %>% 
+  dplyr::select(Species, 11:18) %>% 
   pivot_longer(cols = 2:9, names_to = "Cluster", values_to = "ISA_SCORE") %>% 
   drop_na() %>%
   filter(ISA_SCORE <= 0)%>% 
@@ -841,9 +865,99 @@ length(sort(unique(seedbank_load_v$family))) - 1
 seedbank_cluster <- seedbank_load_v %>%  # left join seedbank data with seedbank cluster labels
   left_join(seed.subgrp.df, by = c("stand_core", "stand", "site")) %>% 
   rename(sdbk_clust = sub_grp) %>% 
-  mutate(sdbk_clust = as.character(sdbk_clust))
+  mutate(sdbk_clust = as.character(sdbk_clust)) %>% 
+   mutate(species_diversity = case_when(
+    species_diversity == "Ribes spp." ~ "Ribes malvaceum", 
+    TRUE ~ species_diversity)
+  )
+
+spplist <- seedbank_cluster %>% 
+  dplyr::select(species_diversity, lifeform, status, lifescycle, family, sdbk_clust, count) %>% 
+ mutate(sdbk_clust = recode(sdbk_clust, 
+                           `1` = "DEG", 
+                           `2` = "MTX", 
+                           `3` = "INT")) %>% 
+    pivot_wider(names_from = sdbk_clust, values_from = count) %>%
+ mutate(across(c("DEG", "MTX", "INT"), ~ ifelse(!is.na(.) & . != "NULL", "X", .))) %>% 
+  gt() #%>%
+  # tab_header(
+  #   title = "Median Average Germination by Cluster",
+  #   #subtitle = "Mean ± Standard Deviation for Elevation, Hillshade, Slope, Southwestness, Fire Events, and Coordinates"
+  # ) %>%
+  # cols_align(
+  #   align = "left", # Center alignment
+  #   columns = "Species" # Specify the "cluster" column
+  # ) %>%
+  # tab_options(
+  #   table.width = pct(80) # Make the table width 100%
+  # ) 
 
 
+# Export the table as a word doc.
+gtsave(spplist, 
+       "Ch1_Degradation_figures/spplist_dec11.docx", # can also export as .png
+       expand = 10)
+
+#################################
+
+# from an's code
+# samples (or sites) are in rows, and species are columns
+
+seeds <- seedbank_cluster %>% 
+  dplyr::select(species_diversity, sdbk_clust, count, stand_core) %>% 
+ mutate(sdbk_clust = recode(sdbk_clust, 
+                           `1` = "DEG", 
+                           `2` = "MTX", 
+                           `3` = "INT"),
+     species_diversity = case_when(
+    species_diversity == "Erodium spp." ~ "Erodium spp. (E. cicutarium, E. moschatum)", 
+    species_diversity == "Erodium cicutarium" ~ "Erodium spp. (E. cicutarium, E. moschatum)", 
+    species_diversity == "Erodium moschatum" ~ "Erodium spp. (E. cicutarium, E. moschatum)", 
+    species_diversity == "Phacelia tanacetifolia" ~ "Phacelia spp. (P. tanacetifolia, P. viscida)", 
+    species_diversity == "Phacelia viscida" ~ "Phacelia spp. (P. tanacetifolia, P. viscida)", 
+    species_diversity == "Phacelia spp." ~ "Phacelia spp. (P. tanacetifolia, P. viscida)",  
+    species_diversity == "Trifolium gracelentum" ~ "Trifolium spp. (T. gracelentum, T. willdenovii)",
+    species_diversity == "Trifolium willdenovii" ~ "Trifolium spp. (T. gracelentum, T. willdenovii)",
+    species_diversity == "Trifolium spp." ~ "Trifolium spp. (T. gracelentum, T. willdenovii)",
+    TRUE ~ species_diversity)
+  ) %>% 
+   filter(!species_diversity %in% c("Juncus bufonius", "Typha domingensis")) %>% 
+  group_by(sdbk_clust, stand_core, species_diversity) %>%
+  summarize(total_count = sum(count)) %>%
+    pivot_wider(names_from = species_diversity, values_from = total_count) %>% 
+  mutate(across(1:59, ~ replace_na(., 0)))
+ 
+
+# Calculate species richness
+spprich <- seeds %>%
+  rowwise() %>%
+  mutate(richness = specnumber(c_across(1:59))) %>%
+  ungroup() %>%
+  dplyr::select(sdbk_clust, stand_core, richness)
+
+hist(spprich$richness)
+shapiro.test(spprich$richness) # <- normal!
+
+# Perform ANOVA to compare species richness among sites
+anova_result <- aov(richness ~ sdbk_clust, data = richness)
+summary(anova_result)
+
+TukeyHSD(anova_result)
+# $sdbk_clust
+#              diff       lwr       upr     p adj
+# INT-DEG  8.555556  5.801843 11.309268 0.0000002
+# MTX-DEG  4.777778  2.024065  7.531490 0.0006723
+# MTX-INT -3.777778 -6.449271 -1.106284 0.0047726
+
+richness %>% 
+  group_by(sdbk_clust) %>% 
+  summarize(mean = round(mean(richness), 1),
+            se = round((sd(richness)) / sqrt(length(richness)),1))
+
+
+```
+
+```{r}
 
 ######## SHRUB spp rich x cluster
 shrub_spprich <- seedbank_cluster %>% 
@@ -862,9 +976,28 @@ s_richclust <- shrub_spprich %>%
 # 2	            6			
 # 3	            6	
 
+shrub_spprich_bycore <- shrub_spprich %>% 
+   group_by(sdbk_clust, stand_core)%>% 
+  summarize(spp_rich = length(unique(species_diversity))) %>% 
+  ungroup()
+hist(shrub_spprich_bycore$spp_rich)
+shapiro.test(shrub_spprich_bycore$spp_rich) # <- data: not normal
+# shrub_spprich_bycore$spp_rich
+# W = 0.89901, p-value = 0.02412
+
+kruskal.test(spp_rich ~ sdbk_clust, data = shrub_spprich_bycore) # p-value = 0.002166
+pairwise.wilcox.test(shrub_spprich_bycore$spp_rich, shrub_spprich_bycore$sdbk_clust, p.adjust.method = "BH")
+#   1      2     
+# 2 0.0034 -     
+# 3 0.0034 0.8113
+
+boxplot(spp_rich ~ sdbk_clust, data = shrub_spprich_bycore)
 
 
-######## FORB spp rich
+
+
+########################################     FORB spp rich
+
 forb_spprich <- seedbank_cluster %>% 
   filter(lifeform == "forb" & status == "native" & count > 0) %>% 
   filter(lifescycle == "annual" | lifescycle == "perennial" | lifescycle == "unknown")
@@ -896,17 +1029,20 @@ TukeyHSD(aov(spp_rich ~ sdbk_clust, forb_spprich_bycore), conf.level = .95)
 # 2-1 2.125000 0.3960244 3.853976 0.0141600 <-- spp rich is diff among all clusters
 # 3-1 5.347222 3.6182466 7.076198 0.0000002
 # 3-2 3.222222 1.5448695 4.899575 0.0002129
+boxplot(spp_rich ~ sdbk_clust, forb_spprich_bycore)
 
 natforb_cluster_spprich <- forb_spprich_bycore %>% 
   group_by(sdbk_clust) %>% 
   summarize(n_soilcores = length(unique(stand_core)),
             natforbspp_rich_mean = mean(spp_rich), 
-            natforbspp_rich_SD = sd(spp_rich)
-            )
-#  sdbk_clust   n_soilcores   natforbspp_rich_mean    natforbspp_rich_SD
-#  1                    8                 2.88              0.835
-#  2                    9                 5                 1.58 
-#  3                    9                 8.22              1.64 
+            natforbspp_rich_SD = sd(spp_rich), 
+            SE = round(natforbspp_rich_SD/sqrt(n_soilcores),2)
+            ) %>% 
+  dplyr::select(!c(natforbspp_rich_SD))
+#  sdbk_clust   n_soilcores   natforbspp_rich_mean    natforbspp_rich_SD    SE
+#  1                    8                 2.88              0.835          0.30
+#  2                    9                 5                 1.58           0.53
+#  3                    9                 8.22              1.64           0.55
 
 ## native forb spp in cluster 1 <-- 12 native forb spp.
 natforb_spp1 <- forb_spprich %>% 
@@ -928,8 +1064,11 @@ natforb_spp3 <- forb_spprich %>%
 setdiff(natforb_spp1$species_diversity, 
         union(natforb_spp2$species_diversity, natforb_spp3$species_diversity))
 # [1] "Croton setiger"            "Fragaria vesca"           
-# [3] "Galium porrigens"          "Trifolium gracelentum"    
-# [5] "Trifolium willdenovii"     "Unknown E - plastic plant"
+# [3] "Galium porrigens"          
+#     "Unknown E - plastic plant"
+
+#  "Trifolium willdenovii"  "Trifolium gracelentum"   
+
 
 # unique to Cluser 2
 setdiff(natforb_spp2$species_diversity, 
@@ -941,10 +1080,11 @@ setdiff(natforb_spp2$species_diversity,
 #  [5] "Juncus bufonius"                                
 #  [6] "Logfia filaginoides"                            
 #  [7] "Lupinus bicolor"                                
-#  [8] "Phacelia spp."                                  
 #  [9] "Thysanocarpus spp."                             
-# [10] "Trifolium spp."                                 
 # [11] "Unknown C - bright green seedling, small leaves"
+
+#  [8] "Phacelia spp."  
+# [10] "Trifolium spp."   
 
 # unique to Cluser 3
 setdiff(natforb_spp3$species_diversity, 
@@ -964,22 +1104,24 @@ Reduce(intersect, L123)
 ### in soil cluster 1 and 2
 L12 <- list(natforb_spp1$species_diversity, natforb_spp2$species_diversity)
 Reduce(intersect, L12) 
-# [1] "Acmispon maritimus"      "Astragalus trichopodus"  "Emmenanthe penduliflora"
-
-### in soil cluster 1 and 3
-L13 <- list(natforb_spp1$species_diversity, natforb_spp3$species_diversity)
-Reduce(intersect, L13)
-# [1] "Astragalus trichopodus"     "Cryptantha spp."           
-# [3] "Emmenanthe penduliflora"    "Erigeron canadensis"       
-# [5] "Eucrypta chrysanthemifolia"
+# [1] "Acmispon maritimus"      
+# ... and "Astragalus trichopodus"  "Emmenanthe penduliflora"
 
 ### in soil cluster 2 and 3
 L23 <- list(natforb_spp2$species_diversity, natforb_spp3$species_diversity)
 Reduce(intersect, L23)
-# [1] "Acmispon glaber"         "Astragalus trichopodus"  "Emmenanthe penduliflora"
+# [1] "Acmispon glaber"         
 # [4] "Solanum xanti"           "Stephanomeria virgata"   "Typha domingensis"      
 # [7] "Uropappus lindleyi"  
+# ... and "Astragalus trichopodus"  "Emmenanthe penduliflora"
 
+### in soil cluster 1 and 3
+L13 <- list(natforb_spp1$species_diversity, natforb_spp3$species_diversity)
+Reduce(intersect, L13)
+# [1]     "Cryptantha spp."           
+# [3]     "Erigeron canadensis"       
+# [5] "Eucrypta chrysanthemifolia"
+# ... and "Astragalus trichopodus"  "Emmenanthe penduliflora"
 
 
 forbNN_spprich <- seedbank_cluster %>% 
@@ -993,6 +1135,30 @@ forbNN_spprich %>%
 # 1	              5			
 # 2	              6			
 # 3	              5	
+
+
+
+
+######## GRASS spp rich
+
+grass_spprich <- seedbank_cluster %>% 
+  filter(lifeform == "grass" & status == "native" & count > 0) %>% 
+  filter(lifescycle == "annual" | lifescycle == "perennial" | lifescycle == "unknown")
+sort(unique(grass_spprich$species_diversity))
+length(sort(unique(grass_spprich$species_diversity)))
+# "Melica imperfecta" 
+# "Stipa lepida"     
+
+grass_spprich %>% 
+  group_by(sdbk_clust)%>% 
+  summarize(N = length(unique(species_diversity)))
+# sdbk_clust    length(unique(species_diversity))
+# 1	            0		
+# 2	            1			
+# 3	            2	
+
+
+
 
 ```
 
@@ -1009,23 +1175,94 @@ seedbankgerm_cluster_prep <- germination_depthtreat %>% # left join seedbank clu
   left_join(seed.subgrp.df, by = c("stand_core", "stand", "site")) %>% 
   rename(sdbk_clust = sub_grp) %>% 
   mutate(sdbk_clust = as.character(sdbk_clust)) %>% 
-  dplyr::select(species_diversity, status, lifescycle, lifeform, family, sdbk_clust, n_per_g, stand_core, treatment, depth_name, stand_core_depth_treat) 
+  dplyr::select(species_diversity, status, lifescycle, lifeform, family, sdbk_clust, n_per_g, stand_core, treatment, depth_name, stand_core_depth_treat) %>% 
+  mutate(species_diversity = case_when(
+    species_diversity == "Erodium moschatum" ~ "Erodium spp.", 
+    species_diversity == "Erodium cicutarium" ~ "Erodium spp.", 
+        species_diversity == "Phacelia tanacetifolia" ~ "Phacelia spp.", 
+    species_diversity == "Phacelia viscida" ~ "Phacelia spp.", 
+    TRUE ~ species_diversity)
+  )
 
 seedbankgerm_cluster <- seedbankgerm_cluster_prep %>%  
   group_by(species_diversity, status, lifescycle, lifeform, family, sdbk_clust, stand_core) %>% 
-  summarise(sum_seedden = sum(n_per_g), 
-            n = length(stand_core_depth_treat))
+  summarise(total_seeds = sum(n_per_g), 
+            n_trays = length(stand_core_depth_treat), 
+            avg_density = mean(total_seeds/8)) # average seed density across  potential trays
 
-hist(seedbankgerm_cluster$sum_seedden)
+
+hist(seedbankgerm_cluster$avg_density)
 
 median_seedgermcluster <- seedbankgerm_cluster %>% 
    group_by(species_diversity, status, lifescycle, lifeform, family, sdbk_clust) %>% 
-  summarise(median_seedden = median(sum_seedden), 
-            n_soilcores = length(sum_seedden))
+  summarise(median_seedden = round(median(avg_density, na.rm = TRUE), 3), .groups = "drop") %>% 
+  mutate(sdbk_clust = recode(sdbk_clust, 
+                           `1` = "DEG", 
+                           `2` = "MTX", 
+                           `3` = "INT")) %>% 
+  pivot_wider(names_from = sdbk_clust, values_from = median_seedden, values_fill = 0) %>% 
+  
+  rename(Species = species_diversity, 
+          Lifecycle = lifescycle,
+         Status = status,
+         Lifeform = lifeform, 
+         Family = family
+         ) %>% 
+  
+  mutate(Status = case_when(
+    Status == "native" ~ "nat", 
+    Status == "nonnative" ~ "nn", 
+    TRUE ~ Status)
+  ) %>% 
+  mutate(Lifecycle = case_when(
+    Lifecycle == "annual" ~ "ann", 
+    Lifecycle == "perennial" ~ "per", 
+    TRUE ~ Lifecycle)
+    )  %>% 
+   relocate(Status, Lifecycle, Lifeform, Family, DEG, MTX, INT, .after = Species)  %>% 
+  mutate(
+    DEG = case_when(
+      DEG == 0 ~ "-",                            # Replace 0 with NA
+      DEG > 0 & DEG < 0.001 ~ "<0.001",                    # Replace values between 0 and 0.001
+      TRUE ~ as.character(DEG)                             # Keep all other values
+    ),
+    MTX = case_when(
+      MTX == 0 ~ "-",
+      MTX > 0 & MTX < 0.001 ~ "<0.001",
+      TRUE ~ as.character(MTX)
+    ),
+    INT = case_when(
+      INT == 0 ~ "-",
+      INT > 0 & INT < 0.001 ~ "<0.001",
+      TRUE ~ as.character(INT)
+    )
+  )
+  
+median_seedgermcluster
+  
 
-# species, status, lifecycle, lifeform, family, DEG, MTX, INT
-# 
+      
 
+# Print as a gt table
+table_germ <- median_seedgermcluster %>%
+  gt() %>%
+  tab_header(
+    title = "Median Average Germination by Cluster",
+    #subtitle = "Mean ± Standard Deviation for Elevation, Hillshade, Slope, Southwestness, Fire Events, and Coordinates"
+  ) %>%
+  cols_align(
+    align = "left", # Center alignment
+    columns = "Species" # Specify the "cluster" column
+  ) %>%
+  tab_options(
+    table.width = pct(80) # Make the table width 100%
+  ) 
+table_germ
+
+# Export the table as a word doc.
+gtsave(table_germ, 
+       "Ch1_Degradation_figures/table_germ_clustergroups_dec11.docx", # can also export as .png
+       expand = 10)
 
 ```
 
