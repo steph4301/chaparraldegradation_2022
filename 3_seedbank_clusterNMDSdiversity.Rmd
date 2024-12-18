@@ -63,11 +63,13 @@ set.seed(8003)
 
 ########### load seedbank data ---> raw data
 
-seedbank_load_raw <- read.csv("deg_seedbank_202407.csv", header = TRUE, na.strings=c("","NA"))
+seedbank_load_raw <- read.csv("deg_seedbank_202407.csv", header = TRUE, na.strings=c("","NA")) 
 
 seedbank_load <- seedbank_load_raw %>% 
   dplyr::select(c("stand", "site", "soilcore", "depth_name", "treatment", "rep", "species_diversity", "genus_abundance", "lifeform", "status", "lifescycle", "family", "count")) 
-  
+# 2024 december 18 - SML note - I added Quercus spp. (ilfeform == "tree") to the .csv.   
+
+
 seedbank_load$count <- as.numeric(seedbank_load$count)
 str(seedbank_load)
          
