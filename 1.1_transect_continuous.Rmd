@@ -1883,117 +1883,275 @@ cluster_forb_perNAT_boxorjitter
 
 ##### nn forb annual
 ```{r}
+############################## stats among groups
+
+### NONNATIVE ANNUAL FORB COVER by CLUSTER
+# sort(unique(cover_bylifecycle$lifeform_lifecycle_status))
+
+forb_annNN <- cover_bylifecycle %>% 
+  filter(lifeform_lifecycle_status=="forb_annual_nonnative")
+
+hist(forb_annNN$lifeform_lifecycle_percentcover)
+shapiro.test(forb_perNAT$lifeform_lifecycle_percentcover)
+# data:  forb_perNAT$lifeform_lifecycle_percentcover
+# W = 0.84967, p-value = 0.00335 <-- not normal
+
+aov_forb_annNN <- aov(lifeform_lifecycle_percentcover ~ cluster, data = forb_annNN)
+summary(aov_forb_annNN)
+#             Df Sum Sq Mean Sq F value  Pr(>F)   
+# cluster      4   8390  2097.4   5.683 0.00167 **
+# Residuals   29  10703   369.1                   
+
+tukey_result <- TukeyHSD(aov_forb_annNN, conf.level=.95)
+# $cluster
+#           diff        lwr       upr     p adj
+# 4-5  13.937282 -45.762940  73.63750 0.9595139
+# 2-5  50.174216  -9.526006 109.87444 0.1324882
+# 3-5  16.341463 -42.228684  74.91161 0.9251130
+# 1-5  40.650407 -18.214806  99.51562 0.2878351
+# 2-4  36.236934   6.386823  66.08704 0.0113931 <--  2 and 4 are diff
+# 3-4   2.404181 -25.116261  29.92462 0.9990267
+# 1-4  26.713124  -1.429830  54.85608 0.0691610
+# 3-2 -33.832753 -61.353195  -6.31231 0.0101841 <-- 2 and 3 are diff
+# 1-2  -9.523810 -37.666764  18.61915 0.8604176
+# 1-3  24.308943  -1.349808  49.96769 0.0699448
+
+tukey_df <- as.data.frame(tukey_result$cluster)
+tukey_df$comparison <- rownames(tukey_df)
+# Split the comparison names into separate columns for cluster1 and cluster2
+tukey_df <- tukey_df %>% 
+  mutate(cluster1 = as.numeric(sub("-.*", "", comparison)),
+         cluster2 = as.numeric(sub(".*-", "", comparison)))
+# Create a matrix 5 x 5
+comparison_matrix <- matrix(NA, nrow = 5, ncol = 5)
+rownames(comparison_matrix) <- 1:5  # Cluster numbers
+colnames(comparison_matrix) <- 1:5
+
+# Fill the matrix with the adjusted p-values from the Tukey test
+for (i in 1:nrow(tukey_df)) {
+  comparison_matrix[as.character(tukey_df$cluster1[i]), as.character(tukey_df$cluster2[i])] <- tukey_df$`p adj`[i]
+  comparison_matrix[as.character(tukey_df$cluster2[i]), as.character(tukey_df$cluster1[i])] <- tukey_df$`p adj`[i]  # Ensure symmetry
+}
 
 
-
-```
-
-
-##### native grass
-```{r}
-
-### GRASS cover by CLUSTER
-grass_annual_data <- cover_bylifecycle %>% 
-  filter(lifeform_lifecycle == "grass_annual") # all grass_annual are nonnative
-
-hist(grass_annual_data$lifeform_lifecycle_percentcover)
-shapiro.test(grass_annual_data$lifeform_lifecycle_percentcover)
-# data:  grass_annual_data$lifeform_lifecycle_percentcover
-# W = 0.90111, p-value = 0.002374 <-- not normal
-
-# Pairwise Wilcoxon test with significance letters
-significance_results <- grass_annual_data %>%
-  pairwise_wilcox_test(
-    lifeform_lifecycle_percentcover ~ cluster, 
-    p.adjust.method = "bonferroni"  # Adjust method of your choice # BH
-  ) %>%
-  rstatix::add_xy_position(x = "cluster")  # Adds x-position for plotting
-
-# ggplot(grass_annual_data, aes(x = factor(cluster), y = lifeform_lifecycle_percentcover)) +
-#   geom_boxplot() +
-#   geom_jitter(width = 0.2, height = 0.1, color = "darkgreen") +
-#   # Add significance annotations
-#   
-#   stat_pvalue_manual(significance_results, label = "p.adj.signif", y.position = "y.position") + ##### BREAKS CODE
-#   
-#   labs(x = "Plant Cluster", y = "Non-Native Annual Grass Cover (%)") +
-#   scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
-#   theme_bw()
+# Set diagonal to 1 (self-comparisons are not relevant)
+diag(comparison_matrix) <- 1
 
 
-############# BROKEN CODE FOR SIGNIFICANCE LETTERS - START
-# # Generate compact letter display for significance
-# p_values_git <- significance_results$p.adj  # Adjusted p-values
-# names(p_values_git) <- significance_results$comparison  # Set names to comparisons
-# # Generate compact letter display
-# cld <- multcompLetters(p_values_git)
-# print(cld$Letters)
-# 
-# significance_letters <- significance_results %>%
-#   rstatix::get_comparisons() %>%
-#   rstatix::add_significance()  # No 'method' argument
-# 
-# significance_letters <- significance_results %>%
-#   rstatix::get_comparisons() %>%
-#   rstatix::add_significance(method = compact)  # Automatically generates letters
-# 
-# # Update letters for correct format
-# letters <- significance_letters %>%
-#   dplyr::select(cluster = group1, label)
-# 
-# # Add significance letters
-# letters <-  significance_results %>%
-#   rstatix::get_comparisons(p.adj.signif) %>%
-#   mutate(label = rstatix::get_significance_letters(significance_results$p.adj))  # Generates a, b, etc.
+# Apply multcompLetters to assign significance letters
+significance_letters <- multcompLetters(comparison_matrix, compare = "<", threshold = 0.05)$Letters
+significance_letters <- significance_letters %>% 
+  as.tibble() %>% 
+  rownames_to_column("cluster") 
 
+# Now you can add the significance letters to your clusters in the data frame:
+forb_annNN_letters <- forb_annNN %>%
+  left_join(significance_letters, by = "cluster") %>% 
+   mutate(cluster = factor(cluster, levels = c(5, 4, 2, 3, 1)))
+# # Recalculate the significance letters after the reordering
+# significance_letters <- multcompLetters(comparison_matrix, compare = "<", threshold = 0.05)$Letters
+# Apply the significance letters to the reordered clusters
+# shrub_perennial_data <- shrub_perennial_data %>%
+#   mutate(significance = significance_letters[as.factor(cluster)])
 
-# ggplot(grass_annual_data, 
-#        aes(x = cluster, 
-#            y = lifeform_lifecycle_percentcover)) +
-#   geom_boxplot() +  # Boxplot
-#   geom_jitter(width = 0.2, height = 0.1, color = "orange") +  # Jittered points
-#   # Add significance letters
-#   geom_text(data = letters, aes(x = as.numeric(group1), y = max(df$mean_percentcover) + 5, label = label), 
-#             vjust = 0.5) +
-#   labs(x = "Plant Cluster", y = "Non-Native Annual Grass Cover (%)") +
-#   scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +  # Relabel clusters
-#   theme_bw()
-
-############# BROKEN CODE FOR SIGNIFICANCE LETTERS - END
-
-
-nngrass_cluster <- ggplot(cover_bylifecycle_bygroup %>%
-                            filter(status == "nonnative") %>% 
-         filter(lifeform_lifecycle %in% c("grass_annual")),
+cluster_forb_annNN_boxorjitter <- ggplot(forb_annNN_letters, 
        aes(x = cluster, 
-           y = mean_cover, 
-           shape = lifeform,   # Shape by lifeform
-           color = lifecycle   # Color by lifecycle
-           )) +
-  geom_point(size = 3, position = position_dodge(width = 0.3)) +  # Mean points
-  geom_errorbar(aes(ymin = mean_cover - se, ymax = mean_cover + se), 
-                width = 0.2, position = position_dodge(width = 0.3)) +  # SE bars
-  labs(x = "Plant Cluster", 
-       y = "Mean Alien Annual Grass Percent Cover (%)", 
-       color = "Lifecycle",  # Label for color legend
-       shape = "Lifeform") +  # Label for shape legend
-  theme_bw() +
-  theme(
-    axis.text.x = element_text(angle = 0, hjust = 1),  # Rotate x-axis labels if needed
-    legend.position = "right"
-  ) +
-  ylim(0, 100) +
- # facet_wrap(~lifeform) +  # Facet by lifeform
-  scale_shape_manual(values = c("grass" = 16)) +  
-  scale_color_manual(values = c("annual" = "black")) +  
-  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG"))  # Relabel clusters
-nngrass_cluster
+           y = lifeform_lifecycle_percentcover)) +
+  geom_boxplot() + # boxplot
+  geom_jitter(width = 0.2, height = 0.1, color = "darkgreen") + # jitter
+  geom_text(aes(label = value, y = max(lifeform_lifecycle_percentcover) + 5), vjust = 0.5) +
+  labs(title = "forb_annNN_letters", 
+       x = "Plant Cluster", 
+       y = "Percent Shrub Cover (%)") +
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +  # Relabel clusters
+  theme_bw() 
+
+cluster_forb_annNN_boxorjitter
+
+
 
 
 ```
 
-##### nn grass
 
+#####  grass native
+```{r}
+############################## stats among groups
+
+### GRASS NATIVE COVER by CLUSTER
+# sort(unique(cover_bylifecycle$lifeform_lifecycle_status))
+
+grass_perNAT <- cover_bylifecycle %>% 
+  filter(lifeform_lifecycle_status=="grass_perennial_native")
+
+hist(grass_perNAT$lifeform_lifecycle_percentcover)
+shapiro.test(grass_perNAT$lifeform_lifecycle_percentcover)
+# data:  grass_perNAT$lifeform_lifecycle_percentcover
+# W = 0.87591, p-value = 0.04124 <-- not normal
+aov_grass_perNAT <- aov(lifeform_lifecycle_percentcover ~ cluster, data = grass_perNAT)
+summary(aov_grass_perNAT)
+#             Df Sum Sq Mean Sq F value Pr(>F)  
+# cluster      4   4837  1209.3   5.811 0.0111 *
+# Residuals   10   2081   208.1                
+
+tukey_result <- TukeyHSD(aov_grass_perNAT, conf.level=.95)
+# $cluster
+#           diff        lwr       upr     p adj
+# 4-5 -30.487805  -64.05768  3.082074 0.0797737
+# 2-5 -40.731707  -72.57889 -8.884524 0.0121566 <--  2 and 5
+# 3-5 -50.000000 -103.07864  3.078639 0.0672039
+# 1-5 -47.560976 -100.63961  5.517664 0.0848197
+# 2-4 -10.243902  -42.09109 21.603281 0.8229154
+# 3-4 -19.512195  -72.59083 33.566444 0.7464879
+# 1-4 -17.073171  -70.15181 36.005469 0.8229154
+# 3-2  -9.268293  -61.27453 42.737940 0.9741014
+# 1-2  -6.829268  -58.83550 45.176965 0.9915857
+# 1-3   2.439024  -64.70073 69.578783 0.9999450
+
+tukey_df <- as.data.frame(tukey_result$cluster)
+tukey_df$comparison <- rownames(tukey_df)
+# Split the comparison names into separate columns for cluster1 and cluster2
+tukey_df <- tukey_df %>% 
+  mutate(cluster1 = as.numeric(sub("-.*", "", comparison)),
+         cluster2 = as.numeric(sub(".*-", "", comparison)))
+# Create a matrix 5 x 5
+comparison_matrix <- matrix(NA, nrow = 5, ncol = 5)
+rownames(comparison_matrix) <- 1:5  # Cluster numbers
+colnames(comparison_matrix) <- 1:5
+
+# Fill the matrix with the adjusted p-values from the Tukey test
+for (i in 1:nrow(tukey_df)) {
+  comparison_matrix[as.character(tukey_df$cluster1[i]), as.character(tukey_df$cluster2[i])] <- tukey_df$`p adj`[i]
+  comparison_matrix[as.character(tukey_df$cluster2[i]), as.character(tukey_df$cluster1[i])] <- tukey_df$`p adj`[i]  # Ensure symmetry
+}
+
+
+# Set diagonal to 1 (self-comparisons are not relevant)
+diag(comparison_matrix) <- 1
+
+
+# Apply multcompLetters to assign significance letters
+significance_letters <- multcompLetters(comparison_matrix, compare = "<", threshold = 0.05)$Letters
+significance_letters <- significance_letters %>% 
+  as.tibble() %>% 
+  rownames_to_column("cluster") 
+
+# Now you can add the significance letters to your clusters in the data frame:
+grass_perNAT_letters <- grass_perNAT %>%
+  left_join(significance_letters, by = "cluster") %>% 
+   mutate(cluster = factor(cluster, levels = c(5, 4, 2, 3, 1)))
+# # Recalculate the significance letters after the reordering
+# significance_letters <- multcompLetters(comparison_matrix, compare = "<", threshold = 0.05)$Letters
+# Apply the significance letters to the reordered clusters
+# shrub_perennial_data <- shrub_perennial_data %>%
+#   mutate(significance = significance_letters[as.factor(cluster)])
+
+cluster_grass_perNAT_boxorjitter <- ggplot(grass_perNAT_letters, 
+       aes(x = cluster, 
+           y = lifeform_lifecycle_percentcover)) +
+  geom_boxplot() + # boxplot
+  geom_jitter(width = 0.2, height = 0.1, color = "darkgreen") + # jitter
+  geom_text(aes(label = value, y = max(lifeform_lifecycle_percentcover) + 5), vjust = 0.5) +
+  labs(title = "cluster_grass_perNAT_boxorjitter", 
+       x = "Plant Cluster", 
+       y = "Percent Shrub Cover (%)") +
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +  # Relabel clusters
+  theme_bw() 
+
+cluster_grass_perNAT_boxorjitter
+
+
+```
+
+##### grass nonnative
+```{r}
+############################## stats among groups
+
+### GRASS NONNATIVE COVER by CLUSTER
+# sort(unique(cover_bylifecycle$lifeform_lifecycle_status))
+
+grass_annNN <- cover_bylifecycle %>% 
+  filter(lifeform_lifecycle_status=="grass_annual_nonnative")
+
+hist(grass_annNN$lifeform_lifecycle_percentcover)
+shapiro.test(grass_annNN$lifeform_lifecycle_percentcover)
+# data:  grass_annNN$lifeform_lifecycle_percentcover
+# W = 0.90111, p-value = 0.002374 <-- not normal
+aov_grass_annNN <- aov(lifeform_lifecycle_percentcover ~ cluster, data = grass_annNN)
+summary(aov_grass_annNN)
+#             Df Sum Sq Mean Sq F value   Pr(>F)    
+# cluster      4  24509    6127   24.61 1.24e-09 ***
+# Residuals   34   8463     249              
+
+tukey_result <- TukeyHSD(aov_grass_annNN, conf.level=.95)
+# $cluster
+#         diff        lwr      upr     p adj
+# 4-5 18.90244  -8.918732 46.72361 0.3084854
+# 2-5 31.53310   3.057225 60.00898 0.0238752 <-- 
+# 3-5 60.00000  33.122195 86.87780 0.0000023 <--
+# 1-5 72.43902  45.561220 99.31683 0.0000000 <--
+# 2-4 12.63066 -10.882519 36.14384 0.5403999
+# 3-4 41.09756  19.547375 62.64775 0.0000371 <--
+# 1-4 53.53659  31.986399 75.08677 0.0000003 <--
+# 3-2 28.46690   6.077872 50.85593 0.0070654 <--
+# 1-2 40.90592  18.516897 63.29495 0.0000735 <--
+# 1-3 12.43902  -7.878686 32.75673 0.4109881
+
+tukey_df <- as.data.frame(tukey_result$cluster)
+tukey_df$comparison <- rownames(tukey_df)
+# Split the comparison names into separate columns for cluster1 and cluster2
+tukey_df <- tukey_df %>% 
+  mutate(cluster1 = as.numeric(sub("-.*", "", comparison)),
+         cluster2 = as.numeric(sub(".*-", "", comparison)))
+# Create a matrix 5 x 5
+comparison_matrix <- matrix(NA, nrow = 5, ncol = 5)
+rownames(comparison_matrix) <- 1:5  # Cluster numbers
+colnames(comparison_matrix) <- 1:5
+
+# Fill the matrix with the adjusted p-values from the Tukey test
+for (i in 1:nrow(tukey_df)) {
+  comparison_matrix[as.character(tukey_df$cluster1[i]), as.character(tukey_df$cluster2[i])] <- tukey_df$`p adj`[i]
+  comparison_matrix[as.character(tukey_df$cluster2[i]), as.character(tukey_df$cluster1[i])] <- tukey_df$`p adj`[i]  # Ensure symmetry
+}
+
+
+# Set diagonal to 1 (self-comparisons are not relevant)
+diag(comparison_matrix) <- 1
+
+
+# Apply multcompLetters to assign significance letters
+significance_letters <- multcompLetters(comparison_matrix, compare = "<", threshold = 0.05)$Letters
+significance_letters <- significance_letters %>% 
+  as.tibble() %>% 
+  rownames_to_column("cluster") 
+
+# Now you can add the significance letters to your clusters in the data frame:
+grass_annNN_letters <- grass_annNN %>%
+  left_join(significance_letters, by = "cluster") %>% 
+   mutate(cluster = factor(cluster, levels = c(5, 4, 2, 3, 1)))
+# # Recalculate the significance letters after the reordering
+# significance_letters <- multcompLetters(comparison_matrix, compare = "<", threshold = 0.05)$Letters
+# Apply the significance letters to the reordered clusters
+# shrub_perennial_data <- shrub_perennial_data %>%
+#   mutate(significance = significance_letters[as.factor(cluster)])
+
+cluster_grass_annNN_boxorjitter <- ggplot(grass_annNN_letters, 
+       aes(x = cluster, 
+           y = lifeform_lifecycle_percentcover)) +
+  geom_boxplot() + # boxplot
+  geom_jitter(width = 0.2, height = 0.1, color = "darkgreen") + # jitter
+  geom_text(aes(label = value, y = max(lifeform_lifecycle_percentcover) + 5), vjust = 0.5) +
+  labs(title = "cluster_grass_annNN_boxorjitter", 
+       x = "Plant Cluster", 
+       y = "Percent Shrub Cover (%)") +
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +  # Relabel clusters
+  theme_bw() 
+
+cluster_grass_annNN_boxorjitter
+
+
+
+```
 
 
 
