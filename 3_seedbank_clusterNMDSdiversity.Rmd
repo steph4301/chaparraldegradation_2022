@@ -25,6 +25,7 @@ library(factoextra)
 library(ggrepel) # avoid overlaping labes in ggplot2
 library(cluster)
 library(readxl) # for .xls and .xlsx sheets
+library(gt)
 
 # libraries that Rob loaded in his Rmd
 library(MASS)
@@ -266,6 +267,9 @@ seedbank_load_v$stand_core_depth <- paste(seedbank_load_v$stand_core, seedbank_l
 # combine SITE_CORE_DEPTH and TREATMENT to one column
 seedbank_load_v$stand_core_depth_treat <- paste(seedbank_load_v$stand_core_depth, seedbank_load_v$treatment, sep="_") 
 
+# combine SITE_CORE_DEPTH and SPECIES to one column
+seedbank_load_v$stand_core_depth_spp <- paste(seedbank_load_v$stand_core_depth, seedbank_load_v$species_diversity, sep="_") 
+
 glimpse(seedbank_load_v)
 
 
@@ -298,14 +302,31 @@ Data preparation for running NMDS and Cluster analysis
 # species in columns
 # sites or observations in rows
 
-seedbank_nperg_bysamplocation <- germination_depthtreat %>% 
-  group_by(stand, site, stand_core, genus_abundance) %>% # lifeform, status, lifescycle, family
-  filter(count > 0) %>% 
-  filter(!is.na(genus_abundance)) %>% # omit blank cells in species 
-  dplyr::summarize(totalgerm_nperg_genus = sum(n_per_g)) 
+germination_depthtreat$site_core_depth_genus <- paste(germination_depthtreat$stand_core_depth, germination_depthtreat$genus_abundance, sep="_") 
 
-head(seedbank_nperg_bysamplocation) # df before transpose - use for ellipses
-dim(seedbank_nperg_bysamplocation) #330   5
+########### running CLUSTER with MAX n per g per genus_abundance
+seedbank_nperg_bysamplocation <- germination_depthtreat %>% 
+  group_by(stand_core_depth_genus) %>% 
+  dplyr::summarise(max_n_per_g = max(n_per_g)) %>% # take max germ
+  separate(col = stand_core_depth_genus, into = c("stand", "core", "depth", "genus"), sep = "_") %>%
+   mutate(stand_core = paste(stand, core, sep = "_")) %>% 
+   mutate(stand_core_genus = paste(stand_core, genus, sep = "_")) %>% 
+  group_by(stand_core_genus) %>% 
+  dplyr::summarise(totalgerm_nperg_genus = sum(max_n_per_g)) %>% # sum max germ at 0-4 cm with max germ at 4-12 cm
+  separate(col = stand_core_genus, into = c("site", "core", "genus_abundance"), sep = "_") %>% 
+   mutate(stand_core = paste(site, core, sep = "_")) 
+   
+
+
+########### running CLUSTER with SUM n per g
+# seedbank_nperg_bysamplocation_old <- germination_depthtreat %>%
+#   group_by(stand, site, stand_core, genus_abundance) %>% # lifeform, status, lifescycle, family
+#   filter(count > 0) %>%
+#   filter(!is.na(genus_abundance)) %>% # omit blank cells in species
+#   dplyr::summarize(totalgerm_nperg_genus = sum(n_per_g))
+# 
+# head(seedbank_nperg_bysamplocation) # df before transpose - use for ellipses
+# dim(seedbank_nperg_bysamplocation) #330   5
 ```
 
  - transpose data 
@@ -327,7 +348,7 @@ seedbank_nperg_bysamplocation_nmdsprep <- seedbank_nperg_bysamplocation %>%
 ```{r updated replace NAs with zeros}
 seedbank_nperg_bysamplocation_nmdsprep_num <- seedbank_nperg_bysamplocation_nmdsprep %>% 
     ungroup() %>% 
-  dplyr::select(!c('stand', 'site', 'stand_core')) %>% 
+  dplyr::select(!c('site', 'core', 'stand_core')) %>% 
   replace(is.na(.), 0)
   
 # head(seedbank_nperg_bysamplocation_nmdsprep_num) # only numbers
@@ -372,13 +393,13 @@ fviz_nbclust(df, FUN = hcut, diss = d, method = "wss")
 # Measures how similar an object is to its own cluster (cohesion) compared to other clusters (separation). The Average Silhouette Width is the mean of all silhouette scores within a cluster or across all clusters.
 # S ≈ 1: The point is well clustered
 fviz_nbclust(df, FUN = hcut, diss = d, method = "silhouette")
-# 8 groups has the highest Avg Silhouette
+# 5 groups has the highest Avg Silhouette
 
 # Gap Stat
 # Compares the total within-cluster variation for different numbers of clusters with their expected values under a null reference distribution of the data (i.e., uniformly distributed points).
 # The optimal number of clusters is the smallest k such that the Gap Statistic is maximized or the first local maximum occurs, indicating that adding more clusters does not significantly improve the clustering.
 fviz_nbclust(df, FUN = hcut, diss = d, method = "gap_stat")
-# 5 or 6 gruops is best
+# 3 gruops is best
 
 # Above tests suggest at least two, but are also not conclusive...
 
@@ -408,7 +429,7 @@ mantel_results <- compute_mantel_correlation(Hclust.result, d)
 # Find the optimal number of clusters based on the largest Mantel correlation, r
 optimal_clusters <- which.max(mantel_results) + 1  # Add 1 to convert index to number of clusters
 print(paste("Optimal Number of Clusters:", optimal_clusters))
-# [1] "Optimal Number of Clusters: 5"
+# [1] "Optimal Number of Clusters: 3"
 
 ####
 #### Use ISA to determine optimal clusters
@@ -501,6 +522,9 @@ rect.hclust(hcluster.abs.cover, k = 3)
 
 # Cut tree into groups
 sub_grp <- cutree(hcluster.abs.cover, k = 3)
+# sub_grp
+# 1 2 3 
+# 9 8 9 
 
 # Number of members in each cluster
 table(sub_grp)
@@ -509,12 +533,12 @@ table(sub_grp)
 bd <- betadisper(d, sub_grp)
 centroid_coords <- bd$centroids
 centroid_distances <- round(vegdist(centroid_coords, method = "euclidean"), 2) # Calculate the distances between the centroids
-#       1       2
-# 2     0.69     
-# 3     0.66    0.68
+#     1     2
+# 2   0.66     
+# 3   0.65 0.71
 # 
-# 1 and 2 are most different
-# 1 and 3 are most similar
+# 2 and 3 are most different (0.71)
+# 1 and 3 are most similar (0.65)
 
 
 # Combine group labels into species matrix
@@ -542,7 +566,6 @@ ISA.abs.cover <- multipatt(x = df, cluster = sub_grp, duleg = FALSE)
 # A = The values are the **specificity** component of IV for that species in that combination of groups.
 # B = The values are the **fidelity** component of IV for that species in that combination of groups
 summary(ISA.abs.cover, indvalcomp=TRUE)
-
 # Multilevel pattern analysis
 #  ---------------------------
 # 
@@ -551,49 +574,50 @@ summary(ISA.abs.cover, indvalcomp=TRUE)
 # 
 #  Total number of species: 55
 #  Selected number of species: 22 
-#  Number of species associated to 1 group: 17 
-#  Number of species associated to 2 groups: 5 
+#  Number of species associated to 1 group: 16 
+#  Number of species associated to 2 groups: 6 
 # 
 #  List of species associated to each combination: 
 # 
 #  Group 1  #sps.  1 
-#                  A   B  stat p.value   
-# Croton setiger 1.0 0.5 0.707    0.01 **
+#                     A      B  stat p.value  
+# Croton setiger 1.0000 0.4444 0.667    0.03 *
 # 
 #  Group 2  #sps.  5 
 #                                 A      B  stat p.value   
-# Malacothamnus fasciculatus 0.8594 1.0000 0.927   0.005 **
-# Centaurea melitensis       0.7596 1.0000 0.872   0.005 **
-# Typha domingensis          0.8829 0.7778 0.829   0.005 **
-# Sonchus oleraceus          0.8101 0.5556 0.671   0.020 * 
-# Avena spp.                 0.9256 0.4444 0.641   0.035 * 
+# Centaurea melitensis       0.8570 1.0000 0.926   0.005 **
+# Malacothamnus fasciculatus 0.7158 1.0000 0.846   0.005 **
+# Typha domingensis          0.7786 0.7500 0.764   0.010 **
+# Lactuca serriola           1.0000 0.3750 0.612   0.030 * 
+# Logfia filaginoides        1.0000 0.3750 0.612   0.020 * 
 # 
-#  Group 3  #sps.  11 
+#  Group 3  #sps.  10 
 #                                    A      B  stat p.value   
-# Stipa lepida                  0.9721 1.0000 0.986   0.005 **
-# Artemisia californica         0.8895 1.0000 0.943   0.005 **
+# Stipa lepida                  0.9321 1.0000 0.965   0.005 **
 # Pseudognaphalium californicum 1.0000 0.8889 0.943   0.005 **
-# Erigeron canadensis           0.9848 0.8889 0.936   0.005 **
-# Eucrypta chrysanthemifolia    0.9701 0.8889 0.929   0.005 **
-# Nicotiana glauca              0.9204 0.8889 0.904   0.005 **
-# Apiastrum angustifolium       1.0000 0.7778 0.882   0.010 **
-# Claytonia spp.                1.0000 0.6667 0.816   0.005 **
+# Erigeron canadensis           0.9727 0.8889 0.930   0.005 **
+# Eucrypta chrysanthemifolia    0.9580 0.8889 0.923   0.005 **
+# Nicotiana glauca              0.8764 0.8889 0.883   0.005 **
+# Apiastrum angustifolium       1.0000 0.7778 0.882   0.005 **
+# Claytonia spp.                1.0000 0.6667 0.816   0.010 **
 # Malacothrix saxatilis         1.0000 0.5556 0.745   0.010 **
-# Ribes malvaceum               1.0000 0.5556 0.745   0.015 * 
-# Phacelia spp.                 0.9799 0.5556 0.738   0.035 * 
+# Ribes spp.                    1.0000 0.5556 0.745   0.010 **
+# Phacelia spp.                 0.9270 0.5556 0.718   0.025 * 
 # 
 #  Group 1+2  #sps.  3 
 #                          A      B  stat p.value   
-# Hirschfeldia incana 1.0000 0.8824 0.939   0.005 **
-# Erodium spp.        1.0000 0.7647 0.874   0.005 **
-# Acmispon spp.       0.9661 0.7647 0.860   0.020 * 
+# Hirschfeldia incana 1.0000 0.8824 0.939   0.010 **
+# Erodium spp.        1.0000 0.7647 0.874   0.010 **
+# Acmispon spp.       0.9504 0.7647 0.853   0.015 * 
 # 
-#  Group 2+3  #sps.  2 
-#                         A      B  stat p.value   
-# Festuca myuros     1.0000 0.7222 0.850   0.005 **
-# Salvia leucophylla 1.0000 0.5556 0.745   0.020 * 
+#  Group 2+3  #sps.  3 
+#                            A      B  stat p.value   
+# Artemisia californica 0.9251 0.8824 0.903   0.010 **
+# Festuca myuros        0.9788 0.7059 0.831   0.015 * 
+# Salvia leucophylla    1.0000 0.5882 0.767   0.025 * 
 # ---
 # Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1 
+
 
 
 
@@ -609,12 +633,13 @@ anova(betadisper(d, trt))
 mod <- betadisper(d, trt)
 
 TukeyHSD(mod)
+# Fit: aov(formula = distances ~ group, data = df)
+# 
 # $group
 #            diff         lwr         upr     p adj
-# 2-1 -0.10959209 -0.22252937 0.003345181 0.0583159 <-- 2 and 1
-# 3-1  0.02930223 -0.08363504 0.142239508 0.7943526
-# 3-2  0.13889433  0.02932908 0.248459576 0.0113293 <-- 2 and 1
-
+# 2-1 -0.11917679 -0.22253885 -0.01581474 0.0217969 <-- 1 and 2 are sig different
+# 3-1 -0.02871272 -0.12898865  0.07156320 0.7559771
+# 3-2  0.09046407 -0.01289798  0.19382613 0.0939115
 boxplot(mod)
 # groups 1 and 3 are similar
 # group 2 is biologically different from 1 and 3
@@ -652,9 +677,9 @@ seedbank_nperg_bysamplocation_nmds <- metaMDS(seedbank_nperg_bysamplocation_nmds
                  trymax = 400) 
 
 seedbank_nperg_bysamplocation_nmds$stress
-# k = 2D: stress test = 0.1225128
-# k = 3D: stress test = 0.07051168
-# k = 4D: stress test = 0.05050043
+# k = 2D: stress test = 0.1087973
+# k = 3D: stress test = 0.05918958
+# k = 4D: stress test = 0.04206001
 
 # uses the RAUP-CRICK dissimilarity index to calculate pairwise dissimilarities
 # - adjusts for spp richness
@@ -738,8 +763,9 @@ spp <- genp %>%
   mutate(species = case_when(species == "Avena spp." ~ "Avena barbata", # oldname ~ newname
                               TRUE ~ species)) %>% 
   left_join(spp_charateristics, by = "species")
-length(spp$species) #  <- limited number for visual clarity; n = 24
+length(spp$species) #  <- limited number for visual clarity; n = 25
 
+view(spp) # <---------------- NMDS SIGNIFICANT SPECIES!!!!!!
 
 seed.nmds <- ggplot(mds.df,
        aes(x = NMDS1,
@@ -826,12 +852,12 @@ grid.arrange(seed.nmds_nat,
 
 # SPP RICH
 
-- TOTAL spp richness
+- OVERALL spp richness
 
 ```{r}
 
 ################## species richness 
-length(sort(unique(seedbank_load_v$species_diversity))) - 3 # 3 repeat species
+length(sort(unique(seedbank_load_v$species_diversity))) - 3 # 4 repeat species
 #64
 
 # view(sort(unique(seedbank_load_v$species_diversity)))
@@ -846,13 +872,13 @@ seed_genera <- seedbank_load_v %>%
   separate(col = species_diversity, into = c("Genus", "Species"), sep = " ") %>% 
   dplyr::select("Genus") 
 length(sort(unique(seed_genera$Genus))) - 1
-# 50 genera <-- 51 - 1 for unknown 
+# 51 genera <-- 51 - 1 for unknown 
 
 
 ################## family richness 
 
 length(sort(unique(seedbank_load_v$family))) - 1
-# n = 26 <-- 27 families - unknown family
+# n = 27 <-- 28 families - unknown family
 
 # write.csv(seedbank_load_v_omitpretreatment, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/processed/seedbank_load_v_omitpretreatment.csv")
 
@@ -860,12 +886,12 @@ length(sort(unique(seedbank_load_v$family))) - 1
 
 ```
 
-- SPP RICHNESS by CUSTER
+##### - SPP RICHNESS by CUSTER
 
 ```{r}
 
 seedbank_cluster <- seedbank_load_v %>%  # left join seedbank data with seedbank cluster labels
-  left_join(seed.subgrp.df, by = c("stand_core", "stand", "site")) %>% 
+  left_join(seed.subgrp.df, by = c("stand_core")) %>% 
   rename(sdbk_clust = sub_grp) %>% 
   mutate(sdbk_clust = as.character(sdbk_clust)) %>% 
    mutate(species_diversity = case_when(
@@ -897,7 +923,7 @@ spplist <- seedbank_cluster %>%
 
 # Export the table as a word doc.
 gtsave(spplist, 
-       "Ch1_Degradation_figures/spplist_dec11.docx", # can also export as .png
+       "Ch1_Degradation_figures/spplist_dec22.docx", # can also export as .png
        expand = 10)
 
 #################################
@@ -941,21 +967,29 @@ hist(spprich$richness)
 shapiro.test(spprich$richness) # <- normal!
 
 # Perform ANOVA to compare species richness among sites
-anova_result <- aov(richness ~ sdbk_clust, data = richness)
+anova_result <- aov(richness ~ sdbk_clust, data = spprich)
 summary(anova_result)
 
 TukeyHSD(anova_result)
+# Tukey multiple comparisons of means
+#     95% family-wise confidence level
+# 
+# Fit: aov(formula = richness ~ sdbk_clust, data = spprich)
+# 
 # $sdbk_clust
-#              diff       lwr       upr     p adj
-# INT-DEG  8.555556  5.801843 11.309268 0.0000002
-# MTX-DEG  4.777778  2.024065  7.531490 0.0006723
-# MTX-INT -3.777778 -6.449271 -1.106284 0.0047726
+#              diff        lwr       upr     p adj
+# INT-DEG  8.000000  5.0053000 10.994700 0.0000023
+# MTX-DEG  3.833333  0.7464673  6.920199 0.0131574
+# MTX-INT -4.166667 -7.2535327 -1.079801 0.0070000
 
-richness %>% 
+spprich %>% 
   group_by(sdbk_clust) %>% 
   summarize(mean = round(mean(richness), 1),
             se = round((sd(richness)) / sqrt(length(richness)),1))
-
+#   sdbk_clust  mean    se
+# 1 DEG          8.7   0.8
+# 2 INT         16.7   0.8
+# 3 MTX         12.5   1 
 
 ```
 
@@ -974,8 +1008,8 @@ s_richclust <- shrub_spprich %>%
   group_by(sdbk_clust)%>% 
   summarize(length(unique(species_diversity)))
 # sdbk_clust    length(unique(species_diversity))
-# 1	            2			
-# 2	            6			
+# 1	            3			
+# 2	            5			
 # 3	            6	
 
 shrub_spprich_bycore <- shrub_spprich %>% 
@@ -983,15 +1017,15 @@ shrub_spprich_bycore <- shrub_spprich %>%
   summarize(spp_rich = length(unique(species_diversity))) %>% 
   ungroup()
 hist(shrub_spprich_bycore$spp_rich)
-shapiro.test(shrub_spprich_bycore$spp_rich) # <- data: not normal
+shapiro.test(shrub_spprich_bycore$spp_rich) 
 # shrub_spprich_bycore$spp_rich
-# W = 0.89901, p-value = 0.02412
+# W = 0.89901, p-value = 0.02412 # <- data: not normal
 
 kruskal.test(spp_rich ~ sdbk_clust, data = shrub_spprich_bycore) # p-value = 0.002166
 pairwise.wilcox.test(shrub_spprich_bycore$spp_rich, shrub_spprich_bycore$sdbk_clust, p.adjust.method = "BH")
-#   1      2     
-# 2 0.0034 -     
-# 3 0.0034 0.8113
+#     1       2   
+# 2   0.02    -   
+# 3   0.02    0.92
 
 boxplot(spp_rich ~ sdbk_clust, data = shrub_spprich_bycore)
 
@@ -1012,8 +1046,8 @@ forb_spprich %>%
   group_by(sdbk_clust)%>% 
   summarize(N = length(unique(species_diversity)))
 # sdbk_clust    length(unique(species_diversity))
-# 1	            12			
-# 2	            19			
+# 1	            16			
+# 2	            18			
 # 3	            20	
 
 forb_spprich_bycore <- forb_spprich %>% 
@@ -1027,10 +1061,11 @@ TukeyHSD(aov(spp_rich ~ sdbk_clust, forb_spprich_bycore), conf.level = .95)
 # Fit: aov(formula = spp_rich ~ sdbk_clust, data = forb_spprich_bycore)
 # 
 # $sdbk_clust
-#         diff       lwr      upr     p adj
-# 2-1 2.125000 0.3960244 3.853976 0.0141600 <-- spp rich is diff among all clusters
-# 3-1 5.347222 3.6182466 7.076198 0.0000002
-# 3-2 3.222222 1.5448695 4.899575 0.0002129
+#         diff        lwr      upr     p adj
+# 2-1 1.888889 0.08672782 3.691050 0.0387443
+# 3-1 5.111111 3.36275807 6.859464 0.0000006
+# 3-2 3.222222 1.42006116 5.024383 0.0004846
+
 boxplot(spp_rich ~ sdbk_clust, forb_spprich_bycore)
 
 natforb_cluster_spprich <- forb_spprich_bycore %>% 
@@ -1041,10 +1076,10 @@ natforb_cluster_spprich <- forb_spprich_bycore %>%
             SE = round(natforbspp_rich_SD/sqrt(n_soilcores),2)
             ) %>% 
   dplyr::select(!c(natforbspp_rich_SD))
-#  sdbk_clust   n_soilcores   natforbspp_rich_mean    natforbspp_rich_SD    SE
-#  1                    8                 2.88              0.835          0.30
-#  2                    9                 5                 1.58           0.53
-#  3                    9                 8.22              1.64           0.55
+#  sdbk_clust   n_soilcores   natforbspp_rich_mean        SE
+#  1                    9                 3.11            0.35
+#  2                    8                 5               0.6 
+#  3                    9                 8.22            0.55
 
 ## native forb spp in cluster 1 <-- 12 native forb spp.
 natforb_spp1 <- forb_spprich %>% 
@@ -1126,6 +1161,9 @@ Reduce(intersect, L13)
 # ... and "Astragalus trichopodus"  "Emmenanthe penduliflora"
 
 
+
+
+
 forbNN_spprich <- seedbank_cluster %>% 
   filter(lifeform == "forb" & status == "nonnative" &  count > 0)
 length(unique(forbNN_spprich$species_diversity)) # n = 10
@@ -1134,7 +1172,7 @@ forbNN_spprich %>%
   group_by(sdbk_clust) %>% 
   summarize(N = length(unique(species_diversity)))
 # sdbk_clust      N
-# 1	              5			
+# 1	              7			
 # 2	              6			
 # 3	              5	
 
@@ -1143,15 +1181,15 @@ forbNN_spprich %>%
 
 ######## GRASS spp rich
 
-grass_spprich <- seedbank_cluster %>% 
+natgrass_spprich <- seedbank_cluster %>% 
   filter(lifeform == "grass" & status == "native" & count > 0) %>% 
   filter(lifescycle == "annual" | lifescycle == "perennial" | lifescycle == "unknown")
-sort(unique(grass_spprich$species_diversity))
-length(sort(unique(grass_spprich$species_diversity)))
+sort(unique(natgrass_spprich$species_diversity))
+length(sort(unique(natgrass_spprich$species_diversity)))
 # "Melica imperfecta" 
 # "Stipa lepida"     
 
-grass_spprich %>% 
+natgrass_spprich %>% 
   group_by(sdbk_clust)%>% 
   summarize(N = length(unique(species_diversity)))
 # sdbk_clust    length(unique(species_diversity))
