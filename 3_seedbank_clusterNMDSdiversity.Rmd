@@ -306,17 +306,22 @@ germination_depthtreat$site_core_depth_genus <- paste(germination_depthtreat$sta
 
 ########### running CLUSTER with MAX n per g per genus_abundance
 seedbank_nperg_bysamplocation <- germination_depthtreat %>% 
-  group_by(stand_core_depth_genus) %>% 
+  group_by(site_core_depth_genus) %>% 
   dplyr::summarise(max_n_per_g = max(n_per_g)) %>% # take max germ
-  separate(col = stand_core_depth_genus, into = c("stand", "core", "depth", "genus"), sep = "_") %>%
-   mutate(stand_core = paste(stand, core, sep = "_")) %>% 
-   mutate(stand_core_genus = paste(stand_core, genus, sep = "_")) %>% 
-  group_by(stand_core_genus) %>% 
-  dplyr::summarise(totalgerm_nperg_genus = sum(max_n_per_g)) %>% # sum max germ at 0-4 cm with max germ at 4-12 cm
-  separate(col = stand_core_genus, into = c("site", "core", "genus_abundance"), sep = "_") %>% 
-   mutate(stand_core = paste(site, core, sep = "_")) 
+  separate(col = site_core_depth_genus, into = c("site", "core", "depth", "genus"), sep = "_") %>%
+   mutate(site_core = paste(site, core, sep = "_")) %>% 
+   mutate(site_core_genus = paste(site_core, genus, sep = "_")) %>% 
+  dplyr::select(depth, max_n_per_g, site_core_genus) %>% 
+  pivot_wider(names_from = depth, values_from = max_n_per_g) %>% 
+ mutate(across(c(deep, surface), ~replace_na(.x, 0))) %>% 
+  rowwise() %>% 
+  mutate(totalgerm_nperg_genus = mean(c(surface, deep), na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  mutate(check = (deep+surface)/2) %>% 
+separate(col = site_core_genus, into = c("site", "core", "genus_abundance"), sep = "_") %>%
+   mutate(stand_core = paste(site, core, sep = "_")) %>% 
+  dplyr::select(site, stand_core, genus_abundance, totalgerm_nperg_genus)
    
-
 
 ########### running CLUSTER with SUM n per g
 # seedbank_nperg_bysamplocation_old <- germination_depthtreat %>%
@@ -336,7 +341,7 @@ seedbank_nperg_bysamplocation <- germination_depthtreat %>%
 # observations or sites in rows across
 
 seedbank_nperg_bysamplocation_nmdsprep <- seedbank_nperg_bysamplocation %>% 
- tidyr::spread(genus_abundance, totalgerm_nperg_genus) %>% # transpose data so columns are stand_core
+ tidyr::spread(genus_abundance, totalgerm_nperg_genus) %>% # transpose data so columns are species names
   replace(is.na(.), 0) # replace NA with zeros --> isn't compatible with character columns
 
 # view(seedbank_nperg_bysamplocation_nmdsprep)
@@ -348,7 +353,7 @@ seedbank_nperg_bysamplocation_nmdsprep <- seedbank_nperg_bysamplocation %>%
 ```{r updated replace NAs with zeros}
 seedbank_nperg_bysamplocation_nmdsprep_num <- seedbank_nperg_bysamplocation_nmdsprep %>% 
     ungroup() %>% 
-  dplyr::select(!c('site', 'core', 'stand_core')) %>% 
+  dplyr::select(!c('site', 'stand_core')) %>% 
   replace(is.na(.), 0)
   
 # head(seedbank_nperg_bysamplocation_nmdsprep_num) # only numbers
@@ -522,12 +527,12 @@ rect.hclust(hcluster.abs.cover, k = 3)
 
 # Cut tree into groups
 sub_grp <- cutree(hcluster.abs.cover, k = 3)
-# sub_grp
-# 1 2 3 
-# 9 8 9 
 
 # Number of members in each cluster
 table(sub_grp)
+# sub_grp
+# 1 2 3 
+# 9 8 9 
 
 # Calculate the distance to centroid for each cluster
 bd <- betadisper(d, sub_grp)
@@ -581,15 +586,15 @@ summary(ISA.abs.cover, indvalcomp=TRUE)
 # 
 #  Group 1  #sps.  1 
 #                     A      B  stat p.value  
-# Croton setiger 1.0000 0.4444 0.667    0.03 *
+# Croton setiger 1.0000 0.4444 0.667   0.015 *
 # 
 #  Group 2  #sps.  5 
 #                                 A      B  stat p.value   
 # Centaurea melitensis       0.8570 1.0000 0.926   0.005 **
-# Malacothamnus fasciculatus 0.7158 1.0000 0.846   0.005 **
+# Malacothamnus fasciculatus 0.7158 1.0000 0.846   0.020 * 
 # Typha domingensis          0.7786 0.7500 0.764   0.010 **
-# Lactuca serriola           1.0000 0.3750 0.612   0.030 * 
-# Logfia filaginoides        1.0000 0.3750 0.612   0.020 * 
+# Lactuca serriola           1.0000 0.3750 0.612   0.025 * 
+# Logfia filaginoides        1.0000 0.3750 0.612   0.045 * 
 # 
 #  Group 3  #sps.  10 
 #                                    A      B  stat p.value   
@@ -599,25 +604,24 @@ summary(ISA.abs.cover, indvalcomp=TRUE)
 # Eucrypta chrysanthemifolia    0.9580 0.8889 0.923   0.005 **
 # Nicotiana glauca              0.8764 0.8889 0.883   0.005 **
 # Apiastrum angustifolium       1.0000 0.7778 0.882   0.005 **
-# Claytonia spp.                1.0000 0.6667 0.816   0.010 **
-# Malacothrix saxatilis         1.0000 0.5556 0.745   0.010 **
-# Ribes spp.                    1.0000 0.5556 0.745   0.010 **
+# Claytonia spp.                1.0000 0.6667 0.816   0.005 **
+# Malacothrix saxatilis         1.0000 0.5556 0.745   0.015 * 
+# Ribes spp.                    1.0000 0.5556 0.745   0.020 * 
 # Phacelia spp.                 0.9270 0.5556 0.718   0.025 * 
 # 
 #  Group 1+2  #sps.  3 
 #                          A      B  stat p.value   
-# Hirschfeldia incana 1.0000 0.8824 0.939   0.010 **
-# Erodium spp.        1.0000 0.7647 0.874   0.010 **
-# Acmispon spp.       0.9504 0.7647 0.853   0.015 * 
+# Hirschfeldia incana 1.0000 0.8824 0.939   0.005 **
+# Erodium spp.        1.0000 0.7647 0.874   0.005 **
+# Acmispon spp.       0.9504 0.7647 0.853   0.020 * 
 # 
 #  Group 2+3  #sps.  3 
 #                            A      B  stat p.value   
 # Artemisia californica 0.9251 0.8824 0.903   0.010 **
-# Festuca myuros        0.9788 0.7059 0.831   0.015 * 
-# Salvia leucophylla    1.0000 0.5882 0.767   0.025 * 
+# Festuca myuros        0.9788 0.7059 0.831   0.020 * 
+# Salvia leucophylla    1.0000 0.5882 0.767   0.015 * 
 # ---
 # Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1 
-
 
 
 
