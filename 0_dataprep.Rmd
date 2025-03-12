@@ -47,14 +47,13 @@ library(sjPlot)
 
 # percent cover - belt transects, point intercept transects
 abcover_full <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA")) %>% 
-  rename(speciescode = species.1 ) %>%
   mutate(standtype = fct_relevel(standtype, 
             "intact", "matrix", "degraded")) %>% 
-  dplyr::select(!speciescode) %>% 
-    mutate(site = case_when(site == "Intact_1" ~ "INT1", 
-                                site == "Intact_2" ~ "INT2",
-                                site == "Intact_3" ~ "INT3", 
-          TRUE ~ site))
+  dplyr::select(!species_code) %>% 
+    mutate(hillslope = case_when(hillslope == "Intact_1" ~ "INT1", 
+                                hillslope == "Intact_2" ~ "INT2",
+                                hillslope == "Intact_3" ~ "INT3", 
+          TRUE ~ hillslope))
 
 glimpse(abcover_full)
 str(abcover_full)
