@@ -11,6 +11,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 https://www.davidzeleny.net/anadat-r/doku.php/en:pca_examplesv
 
+#### Don't run this code for PCAs. Run NMDSs instead. - SML (june 7, 2025)
+
+
 ```{r load data}
 
 
@@ -34,7 +37,7 @@ extracted <- extracted_load%>%
       elevation_m = as.integer(elevation_m),
       slope_degrees = as.numeric(slope_degrees),
       group_15 = as.character(group_15),
-      group_9 = as.character(group_9),
+      # group_9 = as.character(group_9),
       group_6 = as.character(group_6),
       group_4 = as.character(group_4),
       group_2 = as.character(group_2),
