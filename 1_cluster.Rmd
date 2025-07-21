@@ -10,11 +10,13 @@ editor_options:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-# setwd("~/Library/CloudStorage/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022")
+setwd("~/Library/CloudStorage/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022")
 
 ```
 
 ##### Rmarkdown for Using cluster analysis to identify plant groupings among chaparral transects
+
+
 
 load libraries
 ```{r}
@@ -55,16 +57,38 @@ data_pc <- read.csv("twinspan_percentcover.csv")
 rownames(data_pc) <- data_pc[,1]
 data_pc[,1] <- NULL
 
+# 53 species
+# 40 transects
 ```
 
 # load data
 ```{r load point intercept transect data from csv, include=TRUE}
-file_transect_2019_load <- read_excel("deg_percentcover_byspecies_bylifeform_2024.xlsx", sheet = "2019_data")
+file_transect_2019_load <- read_csv("deg_percentcover_byspecies_bylifeform_2024.csv") %>% # warnings are from Notes 
+  dplyr::select(site, year, transect, distance, vertical, species, lifeform, status, lifecycle, family) %>% 
+  mutate(vertical = case_when(vertical == "ground" ~ "0", # oldname ~ newname
+                              TRUE ~ vertical)) %>% 
+  mutate(
+       site = as.character(site),
+       transect = as.character(transect),
+       year = as.character(year),
+       distance = as.numeric(distance),
+       vertical = as.numeric(vertical),
+       species = as.character(species),
+        lifeform = as.character(lifeform),
+       status = as.character(status),
+       lifecycle = as.character(lifecycle),
+       family = as.character(family)
+  ) %>% 
+  drop_na()
 
+  # ground cover other = moss, wood
+sort(unique(file_transect_2019_load$site))  
+file_transect_2019_load %>%  
+  group_by(site, transect)
 # -- years 2017, 2019
-# -- Site 1: transects 1-6
-# -- Site 2: transects 1-6
-# -- INT1, INT2, INT3, INT4
+# -- Site 1: transects 1-14
+# -- Site 2: transects 1-18
+# -- INT1, INT2, INT3, INT4, INT5
 
 # Finding species == "Bromus spp." to rename them by species
 # transect2019_bromus <- file_transect_2019_load %>%
@@ -75,7 +99,7 @@ file_transect_2019_load <- read_excel("deg_percentcover_byspecies_bylifeform_202
 
 transect2019 <- file_transect_2019_load %>% 
   dplyr::select(c(site, transect, year, distance, vertical, species)) %>% # select columns to full join with 2024 data
-  filter(year %in% c(2017, 2019))  %>% #filter data to 2019 data
+  # filter(year %in% c(2017, 2019))  %>% #filter data to 2019 data
    dplyr::select(year, site, transect, distance, vertical, species) %>% 
    mutate(species = ifelse(# a condition, a value if the condition is true, and a value if the condition is false
                               site == 2 & transect == 5 & distance %in% c(2, 6, 9) & species == "Bromus spp.", "Bromus hordeaceus", species)) %>% 
@@ -89,14 +113,26 @@ transect2019 <- file_transect_2019_load %>%
 #sort(unique(transect2019$transect))
 #sort(unique(transect2019$site))
 
-file_transect_2024_load <- read.csv("Transects_2024 - transect.csv", header = TRUE, na.strings=c("","NA"))
+file_transect_2024_load <- read.csv("Transects_2024 - transect.csv", header = TRUE, na.strings=c("","NA")) %>% 
+  dplyr::select(site, transect, year, distance, vertical, species, max_height_cm) %>% 
+   mutate(vertical = case_when(vertical == "ground" ~ "0", # oldname ~ newname
+                              TRUE ~ vertical)) %>% 
+  filter(transect  >= 19) %>% 
+  mutate(
+       site = as.character(site),
+       transect = as.character(transect),
+       year = as.character(year),
+       distance = as.numeric(distance),
+       vertical = as.numeric(vertical),
+       species = as.character(species),
+       max_height_cm = as.numeric(max_height_cm)
+  ) %>% 
+   filter(species != "N/A")
 # -- years 2024
-# -- Site 1: transects 7-14
-# -- Site 2: transects 7-21
-# -- INT5
+# -- Site 2: transects 19-21
+
 transect2024 <- file_transect_2024_load %>%  
-  dplyr::select(c(site, transect, year, distance, vertical, species)) %>% 
-  filter(species != "N/A") %>% 
+  dplyr::select(year, site, transect, distance, vertical, species) %>% 
    mutate(species = case_when(species == "Bromus spp." ~ "Bromus rubens", # oldname ~ newname
                               TRUE ~ species))
   
@@ -828,6 +864,10 @@ gtsave(table_cover,
 # 
 # table_cover
 
+```
+
+```{r}
+print("End of code :)")
 ```
 
 
