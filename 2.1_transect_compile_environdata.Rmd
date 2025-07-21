@@ -12,6 +12,10 @@ library(rpart) # for classification and regression trees
 library(rpart.plot)
 ```
 
+
+NOTE (june 6, 2025) - I don't think I use any of this code in my chapter. - SML
+
+
 #### load data
 
 ```{r load data}
@@ -201,10 +205,10 @@ printcp(tree_model)
 pruned_tree <- prune(tree_model, cp = tree_model$cptable[which.min(tree_model$cptable[,"xerror"]),"CP"])
 
 # Visualize the pruned tree
-rpart.plot(pruned_tree, type = 3, extra = 102, fallen.leaves = TRUE) # can't prune because there are only three groups predicted
+# rpart.plot(pruned_tree, type = 3, extra = 102, fallen.leaves = TRUE) # <--- can't prune because there are only three groups predicted
 
 pred_prob <- predict(tree_model, extracted, type = "prob")
-View(pred_prob)  # View the probabilities for each class
+# View(pred_prob)  # View the probabilities for each class
 
 
 
