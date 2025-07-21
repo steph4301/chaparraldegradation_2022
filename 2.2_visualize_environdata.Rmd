@@ -15,6 +15,7 @@ library(here) # similar to set working directory
 library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
 library(ggplot2)
 library(plotly)
+library(ggpubr)
 ```
 
 ```{r colors}
@@ -59,9 +60,9 @@ colors_4 <- c(a, b, c, d)
 
 
 cal_palette(name = "creek", n = 15, type = "continuous") 
-"#EBDAC9" "#E0C9B6" "#D6B9A4" "#CEAF9A" "#CEBBB0"
-"#CEC7C6" "#BFC1C3" "#9B9F9A" "#767C70" "#606B5A"
-"#546450" "#475E46" "#3B5139" "#2F422B" "#23341E"
+# "#EBDAC9" "#E0C9B6" "#D6B9A4" "#CEAF9A" "#CEBBB0"
+# "#CEC7C6" "#BFC1C3" "#9B9F9A" "#767C70" "#606B5A"
+# "#546450" "#475E46" "#3B5139" "#2F422B" "#23341E"
 
 # # Status colors: native, exotic 
 # cal_palette(name = "chaparral1", n = 6, type = "continuous") 
@@ -251,7 +252,7 @@ ggplot(data = extracted,
 hist(extracted$elevation) # elevation
 
 ggplot(data = extracted, 
-       aes(y = elevation_m, x = group_9)) + 
+       aes(y = elevation_m, x = group_6)) + 
   # geom_point() +
   geom_boxplot() +
   theme_classic()
@@ -361,7 +362,7 @@ p_site2 <- plot_ly(data = (extracted %>% filter(site == "site_2")),
 hist(extracted$hillshade) # hillshade
 
 ggplot(data = extracted, 
-       aes(y = hillshade, x = group_9)) + 
+       aes(y = hillshade, x = group_6)) + 
    # geom_point() +
   geom_boxplot() +
   theme_classic()
