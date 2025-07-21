@@ -7,6 +7,9 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+setwd("~/Library/CloudStorage/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022")
+
 ```
 
 
@@ -39,13 +42,13 @@ library(lmerTest) # load again or update if you're not getting p-values from env
 library(sjPlot)
 ```
 
-# percent cover
+# Percent cover
 
-### - lifeformleaftype
+### lifeformleaftype df
 
-```{r load, echo=FALSE, eval=F}
+```{r, percent cover - load data}
 
-# percent cover - belt transects, point intercept transects
+################  percent cover - belt transects, point intercept transects
 abcover_full <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA")) %>% 
   mutate(standtype = fct_relevel(standtype, 
             "intact", "matrix", "degraded")) %>% 
@@ -55,6 +58,21 @@ abcover_full <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = T
                                 hillslope == "Intact_3" ~ "INT3", 
           TRUE ~ hillslope))
 
+############### leaf traits
+shrub_leaftype <- read.csv("shrub_leaftype.csv") %>%
+  dplyr::select("species", "leaftype") %>%
+   mutate(
+      species = as.character(species),
+      leaftype = as.character(leaftype)
+      ) %>%
+  mutate(
+    leaftype = if_else(grepl("dead", species, ignore.case = TRUE), "dead_shrub", leaftype)
+  )
+
+```
+
+
+```{r}
 glimpse(abcover_full)
 str(abcover_full)
 
@@ -91,10 +109,10 @@ abcover_full_v %>%
 abcover_full_v_omitground <- filter(abcover_full_v, status !="ground")
 glimpse(abcover_full_v_omitground)
 
-shrubs <- abcover_full_v_omitground %>% 
-  filter(lifeform == "shrub") %>% 
-  left_join(shrub_leaftype, by = "species") %>% 
-  dplyr::select(!c(lifeform)) %>% 
+shrubs <- abcover_full_v_omitground %>%
+  filter(lifeform == "shrub") %>%
+  left_join(shrub_leaftype, by = "species") %>%
+  dplyr::select(!c(lifeform)) %>%
     rename(lifeform = leaftype ) # newname = oldname
 
 herbsgrassesfern <-  abcover_full_v_omitground %>% 
@@ -131,7 +149,14 @@ abcover_vegcover_long <- gather(abcover_vegcover, covertype, percentcover, perce
 abcover_vegcover_long
 ```
 
-# Percent cover
-```{r lifeform}
+# SOIL CORES
 
+### abground percent cover
+```{r}
+soil_cover_load <- read_xlsx("data/abcover_ofsoilcores_20250720.xlsx", sheet = "soil_cover_data") 
+
+soil_cover_raw <- soil_cover_load %>% 
+  dplyr::select(date, plot_number, ch2_covertype, cover_percent, soilID) %>% 
+  dplyr::mutate(date = as.Date(date))
+  
 ```
