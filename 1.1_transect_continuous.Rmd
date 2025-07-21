@@ -82,8 +82,11 @@ colors_status <- c(native, nonnative, unknown)
 #NOTES Transect data overview - Years collected: 2017, 2019, 2024 - Sites: 1 and 2 - Comparing to intact sites: INT1, INT2, INT3, INT4, INT5
 
 # load data
+```{r load point intercept transect data from csv, include=TRUE, eval = FALSE}
 
-```{r load point intercept transect data from csv, include=TRUE}
+
+########## don't run this code, instead use df from 1_cluster: transect2019
+
 file_transect_2019_load <- read_excel("deg_percentcover_byspecies_bylifeform_2024.xlsx", sheet = "2019_data")
 
 # -- years 2017, 2019
@@ -106,13 +109,17 @@ transect2019 <- file_transect_2019_load %>%
                               site == 2 & transect == 5 & distance %in% c(2, 6, 9) & species == "Bromus spp.", "Bromus hordeaceus", species)) %>% 
     mutate(species = ifelse(site == 2 & transect == 5 & distance %in% c(10, 28) & species == "Bromus spp.", "Bromus rubens", species)) %>% 
     mutate(species = ifelse(site == 2 & transect == 6 & distance %in% c(23, 35, 37) & species == "Bromus spp.", "Bromus hordeaceus", species)) %>% 
-    mutate(species = ifelse(site == "INT1" & transect == 1 & distance %in% c(24) & species == "Bromus spp.", "Bromus diandrus", species))
+    mutate(species = ifelse(site == "INT1" & transect == 1 & distance %in% c(24) & species == "Bromus spp.", "Bromus diandrus", species)) %>% 
+   mutate(
+       site = as.character(site))
 
 
 # View the data (optional)
 #View(transect2019)
 #sort(unique(transect2019$transect))
 #sort(unique(transect2019$site))
+
+########## don't run this code, instead use df from 1_cluster: transect2024
 
 file_transect_2024_load <- read.csv("Transects_2024 - transect.csv", header = TRUE, na.strings=c("","NA"))
 # -- years 2024
@@ -129,7 +136,10 @@ transect2024 <- file_transect_2024_load %>%
 #view(transect2024)
 #sort(unique(transect2024$transect))
 #sort(unique(transect2024$site))
+```
 
+- load cluster
+```{r}
 
 groups_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) 
 
@@ -181,12 +191,14 @@ groupsdash
 ## full join transect data
 
 ```{r full join}
-abcover_fulljoin <- full_join(transect2019, transect2024, by = intersect(names(transect2019), names(transect2024)))
+abcover_fulljoin <- full_join(transect2019, transect2024, 
+                              by = intersect(names(transect2019),
+                                             names(transect2024)))
 
 # View the data (optional)
-#View(abcover_full)
-#sort(unique(abcover_full$transect))
-#sort(unique(abcover_full$site))
+#View(abcover_fulljoin)
+#sort(unique(abcover_fulljoin$transect))
+#sort(unique(abcover_fulljoin$site))
 ```
 
 ## species list
@@ -2673,8 +2685,9 @@ densitymeans_bycluster_TABLE_prep <- densitymeans_bycluster %>%
     )
   ) %>% 
    mutate(Seedling = paste(seedling, seedlingsig, sep = "")) %>% 
-  dplyr::select(-seedling, -seedlingsig, -no_shrubs) %>% 
-  relocate(Seedling, .after = cluster) 
+  dplyr::select(-seedling, -seedlingsig, -no_shrubs, -"NA") %>% 
+  relocate(Seedling, .after = cluster) %>% 
+  filter(cluster %in% c("EVG", "NNG", "ssF", "ssFG", "ssG")) 
   
 
 
@@ -2766,4 +2779,9 @@ grid.arrange(plot_denspp,
              ) 
 
 
+```
+
+
+```{r}
+print("yay! you've reached the end!")
 ```
