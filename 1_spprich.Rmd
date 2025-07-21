@@ -12,8 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ##### Rmarkdown for analyzing total above ground species richness 
 - combining species lists from point-intercept transects and belt transects
-
-# library
+ 
+library
 ```{r install libraries, message=FALSE}
 
 # Packages
@@ -35,10 +35,8 @@ library(readxl)
 # library(ggpmisc)
 ```
 
-
+- load colors
 ```{r }
-
-# load colors
 
 # library(calecopal) 
  
@@ -65,16 +63,15 @@ library(readxl)
 
 
 
-## data
-
-
-
+### data prep 
+##### - belt species richness
 ```{r load belt intercept transect data}
 
 ################## load belt transect data
 
 # 2019 belt transect data 
 belt.spp_2019_load <- read.csv(here("deg_beltdensity_byspecies.csv")) 
+belttrans_byspecies <- read.csv("deg_beltdensity_byspecies.csv")
 
 belt.spp_2019 <- belt.spp_2019_load %>% 
   dplyr::select(site, rep, species) %>% 
@@ -106,7 +103,7 @@ belt.spprich <- bind_rows(belt.spp_2019, belt.spp_2024)
 
 ### join species characteristics
 sppchar <- read.csv("processed/specieslist.csv") %>% # species and their characteristics :) Created in 1.1_transect_continuous.Rmd
-  dplyr::select(!c(X, notes, ejepson)) %>%
+  dplyr::select(!c(X)) %>%
   mutate(species = str_replace(species, " ", "_")) %>%
   mutate(species = gsub("\u00A0", " ", species, fixed = TRUE)) %>%
   mutate(species = str_replace(species, " ", "_")) %>% 
@@ -137,7 +134,10 @@ belt <- belt.spprich %>%
    mutate(site_rep_species = paste(site_rep, species, sep = "_")) 
 
 
+```
 
+##### - point intercept
+```{r}
 ################## load point intercept transect data
 
 abcover_full_load <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA")) # point-intercept data
@@ -187,7 +187,10 @@ length(unique(ab_sppr_raw$site_rep_species))
 
 ptintcp_list <- list(unique(ab_sppr_raw$site_rep_species))
 
+```
 
+##### - shrub density 
+```{r}
 ################################ shrub density
 
 
@@ -215,8 +218,9 @@ shrubdensityspp_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertati
 
 
 
-### RICHNESS: spp, genera, family
+# RICHNESS 
 
+##### - spp
 ```{r}
 
 ################ species richness
@@ -244,7 +248,10 @@ length(sort(unique(belt.spprich_total$species)))
 #   filter(!(species == "Lupinus spp." & site_rep == "1.2"))
 
 
+```
 
+##### - genera
+```{r}
 ################ genera richness
 
 belt.genrich <- belt %>% 
@@ -252,6 +259,12 @@ belt.genrich <- belt %>%
   dplyr::select("Genus") 
 length(sort(unique(belt.genrich$Genus))) - 4 # minus 4 unknowns
 # 67 
+
+```
+
+##### - family
+```{r}
+
 
 ################ family richness
 
@@ -369,7 +382,7 @@ length(sort(unique(
 
 # sampling effort
 
-```{r}
+```{r, eval = FALSE}
 
 # Calculate species accumulation
 species_accum <- specaccum(species_data)
@@ -386,33 +399,36 @@ chao
 
 ```
 
+```{r}
+print("you've reached the end of the code!")
+
+```
 
 
-
-END
+# END
 
 
 overall native richness
 - sppr
-```{r native species richness, include=FALSE}
+```{r native species richness, include=FALSE, eval=FALSE}
 native_spp <- ab_totalsppr %>% 
    filter(status == "native") # %>% 
   # filter(species! = "Lupinus spp.") # unselect spp.
   # 
 
 sort(unique(native_spp$species)) # 39 species
-length(unique(native_spp$species)) -1 # for Lupinus spp. ;  38 species
+length(unique(native_spp$species)) # for Lupinus spp. ;  37 species
 ```
 
 - family richness
-```{r transect native family richness}
+```{r transect native family richness, eval=FALSE}
 sort(unique(native_spp$family))
 length(unique(native_spp$family))  # 24 families
 ```
 
 overall non-native richness
 - sppr
-```{r nnnative species richness}
+```{r nnnative species richness, eval=FALSE}
 nn_sppr <- ab_totalsppr %>% 
    filter(status == "nonnative") 
 
@@ -421,13 +437,13 @@ length(unique(nn_sppr$species))-2 # for Bromus spp. and "Erodium spp." ; 10 spec
 ```
 
 - family richness
-```{r transect native family richness}
+```{r transect native family richness, eval=FALSE}
 sort(unique(nn_sppr$family))
 length(unique(nn_sppr$family)) # 4 families
 ```
  stats - categorical by hillslope (n = 15)
 - data prep
-```{r}
+```{r, eval = FALSE}
 ab_totalsppr_hillslope <- ab_totalsppr %>%  # n = 15
   group_by(standtype, site, site_rep) %>% 
   summarize(sppr = n_distinct(site_rep_species)) 
@@ -439,7 +455,7 @@ sppr_bystatus <- ab_totalsppr %>% # n = 33
 ```
 
 - normality 
-```{r}
+```{r, eval = FALSE}
 # data vis
 length(ab_totalsppr_hillslope$sppr) # n = 15
 hist(ab_totalsppr_hillslope$sppr) 
@@ -455,7 +471,7 @@ shapiro.test(ab_totalsppr_hillslope$sppr)
 ```
 
  - anova - hillslope
-```{r}
+```{r, eval = FALSE}
 summary(aov(sppr ~ site, ab_totalsppr_hillslope))
 #  Df Sum Sq Mean Sq F value   Pr(>F)    
 # site         6 223.60   37.27   31.94 3.62e-05 *** <-- sig
@@ -504,7 +520,7 @@ TukeyHSD(aov(sppr ~ site, ab_totalsppr_hillslope))
 
 ```
 
-```{r}
+```{r, eval = FALSE}
 ggplot(ab_totalsppr_hillslope) +
   stat_summary(
      mapping = aes(x = site, y = sppr),
@@ -523,7 +539,7 @@ boxplot(sppr ~ site, data = ab_totalsppr_hillslope)
 ```
 
 
-```{r}
+```{r, eval = FALSE}
 sppr_lm <- ggplot(data = ab_totalsppr_hillslope, 
        aes(x = site, y = sppr)) +
   geom_point(aes(color = site, shape = site), size = 3, alpha = 0.8) +
@@ -579,7 +595,7 @@ ggplot(data = sppr_bystatus,
  - anova - status x hillslope
 
 - normality - native
-```{r native anova sppr}
+```{r native anova sppr, eval = FALSE}
 # data vis
 length(sppr_bystatus$sppr) # n = 33 = 15 x 2 + 3 unknowns
 
@@ -650,7 +666,7 @@ boxplot(sppr ~ site, data = sppr_bystatus %>%
 ```
 
 - normality - nn
-```{r nn anova sppr}
+```{r nn anova sppr, eval = FALSE}
 hist((sppr_bystatus %>% 
        filter(status == "nonnative"))$
        sppr) 
@@ -673,7 +689,7 @@ shapiro.test((sppr_bystatus %>%
 
 
 
-```{r}
+```{r, eval = FALSE}
 
 
 # Renaming observations
@@ -734,9 +750,9 @@ ab_diversity <- ab_diversity_load %>%
 #write.csv(ab_diversity, "processed/ab_diversity.csv")
 ```
 
- Belt transect data
+-  Belt transect data
  load data
-```{r SHRUB species richness by belt transect, include = TRUE}
+```{r SHRUB species richness by belt transect, include = TRUE, eval=FALSE}
 belttrans_byspecies <- read.csv("deg_beltdensity_byspecies.csv")
 sort(unique(belttrans_byspecies$species))
 sort(unique(belttrans_byspecies$site))
@@ -744,21 +760,22 @@ sort(unique(belttrans_byspecies$origin))
 sort(unique(belttrans_byspecies$lifespan))
 
 belttrans_sppr <- belttrans_byspecies %>%  
-   mutate(species = case_when(
-    species == "Bromus madritensis" ~ "Bromus rubens", # old name ~ new name
+   mutate(
+     species = case_when(
+        species == "Bromus madritensis" ~ "Bromus rubens", # old name ~ new name
         species == "Erodium cicutarium" ~ "Erodium spp.",      
-#    species == "Lupinus spp." ~ "Lupinus bicolor", # lupins are in different transects so leaving as three seperate entries: LUBI, LUSU, and Lupinus spp.
-#     species == "Lupinus spp." ~ "Lupinus succulentus",
+#       species == "Lupinus spp." ~ "Lupinus bicolor", # lupins are in different transects so leaving as three seperate entries: LUBI, LUSU, and Lupinus spp.
+#       species == "Lupinus spp." ~ "Lupinus succulentus",
     TRUE ~ as.character(species)  # Keep other observations unchanged
   )) %>% 
-      mutate(origin = case_when(
-        origin == "non-native" ~ "nonnative", 
-        TRUE ~ as.character(origin))) %>% 
+  
+    mutate(status = case_when(
+        status == "non-native" ~ "nonnative", 
+        TRUE ~ as.character(status))) %>% 
+  
   mutate(lifespan = case_when(
     lifespan == "Perennial" ~ "perennial", 
      TRUE ~ as.character(lifespan))) %>% 
-    rename(rep = transectstand, #rename(new_name = old_name) 
-           status = origin) %>% 
    filter(site != "ENH2") # why am I omitting ENH2? (feb 7, 2024) <-- STEPHANIE
 
 belttrans_sppr$site <- factor(belttrans_sppr$site, levels=c("Intact1", "Intact2", "Intact3", "ENH1", "DEG1", "DEG2"))
@@ -784,7 +801,7 @@ write.csv(belttrans_sppr, "processed/belttrans_sppr.csv")
 ```
 
 
-```{r belt transect join percent cover, include=TRUE}
+```{r belt transect join percent cover, include=TRUE, eval=FALSE}
 belttrans_sppr_native <- belttrans_sppr %>% # join above ground species diversity with native transect percent cover
   left_join(nativecover3, by = "site_rep") 
 sort(unique(belttrans_sppr_native$site_rep))
@@ -798,7 +815,7 @@ glimpse(belttrans_sppr_native)
 
 ```
 
-```{r join sppr from belt and point-intercept transect}
+```{r join sppr from belt and point-intercept transect, eval=FALSE}
 # nov. 6, 2023
 # KIT - Can you create a df of the total species list (point intercept transect + belt transect species list) at INT 1-3, ENH 1-3, and DEG 1-6?
 
@@ -820,7 +837,7 @@ belt_point_join_sppr %>%
 
 
  Join transect and belt sppr.
-```{r species richness above ground, include=TRUE}
+```{r species richness above ground, include=TRUE, eval=FALSE}
 
 # created ab_diversity_2 in EXCEL
 
@@ -863,7 +880,7 @@ glimpse(ab_diversity_2_native_nn)
 
 ```
 
-```{r species richness by stand type}
+```{r species richness by stand type, eval=FALSE}
 
 ab_diversity_2_native_nn %>% 
   filter(status =="native") %>% 
@@ -932,7 +949,7 @@ print(ab_div_bysiterep)
 ```
 
 
-```{r check - number of unique species per transect, include=TRUE}
+```{r check - number of unique species per transect, include=TRUE, eval=FALSE}
 
 ab_diversity_2_native_nn %>% 
    dplyr::filter(site_rep == "DEG1_1") %>% 
@@ -942,14 +959,14 @@ ab_diversity_2_native_nn %>%
 ```
 
 normal
-```{r}
+```{r, eval=FALSE}
 shapiro.test(ab_div_bysiterep$num_species)
 # data:  ab_div_bysiterep$num_species
 # W = 0.96712, p-value = 0.742 <-- normally distrubuted
 ```
 
 figure regressions by Kit
-```{r scatterplot species diversity by nn grass cover, include=TRUE} 
+```{r scatterplot species diversity by nn grass cover, include=TRUE, eval=FALSE} 
 
 # KIT's code: this section
 
@@ -997,7 +1014,7 @@ print(ab_sppr_nngrass)
 ```
 
 stats
-```{r species richness df from An code}
+```{r species richness df from An code, eval=FALSE}
 sppr <- specnumber(abcover_byspecies_nmdsprep_num)
 sppr
 # 11 15  7 15 13 16 11 13 13 10  8  9 12 10 12
@@ -1014,7 +1031,7 @@ sppr_df <- sppr %>%
 view(sppr_df)
 ```
 
-```{r stats spp richness }
+```{r stats spp richness, eval=FALSE}
 
 shapiro.test(sppr_df$spp_rich)
 # data:  sppr_df$spp_rich
@@ -1038,7 +1055,7 @@ boxplot(spp_rich~site,data=sppr_df, main="Species richness by Hillslope",
    xlab="Hillslope", ylab="Species Richness (N)")
 ```
 
-```{r species richness figure from An code}
+```{r species richness figure from An code, eval=FALSE}
 #pal <- c("lightsalmon1", "gold1", "palegreen4")
 
 plot_sppr <- ggplot(sppr_df, aes(x = site, y = spp_rich, fill = site)) +
@@ -1078,7 +1095,7 @@ f <-  belt %>%
 sort(unique(f$species)) 
 
 - Shannon Diversity
-```{r shannon diversity}
+```{r shannon diversity, eval = FALSE}
 # this doesn't make sense for % cover, but I could run it on shrub density. I could also run it on the seedbank data. 
 shannondiv <- diversity(abcover_byspecies_nmdsprep_num)
 head(shannondiv)
@@ -1094,7 +1111,7 @@ summary(sppdiv_aov)
 
 # old code
 
-```{r above ground - species richness - native richness, include = FALSE}
+```{r above ground - species richness - native richness, include = FALSE, eval = FALSE}
 
 ### SPECIES RICHNESS DATA IS IN CH1_DEGRADATION_ABCOVERNMDS.RMD FILE ###
 
