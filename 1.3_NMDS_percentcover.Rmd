@@ -607,11 +607,15 @@ status_lifecycle_plot
 ```
 
 
+```{r}
 
+print("wonderful! You're at the end!")
+
+```
 
 # EXTRA CODE BELOW 
 
-```{r}
+```{r, eval = FALSE}
 # nmds - by site_rep (aka. hillslope)
 nmdsabove_plot_site_rep <- ggplot(plot_above_df, 
                                   aes(x = NMDS1, y = NMDS2)) +
@@ -652,7 +656,7 @@ ggsave("Ch1_Degradation_figures/nmds_above_vectors.png", nmdsabove_plot_site_rep
 
 
 
-```{r byplot - ggplot vectors and measurments, include = FALSE}
+```{r byplot - ggplot vectors and measurments, include = FALSE, eval = FALSE}
 
 #this makes a dataframe that gives a lot of control graphically 
 abcover_byspecies_NMDS_fort <- fortify(abcover_byspecies_NMDS)
@@ -742,7 +746,7 @@ NMDS
 NMDS by Plots! to determine which species are driving transect disimiliarity. 
 
 (5) Identify the unique species at each site_rep_dist to get rid of duplicate species recordings. (e.g., Present at one distance = 1/41 to get percent cover) 
-```{r ab percent cover unby species, inclue = TRUE}
+```{r ab percent cover unby species, inclue = TRUE, eval = FALSE}
 
 abcover_byplot_groups <- abcover_full_v_omitground %>% 
   select(c(standtype, site, site_rep, species))
@@ -766,7 +770,7 @@ abcover_byplot_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertatio
 
 
 (6) Prepare data for an NMDS (percent cover x species x standtype)
-```{r transpose percent cover data by species, include=TRUE}
+```{r transpose percent cover data by species, include=TRUE, eval = FALSE}
 
 # use this for GROUPS: abcover_byplot_nmdsprep
 
@@ -787,13 +791,13 @@ abcover_byplot_nmdsprep_num <- abcover_byplot_nmdsprep %>%
 dim(abcover_byplot_nmdsprep_num)
 ```
 
-```{r write nmds to csv}
+```{r write nmds to csv, eval = FALSE}
 view(abcover_byplot_nmdsprep_num) # only numbers
 write.csv(abcover_byplot_nmdsprep_num, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/nmds_aboveground.csv")
 ```
 
 (7) NMDS 
-```{r stress tests}
+```{r stress tests, eval = FALSE}
 # USE THIS ONE!
 
 # str(seedbank_bysitecore_nmdsprep_num)
@@ -804,16 +808,17 @@ seedbank_byplot_nmds <- metaMDS(abcover_byplot_nmdsprep_num, distance = "raup")
 
 # stress test, will run 20 times
 seedbank_byplot_nmds <- metaMDS(abcover_byplot_nmdsprep_num, autotransform = F)
+
 ```
 
-```{r scores nmds}
+```{r scores nmds, eval = FALSE}
 
 scores(seedbank_byplot_nmds)
 
 ```
 
 
-```{r stress test}
+```{r stress test, eval = FALSE}
 
 stressplot(seedbank_byplot_nmds)
 # if stress tests are really low ==> I may have insufficient data. :/
@@ -828,7 +833,7 @@ nmds_df <- data.frame(seedbank_byplot_nmds$points, # unnamed column is species n
 view(nmds_df)
 ```
 
-```{r ggplot bw}
+```{r ggplot bw, eval = FALSE}
 ggplot(nmds_df, aes(x = MDS1, y = MDS2, color = stand, shape = stand)) +
   geom_point(size = 3, alpha = 0.8) +
   scale_color_manual(values = c("gray0", "gray30", "gray60")) +
@@ -837,7 +842,7 @@ ggplot(nmds_df, aes(x = MDS1, y = MDS2, color = stand, shape = stand)) +
   labs(title = "NMDS: by seed bank germination counts", color = "Stand type", shape = "Stand type")
 ```
 
-```{r with vectors}
+```{r with vectors, eval = FALSE}
 
 #this makes a dataframe that gives a lot of control graphically 
 seedbank_byplot_nmds_fort <- fortify(seedbank_byplot_nmds)
@@ -916,7 +921,7 @@ hi
 ```
 
 
-```{r}
+```{r, eval = FALSE}
 
 ggplot(nmds_df, aes(x = MDS1, y = MDS2)) +
   geom_point()+
@@ -933,7 +938,7 @@ ggplot(nmds_df, aes(x = MDS1, y = MDS2, color = stand, shape = stand)) +
   labs(title = "NMDS: by seed bank germination counts", color = "Stand type", shape = "Stand type")
 ```
 
-```{r ggplot color}
+```{r ggplot color, eval = FALSE}
 ggplot(nmds_df, aes(x = MDS1, y = MDS2, color = stand, shape = stand)) +
   geom_point(size = 3, alpha = 0.8) +
   scale_color_manual(values = c("darkgreen", "darkmagenta", "darkgoldenrod1")) +
@@ -947,7 +952,7 @@ ggplot(nmds_df, aes(x = MDS1, y = MDS2, color = stand, shape = stand)) +
 
 
 
-```{r}
+```{r, eval = FALSE}
 # useful code on how to color code NMDS from YouTube: https://www.youtube.com/watch?v=h7OrVmT7Ja8&t=446s
 # and how to group NMDS values: https://www.youtube.com/watch?v=Y0GI34S-ZMI
 
@@ -974,7 +979,7 @@ scores(abcover_byspecies_NMDS$species) %>%
 # How can I make interactive data points with call outs when I hover over them?
 ```
 
-```{r FROM KIT - nmds by species percent cover using code from KIT}
+```{r FROM KIT - nmds by species percent cover using code from KIT, eval = FALSE}
 # USE THIS ONE!
 
 # stress test, will run 20 times
@@ -1085,7 +1090,7 @@ orditorp(abcover_byspecies_NMDS,display="sites",col=c(rep("green",50),rep("blue"
 
 
 (7) NMDS by site (e.g., Intact_1)
-```{r transpose site percent cover data}
+```{r transpose site percent cover data, eval = FALSE}
 
 abcover_bysite_nmdsprep <- abcover_byspecies %>% 
   tidyr::spread(site_rep, percentcover) %>% # transpose data so columns are site_rep
@@ -1101,7 +1106,7 @@ view(abcover_bysite_nmdsprep_num) # only numbers
 ```
 
 
-```{r FROM KIT - nmds by site percent cover}
+```{r FROM KIT - nmds by site percent cover, eval = FALSE}
 
 # stress test with DISTANCE, runs 20 times
 # abcover_bysite_NMDS <- metaMDS(abcover_bysite_nmdsprep_num, distance = "raup") 
@@ -1221,7 +1226,7 @@ orditorp(abcover_bysite_NMDS,display="sites",col=c(rep("green",6),rep("blue",6),
 
 
 
-```{r set seed }
+```{r set seed, eval = FALSE }
 # *** No convergence -- monoMDS stopping criteria:
 #    15: no. of iterations >= maxit
 #     1: stress < smin
@@ -1239,7 +1244,7 @@ plot(abcover_bysite_NMDS)
 
 
 
-```{r sandbox nmds}
+```{r sandbox nmds, eval = FALSE}
 
 plot(abcover_bysite_NMDS, type = "n") #displays empty ordination space
 
