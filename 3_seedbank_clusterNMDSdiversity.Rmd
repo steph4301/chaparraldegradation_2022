@@ -26,6 +26,7 @@ library(ggrepel) # avoid overlaping labes in ggplot2
 library(cluster)
 library(readxl) # for .xls and .xlsx sheets
 library(gt)
+library(knitr)
 
 # libraries that Rob loaded in his Rmd
 library(MASS)
@@ -554,7 +555,7 @@ my_groups <- as.data.frame(sub_grp) %>%
   rownames_to_column()
 
 seed.subgrp.df <- left_join(temp.df, my_groups, by = "rowname") %>% 
-  dplyr::select(rowname, sub_grp, stand_core)
+  dplyr::select(rowname, sub_grp, site, stand_core)
 
 # Create a combined label
 combined_labels <- paste(seed.subgrp.df$sub_grp, seed.subgrp.df$stand_core, sep = " - ")
@@ -925,10 +926,10 @@ spplist <- seedbank_cluster %>%
   # ) 
 
 
-# Export the table as a word doc.
-gtsave(spplist, 
-       "Ch1_Degradation_figures/spplist_dec22.docx", # can also export as .png
-       expand = 10)
+##################### Export the table as a word doc.
+# gtsave(spplist, 
+#        "Ch1_Degradation_figures/spplist_dec22.docx", # can also export as .png
+#        expand = 10)
 
 #################################
 
@@ -1216,7 +1217,7 @@ UPDATED STACKED FIGURE: Stacked germination by family (January 2024, and Decembe
 ```{r germination (n/g soil) by family}
 
 seedbankgerm_cluster_prep <- germination_depthtreat %>% # left join seedbank cluster name to germ data
-  left_join(seed.subgrp.df, by = c("stand_core", "stand", "site")) %>% 
+  left_join(seed.subgrp.df, by = c("stand_core", "site")) %>% 
   rename(sdbk_clust = sub_grp) %>% 
   mutate(sdbk_clust = as.character(sdbk_clust)) %>% 
   dplyr::select(species_diversity, status, lifescycle, lifeform, family, sdbk_clust, n_per_g, stand_core, treatment, depth_name, stand_core_depth_treat) %>% 
@@ -1381,8 +1382,8 @@ ggdraw() +
 
 
 seed_div <- left_join(temp.df, my_groups, by = "rowname") %>% # n_per_g
-  rename(cluster = sub_grp) %>%  # rename column   
-  pivot_longer(cols = 5:60, names_to = "species_diversity", values_to = "n_per_g") %>% 
+  rename(cluster = sub_grp) %>%  # rename column  
+  pivot_longer(cols = 4:58, names_to = "species_diversity", values_to = "n_per_g") %>% 
    mutate(species_diversity = case_when(
      species_diversity == "Unknown Phrymaceae¬†¬†" ~ "Unknown D - brown dicot", # old name ~ new name
        TRUE ~ as.character(species_diversity)))  
@@ -1408,18 +1409,23 @@ shrub_list <- seed_div %>%
   left_join(shrub_spplist, by = "species_diversity") %>% 
   filter(lifeform == "shrub") %>% 
   ungroup() %>% 
-  dplyr::select(cluster, species_diversity, n_per_g) %>% 
+  dplyr::select(species_diversity, n_per_g, cluster) %>% 
   group_by(cluster, species_diversity) %>% 
    summarize(mean_n_per_g = round(mean(n_per_g), 6)) %>% 
   pivot_wider(names_from = cluster, values_from = mean_n_per_g, names_prefix = "Group ")
 shrub_list
 
-kable(shrub_list)
+kable(shrub_list) # run in console :)
 
 ```
 
 
 
+```{r}
+
+print("WhooHoo! This is the end! You got it! :D")
+
+```
 
 
 # OLD CODE BELOW
