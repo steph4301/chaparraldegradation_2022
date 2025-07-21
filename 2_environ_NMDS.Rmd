@@ -1318,6 +1318,11 @@ fig_SALExTSR_omitzeros
 ```
 
 
+```{r}
+
+print("hurray! This is the end of the code :)")
+
+```
 
 # END
 
