@@ -1,0 +1,2843 @@
+---
+title: "Stand Deg: percent cover regressions, canopy height, shrub density"
+author: "Stephanie Ma Lucero"
+date: "2024-04-23"
+output: html_document
+---
+<-- 1_cluster.Rmd
+
+-->  
+
+# Code to hang on to
+- mutate(site_rep = paste(site, transect, sep = "_")) %>% # create a new third column
+- unite("lifeform_status", 6:5, sep = "_") #combines characters in two columns to one column, withoutcreating a third column
+- line types
+-- "solid": A solid line.
+-- "dashed": A dashed line.
+-- "dotted": A dotted line.
+-- "dotdash": Alternating dots and dashes.
+-- "longdash": Long dashes.
+
+SD = spread of data points
+SE = precision of data points
+
+
+```{r libraries, message=FALSE}
+library(knitr) # for tables
+library(MASS)
+library(multcompView) # for significance letters to p-values
+library(gridExtra)
+
+devtools::install_github("an-bui/calecopal")
+library(calecopal)
+
+library(cowplot)
+library(gt) # for tables - use gt or knitr
+library(rstatix) # for pairwise Wilcoxon test with significance letters
+library(flextable)
+```
+
+### colors and labels
+```{r colors, include=TRUE}
+
+## all palettes
+# names(cal_palettes)
+
+#chaparral1
+#chaparral2
+cal_palette(name = "chaparral3", n = 20, type = "continuous") 
+
+#species colors
+HEAR <- "#D3E3CA"
+RHOV <- "#92A587"
+RHIL <- "#2F3525"
+
+MAFA <- "gray60"
+SALE <- "gray40"
+ARCA <- "gray20"
+
+scl <- 16
+css <- 17
+
+colors_scl <- c(HEAR, RHOV, RHIL)
+colors_css <- c(MAFA, SALE, ARCA)
+
+# Lifeform colors: shrub, grass, forb
+shrub <- "green4"
+grass <- "yellow2"
+forb <- "purple2"
+fern <- "black"
+colors_lifeform <- c(shrub, grass, forb, fern)
+
+# Status colors: native, exotic 
+native <- "black"
+nonnative <- "maroon"
+unknown <- "lightblue"
+colors_status <- c(native, nonnative, unknown)
+
+# "orange", "lightblue", "limegreen", "deeppink","mediumpurple2", "darkgreen"
+```
+
+_NOTES:_
+Transect data overview:
+- Years collected: 2017, 2019, 2024 
+- Transects: n = 40
+    - Site 1: 14 transects
+    - Site 2: 21 transects
+    - Site 3: 5 transects
+- Comparing to intact sites: INT1, INT2, INT3, INT4, INT5
+
+
+Load data
+```{r load point intercept transect data from csv, include=TRUE, eval = FALSE}
+
+
+# july 2015 - moved this chunck to 0_dataprep.Rmd
+
+file_transect_2019_load <- read_excel("deg_percentcover_byspecies_bylifeform_2024.xlsx", sheet = "2019_data")
+
+# -- years 2017, 2019
+# -- Site 1: transects 1-6
+# -- Site 2: transects 1-6
+# -- INT1, INT2, INT3, INT4
+
+# Finding species == "Bromus spp." to rename them by species
+# transect2019_bromus <- file_transect_2019_load %>%
+#   filter(grepl("Bromus", species))
+# 
+# transect2019_bromusspp <- file_transect_2019_load %>% 
+#   filter(species == "Bromus spp.")
+
+transect2019 <- file_transect_2019_load %>% 
+  dplyr::select(c(site, transect, year, distance, vertical, species)) %>% # select columns to full join with 2024 data
+  filter(year %in% c(2017, 2019))  %>% #filter data to 2019 data
+   dplyr::select(year, site, transect, distance, vertical, species) %>% 
+   mutate(species = ifelse(# a condition, a value if the condition is true, and a value if the condition is false
+                              site == 2 & transect == 5 & distance %in% c(2, 6, 9) & species == "Bromus spp.", "Bromus hordeaceus", species)) %>% 
+    mutate(species = ifelse(site == 2 & transect == 5 & distance %in% c(10, 28) & species == "Bromus spp.", "Bromus rubens", species)) %>% 
+    mutate(species = ifelse(site == 2 & transect == 6 & distance %in% c(23, 35, 37) & species == "Bromus spp.", "Bromus hordeaceus", species)) %>% 
+    mutate(species = ifelse(site == "INT1" & transect == 1 & distance %in% c(24) & species == "Bromus spp.", "Bromus diandrus", species)) %>% 
+   mutate(
+       site = as.character(site))
+
+
+# View the data (optional)
+#View(transect2019)
+#sort(unique(transect2019$transect))
+#sort(unique(transect2019$site))
+
+
+file_transect_2024_load <- read.csv("data/Transects_2024 - transect.csv", header = TRUE, na.strings=c("","NA"))
+# -- years 2024
+# -- Site 1: transects 7-14
+# -- Site 2: transects 7-21
+# -- INT5
+transect2024 <- file_transect_2024_load %>%  
+  dplyr::select(c(site, transect, year, distance, vertical, species)) %>% 
+  filter(species != "N/A") %>% 
+   mutate(species = case_when(species == "Bromus spp." ~ "Bromus rubens", # oldname ~ newname
+                              TRUE ~ species))
+  
+# View the data (optional)
+#view(transect2024)
+#sort(unique(transect2024$transect))
+#sort(unique(transect2024$site))
+```
+
+- full join transect data
+
+```{r full join, eval=FALSE}
+
+# july 2015 - moved this chunck to 0_dataprep.Rmd
+
+
+abcover_fulljoin <- full_join(transect2019, transect2024, 
+                              by = intersect(names(transect2019),
+                                             names(transect2024)))
+
+# View the data (optional)
+#View(abcover_fulljoin)
+#sort(unique(abcover_fulljoin$transect))
+#sort(unique(abcover_fulljoin$site))
+```
+
+- load cluster labels
+```{r}
+
+########### this is old code that: pulled cluster (aka. sub_group numbers from the environmental data)
+########### and then created two versions (1) with a dot between site and transect number <-- "groups" 
+########### and (2) with a underscore line between site and transect number <-- "groups_dash
+
+
+# groups_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) 
+# 
+# groups <- groups_load %>% 
+#   dplyr::select(c(system_ind, cluster)) %>% 
+#   rename(site_rep = system_ind) %>% 
+#   mutate(site_rep = case_when(site_rep == "INT1" ~ "INT1.1", # old name ~ new name
+#                               site_rep == "INT2" ~ "INT2.1",
+#                               site_rep == "INT3" ~ "INT3.1",
+#                               site_rep == "INT4" ~ "INT4.1",
+#                               site_rep == "INT5" ~ "INT5.1",
+#                                   TRUE ~ site_rep))   %>% 
+#   mutate(site_rep = case_when(site_rep == "1.1" ~ "1.10", # old ~ new
+#                                  site_rep == "2.1" ~ "2.10",
+#                                  site_rep == "2.2" ~ "2.20",
+#                                    TRUE ~ site_rep)) %>% 
+#    mutate(
+#       site_rep = as.character(site_rep)
+#       ) %>% 
+#   as_tibble() 
+# 
+# 
+# groupsdash <- groups %>%  
+#   separate(site_rep, into = c("site", "rep"), sep = "\\.") %>%
+#   mutate(rep = case_when(rep == "01" ~ "1", # oldname ~ newname
+#                          rep == "02" ~ "2",
+#                          rep == "03" ~ "3",
+#                          rep == "04" ~ "4",
+#                          rep == "05" ~ "5",
+#                          rep == "06" ~ "6",
+#                          rep == "07" ~ "7",
+#                          rep == "08" ~ "8",
+#                          rep == "09" ~ "9",
+#                               TRUE ~ rep)) %>% 
+#      mutate(site_rep = paste(site, rep, sep = "_")) %>% 
+#   dplyr::select(site_rep, cluster)  %>% 
+#      mutate(
+#       site_rep = as.character(site_rep)
+#       ) %>% 
+#   as_tibble() 
+#    
+# 
+# 
+# groups
+# 
+# groupsdash
+```
+
+## species list
+```{r}
+abcover_full
+```
+
+## species characteristics
+
+```{r load species characteristics, include=TRUE}
+specieslist <- file_transect_2019_load %>%
+  dplyr::select(species, lifeform, status, lifecycle, family) %>%
+   mutate(status = case_when(status == "Native" ~ "native", # oldname ~ newname
+                                status == "Non-native" ~ "nonnative",
+                                status == "thatch" ~ "ground",
+                                status == "litter" ~ "ground",
+                                status == "rock" ~ "ground",
+                                TRUE ~ status)) %>%
+   mutate(lifeform = case_when(lifeform == "Grass" ~ "grass",
+                                lifeform == "Shrub" ~ "shrub",
+                                lifeform == "Forb" ~ "forb",
+                                lifeform == "thatch" ~ "ground",
+                                lifeform == "litter" ~ "ground",
+                                lifeform == "rock" ~ "ground",
+                                TRUE ~ lifeform)) %>%
+   mutate(lifecycle = case_when(lifecycle == "Annual" ~ "annual",
+                                lifecycle == "Perennial" ~ "perennial",
+                                lifecycle == "thatch" ~ "ground",
+                                lifecycle == "litter" ~ "ground",
+                                lifecycle == "rock" ~ "ground",
+                                TRUE ~ lifecycle)) %>%
+   mutate(family = case_when(family == "thatch" ~ "ground",
+                             family == "litter" ~ "ground",
+                             family == "rock" ~ "ground",
+                                TRUE ~ family)) %>%
+   mutate(species = case_when(species == "BG bare ground" ~ "bare_ground",
+                                species == "ground" ~ "bare_ground",
+                                species == "native_litter" ~ "litter",
+                                species == "nonnative_thatch" ~ "thatch",
+                                species == "Bromus diandrus BRDI" ~ "Bromus diandrus",
+                                species == "Bromus rubens BRRU" ~ "Bromus rubens",
+                                species == "Bromus hordeaceus BRHO" ~ "Bromus hordeaceus",
+                                species == "Rapistrum rugosum - round pods" ~ "Rapistrum rugosum",
+                                species == "HIIN Hirschfeldia incana - long pods" ~ "Hirschfeldia incana",
+                                species == "Hirschfeldia incana - long pods" ~ "Hirschfeldia incana",
+                                species == "Salvia lucophylla" ~ "Salvia leucophylla",
+                                species == "Malacothamnus fasciculatus " ~ "Malacothamnus fasciculatus",
+                                species == "dead HEAR" ~ "Heteromeles arbutifolia dead",
+                                species == "dead MAFA" ~ "Malacothamnus fasciculatus dead",
+                                species == "dead RHIL" ~ "Rhamnus ilicifolia dead",
+                                species == "dead ARCA" ~ "Artemisia californica dead",
+                                species == "dead SALE" ~ "Salvia leucophylla dead",
+                                species == "ACGL Acmispon glaber" ~ "Acmispon glaber",
+                                species == "Acmispon maritimus - round, sevfl" ~ "Acmispon maritimus",
+                                species == "Acmispon strigosus - oval, sevfl" ~ "Acmispon strigosus",
+                                species == "Mirabilis laevis var. crassifolia" ~ "Mirabilis laevis",
+                                TRUE ~ species)) %>%
+  add_row(species = "Cryptantha spp.",
+          lifeform = "forb",
+          status = "native",
+          lifecycle = "annual",
+          family = "Boraginaceae ") %>% 
+    add_row(species = "Acmispon glaber dead",
+          lifeform = "forb",
+          status = "native",
+          lifecycle = "annual",
+          family = "Fabaceae ") %>% 
+    add_row(species = "Uropappus lindleyi",
+          lifeform = "forb",
+          status = "native",
+          lifecycle = "annual",
+          family = "Asteraceae   ") %>% 
+  distinct()
+
+#View(specieslist)
+sort(unique(specieslist$species))
+length(unique(specieslist$species))
+```
+
+-- code to update list of species characteristics
+```{r playing with da species list}
+ab_species <- sort(unique(abcover_full$species))
+species_species <- sort(unique(specieslist$species))
+
+#These are the species that are in abcover_full that are NOT in the species list
+difab <- setdiff(ab_species, species_species)
+difab 
+
+#These are the species that are in the species list that are NOT in abcover_full
+difsp <- setdiff(species_species, ab_species)
+difsp
+
+# # add species to the specieslist
+# new.specieslist <- specieslist %>%
+#   add_row(species = "Cryptantha spp.",
+#           lifeform = "forb",
+#           status = "native",
+#           lifecycle = "annual",
+#           family = "Boraginaceae ")
+# #           
+# # Rename species in the specieslist if needed
+# new.specieslist <- specieslist %>%
+#     mutate(species = case_when(species == "" ~ "",
+#                                TRUE ~ species))
+# 
+# # Rename species in the data frame (abcover_full) if needed
+# new.abcover_full <- abcover_full %>%
+#     mutate(species = case_when(species == "Cryptantha sp." ~ "Cryptantha spp.",
+#                               species == "dead Acmispon glaber" ~ "Acmispon glaber dead",
+#                                TRUE ~ species))
+# 
+# new.ab_species <- sort(unique(new.abcover_full$species))
+# new.species_species <- sort(unique(new.specieslist$species))
+# 
+# new.ab_species == new.species_species
+# 
+# #These are the species that are in abcover_full that are NOT in the species list
+# new.difab <- setdiff(new.ab_species, new.species_species)
+# new.difab
+# 
+# #These are the species that are in the species list that are NOT in abcover_full
+# new.difsp <- setdiff(new.species_species, new.ab_species)
+# new.difsp
+# # 
+# 
+# # Run the code below when you are sure you added everything correctly 
+# specieslist <- new.specieslist
+# abcover_full <- new.abcover_full
+# 
+# write.csv(specieslist, file = "processed/specieslist.csv") # species and their characteristics :)
+
+```
+
+### left_join species characteristics
+```{r left_join species characteristics}
+abcover_charateristics <- abcover_full %>% 
+  left_join(specieslist, by = "species") 
+  
+
+#sort(unique(abcover_charateristics$species))
+
+# write.csv(abcover_charateristics, file = "processed/ab_specieslistwithcharateristics_08102024.csv") # species and their characteristics :)
+```
+
+## leaf type
+```{r}
+#shrub_leaftype <- read_excel("shrub_leaftype.xlsx") #original data
+
+shrub_leaftype <- read.csv("data/shrub_leaftype.csv") %>% 
+  dplyr::select("species", "leaftype") %>% 
+   mutate(
+      species = as.character(species),
+      leaftype = as.character(leaftype)
+      ) %>% 
+  mutate(
+    leaftype = if_else(grepl("dead", species, ignore.case = TRUE), "dead_shrub", leaftype)
+  ) %>% 
+  add_row(species = "Salvia apiana",
+           leaftype = "nonsclero") %>% 
+    add_row(species = "Cenothus oliganthus",
+           leaftype = "nonsclero") %>% 
+   add_row(species = "Quercus agrifolia",
+           leaftype = "sclerophyllous") %>% 
+    add_row(species = "no_shrubs",
+           leaftype = "no_shrubs") %>% 
+  add_row(species = "Ceanothus cuneatus", 
+          leaftype = "sclerophyllous") %>% 
+  add_row(species = "unknown5 shrub",
+           leaftype = "unknown") 
+
+print(sort(shrub_leaftype$species))
+```
+
+-- code to update list of shrub leaf characteristics
+```{r update schlero leaf data}
+
+#These are the species that are in abcover_full that are NOT in the species list
+ab_shrubs_prep <- abcover_charateristics %>% 
+  filter(lifeform == "shrub")
+ab_shrubs <- sort(unique(ab_shrubs_prep$species))
+
+shrub_shrubs_prep <- specieslist %>% 
+  filter(lifeform == "shrub")
+shrub_shrubs <- sort(unique(shrub_shrubs_prep$species))
+
+# compare shrub lists
+#These are the species that are in the species list that are NOT in abcover_full
+difshr <- setdiff(ab_shrubs, shrub_shrubs)
+difshr
+
+
+# new.shrub_leaftype <- shrub_leaftype %>%
+#   add_row(species = "", leaftype = "")
+# 
+# # Run the code below when you are sure you added everything correctly
+# shrub_leaftype <- new.shrub_leaftype
+# 
+# write.csv(shrub_leaftype, file = "shrub_leaftype.csv")
+```
+
+### left_join leaftype
+```{r}
+abcover_charateristics_leaftype <- abcover_charateristics %>% 
+  left_join(shrub_leaftype, by = "species")
+```
+
+# Data prep
+```{r data check, include = TRUE}
+abcover_charateristics_leaftype %>% 
+  group_by(site, transect) %>%
+  summarize(data_points = length(unique(distance))) # number of "hits" per transect
+
+abcover_charateristics_leaftype %>% 
+  group_by(site) %>%
+  summarize(n_transects = length(unique(transect))) # number of transects per site
+# sort(unique(abcover_full$site_rep))
+```
+- omit ground
+### edit df 
+```{r omit ground as a status}
+abcover_omitground <- abcover_charateristics_leaftype %>% 
+  filter(vertical != "ground", 
+         vertical != "ground cover") %>% 
+  filter(species != "no_species", 
+         species != "thatch") %>% 
+  mutate(lifeform_status = paste(lifeform, status, sep = "_")) %>% 
+  mutate(lifeform_status_leaftype = paste(lifeform_status, leaftype, sep = "_"))
+
+# sort(unique(abcover_omitground$status))
+# names(abcover_omitground)
+```
+
+### transect percent cover by native or non-native stauts
+```{r hist percent cover by site and status}
+
+# I'm not interested in cover by total native vs. total non-native
+
+# cover_bystatus <- abcover_omitground %>% 
+#   group_by(site, transect, site_rep, year, status) %>%
+#   dplyr::summarize(
+#     count_per_transect = n_distinct(site_rep_dist),
+#     percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect, lifeform, and status
+#     ) 
+
+# # view(cover_bystatus)
+# hist(cover_bystatus$percentcover)
+# 
+# # jitter - by site and status
+# ggplot(data = cover_bystatus, 
+#        aes(y = percentcover*100, x = site, color = status)) + 
+#   geom_jitter() +
+#   facet_wrap(~status)
+
+```
+
+### percent cover - by lifeform_status and lifeform_status_leaftype
+```{r hist percent cover by lifeform and status}
+
+cover_bylfstatus <- abcover_omitground %>% # total percent cover of shrubs_native
+   group_by(year, site, transect, site_rep, lifeform_status) %>%
+  dplyr::summarize(
+    lfstatus_count_per_transect = n_distinct(site_rep_dist),
+    lifeform_status_percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect, lifeform, and status
+    ) %>%  
+    dplyr::select(!c(lfstatus_count_per_transect)) %>% 
+  ungroup() 
+
+# view(cover_bylfstatus)
+
+join_cover <- cover_bylfstatus %>% 
+   dplyr::select(site_rep, lifeform_status, lifeform_status_percentcover) %>%
+  unite("join", 1:2, sep = "_")
+  
+cover_bylfstatusleaftype <- abcover_omitground %>% 
+   group_by(year, site, transect, site_rep, lifeform_status, lifeform_status_leaftype) %>%
+   dplyr::summarize(
+    leaftype_count_per_transect = n_distinct(site_rep_dist),
+    lifeform_status_leaftype_percentcover = n_distinct(site_rep_dist)/41
+    ) %>%  
+   dplyr::select(!c(leaftype_count_per_transect)) %>% 
+  ungroup() %>% 
+  mutate(join = paste(site_rep, lifeform_status, sep = "_")) %>% 
+  left_join(join_cover, by = "join") %>% 
+   dplyr::select(!c(join))
+
+# view(cover_bylfstatusleaftype)
+```
+
+```{r view data - lifeform_status_leaftype_percentcover }
+
+# hist(percentcover$lifeform_status_leaftype_percentcover) 
+# 
+# # jitter - all sites
+# ggplot(data = percentcover,
+#        aes(y = lifeform_status_leaftype_percentcover*100, x = site, color = lifeform_status)) +
+#   geom_point() +
+#   facet_wrap(~lifeform_status)
+# # 
+# # exclude INT transects
+# ggplot(data = cover_bylfstatus %>% filter(site == "1" | site == "2"), 
+#        aes(y = percentcover*100, x = site, color = lifeform_status)) +
+#   geom_point() +
+#   facet_wrap(~lifeform_status)
+# 
+# # only INT sites
+# ggplot(data = cover_bylfstatus %>% filter(site == "INT1" | site == "INT2" | site == "INT3" | site == "INT4" | site == "INT5"),
+#        aes(y = percentcover*100, x = site, color = lifeform_status)) +
+#   geom_point() +
+#   facet_wrap(~lifeform_status)
+
+```
+
+- Here I'm transposing the dataframes from long to wide  because I want to visualize native shrub by leaftype cover by non-native grass cover.
+```{r transpose cover_bylfstatus}
+
+
+cover_bylfstatus_wide <- cover_bylfstatus %>%
+  dplyr::select(site, site_rep, lifeform_status, lifeform_status_percentcover) %>% 
+   pivot_wider(names_from = lifeform_status, values_from = lifeform_status_percentcover) %>%
+   replace_na(replace = list(grass_native = 0,  # Replace NA with 0 for each value column
+                             grass_nonnative = 0,
+                             forb_native = 0,
+                             forb_nonnative = 0,
+                             forb_unknown = 0,
+                             shrub_native = 0,
+                             fern_native = 0,
+                             unknown_unknown = 0)) %>% 
+  left_join(groupsdash, by = "site_rep")
+  
+# view(cover_bylfstatus_wide)
+
+cover_byleaftype_wide <- cover_bylfstatusleaftype %>% 
+  dplyr::select(site, site_rep, lifeform_status_leaftype, lifeform_status_leaftype_percentcover) %>% 
+  pivot_wider(names_from = lifeform_status_leaftype, values_from = lifeform_status_leaftype_percentcover) %>%
+  replace_na(replace = list(fern_native_NA = 0,
+                            unknown_unknown_NA = 0,
+                            forb_native_NA = 0,
+                            forb_nonnative_NA = 0,
+                            forb_unknown_NA = 0,
+                            shrub_native_dead_shrub = 0,
+                            shrub_native_nonsclero = 0,
+                            shrub_native_sclerophyllous = 0,
+                            grass_native_NA = 0,
+                            grass_nonnative_NA = 0)) %>% 
+  left_join(groupsdash, by = "site_rep")
+
+# view(cover_byleaftype_wide)
+
+# join two dfs 
+cover_wide <- cover_byleaftype_wide %>% 
+  left_join(cover_bylfstatus_wide, by = c("site_rep", "site", "cluster"))
+
+```
+ 
+ 
+# REGRESSIONS
+
+```{r}
+native_aes <- list(
+  aes(shape = "native", size = 3, color = "native"),
+  scale_shape_manual(values = c("native" = 1), guide = "none"), # Shape: open circle
+  scale_color_manual(values = c("native" = "black"), guide = "none"), # Color: black
+  scale_size_manual(values = c("native" = 3), guide = "none") # Size: 3
+)
+```
+
+### x = shrub cover by leaf type
+
+- y = non-native grass cover 
+```{r shrub_split}
+
+########################### SHRUB_SPLIT
+
+
+############ scl slope >= 50%
+model.scl.50 <- lm(shrub_native_sclerophyllous ~ grass_nonnative_NA, data = (cover_wide %>%  filter(shrub_native_sclerophyllous >= .50))) # response variable ~ independent variable
+# Print the summary of the model
+model.scl_summary.50 <- summary(model.scl.50)
+# Extract the intercept, slope, and R^2 values
+interceptscl.50 <- round(coef(model.scl.50)[1], 2)
+slopescl.50 <- round(coef(model.scl.50)[2], 2)
+r_squaredscl.50 <- round(model.scl_summary.50$r.squared, 3)
+print(paste("Multiple R^2:", r_squaredscl.50))  # [1] "Multiple R^2: 0.429"
+# Create the label for the equation and R^2
+eq_label_scl.50 <- paste0("Scl >50%: y = ", slopescl.50, "x + ", interceptscl.50, "\n", "R² = ", r_squaredscl.50)
+
+############ scl slope < 50%
+model.scl00 <- lm(shrub_native_sclerophyllous ~ grass_nonnative_NA, data = (cover_wide %>%  filter(shrub_native_sclerophyllous < .50))) # response variable ~ independent variable
+# Print the summary of the model
+model.scl_summary00 <- summary(model.scl00)
+# Extract the intercept, slope, and R^2 values
+interceptscl00 <- round(coef(model.scl00)[1], 2)
+slopescl00 <- round(coef(model.scl00)[2], 2)
+r_squaredscl00 <- round(model.scl_summary00$r.squared, 3)
+print(paste("Multiple R^2:", r_squaredscl00))
+# [1] "Multiple R^2: 0.442"
+# Create the label for the equation and R^2
+eq_label_scl00 <- paste0("Scl <50%: y = ", slopescl00, "x + ", interceptscl00, "\n", "R² = ", r_squaredscl00)
+
+
+
+######### sage scrub slope > 50%
+model.ss50 <- lm(shrub_native_nonsclero ~ grass_nonnative_NA, data = (cover_byleaftype_wide %>%  filter(shrub_native_nonsclero >= .50))) # response variable ~ independent variable
+model.ss_summary50 <- summary(model.ss50)
+# Extract the intercept, slope, and R^2 values
+interceptss50 <- round(coef(model.ss50)[1], 2)
+slopess50 <- round(coef(model.ss50)[2], 2)
+r_squaredss50 <- round(model.ss_summary50$r.squared, 3)
+print(paste("Multiple R^2:", r_squaredss50))
+eq_label_ss50 <- paste0("ss >50%: y = ", slopess50, "x + ", interceptss50, "\n", 
+                        "R² = ", r_squaredss50)
+
+######### sage scrub slope < 50%
+model.ss00 <- lm(shrub_native_nonsclero ~ grass_nonnative_NA, data = (cover_byleaftype_wide %>%  filter(shrub_native_nonsclero < .50 ))) # response variable ~ independent variable
+model.ss_summary00 <- summary(model.ss00)
+# Extract the intercept, slope, and R^2 values
+interceptss00 <- round(coef(model.ss00)[1], 2)
+slopess00 <- round(coef(model.ss00)[2], 2)
+r_squaredss00 <- round(model.ss_summary00$r.squared, 3)
+print(paste("Multiple R^2:", r_squaredss00))
+eq_label_ss00 <- paste0("ss <50%: y = ", slopess00, "x + ", interceptss00, "\n", 
+                        "R² = ", r_squaredss00)
+
+
+
+
+shrub_split <- ggplot(data = cover_wide) +
+  
+  #  scl cover >= 50%
+  geom_point(data = cover_wide %>%  filter(shrub_native_sclerophyllous >= .50), 
+             aes(x = shrub_native_sclerophyllous * 100, y = grass_nonnative * 100, 
+                 color = "sclerophyllous", 
+                 shape = "sclerophyllous"
+                 ), 
+             size = 3, 
+             show.legend = TRUE) +  # Adjust point size here
+  geom_smooth(data = cover_wide %>% filter(shrub_native_sclerophyllous >= .50), 
+              aes(x = shrub_native_sclerophyllous * 100, 
+                  y = grass_nonnative * 100, 
+                  color = "sclerophyllous"), 
+              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
+  
+ #  scl cover < 50%
+  geom_point(data = cover_wide %>%  filter( shrub_native_sclerophyllous < .50
+                                            #   & shrub_native_sclerophyllous > 0 
+                                           ), 
+             aes(x = shrub_native_sclerophyllous * 100, y = grass_nonnative * 100, 
+                 color = "sclerophyllous" , 
+                 shape = "sclerophyllous"
+                 ), 
+             size = 3, 
+             show.legend = TRUE) +  # Adjust point size here
+  geom_smooth(data = cover_wide %>% filter(shrub_native_sclerophyllous < .50), 
+              aes(x = shrub_native_sclerophyllous * 100, 
+                  y = grass_nonnative * 100, 
+                  color = "sclerophyllous"), 
+              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
+  
+  #  ss cover >= 50%
+  geom_point(data = cover_wide %>%  filter(shrub_native_nonsclero >= .50), 
+             aes(x = shrub_native_nonsclero * 100, y = grass_nonnative * 100, 
+                 color = "sage scrub", 
+                 shape = "sage scrub"), 
+             size = 3, 
+             show.legend = TRUE) +  # Adjust point size here
+  geom_smooth(data = cover_wide %>% filter(shrub_native_nonsclero >= .50), 
+              aes(x = shrub_native_nonsclero * 100, 
+                  y = grass_nonnative * 100, 
+                  color = "sage scrub"), 
+              method = "lm", se = TRUE, linetype = "dotted", show.legend = TRUE) +
+  
+   #  ss cover < 50%
+  geom_point(data = cover_wide %>%  filter( shrub_native_nonsclero < .50
+                                            #   & shrub_native_nonsclero > 0 
+                                           ), 
+             aes(x = shrub_native_nonsclero * 100, y = grass_nonnative * 100, 
+                 color = "sage scrub", 
+                 shape = "sage scrub"), 
+             size = 3, 
+             show.legend = TRUE) +  # Adjust point size here
+  geom_smooth(data = cover_wide %>% filter(shrub_native_nonsclero < .50), 
+              aes(x = shrub_native_nonsclero * 100, 
+                  y = grass_nonnative * 100, 
+                  color = "sage scrub"), 
+              method = "lm", se = TRUE, linetype = "dotted", show.legend = TRUE) +
+  # Labels
+  labs(
+    color = "Shrub Type",
+    shape = "Shrub Type",
+    x = "Shrub Cover (%)",
+    y = "Non-naive grass cover (%)"
+  ) +
+  # Custom Shapes and Colors for Legend
+  scale_shape_manual(values = c("sclerophyllous" = 7, "sage scrub" = 16), 
+                     breaks = c("sclerophyllous", "sage scrub")) +  # Square = 15, Circle = 16
+ 
+  # Reorder variables with sclerophyllous first
+  scale_color_manual(values = c("sclerophyllous" = "black", "sage scrub" = "black"), 
+                     breaks = c("sclerophyllous", "sage scrub")) +
+  
+  # Axis Limits
+  xlim(0, 100) +
+  ylim(0, 100) +
+  # Theme
+  theme_bw() +
+  geom_abline(intercept = 100, slope = -1, color = "gray", linetype = "dashed") +
+  # Annotations for Equation Labels
+  annotate("text", x = 60, y = 98, label = eq_label_scl.50, color = "gray30", size = 4, hjust = 0) +
+  annotate("text", x = 5, y = 15, label = eq_label_scl00, color = "grey30", size = 4, hjust = 0) + 
+  
+  annotate("text", x = 60, y = 84, label = eq_label_ss50, color = "gray30", size = 4, hjust = 0) +
+  annotate("text", x = 5, y = 1, label = eq_label_ss00, color = "grey30", size = 4, hjust = 0) 
+  
+print(shrub_split)
+
+```
+
+
+### x = total shrub
+
+- y = native and non-native grass cover 
+```{r}
+
+############ non-native slope
+# Fit the linear model
+model.nng <- lm(grass_nonnative ~ shrub_native, data = cover_bylfstatus_wide) # response variable ~ independent variable
+
+# Print the summary of the model
+model.nng_summary <- summary(model.nng)
+# Extract the intercept, slope, and R^2 values
+interceptnng <- round(coef(model.nng)[1], 2)
+slopenng <- round(coef(model.nng)[2], 2)
+r_squarednng <- round(model.nng_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squarednng))
+# [1] "Multiple R^2: 0.734"
+# Create the label for the equation and R^2
+eq_label_nng <- paste0("Non-native grass: y = ", slopenng, "x + ", interceptnng, "\n", "R² = ", r_squarednng)
+
+######### native grass slope
+# Fit the linear model
+model.ng <- lm(grass_native ~ shrub_native, data = cover_bylfstatus_wide) # response variable ~ independent variable
+model.ng_summary <- summary(model.ng)
+# Extract the intercept, slope, and R^2 values
+interceptng <- round(coef(model.ng)[1], 2)
+slopeng <- round(coef(model.ng)[2], 2)
+r_squaredng <- round(model.ng_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squaredng))
+# [1] "Multiple R^2: 0.261"
+# Create the label for the equation and R^2
+eq_label_ng <- paste0("Native grass: y = ", slopeng, "x + ", interceptng, "\n", "R² = ", r_squaredng)
+
+fig.1f <- ggplot(data = cover_bylfstatus_wide) + 
+  #%>%  filter(forb_native > 0.01 | forb_nonnative > 0.01 | forb_unknown > 0.01)) +
+  
+  geom_point(aes(x = shrub_native * 100, 
+                 y = grass_native * 100), 
+             size = 3, shape = 1, show.legend = FALSE) +
+  geom_smooth(aes(x = shrub_native * 100, y = grass_native * 100, color = "grass_native"),
+             method = "lm", se = TRUE, linetype = "dashed", show.legend = FALSE) +
+  
+  geom_point(aes(x = shrub_native * 100, 
+                 y = grass_nonnative * 100), 
+             size = 3, shape = 16 , show.legend = FALSE) +
+  geom_smooth(aes(x = shrub_native * 100, y = grass_nonnative * 100, color = "grass_nonnative"), 
+              method = "lm", se = TRUE, linetype = "solid", show.legend = FALSE) +
+  labs(
+     # title = "Comparison of native and non-native forb percent cover by Nonnative Grass percent cover",
+      color = "Status",
+    x = "Native shrub cover (%)",
+    y = "Grass cover (%)"
+    ) +
+  scale_color_manual(values = c(
+     "grass_native" = "black", 
+    "grass_nonnative" = "black"),
+                     labels = c(
+                        "Native ", 
+                       "Non-native")) +
+  xlim(0, 100) +
+  ylim(0, 100) +
+  theme_bw() +
+  annotate("text", x = 0, y = 40, label = eq_label_nng, color = "black", size = 4, hjust = 0) +
+  annotate("text", x = 0, y = 25, label = eq_label_ng, color = "black", size = 4, hjust = 0) +
+  geom_abline(intercept = 100, slope = -1, color = "darkgray", linetype = "dashed")
+
+fig.1f
+
+
+ggplot(data = cover_bylfstatus_wide, 
+       aes(x = shrub_native * 100, 
+           y = grass_nonnative * 100)) +
+  geom_point(size = 3, show.legend = TRUE) +
+  geom_smooth(aes(color = grass_nonnative), method = "lm", se = TRUE, linetype = "dashed", show.legend = TRUE) +
+  labs(
+    x = "Shrub Native Cover (%)",
+    y = "Grass Non-native Cover (%)",
+    title = "Relationship Between Shrub Native and Grass Non-native Cover"
+  ) +
+  theme_minimal() +
+  facet_grid(~ cluster) +
+   geom_abline(intercept = 100, slope = -1, color = "gray", linetype = "dashed")
+  
+
+
+```
+
+- y = non-native grass cover at SHRUB COVER >50% and <50%
+```{r}
+# 
+# shrub_50 <- ggplot(data = (cover_bylfstatus_wide %>%  filter(shrub_native >= .50)), 
+#        aes(x = shrub_native*100,
+#            y = grass_nonnative*100
+#            )) + 
+#    geom_point(aes(color = site), size = 3) +
+#   scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+#   geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
+#   labs(
+#     x = "Native shrub cover (%)",
+#     y = "Non-native grass cover (%)",
+#    # title = "Linear regression of non-native grass by sclerophyllous shrub percent cover"
+#    color = "Site"
+#     ) +
+# scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+#   scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+#   theme_bw() +
+#    annotate("text", x = 0, y = 5, label = eq_label_nng, color = "black", size = 4, hjust = 0) 
+# 
+# shrub_0 <- ggplot(data = (cover_bylfstatus_wide %>%  filter(shrub_native < .50)), 
+#        aes(x = shrub_native*100,
+#            y = grass_nonnative*100
+#            )) + 
+#    geom_point(aes(color = site), size = 3) +
+#   scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+#   geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
+#   labs(
+#     x = "Native shrub cover (%)",
+#     y = "Non-native grass cover (%)",
+#    # title = "Linear regression of non-native grass by sclerophyllous shrub percent cover"
+#    color = "Site"
+#     ) +
+# scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+#   scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+#   theme_bw() +
+#    annotate("text", x = 0, y = 5, label = eq_label_nng, color = "black", size = 4, hjust = 0) 
+# 
+# 
+# shrub_50
+# shrub_0
+
+```
+
+
+- y = non-native FORB cover
+```{r}
+############ non-native slope
+# Fit the linear model
+model.nnf <- lm(forb_nonnative ~ shrub_native, data = cover_bylfstatus_wide) # response variable ~ independent variable
+
+# Print the summary of the model
+model.nnf_summary <- summary(model.nnf)
+# Extract the intercept, slope, and R^2 values
+interceptnnf <- round(coef(model.nnf)[1], 2)
+slopennf <- round(coef(model.nnf)[2], 2)
+r_squarednnf <- round(model.nnf_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squarednnf))
+# [1] "Multiple R^2: 0.108"
+# Create the label for the equation and R^2
+eq_label_nnf <- paste0("Non-native forb: y = ", slopennf, "x + ", interceptnnf, "\n", "R² = ", r_squarednnf)
+
+
+######### native forb slope
+# Fit the linear model
+model.nf <- lm(forb_native ~ shrub_native, data = cover_bylfstatus_wide) # response variable ~ independent variable
+model.nf_summary <- summary(model.nf)
+# Extract the intercept, slope, and R^2 values
+interceptnf <- round(coef(model.nf)[1], 2)
+slopenf <- round(coef(model.nf)[2], 2)
+r_squarednf <- round(model.nf_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squarednf))
+# [1] "Multiple R^2: 0.002"
+# Create the label for the equation and R^2
+eq_label_nf <- paste0("Native forb: y = ", slopenf, "x + ", interceptnf, "\n", "R² = ", r_squarednf)
+
+fig.1d <- ggplot(data = cover_bylfstatus_wide) + #%>%  filter(forb_native > 0.01 | forb_nonnative > 0.01 | forb_unknown > 0.01)) +
+  geom_point(aes(x = shrub_native * 100, y = forb_native * 100, color = "forb_native"), 
+             size = 3, shape = 1, show.legend = FALSE) +
+  geom_smooth(aes(x = shrub_native * 100, y = forb_native * 100, color = "forb_native"), 
+              method = "lm", se = TRUE, linetype = "dashed", show.legend = FALSE) +
+  
+  geom_point(aes(x = shrub_native * 100, y = forb_nonnative * 100, color = "forb_nonnative"), 
+             size = 3, shape = 16, show.legend = FALSE) +
+  geom_smooth(aes(x = shrub_native * 100, y = forb_nonnative * 100, color = "forb_nonnative"), 
+              method = "lm", se = TRUE, linetype = "solid", show.legend = FALSE) +
+  labs(
+     # title = "Comparison of native and non-native forb percent cover by Nonnative Grass percent cover",
+      color = "Status",
+    x = "Native shrub cover (%)",
+    y = "Forb cover (%)"
+    ) +
+  scale_color_manual(values = c("forb_native" = "black", "forb_nonnative" = "black"),
+                     labels = c("Native ", "Non-native")) +
+  xlim(0, 100) +
+  ylim(0, 100) +
+  theme_bw() +
+  annotate("text", x = 50, y = 90, label = eq_label_nnf, color = "black", size = 4, hjust = 0) +
+  annotate("text", x = 50, y = 75, label = eq_label_nf, color = "black", size = 4, hjust = 0) +
+  geom_abline(intercept = 100, slope = -1, color = "darkgray", linetype = "dashed")
+
+fig.1d
+
+
+ 
+
+```
+
+
+
+- y = shrub cover by leaftype by HILLSLOPE
+```{r}
+# ggplot(data = (cover_bylfstatusleaftype %>%
+#                  filter(lifeform_status == "shrub_native") %>%
+#               mutate(site = case_when(
+#                            site %in% c("INT1", "INT2", "INT3", "INT4", "INT5") ~ "INT",
+#                            TRUE ~ site)
+#                         )
+#                ),
+#        aes(y = lifeform_status_leaftype_percentcover*100,
+#            x = lifeform_status_percentcover*100)) +
+#    # geom_point(aes(color = site), size = 3) +
+#    # scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+# 
+#   geom_point(aes(color = lifeform_status_leaftype), size = 3) +
+#    scale_color_manual(values = c("black", "gray", "green")) +
+# 
+#    scale_shape_manual(values = c(4, 1, 16)) +
+# 
+#  # geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+#   labs(
+#     x = "Total shrub cover (%)",
+#     y = "Shrub cover by leaf type (%)",
+#     title = "Total shrub cover as a product of dead, non-scl, or scl shrubs"
+#     ) +
+# scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+#   scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+#   theme_bw() +
+#   geom_abline(intercept = 0, slope = 1) +
+#   facet_wrap(~site) # lifeform_status_leaftype
+
+```
+
+
+```{r}
+fig.1b <- ggplot(data = (cover_wide %>%  
+                 filter(shrub_native_sclerophyllous > 0.01)
+               ), 
+       aes(x = shrub_native_sclerophyllous*100,
+           y = grass_nonnative_NA*100
+           )) + 
+   geom_point(aes(color = site), size = 3) +
+   scale_color_manual(values = c("blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
+  labs(
+    x = "Schlerophylous shrub cover (%)",
+    y = "Non-native grass cover (%)",
+    title = "Linear regression of non-native grass by sclerophyllous shrub percent cover"
+    ) +
+scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+  theme_bw() +
+  geom_abline(intercept = 100, slope = -1, color = "gray", linetype = "dashed")
+  
+fig.1b
+
+# Fit the linear model
+model.s <- lm(grass_nonnative_NA ~ shrub_native_sclerophyllous, data = cover_byleaftype_wide %>%  
+                 filter(shrub_native_sclerophyllous > 0.01)) # response variable ~ independent variable
+
+# Print the summary of the model
+model.s_summary <- summary(model.s)
+
+# Extract the R^2 value
+r_squared <- round(model.s_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squared))
+#  "Multiple R^2: 0.442"
+
+```
+
+### x = css
+y = non-native grass cover 
+```{r}
+ggplot(data = (cover_byleaftype_wide %>%  
+                 filter(shrub_native_nonsclero > 0.01)
+               ), 
+       aes( x = shrub_native_nonsclero*100, 
+            y = grass_nonnative_NA*100)
+       ) + 
+   geom_point(aes(color = site), size = 3) +
+   scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
+  labs(
+    x = "Sage scrub cover (%)",
+    y = "Non-native grass cover (%)",
+    title = "Linear regression of non-native grass by sage scrub shrub percent cover"
+    ) +
+scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+  theme_bw()
+
+
+# Fit the linear model <- for all sites
+model.s <- lm(grass_nonnative_NA ~ shrub_native_nonsclero, # response variable ~ independent variable
+              data = cover_byleaftype_wide %>%  
+                 filter(shrub_native_nonsclero > 0.01))
+# Print the summary of the model
+model.s_summary <- summary(model.s)
+# Extract the R^2 value
+r_squared <- round(model.s_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squared))
+# [1] "Multiple R^2: 0.327" <-- all sites
+
+# Fit the linear model <- for sites 1 and 2
+model.s2 <- lm(grass_nonnative_NA ~ shrub_native_nonsclero, # response variable ~ independent variable
+              data = cover_byleaftype_wide %>%  
+                 filter(shrub_native_nonsclero > 0.01) %>% 
+                filter(site == "1" | site == "2"))
+model.s2_summary <- summary(model.s2)
+r_squared_s2 <- round(model.s2_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squared_s2))
+# [1] "Multiple R^2: 0.684" <-- sites 1 and 2
+
+ggplot(data = (cover_byleaftype_wide %>%  
+                 filter(site == "1" | site == "2") %>% 
+                 filter(shrub_native_nonsclero > 0.01) 
+               ), 
+       aes( x = shrub_native_nonsclero*100, 
+            y = grass_nonnative_NA*100)
+       ) + 
+   geom_point(aes(color = site), size = 3) +
+   scale_color_manual(values = c("maroon", "pink", "maroon", "maroon", "maroon")) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
+  labs(
+    x = "Sage scrub cover (%)",
+    y = "Non-native grass cover (%)",
+    title = "Linear regression of non-native grass by sage scrub shrub percent cover"
+    ) +
+scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+  theme_bw()
+
+##################
+
+# Fit the linear model <- for sites INT1-5
+model.s3 <- lm(grass_nonnative_NA ~ shrub_native_nonsclero, # response variable ~ independent variable
+              data = (cover_byleaftype_wide %>%  
+               filter(site != "1" & site != "2") %>% 
+                 filter(shrub_native_nonsclero > 0.01)
+              ))
+model.s3_summary <- summary(model.s3)
+r_squared_s3 <- round(model.s3_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squared_s3))
+# [1] "Multiple R^2: 0.693" <-- sites INT
+
+ggplot(data = (cover_byleaftype_wide %>%  
+                 filter(site != "1" & site != "2") %>% 
+                 filter(shrub_native_nonsclero > 0.01) 
+               ), 
+       aes( x = shrub_native_nonsclero*100, 
+            y = grass_nonnative_NA*100)
+       ) + 
+   geom_point(aes(color = site), size = 3) +
+   scale_color_manual(values = c("maroon", "red", "cyan", "green", "blue")) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
+  labs(
+    x = "Sage scrub cover (%)",
+    y = "Non-native grass cover (%)",
+    title = "Non-native grass by mean sage scrub shrub cover per site"
+    ) +
+scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+  theme_bw()
+```
+
+
+### x = nn grass
+
+- y = total shrub cover
+```{r}
+# Fit the linear model
+model.s <- lm(grass_nonnative ~ shrub_native, data = cover_bylfstatus_wide) # response variable ~ independent variable
+
+# Print the summary of the model
+model.s_summary <- summary(model.s)
+intercept <- round(coef(model.s)[1], 2)
+slope <- round(coef(model.s)[2], 2)
+# Extract the R^2 value
+r_squared <- round(model.s_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squared))
+# [1] "Multiple R^2: 0.734"
+
+
+# adjusted_r_squared <- round(model.s_summary$adj.r.squared, 3)
+# print(paste("Adjusted R^2:", adjusted_r_squared))
+
+# Multiple R-squared = variance in the dependent variable that is predictable from the independent variables.  It indicates how well the independent variables explain the variation in the dependent variable. 
+
+# Adjusted R-squared = adjusts for the number of predictors in the model.  It provides a more accurate measure when comparing models with a different number of predictors.
+
+# Create the label for the equation and R^2
+eq_label <- paste0("y = ", slope, "x + ", intercept, "\n", "R² = ", r_squared)
+
+ggplot(data = cover_bylfstatus_wide,
+       aes(x = grass_nonnative*100, 
+         y = shrub_native*100)) + 
+      geom_point(aes(color = site), size = 3) +
+   scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
+  labs(
+    #  title = "Linear regression of  total shrub cover by non-native grass cover",
+    x = "Non-native grass cover (%)",
+    y = "Total shrub cover (%)", 
+     color = "Site"
+    ) +
+  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+  theme_bw() + 
+  annotate("text", x = 5, y = 5, label = eq_label, color = "black", size = 4, hjust = 0)
+```
+
+- y = total shrub cover x leaf type
+```{r}
+
+############ scl slope
+# Fit the linear model
+model.scl <- lm(shrub_native_sclerophyllous ~ grass_nonnative_NA, data = (cover_byleaftype_wide %>%  filter(shrub_native_sclerophyllous > 0))) # response variable ~ independent variable
+
+# Print the summary of the model
+model.scl_summary <- summary(model.scl)
+# Extract the intercept, slope, and R^2 values
+interceptscl <- round(coef(model.scl)[1], 2)
+slopescl <- round(coef(model.scl)[2], 2)
+r_squaredscl <- round(model.scl_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squaredscl))
+# [1] "Multiple R^2: 0.442"
+# Create the label for the equation and R^2
+eq_label_scl <- paste0("Scl: y = ", slopescl, "x + ", interceptscl, "\n", "R² = ", r_squaredscl)
+
+
+######### sage scrub slope
+# Fit the linear model
+model.ss <- lm(shrub_native_nonsclero ~ grass_nonnative_NA, data = (cover_byleaftype_wide %>%  filter(shrub_native_nonsclero > 0))) # response variable ~ independent variable
+model.ss_summary <- summary(model.ss)
+# Extract the intercept, slope, and R^2 values
+interceptss <- round(coef(model.ss)[1], 2)
+slopess <- round(coef(model.ss)[2], 2)
+r_squaredss <- round(model.ss_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squaredss))
+# [1] "Multiple R^2: 0.327"
+# Create the label for the equation and R^2
+eq_label_ss <- paste0("Nonscl: y = ", slopess, "x + ", interceptss, "\n", "R² = ", r_squaredss)
+
+
+fig.1a <- ggplot(data = cover_byleaftype_wide) +
+  # Sclerophyllous Shrub Cover
+  geom_point(data = cover_byleaftype_wide, # %>% filter(shrub_native_sclerophyllous > 0
+             aes(x = grass_nonnative_NA * 100, y = shrub_native_sclerophyllous * 100, 
+                 color = "sclerophyllous", shape = "sclerophyllous"), 
+             size = 3, show.legend = FALSE) +  # Adjust point size here
+  geom_smooth(data = cover_byleaftype_wide , # %>% filter(shrub_native_sclerophyllous > 0) 
+              aes(x = grass_nonnative_NA * 100, y = shrub_native_sclerophyllous * 100, color = "sclerophyllous"), 
+              method = "lm", se = TRUE, linetype = "dotdash", show.legend = FALSE) +
+  # Sage Scrub Cover
+  geom_point(data = cover_byleaftype_wide, 
+             aes(x = grass_nonnative_NA * 100, y = shrub_native_nonsclero * 100, 
+                 color = "sage scrub", shape = "sage scrub"), 
+             size = 3, show.legend = FALSE) +  # Adjust point size here
+  geom_smooth(data = cover_byleaftype_wide, 
+              aes(x = grass_nonnative_NA * 100, y = shrub_native_nonsclero * 100, color = "sage scrub"), 
+              method = "lm", se = TRUE, linetype = "dotted", show.legend = FALSE) +
+  # Labels
+  labs(
+    color = "Shrub Type",
+    shape = "Shrub Type",
+    x = "Non-native grass cover (%)",
+    y = "Shrub cover (%)"
+  ) +
+  # Custom Shapes and Colors for Legend
+  scale_shape_manual(values = c("sclerophyllous" = 7, "sage scrub" = 4)) +  # Square = 15, Circle = 16, 8 = *
+  scale_color_manual(values = c("sclerophyllous" = "black", "sage scrub" = "black")) +
+  # Axis Limits
+  xlim(0, 100) +
+  ylim(0, 100) +
+  # Theme
+  theme_bw() +
+  # Annotations for Equation Labels
+  annotate("text", x = 67, y = 90, label = eq_label_scl, color = "gray30", size = 4, hjust = 0) +
+  annotate("text", x = 67, y = 75, label = eq_label_ss, color = "grey30", size = 4, hjust = 0) +
+  geom_abline(intercept = 100, slope = -1, color = "darkgray", linetype = "dashed")
+
+
+
+fig.1a
+
+```
+
+
+
+- scl shrub cover by nn grass
+```{r regression nngrass x scl shrub}
+ ggplot(data = cover_byleaftype_wide %>%  filter(shrub_native_sclerophyllous > 0.01), 
+       aes(x = grass_nonnative_NA*100, 
+         y = shrub_native_sclerophyllous*100)) + 
+  # geom_point()+
+     geom_point(aes(color = site), size = 3) +
+     scale_color_manual(values = c("blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
+  labs(
+    x = "Non-native grass cover (%)",
+    y = "Native scl shrub cover (%)",
+    title = "Linear regression of  scl shrub cover by non-native grass cover"
+    ) +
+  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+  theme_bw()
+
+# Fit the linear model
+model.s <- lm(shrub_native_sclerophyllous ~ grass_nonnative_NA, data = cover_byleaftype_wide %>% filter(shrub_native_sclerophyllous > 0.01)) # response variable ~ independent variable
+
+# print slope and intercept
+cf <- round(coef(model.s), 3)
+cat("Intercept:", cf[1], "\n")
+cat("Slope:", cf[2], "\n")
+# cf <- coef(model.s).   # <-- old code
+# Intercept <- cf$(Intercept)
+# Slope <- cf[2]
+# Intercept <- round(Intercept, 3)
+# Slope <- round(Slope, 3)
+# print(paste("Intercept:", Intercept))
+# print(paste("Slope:", Slope))
+
+
+# Print the summary of the model
+model.s_summary <- summary(model.s)
+cat("Multiple R^2:", round(summary(model.s)$r.squared, 3), "\n")
+# # Extract the R^2 value
+# r_squared <- round(model.s_summary$r.squared, 3)   # <- old code
+# print(paste("Multiple R^2:", r_squared))
+# [1] "Multiple R^2: 0.442"
+```
+
+- y = sage scrub cover
+
+```{r}
+ggplot(data = cover_byleaftype_wide %>%  
+         filter(shrub_native_nonsclero > 0.01) %>% 
+         filter(site == "1" | site == "2"), 
+       aes(x = grass_nonnative_NA*100, 
+         y = shrub_native_nonsclero*100)) + 
+      geom_point(aes(color = site), size = 3) +
+   scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
+  labs(
+    x = "Non-native grass cover (%)",
+    y = "Non-scl shrub cover (%)",
+    title = "Linear regression of  non-scl shrub cover by non-native grass cover"
+    ) +
+  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+  theme_bw()
+
+# Fit the linear model
+model.s <- lm(shrub_native_nonsclero ~ grass_nonnative_NA, # response variable ~ independent variable
+              data = cover_byleaftype_wide %>% 
+                filter(shrub_native_nonsclero > 0.01) %>% 
+                filter(site == "1" | site == "2")
+              )
+
+# Print the summary of the model
+model.s_summary <- summary(model.s)
+
+# Extract the R^2 value
+r_squared <- round(model.s_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squared))
+# [1] "Multiple R^2: 0.327" <-- all sites
+# [1] "Multiple R^2: 0.684" <-- sites 1 and 2
+```
+
+
+
+
+- y = native shrub cover by leaf type
+```{r regression shrub leaftype x nn grass}
+
+# broken code
+
+
+# ggplot(data = cover_byleaftype_wide) +
+#   
+#   geom_point(aes(x = nonnative_grass_NA * 100, y = native_shrub_nonsclero * 100, color = "Native Shrub Nonsclero"), size = 4, show.legend = TRUE) +
+#   geom_smooth(aes(x = nonnative_grass_NA * 100, y = native_shrub_nonsclero * 100, color = "Native Shrub Nonsclero"), 
+#               method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
+#   
+#   geom_point(aes(x = nonnative_grass_NA * 100, y = native_shrub_sclerophyllous * 100, color = "Native Shrub Sclero"), size = 4,  show.legend = TRUE) +
+#   geom_smooth(aes(x = nonnative_grass_NA * 100, y = native_shrub_sclerophyllous * 100, color = "Native Shrub Sclero"), 
+#               method = "lm", se = TRUE, linetype = "dashed", show.legend = TRUE) +
+#   labs(
+#     x = "Percent cover non-native grass (%)",
+#     y = "Percent cover native Shrub (%)",
+#     title = "Comparison of Native Shrub percent cover by Nonnative Grass percent cover",
+#     color = "Legend"
+#     ) +
+#   scale_color_manual(values = c("Native Shrub Nonsclero" = "blue", "Native Shrub Sclero" = "red"),
+#                      labels = c("Non-sclerophyllous", "Sclerophyllous")) +
+#   xlim(0, 100) +
+#   ylim(0, 100) +
+#   theme_bw()
+
+#only six transects had schlero shrubs present: INT 1-5, Site1 transect 4
+#cover_byleaftype_wide %>% filter(native_shrub_sclerophyllous > 0) %>% group_by(site_rep, year) %>%  summarize(native_shrub_sclerophyllous = native_shrub_sclerophyllous)
+
+# model.nonscl <- lm(native_shrub_nonsclero ~ nonnative_grass_NA, data = cover_byleaftype_wide)
+# model.nonscl_summary <- summary(model.nonscl)
+# r_squared <- round(model.nonscl_summary$r.squared, 3)
+# print(paste("Multiple R^2:", r_squared))
+# 
+# model.scl <- lm(native_shrub_sclerophyllous ~ nonnative_grass_NA, data = cover_byleaftype_wide)
+# model.scl_summary <- summary(model.scl)
+# r_squared <- round(model.scl_summary$r.squared, 3)
+# print(paste("Multiple R^2:", r_squared))
+```
+
+- y = native and non-native forb cover
+```{r regression forb x grass}
+############ non-native slope
+# Fit the linear model
+model.nnf <- lm(forb_nonnative ~ grass_nonnative, data = cover_bylfstatus_wide) # response variable ~ independent variable
+
+# Print the summary of the model
+model.nnf_summary <- summary(model.nnf)
+# Extract the intercept, slope, and R^2 values
+interceptnnf <- round(coef(model.nnf)[1], 2)
+slopennf <- round(coef(model.nnf)[2], 2)
+r_squarednnf <- round(model.nnf_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squarednnf))
+# [1] "Multiple R^2: 0.097"
+# Create the label for the equation and R^2
+eq_label_nnf <- paste0("Non-native forb: y = ", slopennf, "x + ", interceptnnf, "\n", "R² = ", r_squarednnf)
+
+
+######### native forb slope
+# Fit the linear model
+model.nf <- lm(forb_native ~ grass_nonnative, data = cover_bylfstatus_wide) # response variable ~ independent variable
+model.nf_summary <- summary(model.nf)
+# Extract the intercept, slope, and R^2 values
+interceptnf <- round(coef(model.nf)[1], 2)
+slopenf <- round(coef(model.nf)[2], 2)
+r_squarednf <- round(model.nf_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squarednf))
+# [1] "Multiple R^2: 0.01"
+# Create the label for the equation and R^2
+eq_label_nf <- paste0("Native forb: y = ", slopenf, "x + ", interceptnf, "\n", "R² = ", r_squarednf)
+
+fig.1c <- ggplot(data = cover_bylfstatus_wide) + #%>%  filter(forb_native > 0.01 | forb_nonnative > 0.01 | forb_unknown > 0.01)) +
+  geom_point(aes(x = grass_nonnative * 100, y = forb_native * 100, color = "forb_native"), 
+             shape = 1, size = 3, show.legend = FALSE) +
+  geom_smooth(aes(x = grass_nonnative * 100, y = forb_native * 100, color = "forb_native"), 
+              method = "lm", se = TRUE, linetype = "dashed", show.legend = FALSE) +
+  geom_point(aes(x = grass_nonnative * 100, y = forb_nonnative * 100, color = "forb_nonnative"),  
+             shape = 16, size = 3, , show.legend = FALSE) +
+  geom_smooth(aes(x = grass_nonnative * 100, y = forb_nonnative * 100, color = "forb_nonnative"), 
+              method = "lm", se = TRUE, linetype = "solid", show.legend = FALSE) +
+  labs(
+     # title = "Comparison of native and non-native forb percent cover by Nonnative Grass percent cover",
+      color = "Status",
+    x = "Non-native grass cvoer (%)",
+    y = "Forb cover (%)"
+    ) +
+  scale_color_manual(values = c("forb_native" = "black", "forb_nonnative" = "black"),
+                     labels = c("Native ", "Non-native")) +
+  xlim(0, 100) +
+  ylim(0, 100) +
+  theme_bw() +
+  annotate("text", x = 0, y = 90, label = eq_label_nnf, color = "black", size = 4, hjust = 0) +
+  annotate("text", x = 0, y = 75, label = eq_label_nf, color = "black", size = 4, hjust = 0)
+
+fig.1c
+```
+
+- y = native grass
+```{r regression grass x grass}
+
+# Fit the linear model
+model.g <- lm(grass_native ~ grass_nonnative, data = cover_bylfstatus_wide %>%  filter(grass_native >0)) # response variable ~ independent variable
+model.g_summary <- summary(model.g)
+# Extract the intercept, slope, and R^2 values
+interceptg <- round(coef(model.g)[1], 2)
+slopeg <- round(coef(model.g)[2], 2)
+r_squaredg <- round(model.g_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squaredg))
+# [1] "Multiple R^2: 0.497"
+# Create the label for the equation and R^2
+eq_label_g <- paste0("Native grass: y = ", slopeg, "x + ", interceptg, "\n", "R² = ", r_squaredg)
+
+fig.1e <- ggplot(data = cover_bylfstatus_wide 
+                 # %>%   filter(grass_native >0)
+                 )  +
+  geom_point(aes(x = grass_nonnative * 100, y = grass_native * 100, color = "grass_native"), 
+             size = 3, shape = 1, show.legend = FALSE) +
+  geom_smooth(aes(x = grass_nonnative * 100, y = grass_native * 100, color = "grass_native"), 
+              method = "lm", se = TRUE, linetype = "dashed", show.legend = FALSE) +
+  labs(
+    x = "Non-native grass cover (%)",
+    y = "Native grass cover (%)",
+    #title = "Comparison of Native grass percent cover by Nonnative Grass percent cover",
+    color = "Legend"
+    ) +
+  scale_color_manual(values = c("grass_native" = "black"),
+                     labels = c("Native ", "Non-native")) +
+  xlim(0, 100) +
+  ylim(0, 100) +
+  theme_bw() + 
+ annotate("text", x = 0, y = 90, label = eq_label_g, color = "black", size = 4, hjust = 0) 
+ 
+#14 transecrs have native grass present - mostly at Site 1 and at INT transects
+#cover_bylfstatus_wide %>% filter(grass_native > 0) %>% group_by(site_rep, year) %>%  summarize(native_grass = grass_native)
+
+fig.1e
+```
+
+
+### Figure 1 - cover regressions
+```{r}
+
+########### Save the plot with specified size
+
+# Add labels to the plots using cowplot's draw_label() function
+fig.1a_labeled <- ggdraw(fig.1a) + draw_label("C", x = 0.95, y = 0.92, size = 15)  # Add letter "A" in the top-right corner
+#fig.1b_labeled <- ggdraw(fig.1b) + draw_label("D", x = 0.85, y = 0.92, size = 15)  
+fig.1c_labeled <- ggdraw(fig.1c) + draw_label("E", x = 0.95, y = 0.92, size = 15)  # Add letter "B"
+fig.1d_labeled <- ggdraw(fig.1d) + draw_label("B", x = 0.95, y = 0.92, size = 15)  # Add letter "C"
+fig.1e_labeled <- ggdraw(fig.1e) + draw_label("D", x = 0.95, y = 0.92, size = 15)  # Add letter "D"
+fig.1f_labeled <- ggdraw(fig.1f) + draw_label("A", x = 0.95, y = 0.92, size = 15)  # Add letter "E"
+
+# Combine the plots in a 2x3 layout
+figure1 <- plot_grid(fig.1f_labeled, fig.1a_labeled, 
+             fig.1d_labeled, fig.1c_labeled,  NULL, fig.1e_labeled,
+             nrow = 3, 
+             ncol = 2, 
+             widths = c(1, 1), # Custom widths for each column
+             heights = c(1, 1, 1) # Custom heights for each row
+             ) 
+
+ggsave(
+  filename = "Ch1_Degradation_figures/figure_1.png",    # Specify the output file name
+  plot = figure1,         # Specify the plot object
+  width = 12,                   # Set width in inches
+  height = 10,                   # Set height in inches
+  dpi = 300                     # Set resolution for high-quality output
+)
+
+# dev.off()  # Close the PDF device
+```
+
+### by CLUSTER
+```{r}
+# prep df to left join cluster NAMES with transect data percent cover and sppchar by site_rep
+cluster_prep <- cluster.subgrp.df %>% 
+  dplyr::select(site_rep, sub_grp, sub_grp_name, combined_labels)    
+
+
+# prepare % cover data from data_pc <-- from 0_dataprep.Rmd
+# this df does not include dead species, groundcover, or unknown 1 forb
+# # OPEN datasheet in EXCEL to see differences in the species lists:
+# load_diffintransectspp <- read_xlsx("data/scrappaper_july2025.xlsx", 
+#                                     sheet = "spp_transect",   
+#                                     col_types = "text")
+cover <- data_pc %>% 
+  pivot_longer(cols = 3:54, 
+               names_to = "species", 
+               values_to = "percentcover") %>% 
+  
+  # left join percent cover data with species characteristics
+  left_join(sppchar, by = "species") %>% 
+  
+  left_join(cluster_prep, by = "site_rep") %>% 
+  
+  # 52 species * 40 transects = 2080 <--  without omitting rows with 0%, there are 2080 data entries
+  # omit percent cover values that are = 0%
+  filter(percentcover > 0) %>% 
+  mutate(lifeform_lifecycle_status = paste(lifeform, lifecycle, status, sep = "_"))
+         
+  
+dim(cover)
+# [1] 339  11
+
+
+# goals - create a df with cover by lifeform by lifecycle
+cover_cluster <- cover %>% 
+  group_by(sub_group_name, lifeform, lifecycle, status, lifeform_lifecycle, lifeform_lifecycle_status) %>% 
+ 
+  
+   dplyr::summarize(
+    lifeform_lifecycle_count_per_transect = n_distinct(site_rep_dist),
+    lifeform_lifecycle_percentcover = (n_distinct(site_rep_dist)/41)*100 # <-- calculate percent cover by transect, lifeform, and lifecycle
+    ) %>% 
+  
+  
+   dplyr::summarise(
+    mean_cover = mean(lifeform_lifecycle_percentcover, na.rm = TRUE), 
+    n = n_distinct(site_rep), 
+    sd = sd(lifeform_lifecycle_percentcover, na.rm = TRUE), 
+    se = sd / sqrt(n)
+  )
+
+```
+```{r}
+# notes
+cover_bylifecycle_bygroup <- cover_bylifecycle %>% 
+  group_by(cluster, lifeform, lifecycle, status, lifeform_lifecycle, lifeform_lifecycle_status) %>% 
+
+  
+```
+
+```{r, eval = FALSE}
+# calculate % cover from the raw transect data (df: abcover_omitground)
+cover_bylifecycle <- abcover_omitground %>%  # <- transect data has vertical and distance still
+  dplyr::select(!c(site_rep, site_rep_dist)) %>% 
+  mutate(transect = case_when(transect == "1" ~ "01", # oldname ~ newname
+                         transect == "2" ~ "02",
+                         transect == "3" ~ "03",
+                         transect == "4" ~ "04",
+                         transect == "5" ~ "05",
+                         transect == "6" ~ "06",
+                         transect == "7" ~ "07",
+                         transect == "8" ~ "08",
+                         transect == "9" ~ "09",
+                              TRUE ~ transect)) %>%
+  mutate(site_rep = paste(site, transect, sep = ".")) %>%
+  mutate(site_rep = case_when(site_rep == "INT1.01" ~ "INT1.1",
+                              site_rep == "INT2.01" ~ "INT2.1",
+                              site_rep == "INT3.01" ~ "INT3.1",
+                              site_rep == "INT4.01" ~ "INT4.1",
+                              site_rep == "INT5.01" ~ "INT5.1",
+                              TRUE ~ site_rep)) 
+
+# prepare cluster names to left join with raw transect data
+groups <- cluster.subgrp.df %>% # <- from 1_cluster.Rmd
+  
+  dplyr::select(rowname, site_rep, sub_grp, sub_grp_name, combined_labels) %>% 
+    separate(site_rep, into = c("site", "rep"), remove = FALSE) %>% 
+  mutate(rep = case_when(rep == "1" ~ "01", # oldname ~ newname
+                         rep == "2" ~ "02",
+                         rep == "3" ~ "03",
+                         rep == "4" ~ "04",
+                         rep == "5" ~ "05",
+                         rep == "6" ~ "06",
+                         rep == "7" ~ "07",
+                         rep == "8" ~ "08",
+                         rep == "9" ~ "09",
+                              TRUE ~ rep)) %>%
+  mutate(site_rep = paste(site, rep, sep = ".")) %>% 
+  mutate(site_rep = case_when(site_rep == "INT1.01" ~ "INT1.1",
+                              site_rep == "INT2.01" ~ "INT2.1",
+                              site_rep == "INT3.01" ~ "INT3.1",
+                              site_rep == "INT4.01" ~ "INT4.1",
+                              site_rep == "INT5.01" ~ "INT5.1",
+                              TRUE ~ site_rep))
+
+# making a figure of mean forb x annual/perennial cover by cluster group
+
+%>% 
+  left_join(groups, by = "site_rep") %>% 
+  
+  mutate(site_rep_dist = paste(site_rep, distance, sep = "_")) %>%
+  mutate(lifeform_lifecycle = paste(lifeform, lifecycle, sep = "_")) %>% 
+  mutate(lifeform_lifecycle_status = paste(lifeform_lifecycle, status, sep = "_")) %>% 
+  
+  group_by(year, site, transect, site_rep, lifeform, lifecycle, status, lifeform_lifecycle, lifeform_lifecycle_status, cluster) %>%
+  dplyr::summarize(
+    lifeform_lifecycle_count_per_transect = n_distinct(site_rep_dist),
+    lifeform_lifecycle_percentcover = (n_distinct(site_rep_dist)/41)*100 # <-- calculate percent cover by transect, lifeform, and lifecycle
+    ) %>% 
+  ungroup() %>% 
+  mutate(cluster = factor(cluster, levels = c(5, 4, 2, 3, 1))) %>% 
+  mutate(lifeform = factor(lifeform, levels = c("shrub", "forb", "grass")))
+  # mutate(cluster = case_when(cluster == "1" ~ "NNG",
+  #                             cluster == "2" ~ "ssF",
+  #                             cluster == "3" ~ "ssG",
+  #                             cluster == "4" ~ "ssFG",
+  #                             cluster == "5" ~ "EVG",
+  #                             TRUE ~ cluster)) %>% 
+  # mutate(cluster = factor(cluster, levels = c("NNG", "ssG", "ssF", "ssFG", "EVG")))
+  
+cover_bylifecycle_bygroup <- cover_bylifecycle %>% 
+  group_by(cluster, lifeform, lifecycle, status, lifeform_lifecycle, lifeform_lifecycle_status) %>% 
+  dplyr::summarise(
+    mean_cover = mean(lifeform_lifecycle_percentcover, na.rm = TRUE), 
+    n = n_distinct(site_rep), 
+    sd = sd(lifeform_lifecycle_percentcover, na.rm = TRUE), 
+    se = sd / sqrt(n)
+  )
+
+
+############################## figures of lifeform_lifecycle by cluster group
+
+# # Split lifeform_lifecycle into two separate columns: lifeform and lifecycle
+# cover_bylifecycle_bygroup <- cover_bylifecycle_bygroup %>%
+#   separate(lifeform_lifecycle, into = c("lifeform", "lifecycle"), sep = "_")
+
+fig_forbgrass <- ggplot(cover_bylifecycle_bygroup %>%
+         filter(lifeform_lifecycle_status %in% c(
+           "forb_annual_native", "forb_annual_nonnative", "forb_perennial_native",
+           "grass_annual_nonnative", "grass_perennial_native", 
+           "shrub_perennial_native")),
+       aes(x = cluster, 
+           y = mean_cover, 
+           shape = lifecycle,   
+           color = lifecycle   
+           )) +
+  geom_point(size = 3, position = position_dodge(width = 0.3), show.legend = TRUE) +  # Mean points
+  geom_errorbar(aes(ymin = mean_cover - se, ymax = mean_cover + se), 
+                width = 0.5, position = position_dodge(width = 0.3)) +  # SE bars
+  labs(x = "Plant Cluster", 
+       y = "Mean Percent Cover (%)",
+       color = "Lifecycle",  # Label for color legend
+        shape = "Lifecycle"
+       ) +  # Label for shape legend
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 0, size = 10, hjust = 1),  # Rotate x-axis labels if needed
+    legend.position = "right"
+  ) +
+  ylim(0, 100) +
+  facet_grid(~lifeform * status) +  # Facet by lifeform: facet_wrap
+  scale_shape_manual(values = c("annual" = 1, "perennial" = 15)) +  
+  scale_color_manual(values = c("annual" = "black", "perennial" = "black")) +  
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG"))  # Relabel clusters
+fig_forbgrass
+
+
+
+```
+
+
+##### shrub stats 
+```{r}
+############################## stats among groups
+
+### SHRUB COVER by CLUSTER
+
+hist((cover_bylifecycle %>% filter(lifeform=="shrub"))$lifeform_lifecycle_percentcover)
+shapiro.test((cover_bylifecycle %>% filter(lifeform=="shrub"))$lifeform_lifecycle_percentcover)
+# data:  shrub_perennial_data$lifeform_lifecycle_percentcover
+# W = 0.94181, p-value = 0.06355 <-- normal
+
+aov_shrub <- aov(lifeform_lifecycle_percentcover ~ cluster, data = (cover_bylifecycle %>% filter(lifeform=="shrub")))
+summary(aov_shrub)
+# Df Sum Sq Mean Sq F value   Pr(>F)    
+# cluster      4  14974    3743   14.48 1.08e-06 ***
+# Residuals   30   7755     258                     
+tukey_result <- TukeyHSD(aov_shrub, conf.level=.95)
+# $cluster
+#         diff        lwr      upr     p adj
+# 3-1 14.54704  -9.588734 38.68281 0.4212663
+# 2-1 35.45296  11.317190 59.58873 0.0016217 <- 2, 4, 5 are sig from 1
+# 4-1 45.73171  22.414336 69.04908 0.0000312 <- 
+# 5-1 58.17073  31.584838 84.75663 0.0000050 <- 
+# 2-3 20.90592  -4.021395 45.83324 0.1342625
+# 4-3 31.18467   7.048897 55.32044 0.0063246 <- 4 and 5 are sig from 3
+# 5-3 43.62369  16.317185 70.93020 0.0005853 <- 
+# 4-2 10.27875 -13.857026 34.41452 0.7312299
+# 5-2 22.71777  -4.588739 50.02428 0.1394591
+# 5-4 12.43902 -14.146869 39.02492 0.6586902
+tukey_df <- as.data.frame(tukey_result$cluster)
+tukey_df$comparison <- rownames(tukey_df)
+# Split the comparison names into separate columns for cluster1 and cluster2
+tukey_df <- tukey_df %>% 
+  mutate(cluster1 = as.numeric(sub("-.*", "", comparison)),
+         cluster2 = as.numeric(sub(".*-", "", comparison)))
+# Create a matrix 5 x 5
+comparison_matrix <- matrix(NA, nrow = 5, ncol = 5)
+rownames(comparison_matrix) <- 1:5  # Cluster numbers
+colnames(comparison_matrix) <- 1:5
+
+# Fill the matrix with the adjusted p-values from the Tukey test
+for (i in 1:nrow(tukey_df)) {
+  comparison_matrix[as.character(tukey_df$cluster1[i]), as.character(tukey_df$cluster2[i])] <- tukey_df$`p adj`[i]
+  comparison_matrix[as.character(tukey_df$cluster2[i]), as.character(tukey_df$cluster1[i])] <- tukey_df$`p adj`[i]  # Ensure symmetry
+}
+
+
+# Set diagonal to 1 (self-comparisons are not relevant)
+diag(comparison_matrix) <- 1
+
+
+# Apply multcompLetters to assign significance letters
+significance_letters <- multcompLetters(comparison_matrix, compare = "<", threshold = 0.05)$Letters
+significance_letters <- significance_letters %>% 
+  as.tibble() %>% 
+  rownames_to_column("cluster") 
+
+# Now you can add the significance letters to your clusters in the data frame:
+shrub_perennial_data <- (cover_bylifecycle %>% filter(lifeform=="shrub")) %>%
+  left_join(significance_letters, by = "cluster") %>% 
+   mutate(cluster = factor(cluster, levels = c(5, 4, 2, 3, 1)))
+# # Recalculate the significance letters after the reordering
+# significance_letters <- multcompLetters(comparison_matrix, compare = "<", threshold = 0.05)$Letters
+# Apply the significance letters to the reordered clusters
+# shrub_perennial_data <- shrub_perennial_data %>%
+#   mutate(significance = significance_letters[as.factor(cluster)])
+
+cluster_shrub_boxorjitter <- ggplot(shrub_perennial_data, 
+       aes(x = cluster, 
+           y = lifeform_lifecycle_percentcover)) +
+  geom_boxplot() + # boxplot
+  geom_jitter(width = 0.2, height = 0.1, color = "darkgreen") + # jitter
+  geom_text(aes(label = value, y = max(lifeform_lifecycle_percentcover) + 5), vjust = 0.5) +
+  labs(title = "cluster_shrub_boxorjitter", 
+       x = "Plant Cluster", 
+       y = "Percent Shrub Cover (%)") +
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +  # Relabel clusters
+  theme_bw() 
+cluster_shrub_boxorjitter
+
+shrub_cluster <- ggplot(cover_bylifecycle_bygroup %>%
+         filter(lifeform_lifecycle %in% c("shrub_perennial")),
+       aes(x = cluster,
+           y = mean_cover,
+           shape = lifeform,   # Shape by lifeform
+           color = lifecycle   # Color by lifecycle
+           )) +
+  geom_point(size = 3, position = position_dodge(width = 0.3)) +  # Mean points
+  geom_errorbar(aes(ymin = mean_cover - se, ymax = mean_cover + se),
+                width = 0.2, position = position_dodge(width = 0.3)) +  # SE bars
+  labs(x = "Plant Cluster",
+       y = "Mean Percent Cover (%)",
+       color = "Lifecycle",  # Label for color legend
+       shape = "Lifeform") +  # Label for shape legend
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 1),  # Rotate x-axis labels if needed
+    legend.position = "right"
+  ) +
+  ylim(0, 100) +
+ # facet_wrap(~lifeform) +  # Facet by lifeform
+  scale_shape_manual(values = c("shrub" = 16)) +
+  scale_color_manual(values = c("perennial" = "black")) +
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG"))  # Relabel clusters
+
+cluster_shrub_boxorjitter
+
+shrub_cluster
+
+```
+
+##### forb annual native 
+```{r}
+############################## stats among groups
+
+### NATIVE ANNUAL FORB COVER by CLUSTER
+# sort(unique(cover_bylifecycle$lifeform_lifecycle_status))
+
+forb_annNAT <- cover_bylifecycle %>% 
+  filter(lifeform_lifecycle_status=="forb_annual_native")
+
+hist(forb_annNAT$lifeform_lifecycle_percentcover)
+shapiro.test(forb_annNAT$lifeform_lifecycle_percentcover)
+# data:  forb_annNAT$lifeform_lifecycle_percentcover
+# W = 0.67501, p-value = 2.843e-05 <-- not normal
+
+aov_forb_annNAT <- aov(lifeform_lifecycle_percentcover ~ cluster, data = forb_annNAT)
+summary(aov_forb_annNAT)
+# Df Sum Sq Mean Sq F value             Pr(>F)
+# cluster      4  400.5   100.1   0.762  0.567 <-- no diff
+# Residuals   14 1839.4   131.4               
+
+tukey_result <- TukeyHSD(aov_forb_annNAT, conf.level=.95)
+# Fit: aov(formula = lifeform_lifecycle_percentcover ~ cluster, data = forb_annNAT)
+# 
+# $cluster
+#           diff       lwr      upr     p adj
+# 4-5   1.219512 -38.71260 41.15163 0.9999789
+# 2-5   4.065041 -37.17667 45.30675 0.9978220
+# 3-5  -3.252033 -44.49374 37.98968 0.9990898
+# 1-5  -7.621951 -45.50488 30.26098 0.9681628
+# 2-4   2.845528 -24.43330 30.12436 0.9972860
+# 3-4  -4.471545 -31.75037 22.80728 0.9848795
+# 1-4  -8.841463 -30.71318 13.03026 0.7184733
+# 3-2  -7.317073 -36.47937 21.84522 0.9317343
+# 1-2 -11.686992 -35.86709 12.49310 0.5752434
+# 1-3  -4.369919 -28.55001 19.81018 0.9783656
+tukey_df <- as.data.frame(tukey_result$cluster)
+tukey_df$comparison <- rownames(tukey_df)
+# Split the comparison names into separate columns for cluster1 and cluster2
+tukey_df <- tukey_df %>% 
+  mutate(cluster1 = as.numeric(sub("-.*", "", comparison)),
+         cluster2 = as.numeric(sub(".*-", "", comparison)))
+# Create a matrix 5 x 5
+comparison_matrix <- matrix(NA, nrow = 5, ncol = 5)
+rownames(comparison_matrix) <- 1:5  # Cluster numbers
+colnames(comparison_matrix) <- 1:5
+
+# Fill the matrix with the adjusted p-values from the Tukey test
+for (i in 1:nrow(tukey_df)) {
+  comparison_matrix[as.character(tukey_df$cluster1[i]), as.character(tukey_df$cluster2[i])] <- tukey_df$`p adj`[i]
+  comparison_matrix[as.character(tukey_df$cluster2[i]), as.character(tukey_df$cluster1[i])] <- tukey_df$`p adj`[i]  # Ensure symmetry
+}
+
+
+# Set diagonal to 1 (self-comparisons are not relevant)
+diag(comparison_matrix) <- 1
+
+
+# Apply multcompLetters to assign significance letters
+significance_letters <- multcompLetters(comparison_matrix, compare = "<", threshold = 0.05)$Letters
+significance_letters <- significance_letters %>% 
+  as.tibble() %>% 
+  rownames_to_column("cluster") 
+
+# Now you can add the significance letters to your clusters in the data frame:
+forb_annNAT_letters <- forb_annNAT %>%
+  left_join(significance_letters, by = "cluster") %>% 
+   mutate(cluster = factor(cluster, levels = c(5, 4, 2, 3, 1)))
+# # Recalculate the significance letters after the reordering
+# significance_letters <- multcompLetters(comparison_matrix, compare = "<", threshold = 0.05)$Letters
+# Apply the significance letters to the reordered clusters
+# shrub_perennial_data <- shrub_perennial_data %>%
+#   mutate(significance = significance_letters[as.factor(cluster)])
+
+cluster_forb_annNAT_boxorjitter <- ggplot(forb_annNAT_letters, 
+       aes(x = cluster, 
+           y = lifeform_lifecycle_percentcover)) +
+  geom_boxplot() + # boxplot
+  geom_jitter(width = 0.2, height = 0.1, color = "darkgreen") + # jitter
+  geom_text(aes(label = value, y = max(lifeform_lifecycle_percentcover) + 5), vjust = 0.5) +
+  labs(title = "cluster_forb_annNAT_boxorjitter", 
+       x = "Plant Cluster", 
+       y = "Percent Shrub Cover (%)") +
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +  # Relabel clusters
+  theme_bw() 
+
+cluster_forb_annNAT_boxorjitter
+
+```
+
+
+##### native forb perennial
+```{r}
+############################## stats among groups
+
+### NATIVE PERENNIAL FORB COVER by CLUSTER
+# sort(unique(cover_bylifecycle$lifeform_lifecycle_status))
+
+forb_perNAT <- cover_bylifecycle %>% 
+  filter(lifeform_lifecycle_status=="forb_perennial_native")
+
+hist(forb_perNAT$lifeform_lifecycle_percentcover)
+shapiro.test(forb_perNAT$lifeform_lifecycle_percentcover)
+# data:  forb_perNAT$lifeform_lifecycle_percentcover
+# W = 0.84967, p-value = 0.00335 <-- not normal
+
+aov_forb_perNAT <- aov(lifeform_lifecycle_percentcover ~ cluster, data = forb_perNAT)
+summary(aov_forb_perNAT)
+#                Df Sum Sq Mean Sq F value Pr(>F)
+# cluster      4  46.35   11.59   0.888  0.492 <-- no diff
+# Residuals   17 221.89   13.05 
+
+tukey_result <- TukeyHSD(aov_forb_perNAT, conf.level=.95)
+# $cluster
+#            diff        lwr      upr     p adj
+# 4-5 -2.76422764 -10.791590 5.263135 0.8298085
+# 2-5 -0.81300813  -9.208225 7.582208 0.9981842
+# 3-5 -2.84552846 -10.617989 4.926932 0.7971495
+# 1-5 -4.47154472 -12.866761 3.923672 0.5050290
+# 2-4  1.95121951  -5.422384 9.324823 0.9254719
+# 3-4 -0.08130081  -6.737238 6.574636 0.9999995
+# 1-4 -1.70731707  -9.080920 5.666286 0.9526570
+# 3-2 -2.03252033  -9.127773 5.062733 0.9034007
+# 1-2 -3.65853659 -11.430997 4.113924 0.6166667
+# 1-3 -1.62601626  -8.721269 5.469237 0.9543227
+
+tukey_df <- as.data.frame(tukey_result$cluster)
+tukey_df$comparison <- rownames(tukey_df)
+# Split the comparison names into separate columns for cluster1 and cluster2
+tukey_df <- tukey_df %>% 
+  mutate(cluster1 = as.numeric(sub("-.*", "", comparison)),
+         cluster2 = as.numeric(sub(".*-", "", comparison)))
+# Create a matrix 5 x 5
+comparison_matrix <- matrix(NA, nrow = 5, ncol = 5)
+rownames(comparison_matrix) <- 1:5  # Cluster numbers
+colnames(comparison_matrix) <- 1:5
+
+# Fill the matrix with the adjusted p-values from the Tukey test
+for (i in 1:nrow(tukey_df)) {
+  comparison_matrix[as.character(tukey_df$cluster1[i]), as.character(tukey_df$cluster2[i])] <- tukey_df$`p adj`[i]
+  comparison_matrix[as.character(tukey_df$cluster2[i]), as.character(tukey_df$cluster1[i])] <- tukey_df$`p adj`[i]  # Ensure symmetry
+}
+
+
+# Set diagonal to 1 (self-comparisons are not relevant)
+diag(comparison_matrix) <- 1
+
+
+# Apply multcompLetters to assign significance letters
+significance_letters <- multcompLetters(comparison_matrix, compare = "<", threshold = 0.05)$Letters
+significance_letters <- significance_letters %>% 
+  as.tibble() %>% 
+  rownames_to_column("cluster") 
+
+# Now you can add the significance letters to your clusters in the data frame:
+forb_perNAT_letters <- forb_perNAT %>%
+  left_join(significance_letters, by = "cluster") %>% 
+   mutate(cluster = factor(cluster, levels = c(5, 4, 2, 3, 1)))
+# # Recalculate the significance letters after the reordering
+# significance_letters <- multcompLetters(comparison_matrix, compare = "<", threshold = 0.05)$Letters
+# Apply the significance letters to the reordered clusters
+# shrub_perennial_data <- shrub_perennial_data %>%
+#   mutate(significance = significance_letters[as.factor(cluster)])
+
+cluster_forb_perNAT_boxorjitter <- ggplot(forb_perNAT_letters, 
+       aes(x = cluster, 
+           y = lifeform_lifecycle_percentcover)) +
+  geom_boxplot() + # boxplot
+  geom_jitter(width = 0.2, height = 0.1, color = "darkgreen") + # jitter
+  geom_text(aes(label = value, y = max(lifeform_lifecycle_percentcover) + 5), vjust = 0.5) +
+  labs(title = "forb_perNAT_letters", 
+       x = "Plant Cluster", 
+       y = "Percent Shrub Cover (%)") +
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +  # Relabel clusters
+  theme_bw() 
+
+cluster_forb_perNAT_boxorjitter
+
+
+```
+
+
+##### nn forb annual
+```{r}
+############################## stats among groups
+
+### NONNATIVE ANNUAL FORB COVER by CLUSTER
+# sort(unique(cover_bylifecycle$lifeform_lifecycle_status))
+
+forb_annNN <- cover_bylifecycle %>% 
+  filter(lifeform_lifecycle_status=="forb_annual_nonnative")
+
+hist(forb_annNN$lifeform_lifecycle_percentcover)
+shapiro.test(forb_perNAT$lifeform_lifecycle_percentcover)
+# data:  forb_perNAT$lifeform_lifecycle_percentcover
+# W = 0.84967, p-value = 0.00335 <-- not normal
+
+aov_forb_annNN <- aov(lifeform_lifecycle_percentcover ~ cluster, data = forb_annNN)
+summary(aov_forb_annNN)
+#             Df Sum Sq Mean Sq F value  Pr(>F)   
+# cluster      4   8390  2097.4   5.683 0.00167 **
+# Residuals   29  10703   369.1                   
+
+tukey_result <- TukeyHSD(aov_forb_annNN, conf.level=.95)
+# $cluster
+#           diff        lwr       upr     p adj
+# 4-5  13.937282 -45.762940  73.63750 0.9595139
+# 2-5  50.174216  -9.526006 109.87444 0.1324882
+# 3-5  16.341463 -42.228684  74.91161 0.9251130
+# 1-5  40.650407 -18.214806  99.51562 0.2878351
+# 2-4  36.236934   6.386823  66.08704 0.0113931 <--  2 and 4 are diff
+# 3-4   2.404181 -25.116261  29.92462 0.9990267
+# 1-4  26.713124  -1.429830  54.85608 0.0691610
+# 3-2 -33.832753 -61.353195  -6.31231 0.0101841 <-- 2 and 3 are diff
+# 1-2  -9.523810 -37.666764  18.61915 0.8604176
+# 1-3  24.308943  -1.349808  49.96769 0.0699448
+
+tukey_df <- as.data.frame(tukey_result$cluster)
+tukey_df$comparison <- rownames(tukey_df)
+# Split the comparison names into separate columns for cluster1 and cluster2
+tukey_df <- tukey_df %>% 
+  mutate(cluster1 = as.numeric(sub("-.*", "", comparison)),
+         cluster2 = as.numeric(sub(".*-", "", comparison)))
+# Create a matrix 5 x 5
+comparison_matrix <- matrix(NA, nrow = 5, ncol = 5)
+rownames(comparison_matrix) <- 1:5  # Cluster numbers
+colnames(comparison_matrix) <- 1:5
+
+# Fill the matrix with the adjusted p-values from the Tukey test
+for (i in 1:nrow(tukey_df)) {
+  comparison_matrix[as.character(tukey_df$cluster1[i]), as.character(tukey_df$cluster2[i])] <- tukey_df$`p adj`[i]
+  comparison_matrix[as.character(tukey_df$cluster2[i]), as.character(tukey_df$cluster1[i])] <- tukey_df$`p adj`[i]  # Ensure symmetry
+}
+
+
+# Set diagonal to 1 (self-comparisons are not relevant)
+diag(comparison_matrix) <- 1
+
+
+# Apply multcompLetters to assign significance letters
+significance_letters <- multcompLetters(comparison_matrix, compare = "<", threshold = 0.05)$Letters
+significance_letters <- significance_letters %>% 
+  as.tibble() %>% 
+  rownames_to_column("cluster") 
+
+# Now you can add the significance letters to your clusters in the data frame:
+forb_annNN_letters <- forb_annNN %>%
+  left_join(significance_letters, by = "cluster") %>% 
+   mutate(cluster = factor(cluster, levels = c(5, 4, 2, 3, 1)))
+# # Recalculate the significance letters after the reordering
+# significance_letters <- multcompLetters(comparison_matrix, compare = "<", threshold = 0.05)$Letters
+# Apply the significance letters to the reordered clusters
+# shrub_perennial_data <- shrub_perennial_data %>%
+#   mutate(significance = significance_letters[as.factor(cluster)])
+
+cluster_forb_annNN_boxorjitter <- ggplot(forb_annNN_letters, 
+       aes(x = cluster, 
+           y = lifeform_lifecycle_percentcover)) +
+  geom_boxplot() + # boxplot
+  geom_jitter(width = 0.2, height = 0.1, color = "darkgreen") + # jitter
+  geom_text(aes(label = value, y = max(lifeform_lifecycle_percentcover) + 5), vjust = 0.5) +
+  labs(title = "forb_annNN_letters", 
+       x = "Plant Cluster", 
+       y = "Percent Shrub Cover (%)") +
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +  # Relabel clusters
+  theme_bw() 
+
+cluster_forb_annNN_boxorjitter
+
+
+
+
+```
+
+
+#####  grass native
+```{r}
+############################## stats among groups
+
+### GRASS NATIVE COVER by CLUSTER
+# sort(unique(cover_bylifecycle$lifeform_lifecycle_status))
+
+grass_perNAT <- cover_bylifecycle %>% 
+  filter(lifeform_lifecycle_status=="grass_perennial_native")
+
+hist(grass_perNAT$lifeform_lifecycle_percentcover)
+shapiro.test(grass_perNAT$lifeform_lifecycle_percentcover)
+# data:  grass_perNAT$lifeform_lifecycle_percentcover
+# W = 0.87591, p-value = 0.04124 <-- not normal
+aov_grass_perNAT <- aov(lifeform_lifecycle_percentcover ~ cluster, data = grass_perNAT)
+summary(aov_grass_perNAT)
+#             Df Sum Sq Mean Sq F value Pr(>F)  
+# cluster      4   4837  1209.3   5.811 0.0111 *
+# Residuals   10   2081   208.1                
+
+tukey_result <- TukeyHSD(aov_grass_perNAT, conf.level=.95)
+# $cluster
+#           diff        lwr       upr     p adj
+# 4-5 -30.487805  -64.05768  3.082074 0.0797737
+# 2-5 -40.731707  -72.57889 -8.884524 0.0121566 <--  2 and 5
+# 3-5 -50.000000 -103.07864  3.078639 0.0672039
+# 1-5 -47.560976 -100.63961  5.517664 0.0848197
+# 2-4 -10.243902  -42.09109 21.603281 0.8229154
+# 3-4 -19.512195  -72.59083 33.566444 0.7464879
+# 1-4 -17.073171  -70.15181 36.005469 0.8229154
+# 3-2  -9.268293  -61.27453 42.737940 0.9741014
+# 1-2  -6.829268  -58.83550 45.176965 0.9915857
+# 1-3   2.439024  -64.70073 69.578783 0.9999450
+
+tukey_df <- as.data.frame(tukey_result$cluster)
+tukey_df$comparison <- rownames(tukey_df)
+# Split the comparison names into separate columns for cluster1 and cluster2
+tukey_df <- tukey_df %>% 
+  mutate(cluster1 = as.numeric(sub("-.*", "", comparison)),
+         cluster2 = as.numeric(sub(".*-", "", comparison)))
+# Create a matrix 5 x 5
+comparison_matrix <- matrix(NA, nrow = 5, ncol = 5)
+rownames(comparison_matrix) <- 1:5  # Cluster numbers
+colnames(comparison_matrix) <- 1:5
+
+# Fill the matrix with the adjusted p-values from the Tukey test
+for (i in 1:nrow(tukey_df)) {
+  comparison_matrix[as.character(tukey_df$cluster1[i]), as.character(tukey_df$cluster2[i])] <- tukey_df$`p adj`[i]
+  comparison_matrix[as.character(tukey_df$cluster2[i]), as.character(tukey_df$cluster1[i])] <- tukey_df$`p adj`[i]  # Ensure symmetry
+}
+
+
+# Set diagonal to 1 (self-comparisons are not relevant)
+diag(comparison_matrix) <- 1
+
+
+# Apply multcompLetters to assign significance letters
+significance_letters <- multcompLetters(comparison_matrix, compare = "<", threshold = 0.05)$Letters
+significance_letters <- significance_letters %>% 
+  as.tibble() %>% 
+  rownames_to_column("cluster") 
+
+# Now you can add the significance letters to your clusters in the data frame:
+grass_perNAT_letters <- grass_perNAT %>%
+  left_join(significance_letters, by = "cluster") %>% 
+   mutate(cluster = factor(cluster, levels = c(5, 4, 2, 3, 1)))
+# # Recalculate the significance letters after the reordering
+# significance_letters <- multcompLetters(comparison_matrix, compare = "<", threshold = 0.05)$Letters
+# Apply the significance letters to the reordered clusters
+# shrub_perennial_data <- shrub_perennial_data %>%
+#   mutate(significance = significance_letters[as.factor(cluster)])
+
+cluster_grass_perNAT_boxorjitter <- ggplot(grass_perNAT_letters, 
+       aes(x = cluster, 
+           y = lifeform_lifecycle_percentcover)) +
+  geom_boxplot() + # boxplot
+  geom_jitter(width = 0.2, height = 0.1, color = "darkgreen") + # jitter
+  geom_text(aes(label = value, y = max(lifeform_lifecycle_percentcover) + 5), vjust = 0.5) +
+  labs(title = "cluster_grass_perNAT_boxorjitter", 
+       x = "Plant Cluster", 
+       y = "Percent Shrub Cover (%)") +
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +  # Relabel clusters
+  theme_bw() 
+
+cluster_grass_perNAT_boxorjitter
+
+
+```
+
+##### grass nonnative
+```{r}
+############################## stats among groups
+
+### GRASS NONNATIVE COVER by CLUSTER
+# sort(unique(cover_bylifecycle$lifeform_lifecycle_status))
+
+grass_annNN <- cover_bylifecycle %>% 
+  filter(lifeform_lifecycle_status=="grass_annual_nonnative")
+
+hist(grass_annNN$lifeform_lifecycle_percentcover)
+shapiro.test(grass_annNN$lifeform_lifecycle_percentcover)
+# data:  grass_annNN$lifeform_lifecycle_percentcover
+# W = 0.90111, p-value = 0.002374 <-- not normal
+aov_grass_annNN <- aov(lifeform_lifecycle_percentcover ~ cluster, data = grass_annNN)
+summary(aov_grass_annNN)
+#             Df Sum Sq Mean Sq F value   Pr(>F)    
+# cluster      4  24509    6127   24.61 1.24e-09 ***
+# Residuals   34   8463     249              
+
+tukey_result <- TukeyHSD(aov_grass_annNN, conf.level=.95)
+# $cluster
+#         diff        lwr      upr     p adj
+# 4-5 18.90244  -8.918732 46.72361 0.3084854
+# 2-5 31.53310   3.057225 60.00898 0.0238752 <-- 
+# 3-5 60.00000  33.122195 86.87780 0.0000023 <--
+# 1-5 72.43902  45.561220 99.31683 0.0000000 <--
+# 2-4 12.63066 -10.882519 36.14384 0.5403999
+# 3-4 41.09756  19.547375 62.64775 0.0000371 <--
+# 1-4 53.53659  31.986399 75.08677 0.0000003 <--
+# 3-2 28.46690   6.077872 50.85593 0.0070654 <--
+# 1-2 40.90592  18.516897 63.29495 0.0000735 <--
+# 1-3 12.43902  -7.878686 32.75673 0.4109881
+
+tukey_df <- as.data.frame(tukey_result$cluster)
+tukey_df$comparison <- rownames(tukey_df)
+# Split the comparison names into separate columns for cluster1 and cluster2
+tukey_df <- tukey_df %>% 
+  mutate(cluster1 = as.numeric(sub("-.*", "", comparison)),
+         cluster2 = as.numeric(sub(".*-", "", comparison)))
+# Create a matrix 5 x 5
+comparison_matrix <- matrix(NA, nrow = 5, ncol = 5)
+rownames(comparison_matrix) <- 1:5  # Cluster numbers
+colnames(comparison_matrix) <- 1:5
+
+# Fill the matrix with the adjusted p-values from the Tukey test
+for (i in 1:nrow(tukey_df)) {
+  comparison_matrix[as.character(tukey_df$cluster1[i]), as.character(tukey_df$cluster2[i])] <- tukey_df$`p adj`[i]
+  comparison_matrix[as.character(tukey_df$cluster2[i]), as.character(tukey_df$cluster1[i])] <- tukey_df$`p adj`[i]  # Ensure symmetry
+}
+
+
+# Set diagonal to 1 (self-comparisons are not relevant)
+diag(comparison_matrix) <- 1
+
+
+# Apply multcompLetters to assign significance letters
+significance_letters <- multcompLetters(comparison_matrix, compare = "<", threshold = 0.05)$Letters
+significance_letters <- significance_letters %>% 
+  as.tibble() %>% 
+  rownames_to_column("cluster") 
+
+# Now you can add the significance letters to your clusters in the data frame:
+grass_annNN_letters <- grass_annNN %>%
+  left_join(significance_letters, by = "cluster") %>% 
+   mutate(cluster = factor(cluster, levels = c(5, 4, 2, 3, 1)))
+# # Recalculate the significance letters after the reordering
+# significance_letters <- multcompLetters(comparison_matrix, compare = "<", threshold = 0.05)$Letters
+# Apply the significance letters to the reordered clusters
+# shrub_perennial_data <- shrub_perennial_data %>%
+#   mutate(significance = significance_letters[as.factor(cluster)])
+
+cluster_grass_annNN_boxorjitter <- ggplot(grass_annNN_letters, 
+       aes(x = cluster, 
+           y = lifeform_lifecycle_percentcover)) +
+  geom_boxplot() + # boxplot
+  geom_jitter(width = 0.2, height = 0.1, color = "darkgreen") + # jitter
+  geom_text(aes(label = value, y = max(lifeform_lifecycle_percentcover) + 5), vjust = 0.5) +
+  labs(title = "cluster_grass_annNN_boxorjitter", 
+       x = "Plant Cluster", 
+       y = "Percent Shrub Cover (%)") +
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +  # Relabel clusters
+  theme_bw() 
+
+cluster_grass_annNN_boxorjitter
+
+
+
+```
+
+
+
+# canopy height
+```{r}
+# stand height 
+
+standheight <- read_csv("deg_maxheight.csv",
+                             col_types = cols(
+                               year = col_character(),
+                               site = col_character(),
+                               rep = col_character(),
+                               distance = col_character(),
+                               species = col_character(),
+                               height_cm = col_double()
+                               )) %>%
+  dplyr::select('site', 'rep', 'species', 'height_cm') %>% 
+  # mutate(rep = case_when(rep == "1" ~ "01", # oldname ~ newname
+  #                        rep == "2" ~ "02",
+  #                        rep == "3" ~ "03",
+  #                        rep == "4" ~ "04",
+  #                        rep == "5" ~ "05",
+  #                        rep == "6" ~ "06",
+  #                        rep == "7" ~ "07",
+  #                        rep == "8" ~ "08",
+  #                        rep == "9" ~ "09",
+  #                             TRUE ~ rep)) %>% 
+  mutate(site_rep = paste(site, rep, sep = "_")) %>% 
+  group_by(site_rep) %>% 
+  summarise(avgheight_cm = mean(height_cm, na.rm = TRUE)) %>% 
+  ungroup() 
+  
+
+height_cover <- cover_bylfstatus_wide %>% left_join(standheight, by = "site_rep")
+# min = 46.2 cm
+# max = 280.3 cm
+
+
+# Fit the linear model: canopy height x nn grass cover
+model.h <- lm(avgheight_cm ~ grass_nonnative, data = height_cover) # response variable ~ independent variable
+
+# Print the summary of the model
+model.h.summary <- summary(model.h)
+
+
+# Extract the intercept, slope, and R^2 values
+intercept <- round(coef(model.h)[1], 2)
+slope <- round(coef(model.h)[2], 2)
+r_squared <- round(model.h.summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squared))
+# [1] "Multiple R^2: 0.365"
+# print slope and intercept
+cf <- round(coef(model.h), 3)
+cat("Intercept:", cf[1], "\n")
+cat("Slope:", cf[2], "\n")
+# > cat("Intercept:", cf[1], "\n")
+# Intercept: 164.522 
+# > cat("Slope:", cf[2], "\n")
+# Slope: -93.231 
+
+intercepth <- round(coef(model.h)[1], 2)
+slopeh <- round(coef(model.h)[2], 2)
+
+# Create the label for the equation and R^2
+eq_label_h <- paste0("y = ", slopeh, "x + ", intercepth, "\n", "R² = ", r_squared)
+
+ggplot(data = height_cover) + 
+  geom_point(aes(x = grass_nonnative * 100, 
+                 y = avgheight_cm)) +
+    xlim(0, 100) +
+  ylim(0, 300) +
+  labs(
+    x = "Non-native grass (%)",
+    y = "Average stand height (cm)",
+  #  title = "Mean stand height by Nonnative Grass percent cover",
+     color = "Legend") +
+   # scale_y_continuous(breaks = seq(0, max(300), by = 50)) +
+  geom_smooth(aes(x = grass_nonnative * 100, 
+                  y = avgheight_cm), 
+              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
+  theme_bw() + 
+   annotate("text", x = 0, y = 15, label = eq_label_h, color = "black", size = 4, hjust = 0) 
+
+# (linear regression: y = -93.23x + 164.52; R² = 0.365) 
+```
+
+
+
+# shrub density
+
+```{r}
+
+###################### shrub density - native
+
+
+######## 2019 
+shrubdensitylife_load <- read_csv("deg_beltdensity_bylifestage.csv", 
+    col_types = cols(
+       site = col_character(),
+      transect = col_character(), 
+      species = col_character(), 
+      dead = col_integer(),
+      immature = col_integer(),
+      mature = col_integer(), 
+      resprout = col_integer(), 
+      seedling = col_integer()
+      )
+     ) %>% 
+  mutate(transect = ifelse(
+    site == "INT2", "1", transect
+  )) %>% 
+   mutate(transect = ifelse(
+    site == "INT3", "1", transect
+  )) %>% 
+  dplyr::select(-StandType, -hillslope) %>% 
+  as_tibble() %>% 
+  rename("rep" = "transect") %>% 
+  pivot_longer(cols = 4:8, names_to = "lifestage", values_to = "density_80m2") %>% 
+  mutate(site_rep = paste(site, rep, sep = "_")) %>% 
+   mutate(density_m2 = (density_80m2 / 80)) %>% 
+  dplyr::select(-site, -rep, -density_80m2) %>% 
+  mutate(lifestage = case_when(lifestage == "resprout" ~ "immature", 
+                               TRUE ~ lifestage)) %>% 
+   mutate(species = case_when(species == "Cenothus oliganthus" ~ "Ceanothus oliganthus", 
+                               TRUE ~ species))
+
+
+######## 2024   
+shrubdensity_2024 <- read_csv("shrubdensity_2024.csv", 
+      col_types = cols(
+      site = col_character(),
+      transect = col_character(), 
+      species = col_character(), 
+      lifestage = col_character(),
+      density_80m2 = col_integer()
+      )
+      ) %>% 
+  dplyr::select(site, transect, species, lifestage, density_80m2) %>% 
+  rename("rep" = "transect") %>% 
+  mutate(density_m2 = (density_80m2 / 80)) %>% 
+ na.omit() %>% 
+  mutate(site_rep = paste(site, rep, sep = "_")) %>% 
+  dplyr::select(site_rep, species, lifestage, density_m2) %>% 
+   mutate(lifestage = case_when(lifestage == "resprout" ~ "immature", 
+                               TRUE ~ lifestage))
+
+
+######################## bind shrub density WITH shrub species WITH leaf type
+denspp  <- shrubdensitylife_load  %>%
+  bind_rows(shrubdensity_2024)
+
+denspp_cover <- height_cover %>%  # left join nn grass cover
+  dplyr::select(site, site_rep, grass_nonnative) %>% 
+  left_join(denspp, by = "site_rep") %>% 
+  filter(site_rep != "INT4_1") %>% # omit INT4_1
+  left_join(shrub_leaftype, by = "species") %>%  # left join shrub_leaftype
+  mutate(lifestage = factor(lifestage, levels = c("seedling", "immature", "mature", "dead"))) %>% 
+  separate(site_rep, into = c("site", "rep"), sep = "_") %>% 
+   mutate(rep = case_when(rep == "1" ~ "01", # oldname ~ newname
+                         rep == "2" ~ "02",
+                         rep == "3" ~ "03",
+                         rep == "4" ~ "04",
+                         rep == "5" ~ "05",
+                         rep == "6" ~ "06",
+                         rep == "7" ~ "07",
+                         rep == "8" ~ "08",
+                         rep == "9" ~ "09",
+                              TRUE ~ rep)) %>% 
+   mutate(site_rep = paste(site, rep, sep = ".")) %>%
+   mutate(site_rep = case_when(site_rep == "INT1.01" ~ "INT1.1",
+                              site_rep == "INT2.01" ~ "INT2.1",
+                              site_rep == "INT3.01" ~ "INT3.1",
+                              site_rep == "INT4.01" ~ "INT4.1",
+                              site_rep == "INT5.01" ~ "INT5.1",
+                              TRUE ~ site_rep)) %>% 
+   left_join(groups %>%  dplyr::select(site_rep, cluster), by = "site_rep") 
+
+denspp_cover_stats <- denspp_cover %>% 
+  group_by(cluster, species, lifestage) %>% 
+  summarise(mean_density_m2 = mean(density_m2)) %>% 
+  pivot_wider(names_from = lifestage, values_from = mean_density_m2)
+# view(denspp_cover_stats)
+
+#################### bind shrub density WITHOUT shrub species
+density2019 <- shrubdensitylife_load %>% # group shrub density by lifestage
+  group_by(site_rep, lifestage) %>% 
+  summarise(sum_density_m2 = sum(density_m2)) # 75 rows
+density2024 <- shrubdensity_2024 %>%  
+  group_by(site_rep, lifestage) %>% 
+  summarise(sum_density_m2 = sum(density_m2)) # 104 rows
+density <- density2019 %>%  
+  bind_rows(density2024) # 179 rows
+density_cover <- height_cover %>%  # left join nn grass cover
+  dplyr::select(site, site_rep, grass_nonnative, shrub_native) %>% 
+  left_join(density, by = "site_rep") %>% 
+  filter(site_rep != "INT4_1") # omit INT4_1
+
+
+########## bind with cluster groups
+density_cover_cluster <- density_cover %>% 
+  separate(site_rep, into = c("site", "rep"), sep = "_") %>% 
+   mutate(rep = case_when(rep == "1" ~ "01", # oldname ~ newname
+                         rep == "2" ~ "02",
+                         rep == "3" ~ "03",
+                         rep == "4" ~ "04",
+                         rep == "5" ~ "05",
+                         rep == "6" ~ "06",
+                         rep == "7" ~ "07",
+                         rep == "8" ~ "08",
+                         rep == "9" ~ "09",
+                              TRUE ~ rep)) %>% 
+   mutate(site_rep = paste(site, rep, sep = ".")) %>%
+   mutate(site_rep = case_when(site_rep == "INT1.01" ~ "INT1.1",
+                              site_rep == "INT2.01" ~ "INT2.1",
+                              site_rep == "INT3.01" ~ "INT3.1",
+                              site_rep == "INT4.01" ~ "INT4.1",
+                              site_rep == "INT5.01" ~ "INT5.1",
+                              TRUE ~ site_rep)) %>% 
+   left_join(groups %>%  dplyr::select(site_rep, cluster), by = "site_rep") 
+
+
+```
+
+### linear models
+```{r}
+
+######################## shrub density - linear models
+
+hist(density_cover$sum_density_m2)
+shapiro.test(density_cover$sum_density_m2) # not normal
+
+# # RUN this to test the residuals of the model you decide to use #########
+# 
+# plot(model.seedling)
+# 
+# qqnorm(residuals(model.seedling)) # run together
+# qqline(residuals(model.seedling))
+
+
+
+##################### seedling
+# Fit the linear model: canopy height x nn grass cover
+# a GLM is better for count data - negative binomial distribution
+model.seedling <- glm.nb(sum_density_m2 ~ grass_nonnative, 
+   data = density_cover %>% filter(lifestage == "seedling")) # response variable ~ independent variable
+# AIC: 49.263 - AIC: 150.4 when I ran glm.nb(sum_density_m2 ~ grass_nonnative + lifestage)
+
+# Print the summary of the model
+model.seedling.summary <- summary(model.seedling)
+# Summary of Fit:
+# Pseudo R²: Offers insight into explained variance.
+# AIC: Useful for comparing models.
+# Residual Deviance: Should be close to degrees of freedom, which in your case, it is.
+# Significance of predictors: Your predictor (grass_nonnative) is significant, indicating a strong relationship.
+null_model <- glm.nb(sum_density_m2 ~ 1, data = density_cover %>% filter(lifestage == "seedling"))
+pseudo_r2 <- 1 - (logLik(model.seedling) / logLik(null_model))
+round(pseudo_r2, 3) # 'log Lik.' 0.1976203 (df=3)
+
+model.seedling <- glm.nb(sum_density_m2 ~ grass_nonnative, 
+   data = density_cover %>% filter(lifestage == "seedling"))
+# Residual deviance: 24.132  on 33  degrees of freedom
+# AIC: 47.985
+
+
+##################### mature
+model.mature <- glm.nb(sum_density_m2 ~ grass_nonnative, 
+   data = density_cover %>% filter(lifestage == "mature"))
+model.mature.summary <- summary(model.mature)
+null_model2 <- glm.nb(sum_density_m2 ~ 1, 
+                      data = density_cover %>% filter(lifestage == "mature"))
+pseudo2_r2 <- 1 - (logLik(model.seedling) / logLik(null_model2))
+round(pseudo2_r2, 3) # 'log Lik.' 0.045 (df=3)
+
+
+
+ggplot(data = density_cover) + 
+  geom_point(aes(x = grass_nonnative * 100, 
+                 y = sum_density_m2)) +
+ facet_wrap(~lifestage)
+
+
+
+s <- ggplot(data = density_cover %>% filter(lifestage == "seedling")
+       ) + 
+  geom_point(aes(x = grass_nonnative * 100, 
+                 y = sum_density_m2)) +
+   labs(
+  #  title = "Linear regression of non-native grass by sclerophyllous shrub percent cover"
+    x = "Non-native grass cover (%)",
+    y = "Shrub seedling density (#/m2)"
+    ) +
+   geom_smooth(data = density_cover %>% filter(lifestage == "seedling"),
+              aes(x = grass_nonnative * 100, 
+                  y = sum_density_m2, 
+                  color = "black"), 
+              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
+  theme_bw()
+
+
+m <- ggplot(data = density_cover %>% filter(lifestage == "mature")
+       ) + 
+  geom_point(aes(x = grass_nonnative * 100, 
+                 y = sum_density_m2)) +
+  labs(
+  #  title = "Linear regression of non-native grass by sclerophyllous shrub percent cover"
+    x = "Non-native grass cover (%)",
+    y = "Mature shrub density (#/m2)"
+    ) + 
+ geom_smooth(data = density_cover %>% filter(lifestage == "mature"),
+              aes(x = grass_nonnative * 100, 
+                  y = sum_density_m2, 
+                  color = "black"), 
+              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
+  theme_bw()
+
+
+# Combine plots
+grid.arrange(m, 
+             s,
+             nrow = 2, 
+             ncol = 1, 
+             widths = c(1), # Custom widths for each column
+             heights = c(1, 1) # Custom heights for each row
+             ) 
+
+```
+
+### stats by lifestage
+
+```{r}
+
+################################ calculate shrub density means by cluster (n = 40 transects)
+# density_cover_cluster %>%
+#  group_by(cluster) %>%
+#  summarise(count = length(unique(site_rep)))
+# 1 = NNG: n = 10 transects
+# 3 = ssG: n = 10 transects
+# 2 = ssF: n = 7 transects
+# 4 = ssFG: n = 8 transects
+# 5 = EVG: n = 5 transects
+# 
+
+# density_cover_cluster %>%
+#   filter(sum_density_m2 > 0) %>% 
+#   group_by(lifestage) %>%
+#   summarise(count = length(lifestage))
+#   n = 39 becuase we didn't collect belt transect data at INT4
+#  dead         17 transects 
+#  immature     27 transects
+#  mature       35 transects <-- all belt transects had at least one mature shrub
+#  no_shrubs     4 transects
+#  seedling     21 transects
+
+
+densitymeans_bycluster <- density_cover_cluster %>% # without shrub species
+  mutate(cluster = factor(cluster, levels = c(1, 3, 2, 4, 5))) %>% 
+  group_by(cluster, lifestage) %>% 
+  dplyr::summarise(
+    median_density = median(sum_density_m2, na.rm = TRUE), 
+    n = n_distinct(site_rep),
+   sd = sd(sum_density_m2, na.rm = TRUE), # spread of data points
+  #  se = sd / sqrt(n), # precision of data points
+    median_sd = paste0(round(median_density, 2), " ± ", round(sd, 2))  # New column for formatted mean ± sd
+  ) 
+
+
+
+
+##############################  lifeform stats by cluster
+
+# seedling
+density_seedling <- density_cover_cluster %>%
+  filter(lifestage == "seedling")
+
+hist(density_seedling$sum_density_m2)
+shapiro.test(density_seedling$sum_density_m2) # <- not normal
+
+kruskal.test(sum_density_m2 ~ cluster, data = density_seedling)
+# data:  sum_density_m2 by cluster
+# Kruskal-Wallis chi-squared = 18.441, df = 4, p-value = 0.001012 <-- sig
+
+pairwise.wilcox.test(density_seedling$sum_density_m2, 
+                                      density_seedling$cluster,
+                                      p.adjust.method = "bonferroni")
+#  1        2      3      4     
+# 2 0.0354  -      -      -     
+# 3 1.0000  1.0000 -      -     
+# 4 0.0031  1.0000 0.1013 -     
+# 5 0.3021  1.0000 1.0000 1.0000
+# 
+# P value adjustment method: bonferroni 
+# significance
+# 1 a
+# 3 ab
+# 2 b
+# 4 b
+# 5 ab
+
+density_seedling_sig <- density_seedling %>%
+  mutate(
+    seedlingsig = case_when(
+      cluster == 1 ~ "a",
+      cluster == 3 ~ "ab",
+      cluster == 2 ~ "b",
+      cluster == 4 ~ "b",
+      cluster == 5 ~ "ab",
+      TRUE ~ NA_character_  # Optional: fill with NA if no match
+    )
+  ) %>% 
+  dplyr::select(cluster, seedlingsig)
+
+
+# immature
+density_immature <- density_cover_cluster %>%
+  filter(lifestage == "immature")
+
+hist(density_immature$sum_density_m2)
+shapiro.test(density_immature$sum_density_m2) # <- not normal
+
+kruskal.test(sum_density_m2 ~ cluster, data = density_seedling) 
+
+pairwise.wilcox.test(density_immature$sum_density_m2, 
+                                      density_immature$cluster,
+                                      p.adjust.method = "bonferroni") # <- no sig
+# data:  density_immature$sum_density_m2 and density_immature$cluster 
+# 
+#   1    2    3    4   
+# 2 0.29 -    -    -   
+# 3 1.00 0.54 -    -   
+# 4 1.00 1.00 1.00 -   
+# 5 0.18 1.00 0.69 1.00
+# 
+# P value adjustment method: bonferroni 
+# significance
+# 1 a
+# 3 a
+# 2 a
+# 4 a
+# 5 a
+
+
+# mature
+density_mature <- density_cover_cluster %>%
+  filter(lifestage == "mature")
+hist(density_mature$sum_density_m2)
+
+shapiro.test(density_mature$sum_density_m2) # <- not normal
+
+kruskal.test(sum_density_m2 ~ cluster, data = density_mature) 
+
+pairwise.wilcox.test(density_mature$sum_density_m2, 
+                                      density_mature$cluster,
+                                      p.adjust.method = "bonferroni")
+# data:  density_mature$sum_density_m2 and density_mature$cluster 
+# 
+#   1      2      3      4     
+# 2 0.1154 -      -      -     
+# 3 1.0000 0.2503 -      -     
+# 4 0.0058 1.0000 0.4266 -     
+# 5 0.2046 1.0000 0.4672 1.0000
+# 
+# P value adjustment method: bonferroni
+# 
+# significance
+# 1 a
+# 3 ab
+# 2 ab
+# 4 b
+# 5 ab
+
+
+# dead
+density_dead <- density_cover_cluster %>%
+  filter(lifestage == "dead")
+hist(density_dead$sum_density_m2)
+
+shapiro.test(density_dead$sum_density_m2) # <- not normal
+
+kruskal.test(sum_density_m2 ~ cluster, data = density_dead) 
+
+pairwise.wilcox.test(density_dead$sum_density_m2, 
+                                      density_dead$cluster,
+                                      p.adjust.method = "bonferroni")
+# data:  density_dead$sum_density_m2 and density_dead$cluster 
+# 
+#   1      2      3      4     
+# 2 0.0125 -      -      -     
+# 3 1.0000 0.1131 -      -     
+# 4 0.0856 1.0000 1.0000 -     
+# 5 0.0095 1.0000 0.3553 1.0000
+# 
+# P value adjustment method: bonferroni 
+# significance
+# 1 a
+# 3 ac
+# 2 bc
+# 4 ac
+# 5 bc
+
+###############. TABLE
+    
+densitymeans_bycluster_TABLE_prep <- densitymeans_bycluster %>% 
+  dplyr::select(cluster, lifestage, median_sd) %>%  # Select relevant columns for the summary table
+  pivot_wider(names_from = lifestage, values_from = median_sd) %>% 
+  mutate(cluster = case_when(cluster == "1" ~ "NNG",
+                             cluster == "3" ~ "ssG",
+                             cluster == "2" ~ "ssF",
+                             cluster == "4" ~ "ssFG",
+                             cluster == "5" ~ "EVG",
+                             TRUE ~ cluster)) %>% 
+  mutate(
+    seedlingsig = case_when(
+      cluster == "NNG" ~ " (a)",
+      cluster == "ssG" ~ " (ab)",
+      cluster == "ssF" ~ " (b)",
+      cluster == "ssFG" ~ " (b)",
+      cluster == "EVG" ~ " (ab)",
+      TRUE ~ NA_character_  # Optional: fill with NA if no match
+    )
+  ) %>% 
+   mutate(Seedling = paste(seedling, seedlingsig, sep = "")) %>% 
+  dplyr::select(-seedling, -seedlingsig, -no_shrubs, -"NA") %>% 
+  relocate(Seedling, .after = cluster) %>% 
+  filter(cluster %in% c("EVG", "NNG", "ssF", "ssFG", "ssG")) 
+  
+
+
+densitymeans_bycluster_TABLE <- densitymeans_bycluster_TABLE_prep %>% 
+ # kable(caption = "Summary Table of Means ± SD for Each Cluster and Lifestage")
+  flextable() %>%
+  add_header_row(
+  colwidths = c(1, 4),
+  values = c("", "Shrub Lifestage")) %>% 
+  set_header_labels(
+    # Rename your columns if necessary
+    cluster = "Cluster",
+    seedling = "Seedling",
+    immature = "Immature",
+    Mature = "Mature",
+    Dead = "Dead"
+  ) %>%
+  autofit() %>%
+  set_caption(caption = "Shrub Density Median ± SD by Cluster and Lifestage")
+  
+
+ggplot(densitymeans_bycluster %>%
+         filter(lifestage %in% c("seedling", "immature", "mature", "dead")),
+       aes(x = cluster, 
+           y = median_density)) +
+  geom_point(size = 3, position = position_dodge(width = 0.3)) +  
+  geom_errorbar(aes(ymin = median_density - sd, ymax = median_density + sd), 
+                width = 0.2, position = position_dodge(width = 0.3)) +  # SD bars
+  labs(x = "Plant Cluster", 
+       y = "Median Shrub Density (m2)") + 
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 1),  # Rotate x-axis labels if needed
+    legend.position = "right") +
+  ylim(0, 1) +
+  facet_wrap(~lifestage) +  # Facet by lifeform
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG"))  # Relabel clusters
+
+
+
+```
+
+
+
+```{r}
+################# density figures
+
+ggplot(data = density_cover %>% filter(sum_density_m2 > 0)) + 
+  geom_point(aes(x = grass_nonnative * 100, 
+                 y = sum_density_m2), 
+             size = 3) +
+  theme_bw() 
+
+plot_denspp <- ggplot(data = denspp_cover %>% 
+         filter(density_m2 > 0) %>% 
+         filter(species != "unknown5 shrub") %>% 
+         filter(leaftype == "nonsclero"), 
+       aes(color = species, shape = site)) + 
+  geom_point(aes(x = grass_nonnative * 100, 
+                 y = density_m2), 
+             size = 3) +
+   scale_color_manual(values = c("darkolivegreen3", "green", "dodgerblue", "plum", "orange3", "pink", "purple", "purple4", "blue")) +
+  theme_bw() +
+  facet_grid(~ lifestage) +
+  ylim(0,3)
+plot_denspp
+
+plot_denspp_scl <- ggplot(data = denspp_cover %>% 
+         filter(density_m2 > 0) %>% 
+         filter(species != "unknown5 shrub") %>% 
+         filter(leaftype == "sclerophyllous"), 
+       aes(color = species)) + 
+  geom_point(aes(x = grass_nonnative * 100, 
+                 y = density_m2), 
+             size = 3) +
+   scale_color_manual(values = c("dodgerblue", "darkolivegreen", "green", "red", "orchid")) +
+  theme_bw() +
+  facet_grid(~ lifestage) +
+  ylim(0,3)
+plot_denspp_scl
+
+# Combine plots
+grid.arrange(plot_denspp, 
+             plot_denspp_scl,
+             nrow = 2, 
+             ncol = 1, 
+             widths = c(1), # Custom widths for each column
+             heights = c(1, 1) # Custom heights for each row
+             ) 
+
+
+```
+
+
+```{r}
+print("yay! you've reached the end!")
+```
