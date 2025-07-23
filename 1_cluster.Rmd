@@ -453,14 +453,39 @@ temp.df <- data_pc %>%
 my_groups <- as.data.frame(sub_grp) %>%
   rownames_to_column()
 
-cluster.subgrp.df <- left_join(temp.df, my_groups, by = "rowname")
+cluster.subgrp.df_prep <- left_join(temp.df, my_groups, by = "rowname")
 
 # # Create a combined label
-cluster.subgrp.df$combined_labels <- paste(cluster.subgrp.df$sub_grp, cluster.subgrp.df$site_rep, sep = " - ")
+# cluster.subgrp.df$combined_labels <- paste(cluster.subgrp.df$sub_grp, # <-- oringinal code cluster.subgrp.df$site_rep, sep = " - ")
+cluster.subgrp.df <- cluster.subgrp.df_prep %>% 
+  mutate(sub_grp_name = recode(sub_grp,
+                                 "1" = "NNG",
+                                 "2" = "ssF", 
+                                 "3" = "ssG",
+                                 "4" = "ssFG",
+                                "5" = "EVG"
+                          )) %>% 
+
+   mutate(combined_labels = paste(sub_grp_name, site_rep, sep = "."))
 
 # Plot the hierarchical clustering dendrogram with the combined labels
-plot(hcluster.abs.cover, labels = cluster.subgrp.df$combined_labels, main = "Hierarchical Clustering Dendrogram")
+### oringinal code
+plot(hcluster.abs.cover, 
+     labels = cluster.subgrp.df$combined_labels, 
+     main = "Hierarchical Clustering Dendrogram")
 rect.hclust(hcluster.abs.cover, k = 5)
+
+### code writing on July 21, 2025
+hcluster.abs.cover_obj <- as.hclust(hcluster.abs.cover)
+plot(
+  hcluster.abs.cover_obj,
+  labels = cluster.subgrp.df$combined_labels,
+  main = "Hierarchical Clustering Dendrogram",
+  cex.main = 1.5,         # Increase title size
+  cex = 1.2,  # Adjust this value as needed to enlarge text
+   hang = -1               # Better spacing
+)
+rect.hclust(hcluster.abs.cover_obj, k = 5, border = "red", )
 
 
 
