@@ -141,7 +141,7 @@ transect2024 <- file_transect_2024_load %>%
 - load cluster
 ```{r}
 
-groups_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) 
+groups_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/data/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) 
 
 groups <- groups_load %>% 
   dplyr::select(c(system_ind, cluster)) %>% 
@@ -390,7 +390,7 @@ abcover_charateristics <- abcover_full %>%
 ```{r}
 #shrub_leaftype <- read_excel("shrub_leaftype.xlsx") #original data
 
-shrub_leaftype <- read.csv("shrub_leaftype.csv") %>% 
+shrub_leaftype <- read.csv("data/shrub_leaftype.csv") %>% 
   dplyr::select("species", "leaftype") %>% 
    mutate(
       species = as.character(species),
