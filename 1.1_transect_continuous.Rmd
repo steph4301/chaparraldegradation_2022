@@ -235,6 +235,8 @@ abcover_full <- abcover_fulljoin_tib %>%
                               species == "Sambucus nigra" ~ "Sambucus mexicana",
                               species == "Blitum californicum" ~ "Chenopodium californicum",
                               species == "Cryptantha sp." ~ "Cryptantha spp.",
+                              # species == "Festuca myros" ~ "Festuca myuros",
+                               species == "Mirabilis laevis var. crassifolia" ~ "Mirabilis laevis",
                               TRUE ~ species)) %>% 
    mutate(
       year = as.character(year),
@@ -315,6 +317,11 @@ specieslist <- file_transect_2019_load %>%
           status = "native",
           lifecycle = "annual",
           family = "Asteraceae   ") %>% 
+  add_row(species = "no_species",
+          lifeform = "no_species",
+          status = "no_species",
+          lifecycle = "no_species",
+          family = "no_species   ") %>% 
   distinct()
 
 #View(specieslist)
@@ -464,9 +471,11 @@ abcover_charateristics_leaftype %>%
 ```{r omit ground as a status}
 abcover_omitground <- abcover_charateristics_leaftype %>% 
   filter(vertical != "ground", 
-         vertical != "ground cover") %>% 
+         vertical != "ground cover", 
+         vertical != "0") %>% 
   filter(species != "no_species", 
-         species != "thatch") %>% 
+         species != "thatch", 
+         species != "unknown3") %>% 
   mutate(lifeform_status = paste(lifeform, status, sep = "_")) %>% 
   mutate(lifeform_status_leaftype = paste(lifeform_status, leaftype, sep = "_"))
 
@@ -1525,7 +1534,7 @@ cover_bylifecycle <- abcover_omitground %>%
                               site_rep == "INT2.01" ~ "INT2.1",
                               site_rep == "INT3.01" ~ "INT3.1",
                               site_rep == "INT4.01" ~ "INT4.1",
-                              site_rep == "INT5.01" ~ "INT5.1",
+                              site_rep == "INT5.05" ~ "INT5.1",
                               TRUE ~ site_rep)) %>% 
   left_join(groups, by = "site_rep") %>% 
   
@@ -1551,13 +1560,13 @@ cover_bylifecycle <- abcover_omitground %>%
   
 cover_bylifecycle_bygroup <- cover_bylifecycle %>% 
   group_by(cluster, lifeform, lifecycle, status, lifeform_lifecycle, lifeform_lifecycle_status) %>% 
+  filter(lifeform_lifecycle != "fern_perennial") %>% 
   dplyr::summarise(
     mean_cover = mean(lifeform_lifecycle_percentcover, na.rm = TRUE), 
     n = n_distinct(site_rep), 
     sd = sd(lifeform_lifecycle_percentcover, na.rm = TRUE), 
     se = sd / sqrt(n)
-  )
-
+  ) 
 
 ############################## figures of lifeform_lifecycle by cluster group
 
@@ -1565,11 +1574,120 @@ cover_bylifecycle_bygroup <- cover_bylifecycle %>%
 # cover_bylifecycle_bygroup <- cover_bylifecycle_bygroup %>%
 #   separate(lifeform_lifecycle, into = c("lifeform", "lifecycle"), sep = "_")
 
+############ this is the original ggplot. New ggplot with sig letters coded below - july 22, 2025 SML
+############ 
+# fig_forbgrass <- ggplot(cover_bylifecycle_bygroup %>%
+#          filter(lifeform_lifecycle_status %in% c(
+#            "forb_annual_native", "forb_annual_nonnative", "forb_perennial_native",
+#            "grass_annual_nonnative", "grass_perennial_native", 
+#            "shrub_perennial_native")),
+#        aes(x = cluster, 
+#            y = mean_cover, 
+#            shape = lifecycle,   
+#            color = lifecycle   
+#            )) +
+#   geom_point(size = 3, position = position_dodge(width = 0.3), show.legend = TRUE) +  # Mean points
+#   geom_errorbar(aes(ymin = mean_cover - se, ymax = mean_cover + se), 
+#                 width = 0.5, position = position_dodge(width = 0.3)) +  # SE bars
+#   labs(x = "Plant Cluster", 
+#        y = "Mean Percent Cover (%)",
+#        color = "Lifecycle",  # Label for color legend
+#         shape = "Lifecycle"
+#        ) +  # Label for shape legend
+#   theme_bw() +
+#   theme(
+#     axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
+#     # hjust = 0.5 = centered; 1 = right justified
+#     axis.text.y = element_text(size = 14),       # Increase y-axis text size
+#     axis.title = element_text(size = 16),        # Axis title size
+#     strip.text = element_text(size = 16),        # Facet label text size
+#     legend.text = element_text(size = 14),       # Legend text size
+#     legend.title = element_text(size = 14),      # Legend title size
+#     legend.position = "right"
+#   ) +
+#    
+#   ylim(0, 100) +
+#   facet_grid(~lifeform * status) +  # Facet by lifeform: facet_wrap
+#   scale_shape_manual(values = c("annual" = 1, "perennial" = 15)) +  
+#   scale_color_manual(values = c("annual" = "black", "perennial" = "black")) +  
+#   scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG"))  # Relabel clusters
+# fig_forbgrass
+
+
+##################### let's try to add sig letters
+# EVG = 5
+# ssFG = 4
+# ssF = 2
+# ssG = 3
+# NNG = 1
+
+fig_forbgrass_sig_labels <- bind_rows(
+  # Shrub native
+  data.frame(
+  cluster = c("5", "4", "2", "3", "1"),
+  lifeform = "shrub",
+  status = "native",
+  label = c("a", "a", "ab", "bc", "c"),
+  y = c(95.4, 82.8, 76.0, 50.3, 34.4)
+   #  run this to find y placement --> cover_bylifecycle_bygroup %>% filter(lifeform == "shrub") %>% dplyr::select(mean_cover, se) %>% mutate(max = mean_cover + se + 5)
+   ),
+  
+  # Forb native annual
+  data.frame(
+    cluster = c("5", "4", "2", "3", "1"),
+    lifeform = "forb",
+    status = "native",
+    label = c("A", "A", "A", "A", "A"),
+    y = c(22.2, 34.4, 31.6, 24.3, 15.5)
+     #  run this to find y placement --> cover_bylifecycle_bygroup %>% filter(lifeform_lifecycle_status == "forb_annual_native") %>% dplyr::select(mean_cover, se) %>% mutate(max = mean_cover + se + 5)
+  ),
+    # Forb native perennial
+  data.frame(
+    cluster = c("5", "4", "2", "3", "1"),
+    lifeform = "forb",
+    status = "native",
+    label = c("a", "a", "a", "a", "a"),
+    y = c(17.2, 29.4, 26.6, 19.3, 10.5)
+     #  run this to find y placement --> cover_bylifecycle_bygroup %>% filter(lifeform_lifecycle_status == "forb_perennial_native") %>% dplyr::select(mean_cover, se) %>% mutate(max = mean_cover + se + 5)
+  ), 
+  # Forb non-native annual
+ data.frame(
+    cluster = c("5", "4", "2", "3", "1"),
+    lifeform = "forb",
+    status = "nonnative",
+    label = c("AB", "B", "A", "B", "AB"),
+    y = c(7.44, 24.1, 66.6, 29.9, 55.2)
+     #  run this to find y placement --> cover_bylifecycle_bygroup %>% filter(lifeform_lifecycle_status == "forb_annual_nonnative") %>% dplyr::select(mean_cover, se) %>% mutate(max = mean_cover + se + 5)
+  ),
+  # grass Native perennial
+ data.frame(
+    cluster = c("5", "4", "2", "3", "1"),
+    lifeform = "grass",
+    status = "native",
+    label = c("b", "ab", "a", "ab", "ab"),
+    y = c(65.0, 34.9, 22.2, 7.44, 9.88)
+     #  run this to find y placement --> cover_bylifecycle_bygroup %>% filter(lifeform_lifecycle_status == "grass_perennial_native") %>% dplyr::select(mean_cover, se) %>% mutate(max = mean_cover + se + 5)
+  ), 
+   # grass nonnative annual
+ data.frame(
+    cluster = c("5", "4", "2", "3", "1"),
+    lifeform = "grass",
+    status = "nonnative",
+    label = c("C", "BC", "B", "A", "A"),
+    y = c(37.4, 54.0, 68.6, 91.8, 100)
+     #  run this to find y placement --> cover_bylifecycle_bygroup %>% filter(lifeform_lifecycle_status == "grass_annual_nonnative") %>% dplyr::select(mean_cover, se) %>% mutate(max = mean_cover + se + 5)
+  )
+  )
+
 fig_forbgrass <- ggplot(cover_bylifecycle_bygroup %>%
          filter(lifeform_lifecycle_status %in% c(
-           "forb_annual_native", "forb_annual_nonnative", "forb_perennial_native",
-           "grass_annual_nonnative", "grass_perennial_native", 
-           "shrub_perennial_native")),
+           "shrub_perennial_native",
+           "forb_annual_native", 
+           "forb_annual_nonnative", 
+           "forb_perennial_native",
+           "grass_perennial_native",
+           "grass_annual_nonnative"
+           )),
        aes(x = cluster, 
            y = mean_cover, 
            shape = lifecycle,   
@@ -1578,6 +1696,10 @@ fig_forbgrass <- ggplot(cover_bylifecycle_bygroup %>%
   geom_point(size = 3, position = position_dodge(width = 0.3), show.legend = TRUE) +  # Mean points
   geom_errorbar(aes(ymin = mean_cover - se, ymax = mean_cover + se), 
                 width = 0.5, position = position_dodge(width = 0.3)) +  # SE bars
+  geom_text(data = fig_forbgrass_sig_labels,
+          aes(x = cluster, y = y, label = label),
+          inherit.aes = FALSE,
+          size = 5) +
   labs(x = "Plant Cluster", 
        y = "Mean Percent Cover (%)",
        color = "Lifecycle",  # Label for color legend
@@ -1585,18 +1707,23 @@ fig_forbgrass <- ggplot(cover_bylifecycle_bygroup %>%
        ) +  # Label for shape legend
   theme_bw() +
   theme(
-    axis.text.x = element_text(angle = 0, hjust = 1),  # Rotate x-axis labels if needed
+    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
+    # hjust = 0.5 = centered; 1 = right justified
+    axis.text.y = element_text(size = 14),       # Increase y-axis text size
+    axis.title = element_text(size = 16),        # Axis title size
+    strip.text = element_text(size = 16),        # Facet label text size
+    legend.text = element_text(size = 14),       # Legend text size
+    legend.title = element_text(size = 14),      # Legend title size
     legend.position = "right"
   ) +
+   
   ylim(0, 100) +
   facet_grid(~lifeform * status) +  # Facet by lifeform: facet_wrap
   scale_shape_manual(values = c("annual" = 1, "perennial" = 15)) +  
   scale_color_manual(values = c("annual" = "black", "perennial" = "black")) +  
-  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG"))  # Relabel clusters
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) 
+
 fig_forbgrass
-
-
-
 ```
 
 
