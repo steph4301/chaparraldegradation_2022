@@ -5,6 +5,9 @@ date: "2024-04-23"
 output: html_document
 ---
 
+
+
+
 ```{r libraries, message=FALSE}
 library(here) # similar to set working directory
 library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
@@ -19,7 +22,7 @@ NOTE (june 6, 2025) - I don't think I use any of this code in my chapter. - SML
 #### load data
 
 ```{r load data}
-extracted_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) 
+extracted_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/data/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) 
 
 # names(extracted_load)
 
