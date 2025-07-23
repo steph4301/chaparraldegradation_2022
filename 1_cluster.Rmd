@@ -52,7 +52,7 @@ set.seed(3980)
 
 # Step 1: Load the data
 ```{r bringing in the csv you sent me}
-data_pc <- read.csv("twinspan_percentcover.csv")
+data_pc <- read.csv("data/twinspan_percentcover.csv")
 
 rownames(data_pc) <- data_pc[,1]
 data_pc[,1] <- NULL
@@ -63,7 +63,7 @@ data_pc[,1] <- NULL
 
 # load data
 ```{r load point intercept transect data from csv, include=TRUE}
-file_transect_2019_load <- read_csv("deg_percentcover_byspecies_bylifeform_2024.csv") %>% # warnings are from Notes 
+file_transect_2019_load <- read_csv("data/deg_percentcover_byspecies_bylifeform_2024.csv") %>% # warnings are from Notes 
   dplyr::select(site, year, transect, distance, vertical, species, lifeform, status, lifecycle, family) %>% 
   mutate(vertical = case_when(vertical == "ground" ~ "0", # oldname ~ newname
                               TRUE ~ vertical)) %>% 
@@ -113,7 +113,7 @@ transect2019 <- file_transect_2019_load %>%
 #sort(unique(transect2019$transect))
 #sort(unique(transect2019$site))
 
-file_transect_2024_load <- read.csv("Transects_2024 - transect.csv", header = TRUE, na.strings=c("","NA")) %>% 
+file_transect_2024_load <- read.csv("data/Transects_2024 - transect.csv", header = TRUE, na.strings=c("","NA")) %>% 
   dplyr::select(site, transect, year, distance, vertical, species, max_height_cm) %>% 
    mutate(vertical = case_when(vertical == "ground" ~ "0", # oldname ~ newname
                               TRUE ~ vertical)) %>% 
@@ -868,10 +868,13 @@ gtsave(table_cover,
 
 ```{r}
 print("End of code :)")
+
+break this code
 ```
 
 
 # END 
+
 
 Old code below
 
