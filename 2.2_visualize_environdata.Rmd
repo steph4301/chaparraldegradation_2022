@@ -76,7 +76,7 @@ cal_palette(name = "creek", n = 15, type = "continuous")
 #### load data
 
 ```{r load data}
-extracted_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) 
+extracted_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/data/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) 
 
 extracted <- extracted_load%>% 
   dplyr::select(!c(system.index, ID, .geo, aspect)) %>% # omit aspect because INT transects cross from 21 to 350 degrees
@@ -366,4 +366,9 @@ ggplot(data = extracted,
    # geom_point() +
   geom_boxplot() +
   theme_classic()
+```
+
+```{r}
+print("You've reached the end of the code! Huzzah!")
+
 ```
