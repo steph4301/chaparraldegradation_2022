@@ -60,12 +60,12 @@ clean_background <- theme(plot.background = element_rect("white"),
 
 ################### load environmental data
 
-extracted_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) %>% 
+extracted_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/data/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) %>% 
   dplyr::select(system_ind, aspect, elevation, slope, site, lat, long, cluster) %>% 
   mutate(southwestness = cos(225-aspect))
 # sort(unique(extracted_load$system_ind))
 
-twi_firecount_solarrad_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_20m_20241014_8pm.csv", header = TRUE, na.strings = c("", "NA")) %>% 
+twi_firecount_solarrad_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/data/Extracted_Elevation_Slope_Aspect_Hillshade_20m_20241014_8pm.csv", header = TRUE, na.strings = c("", "NA")) %>% 
   dplyr::select(system_ind, twi, summer_solarradiation, winter_solarradiation, equinox_solarradiation, fire_event_count) %>% 
   mutate(total_solrad = summer_solarradiation + winter_solarradiation + equinox_solarradiation + equinox_solarradiation) 
 # sort(unique(twi_firecount_solarrad_load$system_ind))
@@ -1333,141 +1333,141 @@ NOTE: On Sept 19, 2024 I ran a PCA analysis omitting INT transects and the value
 ########### Environ PCA without INT transects
 
 
-# pca_data_woINT <- extracted %>% 
-#   dplyr::select(c(hillshade, slope, twi, southwestness, fire_event_count, site_rep, site)) %>% 
-#   filter(site == "site_1" | site == "site_2") %>% 
-#   column_to_rownames("site_rep") %>% 
-#   dplyr::select(-site)
+pca_data_woINT <- extracted %>%
+  dplyr::select(c(slope, twi, southwestness, fire_event_count, site_rep, site)) %>% # <- omit hillshade
+  filter(site == "site_1" | site == "site_2") %>%
+  column_to_rownames("site_rep") %>%
+  dplyr::select(-site)
 
 
-### Run PCA on the scaled part of the data only (ignoring the unscaled columns)
-# pca_result <- prcomp(pca_data_woINT, center = TRUE, scale = TRUE)
-# pca_scores <- pca_result$x  # These are the scores (transformed data)
+## Run PCA on the scaled part of the data only (ignoring the unscaled columns)
+pca_result <- prcomp(pca_data_woINT, center = TRUE, scale = TRUE)
+pca_scores <- pca_result$x  # These are the scores (transformed data)
 
-### View PCA results
-# summary(pca_result)
-### Importance of components: ---------- pca_data_woINT ------------------
-###                           PC1    PC2    PC3    PC4     PC5
-### Standard deviation     1.4952 1.0201 0.8859 0.7524 0.61059
-### Proportion of Variance 0.4471 0.2081 0.1570 0.1132 0.07456
-### Cumulative Proportion  0.4471 0.6553 0.8122 0.9254 1.00000 <-- better explanation by PC1 and PC2 w/o INT transects
-### 
-### # Importance of components: ---------- pca_data ------------------
-###                           PC1    PC2    PC3    PC4     PC5
-### Standard deviation     1.4435 1.0747 0.8609 0.7676 0.65664
-### Proportion of Variance 0.4167 0.2310 0.1482 0.1178 0.08623
-### Cumulative Proportion  0.4167 0.6477 0.7959 0.9138 1.00000
+## View PCA results
+summary(pca_result)
+## Importance of components: ---------- pca_data_woINT ------------------
+##                           PC1    PC2    PC3    PC4     PC5
+## Standard deviation     1.4952 1.0201 0.8859 0.7524 0.61059
+## Proportion of Variance 0.4471 0.2081 0.1570 0.1132 0.07456
+## Cumulative Proportion  0.4471 0.6553 0.8122 0.9254 1.00000 <-- better explanation by PC1 and PC2 w/o INT transects
+##
+## # Importance of components: ---------- pca_data ------------------
+##                           PC1    PC2    PC3    PC4     PC5
+## Standard deviation     1.4435 1.0747 0.8609 0.7676 0.65664
+## Proportion of Variance 0.4167 0.2310 0.1482 0.1178 0.08623
+## Cumulative Proportion  0.4167 0.6477 0.7959 0.9138 1.00000
 
-# summary(pca_scores)
+summary(pca_scores)
 
-# pca_values <- as.data.frame(pca_result$x)
-# loadings_df <- as.data.frame(pca_result$rotation) #df with variables' vectors
-# loadings_df <- loadings_df * 5 # scale for visuals
+pca_values <- as.data.frame(pca_result$x)
+loadings_df <- as.data.frame(pca_result$rotation) #df with variables' vectors
+loadings_df <- loadings_df * 5 # scale for visuals
 
-# pca_df <- pca_values %>%
-#   rownames_to_column("site_rep") %>%
-#   
-#   left_join(extracted %>% dplyr::select("site_rep", "plant_cluster"), by = "site_rep") %>% 
-#     mutate(plant_cluster = as.character(plant_cluster)) %>% 
-#   rownames_to_column() %>% 
-#   left_join(my_groups, by = "rowname") %>% 
-#   rename(environ_cluster = sub_grp) %>% 
-#      mutate(environ_cluster = as.character(environ_cluster)) %>% 
-#   dplyr::select(-rowname)
+pca_df <- pca_values %>%
+  rownames_to_column("site_rep") %>%
 
-
-# PCA_plot_2 <- ggplot() +
-#   geom_point (data = pca_df,
-#               aes(x = PC1, y = PC2, color = environ_cluster, shape = plant_cluster), 
-#               size = 4) +  
-#   scale_color_manual(values = c("1" = "darkorange", "2" = "darkgreen")) +
-#   
-#   scale_shape_manual(values = c("1" = 1, "2" = 2, "3" = 3, "4" = 22, "5" = 7),
-#                      labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
-#   
-#   geom_vline(xintercept = c(0), color = "grey70", linetype = 2) + 
-#   geom_hline(yintercept = c(0), color = "grey70", linetype = 2) +
-#   geom_segment(data = loadings_df, 
-#                aes(x = 0, y = 0, xend = PC1, yend = PC2),  # Vectors for loadings
-#                arrow = arrow(length = unit(0.2, "cm")), 
-#                color = "black", alpha = 0.8) +             # Vectors in blue, alpha = transparency (0 = transparent, 1 = solid)
-#   geom_text_repel(data = loadings_df,                    # Text labels for loadings
-#                   aes(x = PC1, y = PC2, label = rownames(loadings_df)),
-#                   size = 4, color = "blue") +             # Text labels in blue
-#   labs(title = "PCA of Environmental Variables - omit INT", 
-#        x = "Principal Component 1 (44.71%)",
-#        y = "Principal Component 2 (20.81%)") +                  
-#   #clean_background +      
-#   theme_bw()+
-#   theme(plot.title = element_text(hjust = 0.5)) +         # Center title
-#   xlim(-4, 4) +
-#   ylim(-5, 4)
+  left_join(extracted %>% dplyr::select("site_rep", "plant_cluster"), by = "site_rep") %>%
+    mutate(plant_cluster = as.character(plant_cluster)) %>%
+  rownames_to_column() %>%
+  left_join(my_groups, by = "rowname") %>%
+  rename(environ_cluster = sub_grp) %>%
+     mutate(environ_cluster = as.character(environ_cluster)) %>%
+  dplyr::select(-rowname)
 
 
-# PCA_environcluster_2 <- ggplot() +
-#   geom_point (data = pca_df,
-#               aes(x = PC1, y = PC2, color = environ_cluster, shape = environ_cluster), 
-#               size = 4) +  
-#   scale_color_manual(values = c("1" = "darkorange", "2" = "darkgreen")) +
-#   #scale_shape_manual(values = c("1" = 0, "2" = 4, "3" = 2, "4" = 3, "5" = 7)) +
-#   geom_vline(xintercept = c(0), color = "grey70", linetype = 2) + 
-#   geom_hline(yintercept = c(0), color = "grey70", linetype = 2) +
-#   geom_segment(data = loadings_df, 
-#                aes(x = 0, y = 0, xend = PC1, yend = PC2),  # Vectors for loadings
-#                arrow = arrow(length = unit(0.2, "cm")), 
-#                color = "black", alpha = 0.8) +             # Vectors in blue, alpha = transparency (0 = transparent, 1 = solid)
-#   geom_text_repel(data = loadings_df,                    # Text labels for loadings
-#                   aes(x = PC1, y = PC2, label = rownames(loadings_df)),
-#                   size = 4, color = "blue") +             # Text labels in blue
-#   labs(title = "PCA of Environmental Variables", 
-#        x = "Principal Component 1 (44.71%)",
-#        y = "Principal Component 2 (20.81%)") +               
-#   #clean_background +      
-#   theme_bw()+
-#   theme(plot.title = element_text(hjust = 0.5)) +         # Center title
-#   xlim(-4, 4) +
-#   ylim(-5, 4)
+PCA_plot_2 <- ggplot() +
+  geom_point (data = pca_df,
+              aes(x = PC1, y = PC2, color = environ_cluster, shape = plant_cluster),
+              size = 4) +
+  scale_color_manual(values = c("1" = "darkorange", "2" = "darkgreen")) +
+
+  scale_shape_manual(values = c("1" = 1, "2" = 2, "3" = 3, "4" = 22, "5" = 7),
+                     labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
+
+  geom_vline(xintercept = c(0), color = "grey70", linetype = 2) +
+  geom_hline(yintercept = c(0), color = "grey70", linetype = 2) +
+  geom_segment(data = loadings_df,
+               aes(x = 0, y = 0, xend = PC1, yend = PC2),  # Vectors for loadings
+               arrow = arrow(length = unit(0.2, "cm")),
+               color = "black", alpha = 0.8) +             # Vectors in blue, alpha = transparency (0 = transparent, 1 = solid)
+  geom_text_repel(data = loadings_df,                    # Text labels for loadings
+                  aes(x = PC1, y = PC2, label = rownames(loadings_df)),
+                  size = 4, color = "blue") +             # Text labels in blue
+  labs(title = "PCA of Environmental Variables - omit INT",
+       x = "Principal Component 1 (44.71%)",
+       y = "Principal Component 2 (20.81%)") +
+  #clean_background +
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5)) +         # Center title
+  xlim(-4, 4) +
+  ylim(-5, 4)
 
 
-# PCA_plantcluster_2 <- ggplot() +
-#   geom_point (data = pca_df,
-#               aes(x = PC1, y = PC2, 
-#                   color = plant_cluster, shape = plant_cluster, fill = plant_cluster), 
-#               size = 4) +  
-#   # how the data points look
-#   scale_shape_manual(values = c("1" = 21, "2" = 21, "3" = 21, "4" = 21, "5" = 7),
-#                      labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
-#   scale_color_manual(values = c("1" = "black", "2" = "black", "3" = "black", "4" = "black", "5" = "black"),
-#                      labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
-#   scale_fill_manual(values = c("1" = "black", "2" = "grey75", "3" = "grey40", "4" = "white", "5" = "black"),
-#                      labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
-#   
-#   geom_vline(xintercept = c(0), color = "grey70", linetype = 2) + 
-#   geom_hline(yintercept = c(0), color = "grey70", linetype = 2) +
-#   geom_segment(data = loadings_df, 
-#                aes(x = 0, y = 0, xend = PC1, yend = PC2),  # Vectors for loadings
-#                arrow = arrow(length = unit(0.2, "cm")), 
-#                color = "black", alpha = 0.8) +             # Vectors in blue, alpha = transparency (0 = transparent, 1 = solid)
-#   geom_text_repel(data = loadings_df,                    # Text labels for loadings
-#                   aes(x = PC1, y = PC2, label = rownames(loadings_df)),
-#                   size = 4, color = "blue") +             # Text labels in blue
-#   labs(title = "PCA of Environmental Variables", 
-#        x = "Principal Component 1 (44.71%)",
-#        y = "Principal Component 2 (20.81%)") +                  
-#   #clean_background +      
-#   theme_bw()+
-#   theme(plot.title = element_text(hjust = 0.5)) +         # Center title
-#   xlim(-4, 4) +
-#   ylim(-5, 4) +
-#     guides(color = guide_legend(title = "Plant Group"),
-#          shape = guide_legend(title = "Plant Group"),
-#          fill = guide_legend(title = "Plant Group"))
+PCA_environcluster_2 <- ggplot() +
+  geom_point (data = pca_df,
+              aes(x = PC1, y = PC2, color = environ_cluster, shape = environ_cluster),
+              size = 4) +
+  scale_color_manual(values = c("1" = "darkorange", "2" = "darkgreen")) +
+  #scale_shape_manual(values = c("1" = 0, "2" = 4, "3" = 2, "4" = 3, "5" = 7)) +
+  geom_vline(xintercept = c(0), color = "grey70", linetype = 2) +
+  geom_hline(yintercept = c(0), color = "grey70", linetype = 2) +
+  geom_segment(data = loadings_df,
+               aes(x = 0, y = 0, xend = PC1, yend = PC2),  # Vectors for loadings
+               arrow = arrow(length = unit(0.2, "cm")),
+               color = "black", alpha = 0.8) +             # Vectors in blue, alpha = transparency (0 = transparent, 1 = solid)
+  geom_text_repel(data = loadings_df,                    # Text labels for loadings
+                  aes(x = PC1, y = PC2, label = rownames(loadings_df)),
+                  size = 4, color = "blue") +             # Text labels in blue
+  labs(title = "PCA of Environmental Variables",
+       x = "Principal Component 1 (44.71%)",
+       y = "Principal Component 2 (20.81%)") +
+  #clean_background +
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5)) +         # Center title
+  xlim(-4, 4) +
+  ylim(-5, 4)
 
-# PCA_plot_2
 
-# PCA_environcluster_2
+PCA_plantcluster_2 <- ggplot() +
+  geom_point (data = pca_df,
+              aes(x = PC1, y = PC2,
+                  color = plant_cluster, shape = plant_cluster, fill = plant_cluster),
+              size = 4) +
+  # how the data points look
+  scale_shape_manual(values = c("1" = 21, "2" = 21, "3" = 21, "4" = 21, "5" = 7),
+                     labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
+  scale_color_manual(values = c("1" = "black", "2" = "black", "3" = "black", "4" = "black", "5" = "black"),
+                     labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
+  scale_fill_manual(values = c("1" = "black", "2" = "grey75", "3" = "grey40", "4" = "white", "5" = "black"),
+                     labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
 
-# PCA_plantcluster_2
+  geom_vline(xintercept = c(0), color = "grey70", linetype = 2) +
+  geom_hline(yintercept = c(0), color = "grey70", linetype = 2) +
+  geom_segment(data = loadings_df,
+               aes(x = 0, y = 0, xend = PC1, yend = PC2),  # Vectors for loadings
+               arrow = arrow(length = unit(0.2, "cm")),
+               color = "black", alpha = 0.8) +             # Vectors in blue, alpha = transparency (0 = transparent, 1 = solid)
+  geom_text_repel(data = loadings_df,                    # Text labels for loadings
+                  aes(x = PC1, y = PC2, label = rownames(loadings_df)),
+                  size = 4, color = "blue") +             # Text labels in blue
+  labs(title = "PCA of Environmental Variables",
+       x = "Principal Component 1 (44.71%)",
+       y = "Principal Component 2 (20.81%)") +
+  #clean_background +
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5)) +         # Center title
+  xlim(-4, 4) +
+  ylim(-5, 4) +
+    guides(color = guide_legend(title = "Plant Group"),
+         shape = guide_legend(title = "Plant Group"),
+         fill = guide_legend(title = "Plant Group"))
+
+PCA_plot_2
+
+PCA_environcluster_2
+
+PCA_plantcluster_2
 
 ```
 
