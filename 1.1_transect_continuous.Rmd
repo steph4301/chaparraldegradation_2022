@@ -1512,7 +1512,8 @@ ggsave(
 # dev.off()  # Close the PDF device
 ```
 
-### by CLUSTER
+# CLUSTER
+### by percent cover
 ```{r}
 
 # making a figure of mean forb x annual/perennial cover by cluster group
@@ -1576,42 +1577,42 @@ cover_bylifecycle_bygroup <- cover_bylifecycle %>%
 
 ############ this is the original ggplot. New ggplot with sig letters coded below - july 22, 2025 SML
 ############ 
-# fig_forbgrass <- ggplot(cover_bylifecycle_bygroup %>%
-#          filter(lifeform_lifecycle_status %in% c(
-#            "forb_annual_native", "forb_annual_nonnative", "forb_perennial_native",
-#            "grass_annual_nonnative", "grass_perennial_native", 
-#            "shrub_perennial_native")),
-#        aes(x = cluster, 
-#            y = mean_cover, 
-#            shape = lifecycle,   
-#            color = lifecycle   
-#            )) +
-#   geom_point(size = 3, position = position_dodge(width = 0.3), show.legend = TRUE) +  # Mean points
-#   geom_errorbar(aes(ymin = mean_cover - se, ymax = mean_cover + se), 
-#                 width = 0.5, position = position_dodge(width = 0.3)) +  # SE bars
-#   labs(x = "Plant Cluster", 
-#        y = "Mean Percent Cover (%)",
-#        color = "Lifecycle",  # Label for color legend
-#         shape = "Lifecycle"
-#        ) +  # Label for shape legend
-#   theme_bw() +
-#   theme(
-#     axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
-#     # hjust = 0.5 = centered; 1 = right justified
-#     axis.text.y = element_text(size = 14),       # Increase y-axis text size
-#     axis.title = element_text(size = 16),        # Axis title size
-#     strip.text = element_text(size = 16),        # Facet label text size
-#     legend.text = element_text(size = 14),       # Legend text size
-#     legend.title = element_text(size = 14),      # Legend title size
-#     legend.position = "right"
-#   ) +
-#    
-#   ylim(0, 100) +
-#   facet_grid(~lifeform * status) +  # Facet by lifeform: facet_wrap
-#   scale_shape_manual(values = c("annual" = 1, "perennial" = 15)) +  
-#   scale_color_manual(values = c("annual" = "black", "perennial" = "black")) +  
-#   scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG"))  # Relabel clusters
-# fig_forbgrass
+fig_forbgrass_original <- ggplot(cover_bylifecycle_bygroup %>%
+         filter(lifeform_lifecycle_status %in% c(
+           "forb_annual_native", "forb_annual_nonnative", "forb_perennial_native",
+           "grass_annual_nonnative", "grass_perennial_native",
+           "shrub_perennial_native")),
+       aes(x = cluster,
+           y = mean_cover,
+           shape = lifecycle,
+           color = lifecycle
+           )) +
+  geom_point(size = 3, position = position_dodge(width = 0.3), show.legend = TRUE) +  # Mean points
+  geom_errorbar(aes(ymin = mean_cover - se, ymax = mean_cover + se),
+                width = 0.5, position = position_dodge(width = 0.3)) +  # SE bars
+  labs(x = "Plant Cluster",
+       y = "Mean Percent Cover (%)",
+       color = "Lifecycle",  # Label for color legend
+        shape = "Lifecycle"
+       ) +  # Label for shape legend
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
+    # hjust = 0.5 = centered; 1 = right justified
+    axis.text.y = element_text(size = 14),       # Increase y-axis text size
+    axis.title = element_text(size = 16),        # Axis title size
+    strip.text = element_text(size = 16),        # Facet label text size
+    legend.text = element_text(size = 14),       # Legend text size
+    legend.title = element_text(size = 14),      # Legend title size
+    legend.position = "right"
+  ) +
+
+  ylim(0, 100) +
+  facet_grid(~lifeform * status) +  # Facet by lifeform: facet_wrap
+  scale_shape_manual(values = c("annual" = 1, "perennial" = 15)) +
+  scale_color_manual(values = c("annual" = "black", "perennial" = "black")) +
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG"))  # Relabel clusters
+fig_forbgrass_original
 
 
 ##################### let's try to add sig letters
@@ -1677,7 +1678,9 @@ fig_forbgrass_sig_labels <- bind_rows(
     y = c(37.4, 54.0, 68.6, 91.8, 100)
      #  run this to find y placement --> cover_bylifecycle_bygroup %>% filter(lifeform_lifecycle_status == "grass_annual_nonnative") %>% dplyr::select(mean_cover, se) %>% mutate(max = mean_cover + se + 5)
   )
-  )
+  ) %>% 
+  mutate(lifeform = factor(lifeform, levels = c("shrub", "forb", "grass")))
+  
 
 fig_forbgrass <- ggplot(cover_bylifecycle_bygroup %>%
          filter(lifeform_lifecycle_status %in% c(
