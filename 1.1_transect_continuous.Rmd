@@ -2626,9 +2626,9 @@ grid.arrange(m,
 ```{r}
 
 ################################ calculate shrub density means by cluster (n = 40 transects)
-# density_cover_cluster %>%
-#  group_by(cluster) %>%
-#  summarise(count = length(unique(site_rep)))
+density_cover_cluster %>%
+ group_by(cluster) %>%
+ summarise(count = length(unique(site_rep)))
 # 1 = NNG: n = 10 transects
 # 3 = ssG: n = 10 transects
 # 2 = ssF: n = 7 transects
@@ -2636,10 +2636,10 @@ grid.arrange(m,
 # 5 = EVG: n = 5 transects
 # 
 
-# density_cover_cluster %>%
-#   filter(sum_density_m2 > 0) %>% 
-#   group_by(lifestage) %>%
-#   summarise(count = length(lifestage))
+density_cover_cluster %>%
+  filter(sum_density_m2 > 0) %>%
+  group_by(lifestage) %>%
+  summarise(count = length(lifestage))
 #   n = 39 becuase we didn't collect belt transect data at INT4
 #  dead         17 transects 
 #  immature     27 transects
@@ -2839,7 +2839,7 @@ densitymeans_bycluster_TABLE <- densitymeans_bycluster_TABLE_prep %>%
   set_caption(caption = "Shrub Density Median ± SD by Cluster and Lifestage")
   
 
-ggplot(densitymeans_bycluster %>%
+densitymeans_bycluster_figure <- ggplot(densitymeans_bycluster %>%
          filter(lifestage %in% c("seedling", "immature", "mature", "dead")),
        aes(x = cluster, 
            y = median_density)) +
@@ -2856,7 +2856,7 @@ ggplot(densitymeans_bycluster %>%
   facet_wrap(~lifestage) +  # Facet by lifeform
   scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG"))  # Relabel clusters
 
-
+densitymeans_bycluster_figure
 
 ```
 
