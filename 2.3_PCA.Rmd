@@ -11,13 +11,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 https://www.davidzeleny.net/anadat-r/doku.php/en:pca_examplesv
 
-#### Don't run this code for PCAs. Run NMDSs instead. - SML (june 7, 2025)
 
+
+
+#### Don't run this code for PCAs. Run NMDSs instead. - SML (june 7, 2025)
 
 ```{r load data}
 
 
-extracted_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) 
+extracted_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/data/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) 
 
 extracted <- extracted_load%>% 
   dplyr::select(!c(system.index, ID, .geo)) %>% 
@@ -58,7 +60,7 @@ library(vegan)
 # and env_data is your environmental variables dataframe
 
 # Perform CCA
-cca_result <- cca(species_data ~ slope + southwestness + elevation + TWI + solar_radiation, data = varespec)
+cca_result <- cca(species_data ~ slope + southwestness + elevation + TWI + solar_radiation, data = varespec) 
 
 # Detrending CCA results (the function 'cca' includes a method for DCCA)
 dcca_result <- decorana(cca_result)
