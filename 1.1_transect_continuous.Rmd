@@ -2515,6 +2515,8 @@ density_cover_cluster <- density_cover %>%
    left_join(groups %>%  dplyr::select(site_rep, cluster), by = "site_rep") 
 
 
+
+
 ```
 
 ### linear models
@@ -2839,7 +2841,7 @@ densitymeans_bycluster_TABLE <- densitymeans_bycluster_TABLE_prep %>%
   set_caption(caption = "Shrub Density Median ± SD by Cluster and Lifestage")
   
 
-densitymeans_bycluster_figure <- ggplot(densitymeans_bycluster %>%
+densitymeans_bycluster_figure_original <- ggplot(densitymeans_bycluster %>%
          filter(lifestage %in% c("seedling", "immature", "mature", "dead")),
        aes(x = cluster, 
            y = median_density)) +
@@ -2854,6 +2856,78 @@ densitymeans_bycluster_figure <- ggplot(densitymeans_bycluster %>%
     legend.position = "right") +
   ylim(0, 1) +
   facet_wrap(~lifestage) +  # Facet by lifeform
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG"))  # Relabel clusters
+
+
+
+### sig letters for figure
+density_sig_labels <-  bind_rows(
+  # seedling density
+  data.frame(
+  cluster = c("1", "3", "2", "4", "5"),
+  lifestage = "seedling",
+  label = c("a", "ab", "b", "b", "ab"),
+  y = c(0.0625, 0.211, 0.713, 1.32, 0.103)
+   #  run this to find y placement --> densitymeans_bycluster %>% filter(lifestage == "seedling") %>% dplyr::select(median_density, sd) %>% mutate(max = median_density + sd + .05)
+   ),
+  # immature
+  data.frame(
+    cluster = c("1", "3", "2", "4", "5"),
+    lifestage = "immature",
+    label = c("a", "a", "a", "a", "a"),
+    y = c(0.113, 0.165, 0.329, 0.437, 0.283)
+     #  run this to find y placement --> densitymeans_bycluster %>% filter(lifestage == "immature") %>% dplyr::select(median_density, sd) %>% mutate(max = median_density + sd + .05)
+  ),
+    # mature
+  data.frame(
+   cluster = c("1", "3", "2", "4", "5"),
+    lifestage = "mature",
+    label = c("a", "ab", "ab", "b", "ab"),
+    y = c(0.231, 0.303, 1.02, 0.692, 0.688)
+     #  run this to find y placement --> densitymeans_bycluster %>% filter(lifestage == "mature") %>% dplyr::select(median_density, sd) %>% mutate(max = median_density + sd + .05)
+  ), 
+  # dead
+ data.frame(
+ cluster = c("1", "3", "2", "4", "5"),
+    lifestage = "dead",
+    label = c("a", "ac", "bc", "ac", "bc"),
+    y = c(0.05, 0.0598, 1.26, 0.215, 0.200)
+     #  run this to find y placement --> densitymeans_bycluster %>% filter(lifestage == "dead") %>% dplyr::select(median_density, sd) %>% mutate(max = median_density + sd + .05)
+  )
+ ) %>% 
+   mutate(lifestage = factor(lifestage, levels = c("seedling", "immature", "mature", "dead")))
+  
+#### figure
+densitymeans_bycluster_figure <- ggplot(densitymeans_bycluster %>%
+         filter(lifestage %in% c("seedling", "immature", "mature", "dead")) %>% 
+           mutate(lifestage = factor(lifestage, levels = c("seedling", "immature", "mature", "dead"))),
+       aes(x = cluster, 
+           y = median_density)) + 
+  geom_point(size = 3, position = position_dodge(width = 0.3), show.legend = TRUE) +  
+  geom_errorbar(aes(ymin = median_density - sd, ymax = median_density + sd), 
+                width = 0.5, position = position_dodge(width = 0.3)) +  # SD bars
+  
+  geom_text(data = density_sig_labels,
+          aes(x = cluster, y = y, label = label),
+          inherit.aes = FALSE,
+          size = 5) +
+  
+  labs(x = "Plant Cluster", 
+       y = "Median Shrub Density (#/m2)"
+       ) + 
+  theme_bw() +
+    theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
+    # hjust = 0.5 = centered; 1 = right justified
+    axis.text.y = element_text(size = 14),       # Increase y-axis text size
+    axis.title = element_text(size = 16),        # Axis title size
+    strip.text = element_text(size = 16),        # Facet label text size
+    legend.text = element_text(size = 14),       # Legend text size
+    legend.title = element_text(size = 14),      # Legend title size
+    legend.position = "right"
+  ) +
+  ylim(-1.5, 1.5) +
+  facet_grid(~lifestage) +  # Facet by lifeform
   scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG"))  # Relabel clusters
 
 densitymeans_bycluster_figure
