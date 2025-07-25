@@ -1,21 +1,4 @@
 
-_2025.07.22_
-Files that run without breaking:
-1_cluster.Rmd (ends at line 895)
-1_spprich.Rmd (ends @ line 403)
-1.1_transect_continuous.Rmd (ends @ line 2916)
-1.3_NMDS_percentcove.Rmd (ends @ line 614)
-2_envrion_NMDS.Rmd (ends @ line 1323)
-2.2_visualize_environdata.Rmd (ends @ line 368)
-
-
-
-Files no longer in use:
-1.2_twinspan.Rmd
-2.1_transect_compile_environdata.Rmd <- these are the flowcharts
-
-
-
 abcover_fulljoin %>% group_by(site) %>% length(unique(transect))
 
 (1) How does community composition (e.g., percent cover by lifeform, shrub recruitment) and structure (e.g., canopy height) change across a shrub-grass recovery gradient?, (2) How many community-types can be identified across a shrub-grass ‘recovery’ gradient and which species define each community-type?Can transitional plant groupings be identified between shrub-dominated and grass-dominated communities and, if so, which species define these groupings?, (3) How do environmental variables (i.e., slope, aspect, southwestness, total solar radiation, recent fire history) differ among community-types?, and (4) How do seedbank communities along a shrub-grass recovery gradient compare in terms of native species richness and composition?
@@ -33,3 +16,10 @@ spplist_1.1_transect_continuous <- specieslist %>%
 
 
 sort(unique(specieslist$species))
+
+
+  facet_grid(~lifeform * status) +  # Facet by lifeform: facet_wrap
+  scale_shape_manual(values = c("annual" = 1, "perennial" = 15)) +  
+  scale_color_manual(values = c("annual" = "black", "perennial" = "black")) +  
+  scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) 
+
