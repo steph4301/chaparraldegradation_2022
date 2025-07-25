@@ -588,6 +588,10 @@ kruskal.test(percentcover ~ status_lifecycle, data = abcover_bystatuslifecycle)
 # Kruskal-Wallis chi-squared = 43.526, df = 3, p-value = 1.903e-09
 pairwise.wilcox.test(abcover_bystatuslifecycle$percentcover, abcover_bystatuslifecycle$status_lifecycle, p.adjust.method = "BH")
 
+
+
+
+# figure
 status_lifecycle_plot <- ggplot(abcover_bystatuslifecycle, 
        aes(x = status_lifecycle, y = percentcover * 100, fill = status_lifecycle)) +
   geom_boxplot() +
@@ -650,7 +654,11 @@ nmdsabove_plot_site_rep
 # nmdsabove_plot_site_rep
 # nmdsabove_plot_site_rep
 # nmdsabove_plot_site_rep
-ggsave("Ch1_Degradation_figures/nmds_above_vectors.png", nmdsabove_plot_site_rep, width = 8, height = 6)
+
+
+
+#### save figure
+# ggsave("Ch1_Degradation_figures/nmds_above_vectors.png", nmdsabove_plot_site_rep, width = 8, height = 6)
 ```
 
 
@@ -763,6 +771,7 @@ view(abcover_byplot_prep) # prints to new tab
 
 abcover_byplot <- abcover_byplot_prep %>% 
   select(c(site_rep, species, percentcover))
+
 
 write.csv(abcover_byplot, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/abcover_byplot.csv")
 
