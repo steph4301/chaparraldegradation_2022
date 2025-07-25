@@ -5,51 +5,262 @@ date: "2024-04-02"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+
+<-- NA
+
+--> 1_cluster.Rmd
+
+- Set working directory
+```{r}
 knitr::opts_chunk$set(echo = TRUE)
 
 setwd("~/Library/CloudStorage/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022")
 
 ```
 
+# load libraries
+```{r}
 
-```{r libraries}
-library(here) # similar to set working directory
 library(tidyverse) # data wrangling - includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
-# library(lubridate) # dates and times
-library(ggplot2) # data visualization
-library(gridExtra)
-# library(readr)
 library(dplyr)
-library(ggthemes)
-library(plotly)
-library(ggpubr) # customize ggplot2 for publication
-#library(broom)
-#library(AICcmodavg)
+library(ggplot2) # data visualization
 library(vegan) #community ecology package - includes, MASS, cluster, mgcv
 library(readxl) # for .xls and .xlsx sheets
-#library(janitor)
 library(multcompView) #Visualizations of Paired Comparisons, functions: TukeyHSD, dist{stats}, simint, simtest, csimint, csimtest{multcomp}, friedmanmc, kruskalmc{pgirmess}
+
+
+# library(here) # similar to set working directory
+# library(lubridate) # dates and times
+# library(gridExtra)
+# library(readr)
+# library(ggthemes)
+# library(plotly)
+# library(ggpubr) # customize ggplot2 for publication
+#library(broom)
+#library(AICcmodavg)
+#library(janitor)
 #library(multcomp) # functions: multcompLetters2, multcompLetters3, multcompLetters4 using aov object
 #library(DHARMa) #The ‘DHARMa’ package uses a simulation-based approach to create readily interpretable scaled (quantile) residuals for fitted (generalized) linear mixed models.
 #citation("DHARMa")
-library(ggpmisc)
-library(segmented)
-library(strucchange)
-library(ggpattern)
-library(lme4)
-library(lmerTest) # load again or update if you're not getting p-values from environmental models
-library(sjPlot)
+# library(ggpmisc)
+# library(segmented)
+# library(strucchange)
+# library(ggpattern)
+# library(lme4)
+# library(lmerTest) # load again or update if you're not getting p-values from environmental models
+# library(sjPlot)
+
 ```
 
-# Percent cover
+
+# TRANSECTS
+
+-  percent cover x species 
+
+These are the data from Kit
+df: data_pc
+```{r bringing in the csv you sent me}
+
+###################          USE THESE DATA FOR CLUSTER ANALYSIS! (july 22, 2025) - SML
+
+
+# load transect (n = 40) data
+
+data_pc <- read.csv("data/twinspan_percentcover.csv")
+
+rownames(data_pc) <- data_pc[,1]
+data_pc[,1] <- NULL
+# dim(data_pc)
+
+# 52 species (in columns)
+# 40 transects (in rows)
+# 
+# NOTE (july 2025):
+# loading the spp list from the raw 2019 and 2024 transect data results in 73 species entries.
+# differences include: perennial dead species, ground cover, unknown 1 forb
+# 
+# OPEN datasheet in EXCEL to see differences in the species lists:
+# load_diffintransectspp <- read_xlsx("data/scrappaper_july2025.xlsx", 
+#                                     sheet = "spp_transect",   
+#                                     col_types = "text")
+
+```
+
+This is the code to find transect species from the raw 2019 and 2024 data
+```{r, eval = FALSE}
+
+# What this code does: load point intercept transect data from csv
+############################################### load file 2019 transect data
+
+file_transect_2019_load <- read_csv("data/deg_percentcover_byspecies_bylifeform_2024.csv") # warnings are from Notes 
+  
+file_transect_2019_raw <- file_transect_2019_load %>% 
+  dplyr::select(site, year, transect, distance, vertical, species, lifeform, status, lifecycle, family) %>% 
+  mutate(vertical = case_when(vertical == "ground" ~ "0", # oldname ~ newname
+                              TRUE ~ vertical)) %>% 
+  mutate(
+       site = as.character(site),
+       transect = as.character(transect),
+       year = as.character(year),
+       distance = as.numeric(distance),
+       vertical = as.numeric(vertical),
+       species = as.character(species),
+        lifeform = as.character(lifeform),
+       status = as.character(status),
+       lifecycle = as.character(lifecycle),
+       family = as.character(family)
+  ) %>% 
+  drop_na()
+
+  # ground cover other = moss, wood
+
+sort(unique(file_transect_2019_raw$site))  
+file_transect_2019_raw %>%  
+  group_by(site, transect)
+# -- years 2017, 2019
+# -- Site 1: transects 1-14
+# -- Site 2: transects 1-18
+# -- INT1, INT2, INT3, INT4, INT5
+
+# Finding species == "Bromus spp." to rename them by species
+# transect2019_bromus <- file_transect_2019_raw %>%
+#   filter(grepl("Bromus", species))
+# 
+# transect2019_bromusspp <- file_transect_2019_raw %>% 
+#   filter(species == "Bromus spp.")
+
+
+transect2019 <- file_transect_2019_raw %>% 
+  dplyr::select(c(site, transect, year, distance, vertical, species)) %>% # select columns to full join with 2024 data
+  # filter(year %in% c(2017, 2019))  %>% #filter data to 2019 data
+  
+   mutate(species = ifelse(# a condition, a value if the condition is true, and a value if the condition is false
+                              site == 2 & transect == 5 & distance %in% c(2, 6, 9) & species == "Bromus spp.", "Bromus hordeaceus", species)) %>% 
+    mutate(species = ifelse(site == 2 & transect == 5 & distance %in% c(10, 28) & species == "Bromus spp.", "Bromus rubens", species)) %>% 
+    mutate(species = ifelse(site == 2 & transect == 6 & distance %in% c(23, 35, 37) & species == "Bromus spp.", "Bromus hordeaceus", species)) %>% 
+    mutate(species = ifelse(site == "INT1" & transect == 1 & distance %in% c(24) & species == "Bromus spp.", "Bromus diandrus", species))
+
+
+# View the data (optional)
+#View(transect2019)
+#sort(unique(transect2019$transect))
+#sort(unique(transect2019$site))
+
+
+
+
+
+############################################### load file 2024 transect data
+
+file_transect_2024_load <- read.csv("data/Transects_2024 - transect.csv", header = TRUE, na.strings=c("","NA")) %>% 
+  dplyr::select(site, transect, year, distance, vertical, species, max_height_cm) %>% 
+   mutate(vertical = case_when(vertical == "ground" ~ "0", # oldname ~ newname
+                              TRUE ~ vertical)) %>% 
+  filter(transect  >= 19) %>% 
+  mutate(
+       site = as.character(site),
+       transect = as.character(transect),
+       year = as.character(year),
+       distance = as.numeric(distance),
+       vertical = as.numeric(vertical),
+       species = as.character(species),
+       max_height_cm = as.numeric(max_height_cm)
+  ) %>% 
+   filter(species != "N/A")
+# -- years 2024
+# -- Site 2: transects 19-21
+
+transect2024 <- file_transect_2024_load %>%  
+  dplyr::select(year, site, transect, distance, vertical, species) %>% 
+   mutate(species = case_when(species == "Bromus spp." ~ "Bromus rubens", # oldname ~ newname
+                              TRUE ~ species))
+  
+# View the data (optional)
+#view(transect2024)
+#sort(unique(transect2024$transect))
+#sort(unique(transect2024$site))
+
+
+############################################### join transect data
+
+abcover_fulljoin <- full_join(transect2019, transect2024, by = intersect(names(transect2019), names(transect2024))) %>%  # full join
+  as.tibble() # convert dataframe to tibble
+# View(abcover_fulljoin)
+# sort(unique(abcover_fulljoin$transect))
+# sort(unique(abcover_fulljoin$site))
+
+
+### correct species names
+abcover_full <- abcover_fulljoin %>% 
+   mutate(site_rep = paste(site, transect, sep = "_")) %>% # combine site and rep to one column
+   mutate(site_rep_dist = paste(site_rep, distance, sep = "_")) %>%  # combine site_rep and distance to one column 
+   mutate(species = case_when(species == "BG bare ground" ~ "bare_ground", # oldname ~ newname
+                              species == "ground" ~ "bare_ground", 
+                              species == "native_litter" ~ "litter",
+                              species == "nonnative_thatch" ~ "thatch",
+                              species == "Bromus diandrus BRDI" ~ "Bromus diandrus",
+                              species == "Bromus rubens BRRU" ~ "Bromus rubens", 
+                              species == "Bromus hordeaceus BRHO" ~ "Bromus hordeaceus", 
+                              species == "Rapistrum rugosum - round pods" ~ "Rapistrum rugosum", 
+                              species == "HIIN Hirschfeldia incana - long pods" ~ "Hirschfeldia incana", 
+                              species == "Hirschfeldia incana - long pods" ~ "Hirschfeldia incana", 
+                              species == "Salvia lucophylla" ~ "Salvia leucophylla",
+                              species == "Malacothamnus fasciculatus " ~ "Malacothamnus fasciculatus",
+                              species == "dead HEAR" ~ "Heteromeles arbutifolia dead",
+                              species == "dead MAFA" ~ "Malacothamnus fasciculatus dead",
+                              species == "dead RHIL" ~ "Rhamnus ilicifolia dead",
+                              species == "dead ARCA" ~ "Artemisia californica dead",
+                              species == "dead SALE" ~ "Salvia leucophylla dead",
+                              species == "ACGL Acmispon glaber" ~ "Acmispon glaber",
+                              species == "dead Acmispon glaber" ~ "Acmispon glaber dead",
+                              species == "Acmispon maritimus - round, sevfl" ~ "Acmispon maritimus",
+                              species == "Acmispon strigosus - oval, sevfl" ~ "Acmispon strigosus",
+                              species == "Sambucus nigra" ~ "Sambucus mexicana",
+                              species == "Blitum californicum" ~ "Chenopodium californicum",
+                              species == "Cryptantha sp." ~ "Cryptantha spp.",
+                                species == "Festuca myros" ~ "Festuca myuros",
+                              TRUE ~ species)) %>% 
+   mutate(
+      year = as.character(year),
+      site = as.character(site),
+      transect = as.character(transect),
+      distance = as.character(distance),
+      vertical = as.character(vertical),
+      species = as.character(species)
+      )
+
+glimpse(abcover_full) # look at new columns
+sort(unique(abcover_full$species)) # species list; with: bare ground, wood, moss, native_thatch, etc.
+length(unique(abcover_full$species)) # n = 73 unique species names
+length(unique(abcover_full$species)) - 9 # n = 64 unique species names
+  # bare ground
+  # litter
+  # no_species
+  # moss
+  # native_thatch
+  # rock
+  # thatch
+  # wood
+  # unknown 1 forb
+
+### omit ground cover data
+abcover_omitground <- abcover_full %>% 
+  filter(vertical != "ground", 
+         vertical != "ground cover") %>% 
+  filter(species != "no_species", 
+         species != "thatch") # %>% 
+  # mutate(lifeform_status = paste(lifeform, status, sep = "_")) %>% 
+  # mutate(lifeform_status_leaftype = paste(lifeform_status, leaftype, sep = "_"))
+
+
+```
 
 ### lifeformleaftype df
 
 ```{r, percent cover - load data}
 
 ################  percent cover - belt transects, point intercept transects
-abcover_full <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA")) %>% 
+abcover_full_2 <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA")) %>% 
   mutate(standtype = fct_relevel(standtype, 
             "intact", "matrix", "degraded")) %>% 
   dplyr::select(!species_code) %>% 
@@ -58,8 +269,29 @@ abcover_full <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = T
                                 hillslope == "Intact_3" ~ "INT3", 
           TRUE ~ hillslope))
 
+```
+
+
+### - species characteristics
+
+
+```{r}
+
+################ species characteristic list
+
+sppchar_load <- read.csv("processed/specieslist.csv") 
+
+sppchar <- sppchar_load %>%  # species and their characteristics :) Created in 1.1_transect_continuous.Rmd
+  dplyr::select(!c(X)) %>%
+   mutate(species = str_replace(species, " ", "_")) %>%
+  mutate(species = gsub("\u00A0", " ", species, fixed = TRUE)) %>%
+  mutate(species = str_replace(species, " ", "_")) %>% 
+    mutate(species = str_replace(species, "_", "."))
+
+length(unique(sppchar$species))
+
 ############### leaf traits
-shrub_leaftype <- read.csv("shrub_leaftype.csv") %>%
+shrub_leaftype <- read.csv("data/shrub_leaftype.csv") %>%
   dplyr::select("species", "leaftype") %>%
    mutate(
       species = as.character(species),
@@ -71,6 +303,13 @@ shrub_leaftype <- read.csv("shrub_leaftype.csv") %>%
 
 ```
 
+```{r}
+### -- code to update list of species characteristics
+ab_species <- sort(unique(abcover_full$species))
+species_species <- sort(unique(specieslist$species))
+
+
+```
 
 ```{r}
 glimpse(abcover_full)
@@ -79,7 +318,7 @@ str(abcover_full)
 #abcover_full$standtype <- factor(abcover_full$standtype, levels = c("intact", "matrix", "degraded"))
 
 # convert dataframe to tibble
-abcover_full_v <- as_tibble(abcover_full) 
+abcover_full_v <- as_tibble(abcover_full_2) 
 class(abcover_full_v)
 
 # combine site and rep to one column
@@ -149,7 +388,432 @@ abcover_vegcover_long <- gather(abcover_vegcover, covertype, percentcover, perce
 abcover_vegcover_long
 ```
 
+
+
+### - spp richness
+
+# CANOPY height
+
+# SHRUB density
+
+# ENVIRON variables
+
+```{r}
+
+environ_load <- read.csv("data/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) 
+
+
+
+
+
+```
+
+
+
+- hillshade: higher numbers = more sunny. Lower numbers = more north facing
+
+```{r load data}
+
+################### load environmental data
+
+extracted_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_20m.csv", header = TRUE, na.strings=c("","NA")) %>% 
+  dplyr::select(system_ind, aspect, elevation, slope, site, lat, long, cluster) %>% 
+  mutate(southwestness = cos(225-aspect))
+# sort(unique(extracted_load$system_ind))
+
+twi_firecount_solarrad_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/Extracted_Elevation_Slope_Aspect_Hillshade_20m_20241014_8pm.csv", header = TRUE, na.strings = c("", "NA")) %>% 
+  dplyr::select(system_ind, twi, summer_solarradiation, winter_solarradiation, equinox_solarradiation, fire_event_count) %>% 
+  mutate(total_solrad = summer_solarradiation + winter_solarradiation + equinox_solarradiation + equinox_solarradiation) 
+# sort(unique(twi_firecount_solarrad_load$system_ind))
+
+extracted_join <- extracted_load %>% 
+  left_join(twi_firecount_solarrad_load, by = "system_ind")
+# sort(unique(extracted_join$system_ind))
+
+extracted <- extracted_join%>% 
+    rename(site_rep = system_ind) %>% 
+ filter(site_rep != "1.03") %>% 
+      mutate(site_rep = case_when(site_rep == "1.1" ~ "1.10", # old ~ new
+                                   site_rep == "2.1" ~ "2.10",
+                                   site_rep == "2.2" ~ "2.20",
+                                  site_rep == "INT1" ~ "INT1_1",
+                                    site_rep == "INT2" ~ "INT2_1",
+                                    site_rep == "INT3" ~ "INT3_1",
+                                    site_rep == "INT4" ~ "INT4_1",
+                                    site_rep == "INT5" ~ "INT5_1",
+                                   TRUE ~ site_rep)) %>% 
+     rownames_to_column() %>% 
+     mutate(
+      southwestness = as.numeric(southwestness),
+      elevation = as.integer(elevation), # meters
+      slope = as.numeric(slope), # degrees
+      site_rep = as.character(site_rep), 
+      site = as.character(site),
+      cluster = as.character(cluster),
+      fire_event_count = as.integer(fire_event_count),
+       rowname = as.character(rowname)
+      ) %>% 
+  rename(plant_cluster = cluster)
+
+
+extracted$site_rep <- gsub("\\.", "_", extracted$site_rep)
+
+# length(extracted$site_rep)    # n = 39
+
+
+############# load plant clusters (n = 5)
+
+# plant_cluster_list <- extracted_prep %>% 
+#   dplyr::select(site_rep, plant_cluster)
+
+ 
+####################### load Species Percent Cover data 
+### copied/pasted from 1.3_NMDS_percentcover.Rmd; ~ line 100
+abcover_charateristics_load <- read.csv("processed/ab_specieslistwithcharateristics_08102024.csv", header = TRUE, na.strings=c("","NA")) %>% 
+  dplyr::select(!c(X)) 
+
+sale_load <- abcover_charateristics_load %>% 
+  filter(species == c("Salvia leucophylla", "Salvia leucophylla dead")) %>% 
+  mutate(species = case_when(
+    species == "Salvia leucophylla dead" ~ "Salvia leucophylla", 
+    TRUE ~ species)) %>% 
+   mutate(site_rep = case_when(site_rep == "1_1" ~ "1_01", # old name ~ new name
+                        site_rep == "1_2" ~ "1_02",
+                        site_rep == "1_3" ~ "1_03",
+                        site_rep == "1_4" ~ "1_04",
+                        site_rep == "1_5" ~ "1_05",
+                        site_rep == "1_6" ~ "1_06",
+                        site_rep == "1_7" ~ "1_07",
+                        site_rep == "1_8" ~ "1_08",
+                        site_rep == "1_9" ~ "1_09",
+                        site_rep == "2_1" ~ "2_01",
+                         site_rep == "2_2" ~ "2_02", 
+                         site_rep == "2_3" ~ "2_03",
+                         site_rep == "2_4" ~ "2_04",
+                         site_rep == "2_5" ~ "2_05",
+                         site_rep == "2_6" ~ "2_06",
+                         site_rep == "2_7" ~ "2_07",
+                         site_rep == "2_8" ~ "2_08",
+                         site_rep == "2_9" ~ "2_09",
+   TRUE ~ site_rep)) %>% 
+   group_by(site_rep) %>% 
+  dplyr::summarize(
+    SALE_count_per_transect = sum(n_distinct(site_rep_dist)), 
+    percentcover = (SALE_count_per_transect/41) *100
+    ) %>% 
+  dplyr::select(!c(SALE_count_per_transect)) 
+  
+```
+
+
+
+
+
+
 # SOIL CORES
+
+
+# load data
+```{r load deg_seedbank csv}
+
+########### load seedbank data ---> raw data
+
+seedbank_load_raw <- read.csv("deg_seedbank_202407.csv", header = TRUE, na.strings=c("","NA")) 
+
+seedbank_load <- seedbank_load_raw %>% 
+  dplyr::select(c("stand", "site", "soilcore", "depth_name", "treatment", "rep", "species_diversity", "genus_abundance", "lifeform", "status", "lifescycle", "family", "count")) 
+# 2024 december 18 - SML note - I added Quercus spp. (ilfeform == "tree") to the .csv.   
+
+
+seedbank_load$count <- as.numeric(seedbank_load$count)
+str(seedbank_load)
+         
+# print(seedbank_load)
+# unique(seedbank_load$stand)
+# unique(seedbank_load$site)
+# unique(seedbank_load$soilcore)
+# unique(seedbank_load$depth_name)
+# unique(seedbank_load$treatment)
+# unique(seedbank_load$status)
+# sort(unique(seedbank_load$species_diversity))
+# sort(unique(seedbank_load$genus_abundance))
+# sort(unique(seedbank_load$family))
+# sort(unique(seedbank_load$lifeform))
+# sort(unique(seedbank_load$lifescycle))
+
+
+
+
+######## load germination by depth and treatment --> calculated n per gram sieved soil
+
+## Trifolium spp. isn't in the germination density list, but it IS in the germination species list.
+
+germination_m2_raw <- read_xlsx("processed/old_processed/germination_m2.xlsx")
+average_cover <- read.csv("nat_nn_cover.csv", header = TRUE, na.strings=c("","NA"))
+
+germination_depthtreat <- germination_m2_raw %>%
+  mutate(site = fct_relevel(site, 
+            "INT1", "INT2", "INT3","ENH1", "ENH2", "DEG1", "DEG2")) %>% 
+  mutate(treatment = fct_relevel(treatment, 
+                                 "control", "charate", "oven", "ovenchar")) %>% 
+  left_join(average_cover, by = 'site') %>% 
+  dplyr::select(stand, site, depth_name, subsample_g, treatment, species_diversity, genus_abundance, lifeform, status, lifescycle, family, count, stand_core, stand_core_depth, stand_core_depth_treat, n_per_g, native_shrub, nonnative_grass) %>% 
+  mutate(lifescycle = case_when(
+     lifescycle == "biannual" ~ "annual", # old name ~ new name
+       TRUE ~ as.character(lifescycle))) %>% # Keep other observations unchanged
+  mutate(species_diversity = case_when(
+    species_diversity == "Ribes spp." ~ "Ribes malvaceum",
+    TRUE ~ as.character(species_diversity)
+  ))
+
+glimpse(germination_depthtreat)
+
+Trifolspp <- germination_depthtreat %>% 
+  filter(str_detect(species_diversity, "Trifolium"))
+sort(unique(Trifolspp$sp))
+
+
+########### load species characteristics list
+
+abcover_charateristics_load <- read.csv("processed/ab_specieslistwithcharateristics_08102024.csv", header = TRUE, na.strings=c("","NA")) %>% 
+  dplyr::select(!c(X)) %>% 
+  dplyr::select(species, lifeform, status, lifecycle, family)
+spp_charateristics <- abcover_charateristics_load %>% 
+  distinct(species, .keep_all = TRUE) %>% 
+  mutate(species = case_when(species == "Acmispon glaber" ~ "Acmispon spp.", # oldname ~ newname
+                             species == "Bromus rubens" ~ "Bromus spp.",
+                             species == "Claytonia perfoliata" ~ "Claytonia spp.",
+                             species == "Festuca myros" ~ "Festuca myuros",
+                              TRUE ~ species)) %>% 
+    add_row(species = "Erigeron canadensis",
+          lifeform = "forb",
+          status = "native",
+          lifecycle = "annual",
+          family = "Asteraceae") %>% 
+      add_row(species = "Eucrypta chrysanthemifolia",
+          lifeform = "forb",
+          status = "native",
+          lifecycle = "annual",
+          family = "Hydrophyllaceae") %>% 
+         add_row(species = "Lactuca serriola",
+          lifeform = "forb",
+          status = "nonnative",
+          lifecycle = "annual",
+          family = "Asteraceae") %>% 
+        add_row(species = "Nicotiana glauca",
+          lifeform = "shrub",
+          status = "nonnative",
+          lifecycle = "perennial",
+          family = "Solanacaeae") %>%
+        add_row(species = "Pseudognaphalium californicum",
+          lifeform = "forb",
+          status = "native",
+          lifecycle = "annual",
+          family = "Asteraceae") %>% 
+       add_row(species = "Ribes malvaceum",
+          lifeform = "shrub",
+          status = "native",
+          lifecycle = "perennial",
+          family = "Grossulariaceae") %>% 
+  add_row(species = "Typha domingensis",
+          lifeform = "forb",
+          status = "native",
+          lifecycle = "perennial",
+          family = "Typhaceae")
+      
+sort(unique(abcover_charateristics_load$species))
+
+
+
+Trifolspp1 <- abcover_charateristics_load %>% 
+  filter(str_detect(species, "Trifolium"))
+sort(unique(Trifolspp1$species))
+
+
+##########
+
+setdiff(germination_depthtreat$species_diversity, abcover_charateristics_load$species)
+```
+
+
+# data prep - seedbank raw
+
+```{r preparing df, include = TRUE}
+
+
+####################################    (1) Organize the seed bank data by converting the df into a tibble.
+
+dim(seedbank_load)
+# [1] 2126   13
+# head(seedbank_load)
+# tail(seedbank_load)
+
+# convert dataframe to tibble
+seedbank_load <- as_tibble(seedbank_load) 
+# class(seedbank_load) # now a tibble
+
+
+
+
+
+
+
+####################################    (2) Organize the seedbank data by reordering the classes: Intact, Matrix, Degraded.
+
+seedbank_load_v <- seedbank_load %>%
+  mutate(stand = fct_relevel(stand, 
+            "intact", "enhanced", "degraded")) %>% 
+  mutate(treatment = fct_relevel(treatment, 
+                                 "control", "charate", "oven", "ovenchar")) %>% 
+  mutate(family = case_when(
+    family ==  "Asteraceae  " ~ "Asteraceae", # old name ~ new name
+    family ==  "Cucurbitaceae  " ~ "Cucurbitaceae",
+    family ==  "Euphorbiaceae  " ~ "Euphorbiaceae",
+    family ==  "Fabaceae  " ~ "Fabaceae",
+    family ==  "Juncaceae  " ~ "Juncaceae",
+    family ==  "Liliaceae  " ~ "Liliaceae",
+    family ==  "Namaceae  " ~ "Namaceae",
+   #family ==  "Phrymaceae  "  ~ "Phrymaceae",
+    family ==  "Poaceae  " ~ "Poaceae",
+    family == "Themidaceae  " ~ "Themidaceae", 
+     TRUE ~ as.character(family)  # Keep other observations unchanged
+  )) %>% 
+   mutate(species_diversity = case_when(
+     species_diversity == "Astragalus trichopodus " ~ "Astragalus trichopodus",
+     species_diversity == "Erodium spp. "  ~ "Erodium spp.",
+     species_diversity == "Festuca myuros " ~ "Festuca myuros",
+     species_diversity == "Lactuca serriola " ~ "Lactuca serriola",
+     species_diversity ==   "Lupinus bicolor "   ~ "Lupinus bicolor", 
+     species_diversity ==  "Salvia leucophylla "   ~ "Salvia leucophylla", 
+     species_diversity == "Thysanocarpus spp. " ~ "Thysanocarpus spp.",     
+     species_diversity == "Ribes spp." ~ "Ribes malvaceum",     
+     TRUE ~ as.character(species_diversity)  # Keep other observations unchanged
+  )) %>% 
+   mutate(lifescycle = case_when(
+     lifescycle == "annual or biannual" ~ "annual", # old name ~ new name
+       TRUE ~ as.character(lifescycle)  # Keep other observations unchanged
+  )) %>% 
+  mutate(genus_abundance = case_when(
+    genus_abundance == "Lactuca serriola "  ~ "Lactuca serriola",
+    genus_abundance == "Lupinus bicolor "   ~ "Lupinus bicolor", 
+    genus_abundance == "Thysanocarpus spp. "  ~ "Thysanocarpus spp.",
+    genus_abundance == "Unknown Phrymaceae  " ~ "Unknown Phrymaceae",
+    TRUE ~ as.character(genus_abundance)  # Keep other observations unchanged
+  )) 
+
+sppchar <- seedbank_load_v %>%  
+  dplyr::select(genus_abundance, lifeform, status, lifescycle, family) %>% 
+  rename(species = genus_abundance)
+
+
+
+
+
+####################################   (3) Create new columns for SITE_CORE, SITE_CORE_DEPTH, SITE_CORE_DEPTH_TREATMENT, SITE_TREATMENT, SITE_DEPTH for seed bank data. 
+
+
+# combine SITE and CORE to one column
+seedbank_load_v$stand_core <- paste(seedbank_load_v$site, seedbank_load_v$soilcore, sep="_") 
+
+# combine SITE_CORE and DEPT to one column
+seedbank_load_v$stand_core_depth <- paste(seedbank_load_v$stand_core, seedbank_load_v$depth_name, sep="_") 
+
+# combine SITE_CORE_DEPTH and TREATMENT to one column
+seedbank_load_v$stand_core_depth_treat <- paste(seedbank_load_v$stand_core_depth, seedbank_load_v$treatment, sep="_") 
+
+# combine SITE_CORE_DEPTH and SPECIES to one column
+seedbank_load_v$stand_core_depth_spp <- paste(seedbank_load_v$stand_core_depth, seedbank_load_v$species_diversity, sep="_") 
+
+glimpse(seedbank_load_v)
+
+
+
+
+
+
+####################################   (4) Omit "pre-treatment" as a treatment since I'm only interested in Control, Char, Oven, and CharOven treatments.  
+seedbank_load_v_omitpretreatment <- seedbank_load_v %>% 
+  filter(!str_detect(treatment, "pretreat")) 
+# head(seedbank_load_v_omitpretreatment)
+
+# list treatments 
+# unique(seedbank_load_v_omitpretreatment$treatment) 
+
+# list status 
+# unique(seedbank_load_v_omitpretreatment$status)
+
+# list stand_core --> 26 = 7 + 10 + 9
+# unique(seedbank_load_v_omitpretreatment$stand_core) 
+```
+
+
+
+
+# data prep for ...
+Data preparation for running NMDS and Cluster analysis
+- data prep
+```{r updated nmds data prep}
+# species in columns
+# sites or observations in rows
+
+germination_depthtreat$site_core_depth_genus <- paste(germination_depthtreat$stand_core_depth, germination_depthtreat$genus_abundance, sep="_") 
+
+########### running CLUSTER with MAX n per g per genus_abundance
+seedbank_nperg_bysamplocation <- germination_depthtreat %>% 
+  group_by(site_core_depth_genus) %>% 
+  dplyr::summarise(max_n_per_g = max(n_per_g)) %>% # take max germ
+  separate(col = site_core_depth_genus, into = c("site", "core", "depth", "genus"), sep = "_") %>%
+   mutate(site_core = paste(site, core, sep = "_")) %>% 
+   mutate(site_core_genus = paste(site_core, genus, sep = "_")) %>% 
+  dplyr::select(depth, max_n_per_g, site_core_genus) %>% 
+  pivot_wider(names_from = depth, values_from = max_n_per_g) %>% 
+ mutate(across(c(deep, surface), ~replace_na(.x, 0))) %>% 
+  rowwise() %>% 
+  mutate(totalgerm_nperg_genus = mean(c(surface, deep), na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  mutate(check = (deep+surface)/2) %>% 
+separate(col = site_core_genus, into = c("site", "core", "genus_abundance"), sep = "_") %>%
+   mutate(stand_core = paste(site, core, sep = "_")) %>% 
+  dplyr::select(site, stand_core, genus_abundance, totalgerm_nperg_genus)
+   
+
+########### running CLUSTER with SUM n per g
+# seedbank_nperg_bysamplocation_old <- germination_depthtreat %>%
+#   group_by(stand, site, stand_core, genus_abundance) %>% # lifeform, status, lifescycle, family
+#   filter(count > 0) %>%
+#   filter(!is.na(genus_abundance)) %>% # omit blank cells in species
+#   dplyr::summarize(totalgerm_nperg_genus = sum(n_per_g))
+# 
+# head(seedbank_nperg_bysamplocation) # df before transpose - use for ellipses
+# dim(seedbank_nperg_bysamplocation) #330   5
+```
+
+ - transpose data 
+```{r updated transpose data by species for nmds, include=TRUE}
+
+# species in columns down
+# observations or sites in rows across
+
+seedbank_nperg_bysamplocation_nmdsprep <- seedbank_nperg_bysamplocation %>% 
+ tidyr::spread(genus_abundance, totalgerm_nperg_genus) %>% # transpose data so columns are species names
+  replace(is.na(.), 0) # replace NA with zeros --> isn't compatible with character columns
+
+# view(seedbank_nperg_bysamplocation_nmdsprep)
+
+# write.csv(seedbank_nperg_bysamplocation_nmdsprep, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/seedbank_NMDS_202401.csv")
+```
+
+ - replace NAs with zeros
+```{r updated replace NAs with zeros}
+seedbank_nperg_bysamplocation_nmdsprep_num <- seedbank_nperg_bysamplocation_nmdsprep %>% 
+    ungroup() %>% 
+  dplyr::select(!c('site', 'stand_core')) %>% 
+  replace(is.na(.), 0)
+  
+# head(seedbank_nperg_bysamplocation_nmdsprep_num) # only numbers
+dim(seedbank_nperg_bysamplocation_nmdsprep_num) # 26 55
+```
+
 
 ### abground percent cover
 ```{r}
