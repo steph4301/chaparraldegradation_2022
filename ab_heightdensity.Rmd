@@ -50,9 +50,9 @@ standheight <- read_csv("deg_maxheight.csv",
                                )) %>%
   dplyr::select('site', 'rep', 'species', 'height_cm') %>% 
   mutate(site_rep = paste(site, rep, sep = "_"))
-# 
-# nativecover_load <- read.csv("processed/abcover_nativecover_nngrasscover.csv") %>% 
-#  dplyr::select(c(site_rep, nonnative_grass, native_shrub)) %>% 
+
+# nativecover_load <- read.csv("processed/abcover_nativecover_nngrasscover.csv") %>%
+#  dplyr::select(c(site_rep, nonnative_grass, native_shrub)) %>%
 #   mutate(site_rep = case_when(
 #     site_rep == "Intact_1_1" ~ "Intact1_1", # old name ~ new name
 #     site_rep == "Intact_2_2" ~ "Intact2_2",
@@ -66,8 +66,8 @@ standheight <- read_csv("deg_maxheight.csv",
 #     TRUE ~ as.character(site_rep)  # Keep other observations unchanged
 #   ))
 
-# standheight <- standheight_full %>% 
-#     left_join(nativecover_load, by = 'site_rep') 
+# standheight <- standheight_full %>%
+#     left_join(nativecover_load, by = 'site_rep')
 ```
 
 ### colors
@@ -101,7 +101,11 @@ hist(standheight_full$height_cm)
 ```
 
 ```{r}
-ggplot(standheight, aes(x = as.integer(reading)/2, y = height_cm/100, group = site_rep, color = standtype)) +
+ggplot(standheight, 
+       aes(x = as.integer(reading)/2, 
+                        y = height_cm/100, 
+                        group = site_rep, 
+                        color = standtype)) +
  # facet_wrap(~ standtype, scales = "free_y", ncol = 1) +
   geom_line() +
   labs(
