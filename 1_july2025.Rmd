@@ -362,7 +362,7 @@ summary(ISA.abs.cover, indvalcomp=TRUE)
 # > 
 
 vegcluster_indicatorspp <- tibble(species = c(
-  "Heteromeles.arbutifolia",
+                "Heteromeles.arbutifolia",
                 "Rhus.ovata",
                 "Rhamnus.ilicifolia",      
     
@@ -545,7 +545,7 @@ nmds_nat <- ggplot(mds.df,
   geom_text(data = matching_indicatorspp %>%  filter(status == "native"), 
             aes(label = species),  
              size = 5, 
-            position = position_jitter(width = 0.0, height = 0.1)) +
+            position = position_jitter(width = 0.0, height = 0.2)) + # <-- jitter
     # how the data points look
   scale_shape_manual(values = c("1" = 21, "2" = 21, "3" = 21, "4" = 21, "5" = 7),
                      labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
@@ -563,7 +563,11 @@ nmds_nat <- ggplot(mds.df,
   ) +
    guides(color = guide_legend(title = "Plant Group"),
           shape = guide_legend(title = "Plant Group"),
-         fill = guide_legend(title = "Plant Group"))
+         fill = guide_legend(title = "Plant Group")) +
+   # geom_label(aes(x = 1.5, y = 1, label = "NATIVE"), size = 6)
+   geom_label(x = 1.75, y = 1, label = "NATIVE", size = 6)
+ 
+
 
 
 #### non-native species
@@ -582,7 +586,7 @@ nmds_nn <- ggplot(mds.df,
   geom_text(data = matching_indicatorspp %>%  filter(status == "nonnative"), 
             aes(label = species),  
              size = 5, 
-            position = position_jitter(width = 0.0, height = 0.1)) +
+            position = position_jitter(width = 0.0, height = 0.2)) +
     # how the data points look
   scale_shape_manual(values = c("1" = 21, "2" = 21, "3" = 21, "4" = 21, "5" = 7),
                      labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
@@ -599,7 +603,8 @@ nmds_nn <- ggplot(mds.df,
   ) +
    guides(color = guide_legend(title = "Plant Group"),
           shape = guide_legend(title = "Plant Group"),
-         fill = guide_legend(title = "Plant Group"))
+         fill = guide_legend(title = "Plant Group")) +
+  geom_label(x = 1.75, y = 1, label = "NON-NATIVE", size = 6)
 
 
 # Combine plots
@@ -611,6 +616,7 @@ grid.arrange(nmds_nat,
              heights = c(1, 1) # Custom heights for each row
              ) 
 
+## ggsave("Ch1_Degradation_figures/nmds_above_vectors.png", nmdsabove_plot_site_rep, width = 8, height = 6)
 
 ```
 
