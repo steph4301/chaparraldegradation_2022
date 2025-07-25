@@ -2654,7 +2654,7 @@ densitymeans_bycluster <- density_cover_cluster %>% # without shrub species
   mutate(cluster = factor(cluster, levels = c(1, 3, 2, 4, 5))) %>% 
   group_by(cluster, lifestage) %>% 
   dplyr::summarise(
-    median_density = median(sum_density_m2, na.rm = TRUE), 
+    median_density = median(sum_density_m2, na.rm = TRUE), # <---- I'm calculating medians
     n = n_distinct(site_rep),
    sd = sd(sum_density_m2, na.rm = TRUE), # spread of data points
   #  se = sd / sqrt(n), # precision of data points
@@ -2840,7 +2840,7 @@ densitymeans_bycluster_TABLE <- densitymeans_bycluster_TABLE_prep %>%
   autofit() %>%
   set_caption(caption = "Shrub Density Median ± SD by Cluster and Lifestage")
   
-
+# medians
 densitymeans_bycluster_figure_original <- ggplot(densitymeans_bycluster %>%
          filter(lifestage %in% c("seedling", "immature", "mature", "dead")),
        aes(x = cluster, 
