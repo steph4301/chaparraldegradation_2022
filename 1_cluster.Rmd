@@ -12,6 +12,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 setwd("~/Library/CloudStorage/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022")
 
+### code to hang on to
+
+#### to save figure as .png
+# ggsave("Ch1_Degradation_figures/nmds_above_vectors.png", nmdsabove_plot_site_rep, width = 8, height = 6)
+
+# write.csv(abcover_byplot, "~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/abcover_byplot.csv")
+
+# abcover_byplot_load <- read.csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022b/processed/abcover_byplot_onlysite_repsppcover.csv", header = TRUE, na.strings=c("","NA"))
+
 ```
 
 ##### Rmarkdown for Using cluster analysis to identify plant groupings among chaparral transects
@@ -775,7 +784,10 @@ nmds_nn <- ggplot(mds.df,
           shape = guide_legend(title = "Plant Group"),
          fill = guide_legend(title = "Plant Group"))
 
+```
 
+# NMDS 
+```{r}
 # Combine plots
 grid.arrange(nmds_nat, 
              nmds_nn,
