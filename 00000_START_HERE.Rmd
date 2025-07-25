@@ -1,19 +1,68 @@
+_start notes_
 
 _2025.07.22_
-Files that run without breaking:
-1_cluster.Rmd (ends at line 895)
+_Files that run without breaking:_
+
+_1_cluster.Rmd_ (ends at line 895)
+  - Table: mean species percent cover x cluster
+  - (Figure: NMDS of cluster indicator spp and NMDS sig spp x cluster (object: grid.arrange(nmds_nat, ...)))
+
+_1_july2025.Rmd_
+  - Figure: NMDS of cluster analysis indicator species x cluster (object: grid.arrange(nmds_nat, ...) 
+
 1_spprich.Rmd (ends @ line 403)
-1.1_transect_continuous.Rmd (ends @ line 2916)
-1.3_NMDS_percentcove.Rmd (ends @ line 614)
-2_envrion_NMDS.Rmd (ends @ line 1323)
+
+_1.1_transect_continuous.Rmd_ (ends @ line 2916)
+  - Figure: mean percent cover x cluster (object: fig_forbgrass) ---  mean percent cover (%) x lifeform_lifecycle_status x cluster 
+  - Table: Shrub density Median +/- SD x Cluster and Lifestage (object: densitymeans_bycluster_TABLE)
+  - Figure: Shrub density Median +/- SD x Cluster and Lifestage  (object: densitymeans_bycluster_figure)
+
+1.3_NMDS_percentcover.Rmd (ends @ line 614)
+
+_2_envrion_NMDS.Rmd_ (ends @ line 1323)
+  - Table: Summary of Environmental Variables by Plant Cluser (obejct: table_plant)
+
 2.2_visualize_environdata.Rmd (ends @ line 368)
 
+_3_seedbank_clusterNMDSdiversity.Rmd_ (ends @ line 1428)
+  - Table: Median Average Germination x species x Seedbank Cluster (object: table_germ)
+  - Figure: seedbank NMDS x seedbank cluster (object: grid.arrange(seed.nmds_nat, ... )
 
+COV - there's code to calculate COV in ab_heightdensity.Rmd, but I would need to edit the code to include all 40 transects. 
 
-Files no longer in use:
-1.2_twinspan.Rmd
+_Files no longer in use:_
+1.2_twinspan.Rmd <-- I'm not running TWINSPAN analysis. Plus, I can't run the program on a Mac.
 2.1_transect_compile_environdata.Rmd <- these are the flowcharts
+2.3_PCA.Rmd <-- Don't run this code for PCAs. Run NMDSs instead. - SML (june 7, 2025)
 
+ab_percentcover.Rmd <- i think this is an old .Rmd. I'm still using STANDTYPE, and the transect list isn't complete - specifically, df: abcover_vegcover_long_vegonly includes 14 transects at Site 1, five transects at INT, BUT only 1 transects at SIte 2. <-- I would need to add CLUSTER names (df: my_groups) to run by cluster name instead of by STANDTYPE or to add standtype data in a new column.
+
+ab_heightdensity.Rmd <- I think this is an old file too. The standstypes are DEG1, DEG2, ENH1, ENH2, INT1, INT2, INT3, which reflect the old data before I collected more tansect data (transects should be n = 40).
+
+
+_Useful code to hang on to:_
+#### save figure
+# ggsave("Ch1_Degradation_figures/nmds_above_vectors.png", nmdsabove_plot_site_rep, width = 8, height = 6)
+
+
+(7) NMDS by site (e.g., Intact_1) <-- from 1.3_NMDS_percentcover.Rmd ~line 1102 (code from KIT)
+```{r transpose site percent cover data, eval = FALSE}
+
+# pivot wider to create a matrix of percent cover by species by transect (n = 40)
+abcover_bysite_nmdsprep <- abcover_byspecies %>% 
+  tidyr::spread(site_rep, percentcover) %>% # transpose data so columns are site_rep
+  replace(is.na(.), 0) # replace NA with zeros
+view(abcover_bysite_nmdsprep)
+
+abcover_bysite_nmdsprep_num <- abcover_bysite_nmdsprep %>% 
+  # use the ungroup() function to take out grouping
+  ungroup() %>% 
+  select(!c(standtype, site, species, status, lifeform, lifecycle, count_per_dist))
+         
+view(abcover_bysite_nmdsprep_num) # only numbers
+```
+
+_end notes_
 
 
 abcover_fulljoin %>% group_by(site) %>% length(unique(transect))
