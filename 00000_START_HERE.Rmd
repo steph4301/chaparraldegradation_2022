@@ -14,8 +14,9 @@ _1_july2025.Rmd_
 
 _1.1_transect_continuous.Rmd_ (ends @ line 2916)
   - Figure: mean percent cover x cluster (object: fig_forbgrass) ---  mean percent cover (%) x lifeform_lifecycle_status x cluster 
-  - Table: Shrub density Median +/- SD x Cluster and Lifestage (object: densitymeans_bycluster_TABLE)
   - Figure: Shrub density Median +/- SD x Cluster and Lifestage  (object: densitymeans_bycluster_figure)
+  - Table: Shrub density Median +/- SD x Cluster and Lifestage (object: densitymeans_bycluster_TABLE)
+
 
 1.3_NMDS_percentcover.Rmd (ends @ line 614)
 
