@@ -157,7 +157,7 @@ sale_load <- abcover_charateristics_load %>%
 ```{r}
 
 ######### Table of means and SD of environmental variables by plant cluster
-
+# MEDIANS becuase not all variables are normally distributed
 means <- extracted %>%
    dplyr::select(c("site_rep", "plant_cluster", 
                    "slope", "southwestness", "twi", "fire_event_count", 
@@ -216,7 +216,6 @@ table_plant <- means %>%
   ) 
 
 table_plant
-
 
 ```
 
