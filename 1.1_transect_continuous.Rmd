@@ -1160,6 +1160,7 @@ print(paste("Multiple R^2:", r_squared))
 # Create the label for the equation and R^2
 eq_label <- paste0("y = ", slope, "x + ", intercept, "\n", "R² = ", r_squared)
 
+# original plot
 ggplot(data = cover_bylfstatus_wide,
        aes(x = grass_nonnative*100, 
          y = shrub_native*100)) + 
@@ -1176,6 +1177,25 @@ ggplot(data = cover_bylfstatus_wide,
   scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
   theme_bw() + 
   annotate("text", x = 5, y = 5, label = eq_label, color = "black", size = 4, hjust = 0)
+
+# plot updated august 1,
+nngxnatshr <- ggplot(data = cover_bylfstatus_wide,
+       aes(x = grass_nonnative*100, 
+         y = shrub_native*100)) + 
+      geom_point(aes(color = site), size = 3) +
+   scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+  labs(
+    #  title = "Linear regression of  total shrub cover by non-native grass cover",
+    x = "Non-native grass cover (%)",
+    y = "Total shrub cover (%)"#, 
+   #  color = "Site"
+    ) +
+  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+  theme_bw() + 
+  annotate("text", x = 5, y = 5, label = eq_label, color = "black", size = 4, hjust = 0)
+nngxnatshr
 ```
 
 - y = total shrub cover x leaf type
@@ -1511,6 +1531,69 @@ ggsave(
 
 # dev.off()  # Close the PDF device
 ```
+
+
+
+### Ground Cover
+```{r}
+groundcover <- abcover_charateristics_leaftype %>% 
+  filter(vertical == "0") %>% 
+  dplyr::select(year, site, transect, distance, vertical, species) %>% 
+   mutate(transect = case_when(transect == "1" ~ "01", # oldname ~ newname
+                         transect == "2" ~ "02",
+                         transect == "3" ~ "03",
+                         transect == "4" ~ "04",
+                         transect == "5" ~ "05",
+                         transect == "6" ~ "06",
+                         transect == "7" ~ "07",
+                         transect == "8" ~ "08",
+                         transect == "9" ~ "09",
+                              TRUE ~ transect)) %>%
+   mutate(site_rep = paste(site, transect, sep = ".")) %>%
+  mutate(site_rep = case_when(site_rep == "INT1.01" ~ "INT1.1",
+                              site_rep == "INT2.01" ~ "INT2.1",
+                              site_rep == "INT3.01" ~ "INT3.1",
+                              site_rep == "INT4.01" ~ "INT4.1",
+                              site_rep == "INT5.05" ~ "INT5.1",
+                              TRUE ~ site_rep)) %>% 
+   mutate(site_rep_dist = paste(site_rep, distance, sep = ".")) %>% 
+  mutate(species = case_when(
+    species == "litter" ~ "native_litter", 
+    species == "thatch" ~ "nonnative_thatch", 
+    species == "wood" ~ "native_wood", 
+    TRUE ~ species
+  ))
+
+# groundcover %>% 
+#   group_by(site, transect) %>% 
+#   summarize(num = length(distance))
+
+sort(unique(groundcover$species))
+
+groundcover_percent <- groundcover %>% 
+   group_by(year, site, transect, site_rep, species) %>%
+  dplyr::summarize(
+    groundtype_count_per_transect = n_distinct(site_rep_dist),
+    groundtype_percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect and ground type
+    ) %>%  
+  ungroup() 
+
+
+groundcover_wide <- groundcover_percent %>%
+  dplyr::select(site, site_rep, species, groundtype_percentcover) %>% 
+   pivot_wider(names_from = species, values_from = groundtype_percentcover) %>%
+   replace_na(replace = list(bare_ground = 0,  # Replace NA with 0 for each value column
+                             native_litter = 0,
+                             moss = 0,
+                             native_thatch = 0,
+                             nonnative_litter = 0,
+                             rock = 0,
+                             nonnative_thatch = 0,
+                             native_wood = 0)) 
+
+```
+
+
 
 # CLUSTER
 ### by percent cover
