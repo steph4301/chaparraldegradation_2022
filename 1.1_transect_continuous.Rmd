@@ -2517,7 +2517,7 @@ slopeh <- round(coef(model.h)[2], 2)
 eq_label_h <- paste0("y = ", slopeh, "x + ", intercepth, "\n", "R² = ", r_squared)
 
 # figure 
-ggplot(data = height_cover %>%  
+fig_height <- ggplot(data = height_cover %>%  
        mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
        aes(x = grass_nonnative * 100, y = avgheight_cm)) +
   geom_point(aes(color = site), size = 3, show.legend = TRUE) +
@@ -2539,12 +2539,12 @@ ggplot(data = height_cover %>%
   # geom_smooth(aes(x = grass_nonnative * 100, 
   #                 y = avgheight_cm), 
   #             method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
-  theme_bw() + 
-   annotate("text", x = 0, y = 15, label = eq_label_h, color = "black", size = 4, hjust = 0) 
+  theme_bw() #+ 
+   # annotate("text", x = 0, y = 15, label = eq_label_h, color = "black", size = 4, hjust = 0) 
 
 # (linear regression: y = -93.23x + 164.52; R² = 0.365) 
 
-
+fig_height
 ```
 
 ### COV
