@@ -7,6 +7,10 @@ editor_options:
   chunk_output_type: console
 ---
 
+<-- 00000_START_HERE.Rmd
+
+---> 1.1_transect_continuous.Rmd
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
