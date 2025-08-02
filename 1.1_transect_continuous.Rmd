@@ -2559,10 +2559,34 @@ names(transect_cov)
 #  [9] "grass_nonnative" "shrub_native"    "forb_native"     "grass_native
 
 
-# figure
+############################ regression line
+
+# Fit the quadratic model
+model.cov <- lm(avgheight_cm ~ grass_nonnative + grass_nonnative_sq, 
+                data = height_cover %>% 
+                  mutate(grass_nonnative_sq = grass_nonnative^2)) # response variable ~ independent variable
+
+# save the summary of the model to pull values 
+model.cov.summary <- summary(model.cov)
+
+# Extract the intercept, slope, and R^2 values
+intercept <- round(coef(model.cov)[1], 2)
+slope <- round(coef(model.cov)[3], 2)
+r_squared <- round(model.cov.summary$adj.r.squared, 3) # adj.r.squared? or r.squared value
+
+print(paste("Adjusted R^2:", r_squared))
+cf <- round(coef(model.cov), 3)
+cat("Intercept:", cf[1], "\n")
+cat("Slope:", cf[3], "\n")
+
+# Create the label for the equation and R^2
+eq_label_cov <- paste0("y = ", slope, "x + ", intercept, "\n", "R² = ", r_squared)
+
+
+############################# figure
 fig_cov <- ggplot(transect_cov %>% 
          mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
-       aes(x = grass_nonnative, y = cov_bytransect)) +
+       aes(x = grass_nonnative * 100, y = cov_bytransect)) +
 
    geom_point(aes(color = site), size = 3, show.legend = TRUE) +
   scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +  
@@ -2579,9 +2603,11 @@ fig_cov <- ggplot(transect_cov %>%
        y = "COV of transect (SD/mean height)"#, 
        # title = "Distance from mean canopy height (cm) by average non-native cover (%)"
        ) +
-  stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1)
+  stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
+   annotate("text", x = 10, y = 0.1, label = eq_label_cov, color = "black", size = 4, hjust = 0) 
 
 fig_cov
+
 
 
 ```
