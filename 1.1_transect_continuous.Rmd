@@ -92,12 +92,12 @@ colors_status <- c(native, nonnative, unknown)
 #NOTES Transect data overview - Years collected: 2017, 2019, 2024 - Sites: 1 and 2 - Comparing to intact sites: INT1, INT2, INT3, INT4, INT5
 
 # load data
-```{r load point intercept transect data from csv, include=TRUE, eval = FALSE}
+```{r load point intercept transect data from csv, eval = FALSE}
 
 
 ########## don't run this code, instead use df from 1_cluster: transect2019
 
-file_transect_2019_load <- read_excel("deg_percentcover_byspecies_bylifeform_2024.xlsx", sheet = "2019_data")
+# file_transect_2019_load <- read_excel("deg_percentcover_byspecies_bylifeform_2024.xlsx", sheet = "2019_data")
 
 # -- years 2017, 2019
 # -- Site 1: transects 1-6
@@ -107,21 +107,21 @@ file_transect_2019_load <- read_excel("deg_percentcover_byspecies_bylifeform_202
 # Finding species == "Bromus spp." to rename them by species
 # transect2019_bromus <- file_transect_2019_load %>%
 #   filter(grepl("Bromus", species))
-# 
+
 # transect2019_bromusspp <- file_transect_2019_load %>% 
 #   filter(species == "Bromus spp.")
 
-transect2019 <- file_transect_2019_load %>% 
-  dplyr::select(c(site, transect, year, distance, vertical, species)) %>% # select columns to full join with 2024 data
-  filter(year %in% c(2017, 2019))  %>% #filter data to 2019 data
-   dplyr::select(year, site, transect, distance, vertical, species) %>% 
-   mutate(species = ifelse(# a condition, a value if the condition is true, and a value if the condition is false
-                              site == 2 & transect == 5 & distance %in% c(2, 6, 9) & species == "Bromus spp.", "Bromus hordeaceus", species)) %>% 
-    mutate(species = ifelse(site == 2 & transect == 5 & distance %in% c(10, 28) & species == "Bromus spp.", "Bromus rubens", species)) %>% 
-    mutate(species = ifelse(site == 2 & transect == 6 & distance %in% c(23, 35, 37) & species == "Bromus spp.", "Bromus hordeaceus", species)) %>% 
-    mutate(species = ifelse(site == "INT1" & transect == 1 & distance %in% c(24) & species == "Bromus spp.", "Bromus diandrus", species)) %>% 
-   mutate(
-       site = as.character(site))
+# transect2019 <- file_transect_2019_load %>% 
+#   dplyr::select(c(site, transect, year, distance, vertical, species)) %>% # select columns to full join with 2024 data
+#   filter(year %in% c(2017, 2019))  %>% #filter data to 2019 data
+#    dplyr::select(year, site, transect, distance, vertical, species) %>% 
+#    mutate(species = ifelse(# a condition, a value if the condition is true, and a value if the condition is false
+#                               site == 2 & transect == 5 & distance %in% c(2, 6, 9) & species == "Bromus spp.", "Bromus hordeaceus", species)) %>% 
+#     mutate(species = ifelse(site == 2 & transect == 5 & distance %in% c(10, 28) & species == "Bromus spp.", "Bromus rubens", species)) %>% 
+#     mutate(species = ifelse(site == 2 & transect == 6 & distance %in% c(23, 35, 37) & species == "Bromus spp.", "Bromus hordeaceus", species)) %>% 
+#     mutate(species = ifelse(site == "INT1" & transect == 1 & distance %in% c(24) & species == "Bromus spp.", "Bromus diandrus", species)) %>% 
+#    mutate(
+#        site = as.character(site))
 
 
 # View the data (optional)
@@ -131,15 +131,17 @@ transect2019 <- file_transect_2019_load %>%
 
 ########## don't run this code, instead use df from 1_cluster: transect2024
 
-file_transect_2024_load <- read.csv("Transects_2024 - transect.csv", header = TRUE, na.strings=c("","NA"))
+# file_transect_2024_load <- read.csv("Transects_2024 - transect.csv", header = TRUE, na.strings=c("","NA"))
+
 # -- years 2024
 # -- Site 1: transects 7-14
 # -- Site 2: transects 7-21
 # -- INT5
-transect2024 <- file_transect_2024_load %>%  
-  dplyr::select(c(site, transect, year, distance, vertical, species)) %>% 
-  filter(species != "N/A") %>% 
-   mutate(species = case_when(species == "Bromus spp." ~ "Bromus rubens", # oldname ~ newname
+
+# transect2024 <- file_transect_2024_load %>%
+#   dplyr::select(c(site, transect, year, distance, vertical, species)) %>%
+#   filter(species != "N/A") %>%
+#    mutate(species = case_when(species == "Bromus spp." ~ "Bromus rubens", # oldname ~ newname
                               TRUE ~ species))
   
 # View the data (optional)
@@ -193,22 +195,23 @@ groupsdash <- groups %>%
    
 
 
-groups
+groups # 40 transects: "1.01"
 
-groupsdash
+groupsdash # 40 transects: "1_1
 ```
 
 ## full join transect data
 
 ```{r full join}
 abcover_fulljoin <- full_join(transect2019, transect2024, 
-                              by = intersect(names(transect2019),
-                                             names(transect2024)))
+                              by = intersect(names(transect2019), # transect2019 <-- the transect for INT5 is "5", the other INT transects are "1"
+                                             names(transect2024))) 
 
 # View the data (optional)
-#View(abcover_fulljoin)
-#sort(unique(abcover_fulljoin$transect))
-#sort(unique(abcover_fulljoin$site))
+# View(abcover_fulljoin)
+# sort(unique(abcover_fulljoin$transect))
+# sort(unique(abcover_fulljoin$site))
+
 ```
 
 ## species list
@@ -260,6 +263,8 @@ abcover_full <- abcover_fulljoin_tib %>%
 glimpse(abcover_full) # look at new columns
 
 sort(unique(abcover_full$species))
+length(unique(abcover_full$site_rep)) # 40
+
 ```
 
 ## species characteristics
@@ -349,7 +354,7 @@ difab
 
 #These are the species that are in the species list that are NOT in abcover_full
 difsp <- setdiff(species_species, ab_species)
-difsp
+difsp # it's ok if spp in the species list are not recorded in abcover_full
 
 # # add species to the specieslist
 # new.specieslist <- specieslist %>%
@@ -1574,48 +1579,51 @@ figure1 <- plot_grid(fig.1f_labeled, fig.1a_labeled,
              heights = c(1, 1, 1) # Custom heights for each row
              ) 
 
-ggsave(
-  filename = "Ch1_Degradation_figures/figure_1.png",    # Specify the output file name
-  plot = figure1,         # Specify the plot object
-  width = 12,                   # Set width in inches
-  height = 10,                   # Set height in inches
-  dpi = 300                     # Set resolution for high-quality output
-)
+## save Figure 1 as a .png
+# ggsave(
+#   filename = "Ch1_Degradation_figures/figure_1.png",    # Specify the output file name
+#   plot = figure1,         # Specify the plot object
+#   width = 12,                   # Set width in inches
+#   height = 10,                   # Set height in inches
+#   dpi = 300                     # Set resolution for high-quality output
+# )
 
-# dev.off()  # Close the PDF device
 ```
 
 
 
-### Ground Cover
+# GROUND COVER
 ```{r}
 groundcover <- abcover_charateristics_leaftype %>% 
   filter(vertical == "0") %>% 
   dplyr::select(year, site, transect, distance, vertical, species) %>% 
-   mutate(transect = case_when(transect == "1" ~ "01", # oldname ~ newname
-                         transect == "2" ~ "02",
-                         transect == "3" ~ "03",
-                         transect == "4" ~ "04",
-                         transect == "5" ~ "05",
-                         transect == "6" ~ "06",
-                         transect == "7" ~ "07",
-                         transect == "8" ~ "08",
-                         transect == "9" ~ "09",
-                              TRUE ~ transect)) %>%
-   mutate(site_rep = paste(site, transect, sep = ".")) %>%
-  mutate(site_rep = case_when(site_rep == "INT1.01" ~ "INT1.1",
-                              site_rep == "INT2.01" ~ "INT2.1",
-                              site_rep == "INT3.01" ~ "INT3.1",
-                              site_rep == "INT4.01" ~ "INT4.1",
-                              site_rep == "INT5.05" ~ "INT5.1",
-                              TRUE ~ site_rep)) %>% 
-   mutate(site_rep_dist = paste(site_rep, distance, sep = ".")) %>% 
+   # mutate(transect = case_when(transect == "1" ~ "01", # oldname ~ newname
+   #                       transect == "2" ~ "02",
+   #                       transect == "3" ~ "03",
+   #                       transect == "4" ~ "04",
+   #                       transect == "5" ~ "05",
+   #                       transect == "6" ~ "06",
+   #                       transect == "7" ~ "07",
+   #                       transect == "8" ~ "08",
+   #                       transect == "9" ~ "09",
+   #                            TRUE ~ transect)) %>%
+   mutate(site_rep = paste(site, transect, sep = "_")) %>%
+  # mutate(site_rep = case_when(site_rep == "INT1.01" ~ "INT1.1",
+  #                             site_rep == "INT2.01" ~ "INT2.1",
+  #                             site_rep == "INT3.01" ~ "INT3.1",
+  #                             site_rep == "INT4.01" ~ "INT4.1",
+  #                             site_rep == "INT5.05" ~ "INT5.1",
+  #                             TRUE ~ site_rep)) %>% 
+   mutate(site_rep_dist = paste(site_rep, distance, sep = "_")) %>% 
   mutate(species = case_when(
     species == "litter" ~ "native_litter", 
     species == "thatch" ~ "nonnative_thatch", 
     species == "wood" ~ "native_wood", 
     TRUE ~ species
   ))
+
+# sort(unique(groundcover$site_rep))
+# length(unique(groundcover$site_rep)) # 40 transects
 
 # groundcover %>% 
 #   group_by(site, transect) %>% 
@@ -1629,11 +1637,10 @@ groundcover_percent <- groundcover %>%
     groundtype_count_per_transect = n_distinct(site_rep_dist),
     groundtype_percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect and ground type
     ) %>%  
-  ungroup() 
-
-
-groundcover_wide <- groundcover_percent %>%
-  dplyr::select(site, site_rep, species, groundtype_percentcover) %>% 
+  ungroup() %>% 
+  
+  # here I'm pivoting the df wider
+   dplyr::select(site, site_rep, species, groundtype_percentcover) %>% 
    pivot_wider(names_from = species, values_from = groundtype_percentcover) %>%
    replace_na(replace = list(bare_ground = 0,  # Replace NA with 0 for each value column
                              native_litter = 0,
@@ -1642,7 +1649,30 @@ groundcover_wide <- groundcover_percent %>%
                              nonnative_litter = 0,
                              rock = 0,
                              nonnative_thatch = 0,
-                             native_wood = 0)) 
+                             native_wood = 0)) %>% 
+  
+  # here I'm left joining ground cover types with nngrass cover
+  left_join(cover_bylfstatus_wide %>%  # cover_bylfstatus_wide: 1_1
+              dplyr::select(site_rep, grass_nonnative, shrub_native), by = "site_rep") %>% 
+  
+  # here I'm combining columns: e.g., bare ground and rock cover
+  mutate(bare_rock = bare_ground + rock, 
+         native_litter_wood = native_litter + native_wood
+         )
+
+# ground cover types to visualize:
+# - bare ground + rock = bare_rock
+# - native_litter
+# - nonnative_thatch
+
+names(groundcover_percent)
+
+# figure
+fig_groundcover_nng <- ggplot(data = groundcover_percent, 
+                          aes(x = grass_nonnative * 100)
+  
+)
+
 
 ```
 
