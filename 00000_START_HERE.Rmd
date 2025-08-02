@@ -1,24 +1,30 @@
 _start notes_
 
-_2025.07.22_
-_Files that run without breaking:_
+Today is: _2025.07.22_
+This is a list of: _Files that run without breaking_
 
 _1_cluster.Rmd_ (ends at line 895)
   - Table: mean species percent cover x cluster
   - (Figure: NMDS of cluster indicator spp and NMDS sig spp x cluster (object: grid.arrange(nmds_nat, ...)))
+
+
+_1.1_transect_continuous.Rmd_ (ends @ line 2916)
+  - Figure: mean percent cover x cluster (object: fig_forbgrass) ---  mean percent cover (%) x lifeform_lifecycle_status x cluster 
+  - Figure: Shrub density Median +/- SD x Cluster and Lifestage  (object: densitymeans_bycluster_figure)
+  - Figure: stand height x transect (object: fig_height, around line: 2441)
+  - Figure: COV x transect (object: fig_cov, around: line 2551)
+  - Table: Shrub density Median +/- SD x Cluster and Lifestage (object: densitymeans_bycluster_TABLE)
+
 
 _1_july2025.Rmd_
   - Figure: NMDS of cluster analysis indicator species x cluster (object: grid.arrange(nmds_nat, ...) 
 
 1_spprich.Rmd (ends @ line 403)
 
-_1.1_transect_continuous.Rmd_ (ends @ line 2916)
-  - Figure: mean percent cover x cluster (object: fig_forbgrass) ---  mean percent cover (%) x lifeform_lifecycle_status x cluster 
-  - Figure: Shrub density Median +/- SD x Cluster and Lifestage  (object: densitymeans_bycluster_figure)
-  - Table: Shrub density Median +/- SD x Cluster and Lifestage (object: densitymeans_bycluster_TABLE)
-
 
 1.3_NMDS_percentcover.Rmd (ends @ line 614)
+
+
 
 _2_envrion_NMDS.Rmd_ (ends @ line 1323)
   - Table: Summary of Environmental Variables by Plant Cluser (obejct: table_plant)
