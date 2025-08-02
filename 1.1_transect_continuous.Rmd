@@ -1,5 +1,5 @@
 ---
-title: "Stand Deg: percent cover regressions, canopy height, shrub density"
+title: "Stand Deg: percent cover regressions, shrub density"
 author: "Stephanie Ma Lucero"
 date: "2024-04-23"
 output: html_document
@@ -21,6 +21,16 @@ knitr::opts_chunk$set(echo = TRUE)
 
 SD = spread of data points
 SE = precision of data points
+
+- to rename INT sites to the same label: mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
+ 
+- to expand the ggplot to show all the points:
+    scale_y_continuous(
+    limits = c(0, 300),
+    breaks = seq(0, 300, by = 50),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  
 
 ```{r libraries, message=FALSE}
 library(here) # similar to set working directory
@@ -1368,44 +1378,31 @@ nngxss <-
   ggplot(data = cover_byleaftype_wide,
        aes(x = grass_nonnative_NA*100, 
          y = shrub_native_nonsclero*100)) + 
-      geom_point(aes(color = site), size = 3) +
-   scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+      geom_point(aes(color = site, shape = site), size = 3) +
+ 
+  # Custom Shapes and Colors for Legend
+  scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  scale_shape_manual(values = c(16, 16, 8, 8, 8, 8, 8)) +  # Square = 15, Circle = 16, 8 = *
+  
+  # regression line
   geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
+  
+  # labels
   labs(
     x = "Non-native grass cover (%)",
-    y = "Non-scl shrub cover (%)",
-    title = "Linear regression of  non-scl shrub cover by non-native grass cover"
+    y = "Non-scl shrub cover (%)"#,
+    #title = "Linear regression of  non-scl shrub cover by non-native grass cover"
     ) +
+  
+  # axes breaks
   scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
   scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
-  theme_bw()
-
-
-
- 
-             aes(x = grass_nonnative_NA * 100, y = shrub_native_nonsclero * 100, 
-                 color = "site",
-                 shape = "sage scrub"), 
-             size = 3, show.legend = FALSE) +  # Adjust point size here
-  geom_smooth(data = cover_byleaftype_wide, 
-              aes(x = grass_nonnative_NA * 100, y = shrub_native_nonsclero * 100, color = "sage scrub"), 
-              method = "lm", se = TRUE, linetype = "dotted", show.legend = FALSE) +
-  # Labels
-  labs(
-    color = "Shrub Type",
-    shape = "Shrub Type",
-    x = "Non-native grass cover (%)",
-    y = "Sage Scrub shrub cover (%)"
-  ) +
-  # Custom Shapes and Colors for Legend
-  scale_shape_manual(values = c( "sage scrub" = 4)) +  # Square = 15, Circle = 16, 8 = *
-  scale_color_manual(values = c("site" = "black")) +
-    scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
-  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+  
   theme_bw() +
+
   # Annotations for Equation Labels
-  annotate("text", x = 70, y = 90, label = eq_label_ss2, color = "gray30", size = 4, hjust = 0) #+
-  # geom_abline(intercept = 100, slope = -1, color = "darkgray", linetype = "dashed")
+  annotate("text", x = 70, y = 90, label = eq_label_ss2, color = "gray30", size = 4, hjust = 0) +
+  geom_abline(intercept = 100, slope = -1, color = "darkgray", linetype = "dashed")
  
 
 
@@ -2436,11 +2433,12 @@ cluster_grass_annNN_boxorjitter
 
 
 
-# canopy height
+
+
+# CANOPY HEIGHT
 ```{r}
 # stand height 
-standheight_load <- read_csv("deg_maxheight.csv")
-standheight <- read_csv("deg_maxheight.csv",
+standheight_load <- read_csv("data/deg_maxheight.csv",
                              col_types = cols(
                                year = col_character(),
                                site = col_character(),
@@ -2448,7 +2446,9 @@ standheight <- read_csv("deg_maxheight.csv",
                                distance = col_double(),
                                species = col_character(),
                                height_cm = col_double()
-                               )) %>%
+                               )) 
+
+standheight <- standheight_load %>% 
   dplyr::select('site', 'rep', 'distance', 'species', 'height_cm') %>% 
   # mutate(rep = case_when(rep == "1" ~ "01", # oldname ~ newname
   #                        rep == "2" ~ "02",
@@ -2460,12 +2460,20 @@ standheight <- read_csv("deg_maxheight.csv",
   #                        rep == "8" ~ "08",
   #                        rep == "9" ~ "09",
   #                             TRUE ~ rep)) %>% 
-  mutate(site_rep = paste(site, rep, sep = "_")) %>% 
-  group_by(site_rep) %>% 
-  summarise(avgheight_cm = mean(height_cm, na.rm = TRUE)) %>% 
-  ungroup() 
+  mutate(site_rep = paste(site, rep, sep = "_")) 
+
+# calculate means, sd, se, and mean percent cover values
+standheight_mean <- standheight %>% 
+  group_by(site_rep) %>%
+  summarize(avgheight_cm = mean(height_cm),
+            n = length((height_cm)),
+            sd = sd(height_cm),
+            se = ((sd(height_cm))/sqrt(length((height_cm)))), 
+            dist_from_mean = abs(avgheight_cm - height_cm),  # absolute distance from the mean, NOT needed to calcuate transect COV
+            cov_bytransect = sd/avgheight_cm # COV = SD / mean
+            ) 
   
-# max(standheight$avgheight_cm)
+# max(standheight_mean$avgheight_cm)
 # min = 46.2 cm
 # max = 280.3 cm
 
@@ -2474,7 +2482,7 @@ cover_prep <- cover_bylfstatus_wide %>%
   mutate(site_rep = case_when(site_rep == "INT5_5" ~ "INT5_1", 
                               TRUE ~ site_rep))
 height_cover <- groupsdash %>% 
-  left_join(standheight, by = "site_rep") %>% 
+  left_join(standheight_mean, by = "site_rep") %>% 
   left_join(cover_prep, by = "site_rep") %>% 
   mutate(cluster = as.character(cluster))
 
@@ -2508,32 +2516,75 @@ slopeh <- round(coef(model.h)[2], 2)
 # Create the label for the equation and R^2
 eq_label_h <- paste0("y = ", slopeh, "x + ", intercepth, "\n", "R² = ", r_squared)
 
-ggplot(data = height_cover) + 
-  geom_point(aes(x = grass_nonnative * 100, 
-                 y = avgheight_cm, 
-                 shape = cluster, 
-                 size = 3)) 
-  #  scale_color_manual(values = c("blue", "green", "yellow", "red", "orange")) +
-   #  geom_point(aes(color = site), size = 3) +
-   # scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
-    xlim(0, 100) +
-  ylim(0, 300) +
+# figure 
+ggplot(data = height_cover %>%  
+       mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
+       aes(x = grass_nonnative * 100, y = avgheight_cm)) +
+  geom_point(aes(color = site), size = 3, show.legend = TRUE) +
+  scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  xlim(0, 100) +
+   scale_y_continuous(
+    limits = c(0, 300),
+    breaks = seq(0, 300, by = 50),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+
   labs(
     x = "Non-native grass (%)",
     y = "Average stand height (cm)",
   #  title = "Mean stand height by Nonnative Grass percent cover",
      color = "Legend") +
-   # scale_y_continuous(breaks = seq(0, max(300), by = 50)) +
-  geom_smooth(aes(x = grass_nonnative * 100, 
-                  y = avgheight_cm), 
-              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
+ 
+  
+  # geom_smooth(aes(x = grass_nonnative * 100, 
+  #                 y = avgheight_cm), 
+  #             method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
   theme_bw() + 
    annotate("text", x = 0, y = 15, label = eq_label_h, color = "black", size = 4, hjust = 0) 
 
 # (linear regression: y = -93.23x + 164.52; R² = 0.365) 
+
+
 ```
 
+### COV
+```{r}
+transect_cov <- standheight_mean %>% 
+  dplyr::select(!dist_from_mean) %>% 
+  distinct(site_rep, .keep_all = TRUE) %>% 
+  left_join(cover_prep, by = "site_rep")
+  
+names(transect_cov)
+# [1] "site_rep"        "avgheight_cm"    "n"               "sd"              "se"              "cov_bytransect"  "site"            "forb_nonnative" 
+#  [9] "grass_nonnative" "shrub_native"    "forb_native"     "grass_native
 
+
+# figure
+fig_cov <- ggplot(transect_cov %>% 
+         mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
+       aes(x = grass_nonnative, y = cov_bytransect)) +
+
+   geom_point(aes(color = site), size = 3, show.legend = TRUE) +
+  scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +  
+  # geom_point(aes(fill = site), colour = "black", size = 3, pch = 21) +
+ # theme(axis.text.x.bottom = element_text(angle = 90)) +
+
+    scale_y_continuous(
+    limits = c(0, 1),
+    breaks = seq(0, 1, by = 0.2),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  
+  labs(x = "Non-native grass (%)", 
+       y = "COV of transect (SD/mean height)"#, 
+       # title = "Distance from mean canopy height (cm) by average non-native cover (%)"
+       ) +
+  stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1)
+
+fig_cov
+
+
+```
 
 # shrub density
 
