@@ -452,7 +452,7 @@ difshr
 ### left_join leaftype
 ```{r}
 abcover_charateristics_leaftype <- abcover_charateristics %>% 
-  left_join(shrub_leaftype, by = "species")
+  left_join(shrub_leaftype, by = "species") 
 ```
 
 # Data prep
@@ -1183,7 +1183,7 @@ nngxnatshr <- ggplot(data = cover_bylfstatus_wide,
        aes(x = grass_nonnative*100, 
          y = shrub_native*100)) + 
       geom_point(aes(color = site), size = 3) +
-   scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+   # scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
   geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
   labs(
     #  title = "Linear regression of  total shrub cover by non-native grass cover",
@@ -1322,6 +1322,7 @@ cat("Multiple R^2:", round(summary(model.s)$r.squared, 3), "\n")
 - y = sage scrub cover
 
 ```{r}
+# original plot
 ggplot(data = cover_byleaftype_wide %>%  
          filter(shrub_native_nonsclero > 0.01) %>% 
          filter(site == "1" | site == "2"), 
@@ -1354,6 +1355,61 @@ r_squared <- round(model.s_summary$r.squared, 3)
 print(paste("Multiple R^2:", r_squared))
 # [1] "Multiple R^2: 0.327" <-- all sites
 # [1] "Multiple R^2: 0.684" <-- sites 1 and 2
+
+
+##############################################
+# plot made August 1, 2025
+######### sage scrub slope
+# Create the label for the equation and R^2
+eq_label_ss2 <- paste0("y = ", slopess, "x + ", interceptss, "\n", "R² = ", r_squaredss)
+
+
+nngxss <- 
+  ggplot(data = cover_byleaftype_wide,
+       aes(x = grass_nonnative_NA*100, 
+         y = shrub_native_nonsclero*100)) + 
+      geom_point(aes(color = site), size = 3) +
+   scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
+  labs(
+    x = "Non-native grass cover (%)",
+    y = "Non-scl shrub cover (%)",
+    title = "Linear regression of  non-scl shrub cover by non-native grass cover"
+    ) +
+  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+  theme_bw()
+
+
+
+ 
+             aes(x = grass_nonnative_NA * 100, y = shrub_native_nonsclero * 100, 
+                 color = "site",
+                 shape = "sage scrub"), 
+             size = 3, show.legend = FALSE) +  # Adjust point size here
+  geom_smooth(data = cover_byleaftype_wide, 
+              aes(x = grass_nonnative_NA * 100, y = shrub_native_nonsclero * 100, color = "sage scrub"), 
+              method = "lm", se = TRUE, linetype = "dotted", show.legend = FALSE) +
+  # Labels
+  labs(
+    color = "Shrub Type",
+    shape = "Shrub Type",
+    x = "Non-native grass cover (%)",
+    y = "Sage Scrub shrub cover (%)"
+  ) +
+  # Custom Shapes and Colors for Legend
+  scale_shape_manual(values = c( "sage scrub" = 4)) +  # Square = 15, Circle = 16, 8 = *
+  scale_color_manual(values = c("site" = "black")) +
+    scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+  theme_bw() +
+  # Annotations for Equation Labels
+  annotate("text", x = 70, y = 90, label = eq_label_ss2, color = "gray30", size = 4, hjust = 0) #+
+  # geom_abline(intercept = 100, slope = -1, color = "darkgray", linetype = "dashed")
+ 
+
+
+nngxss
 ```
 
 
@@ -2383,17 +2439,17 @@ cluster_grass_annNN_boxorjitter
 # canopy height
 ```{r}
 # stand height 
-
+standheight_load <- read_csv("deg_maxheight.csv")
 standheight <- read_csv("deg_maxheight.csv",
                              col_types = cols(
                                year = col_character(),
                                site = col_character(),
                                rep = col_character(),
-                               distance = col_character(),
+                               distance = col_double(),
                                species = col_character(),
                                height_cm = col_double()
                                )) %>%
-  dplyr::select('site', 'rep', 'species', 'height_cm') %>% 
+  dplyr::select('site', 'rep', 'distance', 'species', 'height_cm') %>% 
   # mutate(rep = case_when(rep == "1" ~ "01", # oldname ~ newname
   #                        rep == "2" ~ "02",
   #                        rep == "3" ~ "03",
@@ -2409,10 +2465,19 @@ standheight <- read_csv("deg_maxheight.csv",
   summarise(avgheight_cm = mean(height_cm, na.rm = TRUE)) %>% 
   ungroup() 
   
-
-height_cover <- cover_bylfstatus_wide %>% left_join(standheight, by = "site_rep")
+# max(standheight$avgheight_cm)
 # min = 46.2 cm
 # max = 280.3 cm
+
+cover_prep <- cover_bylfstatus_wide %>% 
+  dplyr::select(site, site_rep, forb_nonnative, grass_nonnative, shrub_native, forb_native, grass_native) %>% 
+  mutate(site_rep = case_when(site_rep == "INT5_5" ~ "INT5_1", 
+                              TRUE ~ site_rep))
+height_cover <- groupsdash %>% 
+  left_join(standheight, by = "site_rep") %>% 
+  left_join(cover_prep, by = "site_rep") %>% 
+  mutate(cluster = as.character(cluster))
+
 
 
 # Fit the linear model: canopy height x nn grass cover
@@ -2445,7 +2510,12 @@ eq_label_h <- paste0("y = ", slopeh, "x + ", intercepth, "\n", "R² = ", r_squar
 
 ggplot(data = height_cover) + 
   geom_point(aes(x = grass_nonnative * 100, 
-                 y = avgheight_cm)) +
+                 y = avgheight_cm, 
+                 shape = cluster, 
+                 size = 3)) 
+  #  scale_color_manual(values = c("blue", "green", "yellow", "red", "orange")) +
+   #  geom_point(aes(color = site), size = 3) +
+   # scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
     xlim(0, 100) +
   ylim(0, 300) +
   labs(
