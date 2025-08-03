@@ -80,6 +80,14 @@ forb <- "purple2"
 fern <- "black"
 colors_lifeform <- c(shrub, grass, forb, fern)
 
+# Ground cover types
+bare_rock <- "gray40"
+nonnative_thatch <- "black"
+native_litter_wood <- "green4"
+shape_bare_rock <- 16
+shape_nonnative_thatch <- 15
+shape_native_litter_wood <- 17
+
 # Status colors: native, exotic 
 native <- "black"
 nonnative <- "maroon"
@@ -1666,13 +1674,211 @@ groundcover_percent <- groundcover %>%
 # - nonnative_thatch
 
 names(groundcover_percent)
+### 2 transects with no bare ground
+### 2 transects with no non-native grass thatch
 
-# figure
-fig_groundcover_nng <- ggplot(data = groundcover_percent, 
-                          aes(x = grass_nonnative * 100)
+
+
+######################################## FIGURES
+fig_bareground_all <- ggplot(data = groundcover_percent) +
+ 
+  # bare_rock
+  geom_point(data = groundcover_percent, 
+            aes(x = grass_nonnative * 100, y = bare_rock*100), 
+              color = bare_rock, 
+              shape = shape_bare_rock,
+              size = 3, 
+            show.legend = TRUE) +
+ # native_litter_wood
+ geom_point(data = groundcover_percent,
+           aes(x = grass_nonnative * 100, y = native_litter_wood*100),
+               color = native_litter_wood,
+               shape = shape_native_litter_wood,
+               size = 3, show.legend = TRUE) +
+ # nonnative_thatch
+ geom_point(data = groundcover_percent,
+           aes(x = grass_nonnative * 100, y = nonnative_thatch*100),
+               color = nonnative_thatch, shape = shape_nonnative_thatch,
+               size = 3, show.legend = TRUE) +
+ # Labels
+  labs(
+    color = "Ground Cover Type",
+    shape = "Ground Cover Type",
+    x = "Non-native grass cover (%)",
+    y = "Ground cover (%)"
+  ) +
+   scale_x_continuous(
+      limits = c(0, 100),
+      breaks = seq(0, 100, by = 10),
+      expand = expansion(mult = c(0, 0.05))
+     ) +
+ scale_y_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, by = 10),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  # Theme
+  theme_bw() 
+
+# figure: bare_rock
+fig_bareground <- 
+  ggplot(data = groundcover_percent %>%
+                              mutate(site = ifelse(str_detect(site, "INT"), "3", site)),
+                           aes(x = grass_nonnative * 100, y = bare_rock*100)) +
+  geom_point(aes(color = site),
+              shape = 15,
+              size = 3,
+              position = position_jitter(width = 0.2, height = 0.1),
+            show.legend = TRUE) +
+   scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+
+
+
+  # ggplot(data = groundcover_percent) +
+  # 
+  # geom_point(data = groundcover_percent,
+  #           aes(x = grass_nonnative * 100,
+  #               y = bare_rock*100),
+  #             color = bare_rock,
+  #             shape = shape_bare_rock,
+  #             size = 3,
+  #           show.legend = TRUE) +
+
   
-)
+  labs(
+    color = "Site",
+    shape = "Site",
+    x = "Non-native grass cover (%)",
+    y = "Bare ground cover (%)"
+  ) +
+   scale_x_continuous(
+      limits = c(0, 100),
+      breaks = seq(0, 100, by = 10),
+      expand = expansion(mult = c(0, 0.05))
+     ) +
+ scale_y_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, by = 10),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+   theme_bw() + # theme
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
+    # hjust = 0.5 = centered; 1 = right justified
+    axis.text.y = element_text(size = 14),       # Increase y-axis text size
+    axis.title = element_text(size = 16),        # Axis title size
+    # strip.text = element_text(size = 16),        # Facet label text size
+    legend.text = element_text(size = 14),       # Legend text size
+    legend.title = element_text(size = 14),      # Legend title size
+    legend.position = "right"
+  ) +
+  geom_smooth(aes(x = grass_nonnative * 100,
+                  y = bare_rock*100),
+              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) 
+  
 
+# figure: thatch
+fig_thatch <- 
+  # ggplot(data = groundcover_percent) +
+  # 
+  # geom_point(data = groundcover_percent, 
+  #           aes(x = grass_nonnative * 100, 
+  #               y = nonnative_thatch*100), 
+  #             color = nonnative_thatch, 
+  #             shape = shape_nonnative_thatch,
+  #             size = 3, 
+  #           show.legend = TRUE) +
+  
+    ggplot(data = groundcover_percent %>%
+                              mutate(site = ifelse(str_detect(site, "INT"), "3", site)),
+                           aes(x = grass_nonnative * 100, y = nonnative_thatch*100)) +
+  geom_point(aes(color = site),
+              shape = 15,
+              size = 3,
+              position = position_jitter(width = 0.2, height = 0.1),
+            show.legend = TRUE) +
+   scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) + # transects with no non-native thatch: INT5, 1_7
+
+  labs(
+    color = "Site",
+    shape = "Site",
+    x = "Non-native grass cover (%)",
+    y = "Non-native thatch (%)"
+  ) +
+   scale_x_continuous(
+      limits = c(0, 100),
+      breaks = seq(0, 100, by = 10),
+      expand = expansion(mult = c(0, 0.05))
+     ) +
+ scale_y_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, by = 10),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  # Theme
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
+    # hjust = 0.5 = centered; 1 = right justified
+    axis.text.y = element_text(size = 14),       # Increase y-axis text size
+    axis.title = element_text(size = 16),        # Axis title size
+    # strip.text = element_text(size = 16),        # Facet label text size
+    legend.text = element_text(size = 14),       # Legend text size
+    legend.title = element_text(size = 14),      # Legend title size
+    legend.position = "right"
+  ) + 
+    geom_smooth(aes(x = grass_nonnative * 100,
+                  y = nonnative_thatch*100),
+              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) 
+
+
+# figure: native_litter_wood
+fig_nativelitter <- ggplot(data = groundcover_percent %>% 
+                              mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
+                           aes(x = grass_nonnative * 100, y = native_litter_wood*100)) +
+  geom_point(aes(color = site),
+              shape = 15,
+              size = 3, 
+              position = position_jitter(width = 0.2, height = 0.1),
+            show.legend = TRUE) +
+   scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+ # Labels
+  labs(
+    color = "Site",
+    shape = "Site",
+    x = "Non-native grass cover (%)",
+    y = "Native litter cover (%)"
+  ) +
+   scale_x_continuous(
+      limits = c(0, 100),
+      breaks = seq(0, 100, by = 10),
+      expand = expansion(mult = c(0, 0.05))
+     ) +
+ scale_y_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, by = 10),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  # Theme
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
+    # hjust = 0.5 = centered; 1 = right justified
+    axis.text.y = element_text(size = 14),       # Increase y-axis text size
+    axis.title = element_text(size = 16),        # Axis title size
+    # strip.text = element_text(size = 16),        # Facet label text size
+    legend.text = element_text(size = 14),       # Legend text size
+    legend.title = element_text(size = 14),      # Legend title size
+    legend.position = "right"
+  ) +
+    geom_smooth(aes(x = grass_nonnative * 100,
+                  y = native_litter_wood*100),
+              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) 
+ 
+fig_bareground_all
+fig_bareground
+fig_thatch
+fig_nativelitter
 
 ```
 
