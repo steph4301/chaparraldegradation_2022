@@ -2839,8 +2839,9 @@ fig_cov <- ggplot(transect_cov %>%
        y = "COV of transect (SD/mean height)"#, 
        # title = "Distance from mean canopy height (cm) by average non-native cover (%)"
        ) +
-  stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
-   annotate("text", x = 10, y = 0.1, label = eq_label_cov, color = "black", size = 4, hjust = 0) 
+  theme_bw() +
+  stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) #+
+   # annotate("text", x = 10, y = 0.1, label = eq_label_cov, color = "black", size = 4, hjust = 0) 
 
 fig_cov
 
@@ -2849,7 +2850,7 @@ fig_cov
 ```
 
 # shrub density
-
+- there are 4 transects without shrubs
 ```{r}
 
 ###################### shrub density - native
@@ -2910,75 +2911,199 @@ shrubdensity_2024 <- read_csv("shrubdensity_2024.csv",
 ######################## bind shrub density WITH shrub species WITH leaf type
 denspp  <- shrubdensitylife_load  %>%
   bind_rows(shrubdensity_2024)
+# length(unique(denspp$site_rep)) # <-- n = 39 transects (INT4 has no density counts)
+## denspp : 1_1
 
-denspp_cover <- height_cover %>%  # left join nn grass cover
+denspp_transect <- denspp %>% 
+  group_by(site_rep, lifestage) %>% 
+  summarize(tot_density_m2 = sum(density_m2)) %>% 
+  pivot_wider(names_from = lifestage, values_from = tot_density_m2) %>% # 4 transects without shrubs
+  mutate(across(c(seedling, dead, mature, immature), 
+                 ~ if_else(site_rep %in% c("1_11", "1_12", "2_11", "2_9"), 0, .))) %>% 
+  dplyr::select(-no_shrubs)
+
+denspp_cover <- denspp_transect %>% 
+  left_join(height_cover %>%  # left join nn grass cover
   dplyr::select(site, site_rep, grass_nonnative) %>% 
-  left_join(denspp, by = "site_rep") %>% 
-  filter(site_rep != "INT4_1") %>% # omit INT4_1
-  left_join(shrub_leaftype, by = "species") %>%  # left join shrub_leaftype
-  mutate(lifestage = factor(lifestage, levels = c("seedling", "immature", "mature", "dead"))) %>% 
-  separate(site_rep, into = c("site", "rep"), sep = "_") %>% 
-   mutate(rep = case_when(rep == "1" ~ "01", # oldname ~ newname
-                         rep == "2" ~ "02",
-                         rep == "3" ~ "03",
-                         rep == "4" ~ "04",
-                         rep == "5" ~ "05",
-                         rep == "6" ~ "06",
-                         rep == "7" ~ "07",
-                         rep == "8" ~ "08",
-                         rep == "9" ~ "09",
-                              TRUE ~ rep)) %>% 
-   mutate(site_rep = paste(site, rep, sep = ".")) %>%
-   mutate(site_rep = case_when(site_rep == "INT1.01" ~ "INT1.1",
-                              site_rep == "INT2.01" ~ "INT2.1",
-                              site_rep == "INT3.01" ~ "INT3.1",
-                              site_rep == "INT4.01" ~ "INT4.1",
-                              site_rep == "INT5.01" ~ "INT5.1",
-                              TRUE ~ site_rep)) %>% 
-   left_join(groups %>%  dplyr::select(site_rep, cluster), by = "site_rep") 
+  unique())
+ 
 
-denspp_cover_stats <- denspp_cover %>% 
-  group_by(cluster, species, lifestage) %>% 
-  summarise(mean_density_m2 = mean(density_m2)) %>% 
-  pivot_wider(names_from = lifestage, values_from = mean_density_m2)
-# view(denspp_cover_stats)
+################ figures
+fig_den_mature <- ggplot(denspp_cover %>% 
+         mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
+       aes(x = grass_nonnative*100, y = mature)) +
 
-#################### bind shrub density WITHOUT shrub species
-density2019 <- shrubdensitylife_load %>% # group shrub density by lifestage
-  group_by(site_rep, lifestage) %>% 
-  summarise(sum_density_m2 = sum(density_m2)) # 75 rows
-density2024 <- shrubdensity_2024 %>%  
-  group_by(site_rep, lifestage) %>% 
-  summarise(sum_density_m2 = sum(density_m2)) # 104 rows
-density <- density2019 %>%  
-  bind_rows(density2024) # 179 rows
-density_cover <- height_cover %>%  # left join nn grass cover
-  dplyr::select(site, site_rep, grass_nonnative, shrub_native) %>% 
-  left_join(density, by = "site_rep") %>% 
-  filter(site_rep != "INT4_1") # omit INT4_1
+ geom_point(aes(color = site), size = 3, show.legend = TRUE) +
+  scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+   scale_x_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, by = 10),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  scale_y_continuous(
+    limits = c(0, 2),
+    breaks = seq(0, 2, by = .25),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  theme_bw()  +
+  labs(
+    x = "Non-native grass (%)",
+    y = "Mature shrub density (m^2)",
+  #  title = "Mean stand height by Nonnative Grass percent cover",
+     color = "Site") +
+ 
+   stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "red", linewidth = 1) +
+    geom_smooth(aes(x = grass_nonnative * 100, y = mature), method = "lm", se = TRUE, linetype = "dashed", color = "gray40", show.legend = TRUE)
+   
+fig_den_immature <- ggplot(denspp_cover %>% 
+         mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
+       aes(x = grass_nonnative*100, 
+           y = immature)) +
 
+ geom_point(aes(color = site), size = 3, show.legend = TRUE) +
+  scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+   scale_x_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, by = 10),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  scale_y_continuous(
+    limits = c(0, 2),
+    breaks = seq(0, 2, by = .25),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  theme_bw()  +
+  labs(
+    x = "Non-native grass (%)",
+    y = "Immature shrub density (m^2)",
+  #  title = "Mean stand height by Nonnative Grass percent cover",
+     color = "Site") +
+ 
+     stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "red", linewidth = 1) +
+    geom_smooth(aes(x = grass_nonnative * 100, y = immature), method = "lm", se = TRUE, linetype = "dashed", color = "gray40", show.legend = TRUE)
+  
+fig_den_seedling <- ggplot(denspp_cover %>% 
+         mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
+       aes(x = grass_nonnative*100, 
+           y = seedling)) +
 
-########## bind with cluster groups
-density_cover_cluster <- density_cover %>% 
-  separate(site_rep, into = c("site", "rep"), sep = "_") %>% 
-   mutate(rep = case_when(rep == "1" ~ "01", # oldname ~ newname
-                         rep == "2" ~ "02",
-                         rep == "3" ~ "03",
-                         rep == "4" ~ "04",
-                         rep == "5" ~ "05",
-                         rep == "6" ~ "06",
-                         rep == "7" ~ "07",
-                         rep == "8" ~ "08",
-                         rep == "9" ~ "09",
-                              TRUE ~ rep)) %>% 
-   mutate(site_rep = paste(site, rep, sep = ".")) %>%
-   mutate(site_rep = case_when(site_rep == "INT1.01" ~ "INT1.1",
-                              site_rep == "INT2.01" ~ "INT2.1",
-                              site_rep == "INT3.01" ~ "INT3.1",
-                              site_rep == "INT4.01" ~ "INT4.1",
-                              site_rep == "INT5.01" ~ "INT5.1",
-                              TRUE ~ site_rep)) %>% 
-   left_join(groups %>%  dplyr::select(site_rep, cluster), by = "site_rep") 
+ geom_point(aes(color = site), size = 3, show.legend = TRUE) +
+  scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+   scale_x_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, by = 10),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  scale_y_continuous(
+    limits = c(0, 3),
+    breaks = seq(0, 3, by = .25),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  theme_bw()  +
+  labs(
+    x = "Non-native grass (%)",
+    y = "Shrub seedling density (m^2)",
+     color = "Site") +
+ 
+      stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "red", linewidth = 1) +
+    geom_smooth(aes(x = grass_nonnative * 100, y = seedling), method = "lm", se = TRUE, linetype = "dashed", color = "gray40", show.legend = TRUE)
+  
+fig_den_dead <- ggplot(denspp_cover %>% 
+         mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
+       aes(x = grass_nonnative*100, 
+           y = dead)) +
+
+ geom_point(aes(color = site), size = 3, show.legend = TRUE) +
+  scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+   scale_x_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, by = 10),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  scale_y_continuous(
+    limits = c(0, 3.5),
+    breaks = seq(0, 3.5, by = .25),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  theme_bw()  +
+  labs(
+    x = "Non-native grass (%)",
+    y = "Dead shrub density (m^2)",
+     color = "Site") +
+ 
+       stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "red", linewidth = 1) +
+    geom_smooth(aes(x = grass_nonnative * 100, y = dead), method = "lm", se = TRUE, linetype = "dashed", color = "gray40", show.legend = TRUE)
+  
+fig_den_mature
+fig_den_immature
+fig_den_seedling
+fig_den_dead
+
+########### old code
+#   left_join(shrub_leaftype, by = "species") %>%  # left join shrub_leaftype
+#   mutate(lifestage = factor(lifestage, levels = c("seedling", "immature", "mature", "dead"))) %>% 
+#   separate(site_rep, into = c("site", "rep"), sep = "_") %>% 
+#    mutate(rep = case_when(rep == "1" ~ "01", # oldname ~ newname
+#                          rep == "2" ~ "02",
+#                          rep == "3" ~ "03",
+#                          rep == "4" ~ "04",
+#                          rep == "5" ~ "05",
+#                          rep == "6" ~ "06",
+#                          rep == "7" ~ "07",
+#                          rep == "8" ~ "08",
+#                          rep == "9" ~ "09",
+#                               TRUE ~ rep)) %>% 
+#    mutate(site_rep = paste(site, rep, sep = ".")) %>%
+#    mutate(site_rep = case_when(site_rep == "INT1.01" ~ "INT1.1",
+#                               site_rep == "INT2.01" ~ "INT2.1",
+#                               site_rep == "INT3.01" ~ "INT3.1",
+#                               site_rep == "INT4.01" ~ "INT4.1",
+#                               site_rep == "INT5.01" ~ "INT5.1",
+#                               TRUE ~ site_rep)) %>% 
+#    left_join(groups %>%  dplyr::select(site_rep, cluster), by = "site_rep") 
+# 
+# denspp_cover_stats <- denspp_cover %>% 
+#   group_by(cluster, species, lifestage) %>% 
+#   summarise(mean_density_m2 = mean(density_m2)) %>% 
+#   pivot_wider(names_from = lifestage, values_from = mean_density_m2)
+# # view(denspp_cover_stats)
+# 
+# #################### bind shrub density WITHOUT shrub species
+# density2019 <- shrubdensitylife_load %>% # group shrub density by lifestage
+#   group_by(site_rep, lifestage) %>% 
+#   summarise(sum_density_m2 = sum(density_m2)) # 75 rows
+# density2024 <- shrubdensity_2024 %>%  
+#   group_by(site_rep, lifestage) %>% 
+#   summarise(sum_density_m2 = sum(density_m2)) # 104 rows
+# density <- density2019 %>%  
+#   bind_rows(density2024) # 179 rows
+# density_cover <- height_cover %>%  # left join nn grass cover
+#   dplyr::select(site, site_rep, grass_nonnative, shrub_native) %>% 
+#   left_join(density, by = "site_rep") %>% 
+#   filter(site_rep != "INT4_1") # omit INT4_1
+# 
+# 
+# ########## bind with cluster groups
+# density_cover_cluster <- density_cover %>% 
+#   separate(site_rep, into = c("site", "rep"), sep = "_") %>% 
+#    mutate(rep = case_when(rep == "1" ~ "01", # oldname ~ newname
+#                          rep == "2" ~ "02",
+#                          rep == "3" ~ "03",
+#                          rep == "4" ~ "04",
+#                          rep == "5" ~ "05",
+#                          rep == "6" ~ "06",
+#                          rep == "7" ~ "07",
+#                          rep == "8" ~ "08",
+#                          rep == "9" ~ "09",
+#                               TRUE ~ rep)) %>% 
+#    mutate(site_rep = paste(site, rep, sep = ".")) %>%
+#    mutate(site_rep = case_when(site_rep == "INT1.01" ~ "INT1.1",
+#                               site_rep == "INT2.01" ~ "INT2.1",
+#                               site_rep == "INT3.01" ~ "INT3.1",
+#                               site_rep == "INT4.01" ~ "INT4.1",
+#                               site_rep == "INT5.01" ~ "INT5.1",
+#                               TRUE ~ site_rep)) %>% 
+#    left_join(groups %>%  dplyr::select(site_rep, cluster), by = "site_rep") 
 
 
 
