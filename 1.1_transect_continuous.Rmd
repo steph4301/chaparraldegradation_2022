@@ -258,6 +258,7 @@ abcover_full <- abcover_fulljoin_tib %>%
                               species == "Cryptantha sp." ~ "Cryptantha spp.",
                               # species == "Festuca myros" ~ "Festuca myuros",
                                species == "Mirabilis laevis var. crassifolia" ~ "Mirabilis laevis",
+                              species == "unknown1 forb" ~ "Centaurea melitensis", # in ENH2, transect 1 (aka: Site 2.4)
                               TRUE ~ species)) %>% 
    mutate(
       year = as.character(year),
@@ -273,36 +274,43 @@ glimpse(abcover_full) # look at new columns
 sort(unique(abcover_full$species))
 length(unique(abcover_full$site_rep)) # 40
 
+# use abcover_full for species richness --> 1_spprich.Rmd
+
 ```
 
 ## species characteristics
 
 ```{r load species characteristics, include=TRUE}
 specieslist <- file_transect_2019_load %>%
-  dplyr::select(species, lifeform, status, lifecycle, family) %>%
+  dplyr::select(species, lifeform, status, lifecycle, family) %>% 
    mutate(status = case_when(status == "Native" ~ "native", # oldname ~ newname
                                 status == "Non-native" ~ "nonnative",
                                 status == "thatch" ~ "ground",
                                 status == "litter" ~ "ground",
                                 status == "rock" ~ "ground",
                                 TRUE ~ status)) %>%
+  
    mutate(lifeform = case_when(lifeform == "Grass" ~ "grass",
                                 lifeform == "Shrub" ~ "shrub",
                                 lifeform == "Forb" ~ "forb",
                                 lifeform == "thatch" ~ "ground",
                                 lifeform == "litter" ~ "ground",
                                 lifeform == "rock" ~ "ground",
+                                species == "Calystegia macrostegia" ~ "forb or vine",  # <-- changing CAL from "forb" to "forb or vine"
                                 TRUE ~ lifeform)) %>%
+  
    mutate(lifecycle = case_when(lifecycle == "Annual" ~ "annual",
                                 lifecycle == "Perennial" ~ "perennial",
                                 lifecycle == "thatch" ~ "ground",
                                 lifecycle == "litter" ~ "ground",
                                 lifecycle == "rock" ~ "ground",
                                 TRUE ~ lifecycle)) %>%
+  
    mutate(family = case_when(family == "thatch" ~ "ground",
                              family == "litter" ~ "ground",
                              family == "rock" ~ "ground",
-                                TRUE ~ family)) %>%
+                             TRUE ~ family)) %>%
+  
    mutate(species = case_when(species == "BG bare ground" ~ "bare_ground",
                                 species == "ground" ~ "bare_ground",
                                 species == "native_litter" ~ "litter",
@@ -325,30 +333,185 @@ specieslist <- file_transect_2019_load %>%
                                 species == "Acmispon strigosus - oval, sevfl" ~ "Acmispon strigosus",
                                 species == "Mirabilis laevis var. crassifolia" ~ "Mirabilis laevis",
                                 TRUE ~ species)) %>%
+  
   add_row(species = "Cryptantha spp.",
-          lifeform = "forb",
+          lifeform = "forb", 
           status = "native",
           lifecycle = "annual",
-          family = "Boraginaceae ") %>% 
+          family = "Boraginaceae") %>% 
     add_row(species = "Acmispon glaber dead",
           lifeform = "forb",
           status = "native",
           lifecycle = "annual",
-          family = "Fabaceae ") %>% 
+          family = "Fabaceae") %>% 
     add_row(species = "Uropappus lindleyi",
           lifeform = "forb",
           status = "native",
           lifecycle = "annual",
-          family = "Asteraceae   ") %>% 
+          family = "Asteraceae") %>%
+  
+  filter(!species == "no_species") %>% 
   add_row(species = "no_species",
           lifeform = "no_species",
           status = "no_species",
           lifecycle = "no_species",
-          family = "no_species   ") %>% 
-  distinct()
+          family = "no_species") %>% 
+  
+  # adding species for total species richness: 1_spprich.Rmd ; df = spprich 
+  add_row(species = "Festuca myuros", # add a row with the correct spelling
+          lifeform = "grass",
+          status = "nonnative",
+          lifecycle = "annual",
+          family = "Poaceae") %>% 
+  add_row(species = "Adiantum capillus-veneris",
+           lifeform = "fern", status = "native", lifecycle = "perennial", family = "Pteridaceae") %>% 		
+  add_row(species = "Blitum californicum", 
+           lifeform = "forb", status = "native", lifecycle = "perennial", family = "Chenopodiaceae") %>% 
+  add_row(species = "Chlorogalum pomeridianum",
+           lifeform = "forb", status = "native", lifecycle = "perennial", family = "Agavaceae") %>% 
+  add_row(species = "Claytonia parviflora",
+           lifeform = "forb", status = "native", lifecycle = "annual", family = "Montiaceae") %>% 
+  add_row(species = "Claytonia perfoliatae",
+           lifeform = "forb", status = "native", lifecycle = "annual", family = "Montiaceae") %>% 
+  add_row(species = "Daucus pusillus",
+           lifeform = "forb", status = "native", lifecycle = "annual", family = "Apiaceae") %>% 
+  add_row(species = "Emmenanthe penduliflora",
+           lifeform = "forb", status = "native", lifecycle = "annual", family = "Hydrophyllaceae") %>% 
+  add_row(species = "Eriodictyon crassifolium",
+           lifeform = "shrub", status = "native", lifecycle = "perennial", family = "Namaceae") %>% 
+  add_row(species = "Eucrypta chrysanthemifolia",
+           lifeform = "forb", status = "native", lifecycle = "annual", family = "Hydrophyllaceae") %>% 
+  add_row(species = "Galium californicum",
+           lifeform = "forb", status = "native", lifecycle = "perennial", family = "Rubiaceae") %>% 
+  add_row(species = "Galium spp.", 
+          lifeform = "forb", status = "native", lifecycle = "perennial", family = "Rubiaceae") %>% 
+  add_row(species = "Lupinus bicolor",
+           lifeform = "forb", status = "native", lifecycle = "annual", family = "Fabaceae") %>% 
+  add_row(species = "Lupinus succulentus",
+            lifeform = "forb", status = "native", lifecycle = "annual", family = "Fabaceae") %>%
+  add_row(species = "Phacelia viscida",
+           lifeform = "forb", status = "native", lifecycle = "annual", family = "Hydrophyllaceae") %>%
+  add_row(species = "Phacelia distans",
+             lifeform = "forb", status = "native", lifecycle = "annual", family = "Hydrophyllaceae") %>%
+  add_row(species = "Phacelia tanacetifolia",
+            lifeform = "forb", status = "native", lifecycle = "annual", family = "Hydrophyllaceae") %>%
+  add_row(species = "Phacelia spp.",
+           lifeform = "forb", status = "native", lifecycle = "annual", family = "Hydrophyllaceae") %>%
+  add_row(species = "Trifolium gracilentum",
+           lifeform = "forb", status = "native", lifecycle = "annual", family = "Fabaceae") %>% 
+  add_row(species = "Trifolium spp.",
+           lifeform = "forb", status = "native", lifecycle = "annual", family = "Fabaceae") %>% 
+  add_row(species = "Acourtia microcephala",
+           lifeform = "forb", status = "native", lifecycle = "perennial", family = "Asteraceae") %>% 
+  add_row(species = "Asclepias fascicularis",
+          lifecycle = "perennial", lifeform = "forb", status = "native",  family = "Apocynaceae") %>% 
+  add_row(species = "Camissoniopsis micrantha", 
+           lifecycle = "annual", lifeform = "forb", status = "native",  family = "Onagraceae") %>% 
+  add_row(species = "Ceanothus cuneatus",  
+           lifecycle = "perennial", lifeform = "shrub", status = "native",  family = "Rhamnaceae") %>% 
+  
+  add_row(species = "Clematis lasiantha", 
+           lifecycle = "perennial", lifeform = "forb or vine", status = "native",  family = "Ranunculaceae") %>% 
+    
+  add_row(species = "Erigeron canadensis", 
+           lifecycle = "annual", lifeform = "forb", status = "native",  family = "Asteraceae") %>% 
+  
+  add_row(species = "Hesperocnide tenella",   
+           lifecycle = "annual", lifeform = "forb", status = "native",  family = "Urticaceae") %>% 
+  add_row(species = "Lactuca serriola", 
+           lifecycle = "annual", lifeform = "forb", status = "nonnative",  family = "Asteraceae") %>% 
+  add_row(species = "Malacothrix saxitilis",   
+           lifecycle = "perennial", lifeform = "forb", status = "native",  family = "Asteraceae") %>% 
+                                                           
+  add_row(species = "Medicago polymorpha",  
+           lifecycle = "annual", lifeform = "forb", status = "native",  family = "Fabaceae") %>% 
+  
+  add_row(species = "Pseudognaphalium californicum",   
+           lifecycle = "annual", # <-- annual or perennial. I chose "annual" since it's dry and PSCA maybe dies in the summer? 8/7/2025
+          lifeform = "forb", 
+          status = "native",  
+          family = "Asteraceae") %>%  
+  
+  add_row(species = "Quercus agrifolia", 
+           lifecycle = "perennial", lifeform = "tree", status = "native",  family = "Fagaceae") %>% 
+  add_row(species = "Rafinesquia californica",  
+           lifecycle = "annual", lifeform = "forb", status = "native",  family = "Asteraceae") %>% 
+  add_row(species = "Salvia apiana",    
+           lifecycle = "perennial", lifeform = "shrub", status = "native",  family = "Lamiaceae") %>% 
+  add_row(species = "Sanicula crassicaulis",     	  
+           lifecycle = "perennial", lifeform = "forb", status = "native",  family = "Apiaceae") %>% 
+  
+  add_row(species = "Solanum douglasii",
+           lifecycle = "perennial", lifeform = "forb", status = "native",  family = "Solanaceae") %>% 
+  
+  add_row(species = "Thysanocarpus curvipes",   
+          lifecycle = "annual", lifeform = "forb", status = "native",  family = "Brassicaceae") %>% 
+  add_row(species = "Thysanocarpus spp.", # <- According to Calflora, T. laciniatus is also found in Ventura county. I'm not sure if THLA is at Piru, but on the datasheet papers we only wrote down "Thysanocarpus". 8/7/2025
+           lifecycle = "annual", lifeform = "forb", status = "native",  family = "Brassicaceae") %>% 
+  
+  add_row(species = "Toxicodendron pubescens", 
+           lifecycle = "perennial", 
+           lifeform = "shrub", # <-- vine or shrub, labeled as "shrub" becuase that's the shape TOPU has at PIRU
+           status = "native",  
+           family = "Anacardiaceae") %>% 
+ 
+################ characteristics of unknown species
 
-#View(specieslist)
+  add_row(species = "Unknown 3 Grindelia?", # <- this plant could be Grindelia camporum or Grindelia hirsutula based on records in Calflora 8/7/20205
+          lifecycle = "perennial",  # Site 2, transect 2
+          lifeform = "forb", 
+          status = "native",  
+          family = "Asteraceae") %>% 
+    
+  add_row(species = "unknown collected aster (NB2312 page 123)", # <- labeled in my notebook NB2312 on page 123 as "Lactuca?", but I don't see spines on the leaves
+          lifecycle = "annual", 
+          lifeform = "forb", 
+          status = "unknown",   # <- unknown
+          family = "Asteraceae") %>% 
+    
+  add_row(species = "Unknown pretty seed", # <- INT4 U.P.S., no photos, no sample. 2017.
+          lifecycle = "unknown", 
+          lifeform = "unknown", 
+          status = "unknown",  
+          family = "unknown") %>% 
+    
+  add_row(species = "unknown seedling (photo)", # <- INT5, photos are on sheet = NOTES in PIRU_Transect_Belt google sheets (deep green seedling)
+           lifecycle = "unknown", # <- likely perennial
+          lifeform = "unknown", # <- likely shrub
+          status = "unknown",   # <- likely native
+          family = "unknown") %>% 
+    
+  add_row(species = "unknown shrub",
+           lifecycle = "perennial", 
+          lifeform = "shrub", 
+          status = "unknown", # <- likely native  
+          family = "unknown") %>% 
+    
+      add_row(species = "unknown7 forb - unknown oval shaped leaf, red colored stem at the base - no photos",
+           lifecycle = "annual", 
+          lifeform = "forb", 
+          status = "unknown", # <- likely native  
+          family = "unknown") %>% 
+  mutate(family = case_when(family == "Chenopodiaceae  " ~ "Chenopodiaceae", 
+                             family == "Convolvulaceae  " ~ "Convolvulaceae",
+                             family == "Euphorbiaceae  " ~ "Euphorbiaceae",
+                             family == "Hydrophyllaceae  " ~ "Hydrophyllaceae",
+                             family == "Myrsinaceae  " ~ "Myrsinaceae",
+                             family == "Nyctaginaceae  " ~ "Nyctaginaceae",
+                             family == "Papaveraceae  " ~ "Papaveraceae",
+                             family == "Solanacaeae" ~ "Solanaceae",
+                             TRUE ~ family)) %>% 
+     distinct()
+   
+
+# View(specieslist)
 sort(unique(specieslist$species))
+sort(unique(specieslist$lifeform))
+sort(unique(specieslist$status))
+sort(unique(specieslist$lifecycle))
+sort(unique(specieslist$family))
+
+
 ```
 
 -- code to update list of species characteristics
