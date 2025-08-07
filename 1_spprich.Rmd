@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-##### Rmarkdown for analyzing total above ground species richness 
+ markdown for analyzing total above ground species richness 
 - combining species lists from point-intercept transects and belt transects
  
 library
@@ -62,171 +62,356 @@ library(readxl)
 ```
 
 
+### load data 
+```{r}
 
-### data prep 
-##### - belt species richness
-```{r load belt intercept transect data}
+# NOTES: (August 5-6, 2025)
+# 
+# 2017-2019 data --> I double checked the raw data sheets (paper) against the raw data in Google sheets (PIRU_Transect_Belt - sheet: belt_transects_raw)
+# and entered any missing species from 2017-2019 (Site 1 transects 1-6, Site 2 transects 1-6, INT1, INT2, INT3, INT4).
+# 
+# 2024 data --> For the 2024 species richness data, I double checked  species richness lists on the paper datasheets (raw datasheets collected in the field) against the data entered in the Google Sheets file "Transects_2014" on sheet = "specieslist. The species richness #s in the google sheet match the species richness #s that were recorded in the field.
+# 
+# # # SEE DATA FOLDER for yellow legal pad notes
+
+
+
+################## don't load point-intercept transect data 
+# species from point-intercept transect data in 1.1_transect_continuous.Rmd
+# species observed in 2017-2024 point intercept transects
+# point_spprich <- abcover_full %>%  # 2019 point intercept     # 2024 point intercept
+#   dplyr::select(site, transect, site_rep, species) %>% 
+#   dplyr::distinct(site, transect, species)
+
+# length(unique(point_spprich$site_rep))   # 40
+# sort(unique(point_spprich$species))  <--  "unknown2 forb"; "unknown3" 
+# names(point_spprich)    
+
 
 ################## load belt transect data
 
-# 2019 belt transect data 
-belt.spp_2019_load <- read.csv(here("deg_beltdensity_byspecies.csv")) 
-belttrans_byspecies <- read.csv("deg_beltdensity_byspecies.csv")
+# 2019 belt transect 
+belt.spp_2019_load <- read.csv("data/PIRU_Transect_Belt - belt_transects_raw.csv") %>% # <-- download as .csv from Google Sheets
+  # read.csv(here("data/deg_beltdensity_byspecies.csv")) %>% 
+  dplyr::select(ch1_site, ch1_transect, Sci_Nomenclature) %>% 
+  rename(
+    site = ch1_site, # new = old name
+    transect = ch1_transect, 
+    species = Sci_Nomenclature) %>% 
+  mutate(transect = as.character(transect)) %>% 
+  filter(!species == "") # site 1, transect 4 (aka. ENH1, transect 1) has an empty cell where LUSU could have been IDed in the plot but the photos are from Site 1, transect 1 (aka. DEG1, transect 1)
+  
+dim(belt.spp_2019_load)
+# 1067-1 = 1666   3
+# sort(unique(belt.spp_2019_load$species)) <--  "unknown shrub", "Unknown 3 Grindelia?", "Unknown pretty seed"
 
-belt.spp_2019 <- belt.spp_2019_load %>% 
-  dplyr::select(site, rep, species) %>% 
-  mutate(site_rep = paste(site, rep, sep = ".")) %>% 
-  mutate(species = case_when(species == "Bromus madritensis" ~ "Bromus rubens", # old name ~ new name
-                             species == "Eucrypta\xcachrysanthemifolia" ~ "Eucrypta chrysanthemifolia",
-                             TRUE ~ species)) %>%
-  mutate(species = str_replace(species, " ", "_"))
+
+# 2024 belt transect data
+belt.spp_2024_load <- read.csv("data/Transects_2024 - specieslist.csv") %>% 
+   dplyr::select(site, rep, species) %>% 
+  rename(transect = rep) %>% # new = old name
+   mutate(transect = as.character(transect))
+# dim(belt.spp_2024_load)  # 375  3
+# sort(unique(belt.spp_2024_load$species))
+#   "unknown seedling (photo)" <-- Collected at INT5 - look at PIRU_Transect_Belt (google sheets) sheet = NOTES for photos of this unknown seedling=
+#   "unknown7 forb - unknown oval shaped leaf, red colored stem at the base - no photos" <-- Collected at Site 2, transect 20 (June 1, 2025) with Omar and Wyatt
+#   "unknown collected aster (NB2312 page 123)" <- Collected at Site 2, transect 15 - the plant could be Lactuca serriola, but I don't think it is. It was collected and dried in notebook NB2401 on page 123.
+
+spprich <- bind_rows(belt.spp_2019_load, belt.spp_2024_load) %>% 
+  mutate(transect = case_when(site == "INT5" ~ "1", 
+                              TRUE ~ transect)) %>% 
+  mutate(site_rep = paste(site, transect, sep = "_")) %>% 
+  relocate(site_rep, .after = transect) %>% 
+  
+  # here I am correcting species names
+  mutate(species = case_when(species == "ACGL Acmispon glaber" ~ "Acmispon glaber", # old name ~ new name
+                             species == "Acmispon maritimus - round, sevfl" ~ "Acmispon maritimus",
+                             species == "Acmispon strigosus - oval, sevfl" ~ "Acmispon strigosus",
+                             species == "Avena barbata AVBA" ~ "Avena barbata",
+                             species == "Avena Barbara" ~ "Avena barbata",
+                             species == "Bromus diandrus BRDI" ~ "Bromus diandrus",
+                             species == "Bromus hordeaceus BRHO" ~ "Bromus hordeaceus",
+                             species == "Bromus madritensis" ~ "Bromus rubens",
+                             species == "Bromus rubens BRRU" ~ "Bromus rubens",
+                             species == "CAMA Calystegia macrostegia" ~ "Calystegia macrostegia",
+                             species == "Cenothus oliganthus" ~ "Ceanothus oliganthus",
+                             species == "Centaurea melitensis " ~ "Centaurea melitensis",
+                             species == "Centaria melitensis" ~ "Centaurea melitensis",
+                             species == "Cryptantha sp." ~ "Cryptantha spp.",
+                             species == "Dipterostemon capitatus DICA" ~ "Dipterostemon capitatus",
+                             species == "Emmenanthe penduliflora EMPE" ~ "Emmenanthe penduliflora",
+                             species == "Eriodictyon californicum" ~ "Eriodictyon crassifolium",
+                             species == "Erodium cicutarium ERCI" ~ "Erodium cicutarium",
+                             species == "Eriodium cicutarium" ~ "Erodium cicutarium",
+                             species == "Erodium spp. " ~ "Erodium spp.",
+                             species == "Galium" ~ "Galium spp.",
+                             species == "HIIN Hirschfeldia incana - long pods" ~ "Hirschfeldia incana",
+                             species == "Hirschfeldia incanna" ~ "Hirschfeldia incana",
+                             species == "Lupinus bicolor - skinny leaves LUBI" ~ "Lupinus bicolor",
+                             species == "Lupin spp." ~ "Lupinus spp.",
+                             species == "Lupinus spp. " ~ "Lupinus spp.",
+                             species == "Lupinus succulentus - wide leaves" ~ "Lupinus succulentus",
+                             species == "Lupinus succulentus - wide leaves LUSU" ~ "Lupinus succulentus",
+                             species == "Malacothamnus fasciculatus " ~ "Malacothamnus fasciculatus",   
+                             species == "Phacelia hubbyi PHHU" ~ "Phacelia hubbyi",
+                             species == "Phacelia tanacetifolia PHTA" ~ "Phacelia tanacetifolia",
+                             species == "Rapistrum rugosum - round pods" ~ "Rapistrum rugosum",
+                             species == "Salvia lucophylla" ~ "Salvia leucophylla",
+                             species == "Sambucus nigra" ~ "Sambucus mexicana",
+                             species == "Sambucs nigra" ~ "Sambucus mexicana",
+                             species == "Stipa lepida STLE" ~ "Stipa lepida",
+                             
+                             species == "Avena spp." ~ "Avena barbata",
+                             species == "Calestigia macrostegia" ~ "Calystegia macrostegia",
+                             species == "Eucrypta spp." ~ "Eucrypta chrysanthemifolia", # renamed Eucrypta spp. to E. chrysanthemifolia since only one species is found in Ventura County (the second species is a desert species)
+                             TRUE ~ species)) %>% 
+  
+   # here I am omitting variables that are not vascular species
+  filter(!species %in% c("bare_ground", "litter", "native_thatch", "moss", "no_species", "wood", "nonnative_litter", "rock", "thatch", "native plant outside of plot")) %>% 
+  
+  # here I am omitting dead perennial species since in the Methods I wrote:
+  # To account for seasonal differences among annual species, percent cover and species richness were calculated by treating “dead” individuals as “alive”. This approach was used since all annual species that were recorded as “dead” were also observed as “alive” within the same transect. 
+  # For perennial species, percent cover and species richness were calculated separately for “alive” and “dead” individuals. _Only one transect (transect 1.3) contained a perennial species (Malacothamnus fasciculatus) that was found dead but not also alive._
+    dplyr::filter(!str_detect(species, "dead")) %>% 
+  left_join(groupsdash, by = "site_rep") %>% 
+  left_join(specieslist, by = "species")
 
 
-### 2024 belt transect data
-belt.spp_2024_load <- read.csv(here("belt_spprich_2024.csv"))  
 
-belt.spp_2024 <- belt.spp_2024_load %>% 
-  dplyr::select(site, rep, species) %>% 
-  mutate(site_rep = paste(site, rep, sep = ".")) %>% 
-  filter(species != "moss") %>%
-  mutate(species = str_replace(species, " ", "_")) %>% 
-  mutate(species = case_when(species == "Toxicodendron_pubescens" ~ "Toxicodendron_diversilobum", # old name ~ new name
-                             species == "Sambucus_nigra" ~ "Sambucus_mexicana",
-                             TRUE ~ species))
 
-belt.spprich <- bind_rows(belt.spp_2019, belt.spp_2024) 
+
+# sort(unique(spprich$site))
+# length(unique(spprich$site_rep))
+  
+sort(unique(spprich$species))
+
+# here I'm checking for species I need to add to the Species Characteristics List
+in_spprich <- sort(unique(spprich$species))
+in_spplist <- sort(unique(specieslist$species))
+
+#These are the species that are in spprich that are NOT in the species list
+needtoadd <- setdiff(in_spprich, in_spplist)
+needtoadd 
+
+#These are the species that are in the species list that are NOT in spprich
+extraspp <- setdiff(in_spplist, in_spprich)
+extraspp # it's ok if spp in the species list are not recorded in spprich
+
+head(spprich, 10)
+
+```
+
+
+-  data prep - old (coded before August 2025)
+```{r, eval = FALSE}
+################## data prep point-intercept transect data
+# point_spprich_clean <- point_spprich %>% 
+
+
+
+# belt.spp_2019 <- belt.spp_2019_load %>% 
+ 
+
+
+# belt.spp_2024 <- belt.spp_2024_load %>% 
+#   dplyr::select(site, rep, species) %>% 
+#   mutate(site_rep = paste(site, rep, sep = ".")) %>% 
+#   filter(species != "moss") %>%
+#   mutate(species = str_replace(species, " ", "_")) %>% 
+#   mutate(species = case_when(species == "Toxicodendron_pubescens" ~ "Toxicodendron_diversilobum", # old name ~ new name
+#                              species == "Sambucus_nigra" ~ "Sambucus_mexicana",
+#                              TRUE ~ species))
+
+# 
+# 
+# ################## load point intercept transect data
+# 
+# abcover_full_load <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA")) # point-intercept data
+# 
+# file_transect_2019_load <- read_excel("deg_percentcover_byspecies_bylifeform_2024.xlsx", sheet = "2019_data")
+# 
+# ab_sppr_raw <- abcover_full_load %>% 
+#   dplyr::select(!c(X, distance, vertical)) %>% 
+#   filter(status != "ground") %>% # unselect ground
+#    mutate(site = case_when(
+#     site == "Intact_1" ~ "Intact1",
+#       site == "Intact_2" ~ "Intact2",
+#       site == "Intact_3" ~ "Intact3",
+#     TRUE ~ as.character(site)  # Keep other observations unchanged
+#   )) %>% 
+#   mutate(site_rep = paste(site, rep, sep = "_")) %>%
+#    mutate(site_rep = case_when(
+#     site_rep == "DEG2_4" ~ "DEG2_1", # old name ~ new name
+#       site_rep == "DEG2_5" ~ "DEG2_2",
+#       site_rep == "DEG2_6" ~ "DEG2_3",
+#      site_rep == "ENH2_4" ~ "ENH2_1",
+#       site_rep == "ENH2_5" ~ "ENH2_2",
+#      site_rep == "ENH2_6" ~ "ENH2_3",
+#     TRUE ~ as.character(site_rep))) %>%   # Keep other observations unchanged
+#    filter(!is.na(site)) %>% # omit blank cells in species 
+#     as_tibble() %>% 
+#   mutate(species = case_when(
+#     species == "Avena barbata dead" ~ "Avena barbata", # old name ~ new name
+#     species == "Bromus diandrus dead" ~ "Bromus diandrus", 
+#      species == "Bromus madritensis" ~ "Bromus rubens", 
+#      species == "Bromus rubens dead" ~ "Bromus rubens", 
+#        species == "Bromus spp. dead" ~ "Bromus spp.", 
+#      species == "Centaurea melitensis dead" ~ "Centaurea melitensis", 
+#     species == "Elymus condensatus dead" ~ "Elymus condensatus", 
+#    species == "Heteromeles arbutifolia dead" ~ "Heteromeles arbutifolia",
+#    species == "Hirschfeldia incana dead" ~ "Hirschfeldia incana",
+#     species == "Malacothamnus fasciculatus dead" ~ "Malacothamnus fasciculatus", 
+#    species == "Salvia leucophylla dead" ~ "Salvia leucophylla",
+#    species == "Stipa lepida dead" ~ "Stipa lepida",
+#    TRUE ~ as.character(species)
+#   )) %>% 
+#    mutate(site_rep_species = paste(site_rep, species, sep = "_")) 
+
+
+
+```
+
+(coded before August 2025)
+```{r, eval = FALSE}
+
+
+
+
+# belt.spprich <- bind_rows(belt.spp_2019, belt.spp_2024) 
 # sort(unique(belt.spprich$species))
 
 
 # List of seven unknown species: chaparraldegradation2022 > chaparraldegradation2022 > unknown_spp.xlsx
 
+# specieslist 
 
 ### join species characteristics
-sppchar <- read.csv("processed/specieslist.csv") %>% # species and their characteristics :) Created in 1.1_transect_continuous.Rmd
-  dplyr::select(!c(X)) %>%
-  mutate(species = str_replace(species, " ", "_")) %>%
-  mutate(species = gsub("\u00A0", " ", species, fixed = TRUE)) %>%
-  mutate(species = str_replace(species, " ", "_")) %>% 
-  mutate(family = case_when(family == "Agavaceae  " ~ "Agavaceae", # old name ~ new name
-                             family == "Boraginaceae " ~ "Boraginaceae",
-                              family == "Chenopodiaceae  " ~ "Chenopodiaceae",
-                              family == "Fagaceae  " ~ "Fagaceae",
-                            family == "Onagraceae  " ~ "Onagraceae",
-                            family == "Ranunculaceae  " ~ "Ranunculaceae",
-                            family == "Urticaceae  " ~ "Urticaceae",
-                             TRUE ~ family))
+# sppchar <- read.csv("processed/specieslist.csv") %>% # species and their characteristics :) Created in 1.1_transect_continuous.Rmd
+#   dplyr::select(!c(X)) %>%
+#   # mutate(species = str_replace(species, " ", "_")) %>%
+#   mutate(species = gsub("\u00A0", " ", species, fixed = TRUE)) %>%
+#   mutate(species = str_replace(species, " ", "_")) %>% 
+#   mutate(family = case_when(family == "Agavaceae  " ~ "Agavaceae", # old name ~ new name
+#                              family == "Boraginaceae " ~ "Boraginaceae",
+#                               family == "Chenopodiaceae  " ~ "Chenopodiaceae",
+#                               family == "Fagaceae  " ~ "Fagaceae",
+#                             family == "Onagraceae  " ~ "Onagraceae",
+#                             family == "Ranunculaceae  " ~ "Ranunculaceae",
+#                             family == "Urticaceae  " ~ "Urticaceae",
+#                              TRUE ~ family))
 
 #These are the species that are in belt.spprich that are NOT in the species characteristics list
-a <- sort(unique(belt.spprich$species))
-b <- sort(unique(sppchar$species))
+# a <- sort(unique(belt.spprich$species))
+# b <- sort(unique(sppchar$species))
+# c <- sort(unique(specieslist$species))
 
-speciesmissingfrom.sppchar <- setdiff(a, b) # <- KIT - can you help resolve this issue? I added the missing species and their characteristics to "processed/specieslist.csv" but they're not joining
-speciesmissingfrom.sppchar 
+# speciesmissingfrom.sppchar <- setdiff(c, b) # <- KIT - can you help resolve this issue? I added the missing species and their characteristics to "processed/specieslist.csv" but they're not joining
 
-speciesmissingfrom.belt <- setdiff(b, a)
-speciesmissingfrom.belt
+# speciesmissingfrom.sppchar 
+
+# speciesmissingfrom.belt <- setdiff(b, a)
+# speciesmissingfrom.belt
 
 # list of seven unknown species
 # unknown.spp <- read_excel("unknown_spp.xlsx")
 
-belt <- belt.spprich %>% 
-  left_join(sppchar, by = "species") %>% 
-   mutate(site_rep_species = paste(site_rep, species, sep = "_")) 
+# belt <- belt.spprich %>% 
+#   left_join(sppchar, by = "species") %>% 
+#    mutate(site_rep_species = paste(site_rep, species, sep = "_")) 
 
 
 ```
 
-##### - point intercept
+- point intercept - old code (coded before August 2025)
 ```{r}
-################## load point intercept transect data
 
-abcover_full_load <- read.csv("deg_percentcover_byspecies_bylifeform.csv", header = TRUE, na.strings=c("","NA")) # point-intercept data
-
-file_transect_2019_load <- read_excel("deg_percentcover_byspecies_bylifeform_2024.xlsx", sheet = "2019_data")
-
-ab_sppr_raw <- abcover_full_load %>% 
-  dplyr::select(!c(X, distance, vertical)) %>% 
-  filter(status != "ground") %>% # unselect ground
-   mutate(site = case_when(
-    site == "Intact_1" ~ "Intact1",
-      site == "Intact_2" ~ "Intact2",
-      site == "Intact_3" ~ "Intact3",
-    TRUE ~ as.character(site)  # Keep other observations unchanged
-  )) %>% 
-  mutate(site_rep = paste(site, rep, sep = "_")) %>%
-   mutate(site_rep = case_when(
-    site_rep == "DEG2_4" ~ "DEG2_1", # old name ~ new name
-      site_rep == "DEG2_5" ~ "DEG2_2",
-      site_rep == "DEG2_6" ~ "DEG2_3",
-     site_rep == "ENH2_4" ~ "ENH2_1",
-      site_rep == "ENH2_5" ~ "ENH2_2",
-     site_rep == "ENH2_6" ~ "ENH2_3",
-    TRUE ~ as.character(site_rep))) %>%   # Keep other observations unchanged
-   filter(!is.na(site)) %>% # omit blank cells in species 
-    as_tibble() %>% 
-  mutate(species = case_when(
-    species == "Avena barbata dead" ~ "Avena barbata", # old name ~ new name
-    species == "Bromus diandrus dead" ~ "Bromus diandrus", 
-     species == "Bromus madritensis" ~ "Bromus rubens", 
-     species == "Bromus rubens dead" ~ "Bromus rubens", 
-       species == "Bromus spp. dead" ~ "Bromus spp.", 
-     species == "Centaurea melitensis dead" ~ "Centaurea melitensis", 
-    species == "Elymus condensatus dead" ~ "Elymus condensatus", 
-   species == "Heteromeles arbutifolia dead" ~ "Heteromeles arbutifolia",
-   species == "Hirschfeldia incana dead" ~ "Hirschfeldia incana",
-    species == "Malacothamnus fasciculatus dead" ~ "Malacothamnus fasciculatus", 
-   species == "Salvia leucophylla dead" ~ "Salvia leucophylla",
-   species == "Stipa lepida dead" ~ "Stipa lepida",
-   TRUE ~ as.character(species)
-  )) %>% 
-   mutate(site_rep_species = paste(site_rep, species, sep = "_")) 
-
-sort(unique(ab_sppr_raw$species))
-length(unique(ab_sppr_raw$site_rep_species))
+# sort(unique(ab_sppr_raw$species))
+# length(unique(ab_sppr_raw$site_rep_species))
 # 107
 
-ptintcp_list <- list(unique(ab_sppr_raw$site_rep_species))
+# ptintcp_list <- list(unique(ab_sppr_raw$site_rep_species))
 
 ```
 
-##### - shrub density 
+
+# species richness
+
+### totals for above ground transects
+
 ```{r}
-################################ shrub density
+
+# find duplicate species
+spprich %>% 
+  dplyr::select(species) %>% 
+  dplyr::filter(str_detect(species, "spp.")) %>% 
+  distinct()
+# Erodium spp.				
+# Lupinus spp.				
+# Cryptantha spp.				
+# Galium spp.				
+# Phacelia spp.				
+# Thysanocarpus spp.				
+# Trifolium spp.
+
+spprich %>% 
+  dplyr::select(species) %>% 
+  # dplyr::filter(str_detect(species, "Erodium")) %>%  # Erodium cicutarium & Erodium spp.
+  # dplyr::filter(str_detect(species, "Lupinus")) %>% # Lupinus bicolor & Lupinus succulentus & Lupinus spp.
+  # 
+  # dplyr::filter(str_detect(species, "Cryptantha")) %>% # Cryptantha spp.
+  # 
+  # dplyr::filter(str_detect(species, "Galium")) %>% # Galium porrigens	& Galium spp.	& Galium californicum
+  # dplyr::filter(str_detect(species, "Phacelia")) %>% # Phacelia hubbyi				Phacelia viscida			Phacelia distans				Phacelia spp.				Phacelia tanacetifolia
+  # dplyr::filter(str_detect(species, "Thysanocarpus")) %>% # Thysanocarpus curvipes  Thysanocarpus spp.
+  dplyr::filter(str_detect(species, "Trifolium")) %>% # Trifolium gracilentum				Trifolium spp.
+  distinct()
 
 
-# native shrub density 
-shrubdensitylife_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/deg_beltdensity_bylifestage.csv", 
-    col_types = cols(
-      StandType = col_character(), 
-      Site = col_character(),
-      rep = col_integer(),
-      ScientificName = col_character(), 
-      dead = col_integer(),
-      immature = col_integer(),
-      mature = col_integer(), 
-      resprout = col_integer(), 
-      seedling = col_integer()
-      )
-     ) %>% 
-  rename()
-  
+
+############# species 
+# omit dupicate species from total spp richness count
+length(
+  (spprich %>% 
+  dplyr::select(species) %>% 
+    
+  ### here I'm omitting the species with "spp." if we already account for the species the plant could be 
+  ### (e.g., omitting Lupinus spp. becuase we account for Lupinus bicolor & Lupinus succulentus, the two speices we had out at Piru)
+  ### This often happen when we didn't record which species we saw in the transect
+  filter(!species == "Erodium spp.") %>% 
+  filter(!species == "Lupinus spp.") %>% 
+  filter(!species == "Galium spp.") %>% 
+  filter(!species == "Phacelia spp.") %>% 
+  filter(!species == "Thysanocarpus spp.") %>% 
+  filter(!species == "Trifolium spp.") %>% 
+    
+  distinct())$species) # n = 87 species
 
 
-shrubdensityspp_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/deg_beltdensity_byspecies.csv")
-# shrubdensityalive_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_beltdensity_seperatealive.csv")
+############# genera 
+# length(
+  # (
+    
+spprich %>% 
+  dplyr::select(species) %>% 
+  mutate(species = case_when( 
+      species == "Unknown 3 Grindelia?" ~ "Unknown3Grindelia? Unknown3Grindelia?", # Site 2, transect 2
+      species == "Unknown pretty seed" ~ "UnknownprettyseedINT4 UnknownprettyseedINT4",
+      species == "unknown collected aster (NB2312 page 123)" ~ "unknowncollectedaster unknowncollectedaster",
+      species == "unknown seedling (photo)" ~ "unknownseedlingphotoINT5 unknownseedlingphotoINT5",
+      species == "unknown7 forb - unknown oval shaped leaf, red colored stem at the base - no photos" ~ "unknown7forb unknownforb", # found with Omar and Wyatt at ENH2 (aka. Site 2)
+       TRUE ~ species)) %>% 
+  distinct()
+  separate(species, into = c("genera", "species"), sep = " ")
+
+
 ```
 
 
 
-# RICHNESS 
-
-##### - spp
+### by transect
 ```{r}
 
-################ species richness
 
-
-# sort(unique(belt.spprich$species))
 
 belt.spprich_total <- belt %>% 
   filter(species != "Erodium_spp.") %>% 
@@ -399,6 +584,40 @@ chao
 
 ```
 
+
+
+
+##### - shrub density 
+```{r}
+################################ shrub density
+
+
+# native shrub density 
+shrubdensitylife_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/deg_beltdensity_bylifestage.csv", 
+    col_types = cols(
+      StandType = col_character(), 
+      Site = col_character(),
+      rep = col_integer(),
+      ScientificName = col_character(), 
+      dead = col_integer(),
+      immature = col_integer(),
+      mature = col_integer(), 
+      resprout = col_integer(), 
+      seedling = col_integer()
+      )
+     ) %>% 
+  rename()
+  
+
+
+shrubdensityspp_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/chaparraldegradation_2022/chaparraldegradation_2022/data/deg_beltdensity_byspecies.csv")
+# shrubdensityalive_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertation/deg_beltdensity_seperatealive.csv")
+```
+
+
+
+
+
 ```{r}
 print("you've reached the end of the code!")
 
@@ -445,12 +664,12 @@ length(unique(nn_sppr$family)) # 4 families
 - data prep
 ```{r, eval = FALSE}
 ab_totalsppr_hillslope <- ab_totalsppr %>%  # n = 15
-  group_by(standtype, site, site_rep) %>% 
+  group_by( site, site_rep) %>% #standtype,
   summarize(sppr = n_distinct(site_rep_species)) 
   
 
 sppr_bystatus <- ab_totalsppr %>% # n = 33
-  group_by(standtype, site, site_rep, status) %>% 
+  group_by(site, site_rep, status) %>% # standtype, 
   summarize(sppr = n_distinct(site_rep_species))
 ```
 
