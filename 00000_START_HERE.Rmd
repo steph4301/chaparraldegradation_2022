@@ -9,10 +9,15 @@ _1_cluster.Rmd_ (ends at line 895)
 
 
 _1.1_transect_continuous.Rmd_ (ends @ line 2916)
+  - Figure: total shrub cover x nngrass cover (object: nngxnatshr, around line 1197)
+  - Figure: sage scrub shrub cover x nngrass cover (object: nngxss, around line 1382)
+  - Figure 1: 
   - Figure: mean percent cover x cluster (object: fig_forbgrass) ---  mean percent cover (%) x lifeform_lifecycle_status x cluster 
+    
   - Figure: Shrub density Median +/- SD x Cluster and Lifestage  (object: densitymeans_bycluster_figure)
   - Figure: stand height x transect (object: fig_height, around line: 2441)
   - Figure: COV x transect (object: fig_cov, around: line 2551)
+  - Figure: shrub density (mature, immature, seedling, dead) x nn grass cover (object: fig_den_mature, around line 2854)
   - Table: Shrub density Median +/- SD x Cluster and Lifestage (object: densitymeans_bycluster_TABLE)
 
 
@@ -48,10 +53,24 @@ ab_heightdensity.Rmd <- I think this is an old file too. The standstypes are DEG
 
 
 _Useful code to hang on to:_
-#### save figure
+
+#### _save_ figure
 # ggsave("Ch1_Degradation_figures/nmds_above_vectors.png", nmdsabove_plot_site_rep, width = 8, height = 6)
 
+# Add _labels to the plots_ using cowplot's draw_label() function
+fig.1a_labeled <- ggdraw(fig.1a) + draw_label("C", x = 0.95, y = 0.92, size = 15)  # Add letter "A" in the top-right corner
 
+# _Combine the plots_ in a 2x3 layout
+figure1 <- plot_grid(fig.1f_labeled, fig.1a_labeled, 
+             fig.1d_labeled, fig.1c_labeled,  NULL, fig.1e_labeled,
+             nrow = 3, 
+             ncol = 2, 
+             widths = c(1, 1), # Custom widths for each column
+             heights = c(1, 1, 1) # Custom heights for each row
+             ) 
+             
+             
+             
 (7) NMDS by site (e.g., Intact_1) <-- from 1.3_NMDS_percentcover.Rmd ~line 1102 (code from KIT)
 ```{r transpose site percent cover data, eval = FALSE}
 
