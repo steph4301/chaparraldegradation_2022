@@ -13,6 +13,7 @@ _1.1_transect_continuous.Rmd_ (ends @ line 2916)
   - Figure: sage scrub shrub cover x nngrass cover (object: nngxss, around line 1382)
   - Figure 1: 
   - Figure: mean percent cover x cluster (object: fig_forbgrass) ---  mean percent cover (%) x lifeform_lifecycle_status x cluster 
+  - Figure: ground type cover (%) x nngrass (obect: fig_bareground_all, around like 1850)
     
   - Figure: Shrub density Median +/- SD x Cluster and Lifestage  (object: densitymeans_bycluster_figure)
   - Figure: stand height x transect (object: fig_height, around line: 2441)
