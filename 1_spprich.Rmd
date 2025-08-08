@@ -5,6 +5,11 @@ date: "2024-02-19"
 output: html_document
 ---
 
+<-- 1.1_transect_continuous.Rmd
+
+--> ???
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -16,11 +21,6 @@ knitr::opts_chunk$set(echo = TRUE)
 library
 ```{r install libraries, message=FALSE}
 
-# Packages
-library(tidyverse) # includes ggplot2, dplyr, tidyr, readr, purr, tibble, stringr, forcats
-library(vegan)
-library(here)
-library(readxl) 
 
 # library(ggpubr) # customize ggplot2 for publication
 # library(broom)
@@ -335,7 +335,7 @@ head(spprich, 10)
 ```
 
 
-# RICHNESS
+# RICHNESS - overall
 
 ### - totals for above ground transects
 ```{r}
@@ -481,31 +481,122 @@ spprich %>%
 ```
 
 
-### spp rich by transect
+# TRANSECT spprich
+
+### - x nngrass
 ```{r}
-
-spprich_trans <- spprich %>% 
+###### total richness
+spprich_trans <- spprich %>% # transect: total spp richness 
   distinct() %>% 
-  group_by(site_rep, status) %>% 
+  group_by(site_rep) %>% 
   summarize(N_spprich = length(species)) %>% 
-  left_join(cover_bylfstatus_wide, by = c("site_rep"))
-
+  left_join(
+    (cover_bylfstatus_wide %>% 
+       mutate(site_rep = case_when(
+         site_rep == "INT5_5" ~ "INT5_1", TRUE ~ site_rep))
+     ), by = c("site_rep"))
 
 plot_spprich <- ggplot(data = spprich_trans,
        aes(x = grass_nonnative*100, 
          y = N_spprich)) + 
-      geom_point(aes(color = status), size = 3) +
-  # geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+      geom_point(size = 3) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
   labs(
     #  title = "Linear regression of  total shrub cover by non-native grass cover",
     x = "Non-native grass cover (%)",
-    y = "Species Richness (n)"#, 
-   #  color = "Site"
+    y = "Species Richness (n)"
     ) +
   scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
-  scale_y_continuous(limits = c(0, 30), breaks = seq(0, 30, by = 5)) + # Set y-axis limits and breaks
-  theme_bw()
+  scale_y_continuous(limits = c(0, 30), breaks = seq(0, 30, by = 5), expand = expansion(mult = c(0, 0.05))) + # Set y-axis limits and breaks
+  theme_bw() +
+  theme(axis.text = element_text(size = 16)) + # axes numbers
+  theme(axis.title = element_text(size = 20)) + # axes titles
+  theme(legend.title=element_text(size = 16)) + 
+  theme(legend.text=element_text(size = 16))
+
 plot_spprich
+```
+
+### - x status
+```{r}
+
+######## richness by status
+spprich_trans_status <- spprich %>%  # transect: spp richness by status
+  distinct() %>% 
+  group_by(site_rep, status) %>% 
+  summarize(N_spprich = length(species)) %>% 
+  left_join(
+    (cover_bylfstatus_wide %>% 
+       mutate(site_rep = case_when(
+         site_rep == "INT5_5" ~ "INT5_1", TRUE ~ site_rep))
+     ), by = c("site_rep"))
+
+
+plot_spprich_native <- ggplot(data = spprich_trans_status 
+                              %>%  filter(status == "native"), # or status == "nonnative"
+       aes(x = grass_nonnative*100, 
+         y = N_spprich)) + 
+      geom_point(aes(color = status, shape = status), size = 3) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+  labs(
+    #  title = "Linear regression of  total shrub cover by non-native grass cover",
+    x = "Non-native grass cover (%)",
+    y = "Species Richness (n)", 
+   color = "Status", 
+   shape = "Status"
+    ) +
+  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 30), breaks = seq(0, 30, by = 5), expand = expansion(mult = c(0, 0.05))) + # Set y-axis limits and breaks
+  theme_bw() +
+  theme(axis.text = element_text(size = 16)) + # axes numbers
+  theme(axis.title = element_text(size = 20)) + # axes titles
+  theme(legend.title=element_text(size = 16)) + 
+  theme(legend.text=element_text(size = 16))
+
+
+
+
+plot_spprich_native
+
+```
+
+### - x status and lifeform
+```{r}
+
+######## richness by status and lifeform
+spprich_trans_status_lf <- spprich %>%  
+  distinct() %>% 
+  group_by(site_rep, status, lifeform) %>% 
+  summarize(N_spprich = length(species)) %>% 
+  left_join(
+    (cover_bylfstatus_wide %>% 
+       mutate(site_rep = case_when(
+         site_rep == "INT5_5" ~ "INT5_1", TRUE ~ site_rep))
+     ), by = c("site_rep"))
+
+
+plot_spprich_shrub <- ggplot(data = spprich_trans_status_lf 
+                              %>%  filter(status == "native" & lifeform == "shrub"), # or status == "nonnative"
+       aes(x = grass_nonnative*100, 
+         y = N_spprich)) + 
+      geom_point(aes(color = status, shape = status), size = 3) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+  labs(
+    #  title = "Linear regression of  total shrub cover by non-native grass cover",
+    x = "Non-native grass cover (%)",
+    y = "Species Richness (n)", 
+   color = "Status", 
+   shape = "Status"
+    ) +
+  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 30), breaks = seq(0, 30, by = 5), expand = expansion(mult = c(0, 0.05))) + # Set y-axis limits and breaks
+  theme_bw() +
+  theme(axis.text = element_text(size = 16)) + # axes numbers
+  theme(axis.title = element_text(size = 20)) + # axes titles
+  theme(legend.title=element_text(size = 16)) + 
+  theme(legend.text=element_text(size = 16))
+
+plot_spprich_shrub
 
 ############################################ OLD CODE
 # belt.spprich_total <- belt %>% 
@@ -531,7 +622,7 @@ plot_spprich
 ```
 
 ##### - genera
-```{r}
+```{r, eval = FALSE}
 ################ genera richness
 
 belt.genrich <- belt %>% 
@@ -543,7 +634,7 @@ length(sort(unique(belt.genrich$Genus))) - 4 # minus 4 unknowns
 ```
 
 ##### - family
-```{r}
+```{r, eval = FALSE}
 
 
 ################ family richness
@@ -557,7 +648,7 @@ length(sort(unique(belt_famrich$family))) - 1 # duplicate Chenopodiaceae
 ```
 
 
-```{r duplicate sppr, include=FALSE}
+```{r duplicate sppr, include=FALSE, eval = FALSE}
 
 # total spp richness using ab_sppr_raw and belt dfs - same calculation as above (n = 87)
 
@@ -575,7 +666,7 @@ length(unique(ab_totalsppr$species)) -6 # Bromus spp., Erodium spp.,  "Galium sp
 
 ```
 
-```{r}
+```{r, eval = FALSE}
 # difference in n species in point intercept transect vs. belt transect
 trans_n <- length(unique(ab_sppr_raw %>% 
   dplyr::select(species) %>% 
@@ -606,7 +697,7 @@ round(31/87*100, 2)
 
 
 # NATIVE lifeforms
-```{r}
+```{r, eval = FALSE}
 
 ####### shrub
 length(sort(unique(
@@ -638,7 +729,7 @@ length(sort(unique(
 ```
 
 # NN lifeforms
-```{r}
+```{r, eval = FALSE}
 
 ####### grass
 length(sort(unique(
@@ -683,7 +774,7 @@ chao
 
 
 ##### - shrub density 
-```{r}
+```{r, eval = FALSE}
 ################################ shrub density
 
 
