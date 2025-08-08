@@ -1795,8 +1795,9 @@ groundcover <- abcover_charateristics_leaftype %>%
     TRUE ~ species
   ))
 
+# length(unique(groundcover$site_rep))   # 40 transects
 # sort(unique(groundcover$site_rep))
-# length(unique(groundcover$site_rep)) # 40 transects
+
 
 # groundcover %>% 
 #   group_by(site, transect) %>% 
@@ -1845,30 +1846,88 @@ names(groundcover_percent)
 
 
 ######################################## FIGURES
-fig_bareground_all <- ggplot(data = groundcover_percent) +
- 
+
+fig_bareground_all <- ggplot(   # <- # code edited from CHATGPT 8.8.2025
+  (groundcover_percent %>% 
+  select(grass_nonnative, 
+         bare_rock, native_litter_wood, nonnative_thatch) %>% # pivot df longer, n = 120 rows
+  tidyr::pivot_longer(
+    cols = c(bare_rock, native_litter_wood, nonnative_thatch),
+    names_to = "cover_type",
+    values_to = "cover_value")
+  ),
+       aes(x = grass_nonnative * 100, # data point esthetics
+           y = cover_value * 100,
+           color = cover_type)) +
+  geom_point(size = 3) +
+  
+  # LEGEND 
+  scale_color_manual( # data ponit colors
+    name = "Ground cover type",  # legend title
+    values = c(
+      bare_rock = "black",     # "grey40" 
+      native_litter_wood = "maroon", # "green4"
+      nonnative_thatch = "lightblue" # "black"
+    ),
+    labels = c(
+      bare_rock = "bare rock",
+      native_litter_wood = "native litter/wood",
+      nonnative_thatch = "non-native thatch"
+    )
+  ) +
+  
+  # THEME 
+  labs(
+   x = "Non-native grass cover (%)",
+    y = "Ground cover (%)"
+  ) +
+  scale_x_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, by = 10),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  scale_y_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, by = 10),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  theme_bw() +
+  theme(
+    axis.text = element_text(size = 16),
+    axis.title = element_text(size = 20),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 16)
+  )
+
+fig_bareground_all
+
+
+
+################################## don't run, instead - run the figure above
+ggplot(data = groundcover_percent) +
   # bare_rock
   geom_point(data = groundcover_percent, 
             aes(x = grass_nonnative * 100, y = bare_rock*100), 
-              color = bare_rock, 
-              shape = shape_bare_rock,
+              color = "grey40", #  bare_rock = "gray40"
+              # shape = shape_bare_rock, # shape_bare_rock = 16
               size = 3, 
             show.legend = TRUE) +
  # native_litter_wood
  geom_point(data = groundcover_percent,
            aes(x = grass_nonnative * 100, y = native_litter_wood*100),
-               color = native_litter_wood,
-               shape = shape_native_litter_wood,
+               color = "green4", # native_litter_wood = "green4"
+               # shape = shape_native_litter_wood),
                size = 3, show.legend = TRUE) +
  # nonnative_thatch
  geom_point(data = groundcover_percent,
            aes(x = grass_nonnative * 100, y = nonnative_thatch*100),
-               color = nonnative_thatch, shape = shape_nonnative_thatch,
+               color = "black", # nonnative_thatch = "black"
+               # shape = shape_nonnative_thatch),
                size = 3, show.legend = TRUE) +
  # Labels
   labs(
     color = "Ground Cover Type",
-    shape = "Ground Cover Type",
+    # shape = "Ground Cover Type",
     x = "Non-native grass cover (%)",
     y = "Ground cover (%)"
   ) +
@@ -1883,7 +1942,14 @@ fig_bareground_all <- ggplot(data = groundcover_percent) +
     expand = expansion(mult = c(0, 0.05))
   ) +
   # Theme
-  theme_bw() 
+  theme_bw() +
+  theme(axis.text = element_text(size = 16)) + # axes numbers - font size
+  theme(axis.title = element_text(size = 20)) + # axes titles
+  theme(legend.title=element_text(size = 16)) + 
+  theme(legend.text=element_text(size = 16))
+```
+
+```{r}
 
 # figure: bare_rock
 fig_bareground <- 
