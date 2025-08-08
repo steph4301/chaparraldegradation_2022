@@ -174,7 +174,8 @@ spprich <- bind_rows(belt.spp_2019_load, belt.spp_2024_load) %>%
   # For perennial species, percent cover and species richness were calculated separately for “alive” and “dead” individuals. _Only one transect (transect 1.3) contained a perennial species (Malacothamnus fasciculatus) that was found dead but not also alive._
     dplyr::filter(!str_detect(species, "dead")) %>% 
   left_join(groupsdash, by = "site_rep") %>% 
-  left_join(specieslist, by = "species")
+  left_join(specieslist, by = "species") #%>%  # dim = [1] 1436    9 without distinct()
+  # distinct() # dim = [1] 596   9 with distinct()
 
 
 
@@ -334,10 +335,9 @@ head(spprich, 10)
 ```
 
 
-# species richness
+# RICHNESS
 
-### totals for above ground transects
-
+### - totals for above ground transects
 ```{r}
 
 # find duplicate species
@@ -367,9 +367,8 @@ spprich %>%
   distinct()
 
 
-
 ############# species 
-# omit dupicate species from total spp richness count
+# omit duplicate species from total spp richness count
 length(
   (spprich %>% 
   dplyr::select(species) %>% 
@@ -377,52 +376,148 @@ length(
   ### here I'm omitting the species with "spp." if we already account for the species the plant could be 
   ### (e.g., omitting Lupinus spp. becuase we account for Lupinus bicolor & Lupinus succulentus, the two speices we had out at Piru)
   ### This often happen when we didn't record which species we saw in the transect
-  filter(!species == "Erodium spp.") %>% 
-  filter(!species == "Lupinus spp.") %>% 
-  filter(!species == "Galium spp.") %>% 
-  filter(!species == "Phacelia spp.") %>% 
-  filter(!species == "Thysanocarpus spp.") %>% 
-  filter(!species == "Trifolium spp.") %>% 
-    
-  distinct())$species) # n = 87 species
+    filter(!species %in% c("Erodium spp.", 
+                         "Lupinus spp.", 
+                         "Galium spp.", 
+                         "Phacelia spp.", 
+                         "Thysanocarpus spp.", 
+                         "Trifolium spp.")) %>% 
+     dplyr::filter(!str_detect(species, "Unknown|unknown")) %>% # 6 unknown species
+  distinct())$species) #  81 known species
 
 
 ############# genera 
-# length(
-  # (
-    
-spprich %>% 
+length(
+  (spprich %>% 
   dplyr::select(species) %>% 
-  mutate(species = case_when( 
-      species == "Unknown 3 Grindelia?" ~ "Unknown3Grindelia? Unknown3Grindelia?", # Site 2, transect 2
-      species == "Unknown pretty seed" ~ "UnknownprettyseedINT4 UnknownprettyseedINT4",
-      species == "unknown collected aster (NB2312 page 123)" ~ "unknowncollectedaster unknowncollectedaster",
-      species == "unknown seedling (photo)" ~ "unknownseedlingphotoINT5 unknownseedlingphotoINT5",
-      species == "unknown7 forb - unknown oval shaped leaf, red colored stem at the base - no photos" ~ "unknown7forb unknownforb", # found with Omar and Wyatt at ENH2 (aka. Site 2)
-       TRUE ~ species)) %>% 
-  distinct()
-  separate(species, into = c("genera", "species"), sep = " ")
+     dplyr::filter(!str_detect(species, "Unknown|unknown")) %>% # 6 unknown genera
+  separate(species, into = c("genera", "species"), sep = " ") %>% 
+    dplyr::select(genera) %>% 
+    
+      distinct()) $genera)  # 67 known genera
+
+
+############# family
+length(
+  (spprich %>% 
+  dplyr::select(family) %>%
+    dplyr::filter(!str_detect(family, "Unknown|unknown")) %>% # omit unknown families "unknown"
+    distinct())$family) # 38 known families
+```
+
+### - by status and lifeform
+```{r}
+############# native
+length(
+  (spprich %>% 
+     filter(status == "native") %>% 
+     dplyr::select(species) %>% 
+      filter(!species %in% c("Erodium spp.", # omit duplicate "spp." species
+                         "Lupinus spp.", 
+                         "Galium spp.", 
+                         "Phacelia spp.", 
+                         "Thysanocarpus spp.", 
+                         "Trifolium spp.")) %>% 
+     dplyr::filter(!str_detect(species, "Unknown|unknown")) %>% # omit unknown species
+  distinct())$species) # n = 67 species
+
+# native species by lifeform
+spprich %>% 
+     filter(status == "native") %>% 
+      filter(!species %in% c("Erodium spp.", # omit duplicate "spp." species
+                         "Lupinus spp.", 
+                         "Galium spp.", 
+                         "Phacelia spp.", 
+                         "Thysanocarpus spp.", 
+                         "Trifolium spp.")) %>% 
+     dplyr::filter(!str_detect(species, "Unknown|unknown")) %>%
+  group_by(lifeform) %>% 
+  summarize(n_lifeform = length(unique(species)))
+#   lifeform     n_lifeform
+
+# 1 fern                  2
+# 2 forb                 46
+# 3 forb or vine          2
+# 4 grass                 2
+# 5 shrub                14
+# 6 tree                  1
+
+
+
+############# nonnative
+length(
+  (spprich %>% 
+     filter(status == "nonnative") %>% 
+     dplyr::select(species) %>% 
+     dplyr::filter(!str_detect(species, "Unknown|unknown")) %>% # omit unknown species
+    filter(!species %in% c("Erodium spp.", # omit duplicate "spp." species
+                         "Lupinus spp.", 
+                         "Galium spp.", 
+                         "Phacelia spp.", 
+                         "Thysanocarpus spp.", 
+                         "Trifolium spp.")) %>% 
+  distinct())$species)  # n = 14 nonnative species
+
+# nonnative species by lifeform
+spprich %>% 
+     filter(status == "nonnative") %>% 
+      filter(!species %in% c("Erodium spp.", # omit duplicate "spp." species
+                         "Lupinus spp.", 
+                         "Galium spp.", 
+                         "Phacelia spp.", 
+                         "Thysanocarpus spp.", 
+                         "Trifolium spp.")) %>% 
+     dplyr::filter(!str_detect(species, "Unknown|unknown")) %>%
+  group_by(lifeform) %>% 
+  summarize(n_lifeform = length(unique(species)))
+#   lifeform n_lifeform
+#  forb              9
+#  grass             5
+
+67+14
+# 81
 
 
 ```
 
 
-
-### by transect
+### spp rich by transect
 ```{r}
 
+spprich_trans <- spprich %>% 
+  distinct() %>% 
+  group_by(site_rep, status) %>% 
+  summarize(N_spprich = length(species)) %>% 
+  left_join(cover_bylfstatus_wide, by = c("site_rep"))
 
 
-belt.spprich_total <- belt %>% 
-  filter(species != "Erodium_spp.") %>% 
-  filter(species != "Galium_spp.") %>% 
-  filter(species != "Lupinus_spp.") %>% 
-    filter(species != "Phacelia_spp.") %>% 
-    filter(species != "Trifolium_spp.")
-sort(unique(belt.spprich_total$species))
+plot_spprich <- ggplot(data = spprich_trans,
+       aes(x = grass_nonnative*100, 
+         y = N_spprich)) + 
+      geom_point(aes(color = status), size = 3) +
+  # geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+  labs(
+    #  title = "Linear regression of  total shrub cover by non-native grass cover",
+    x = "Non-native grass cover (%)",
+    y = "Species Richness (n)"#, 
+   #  color = "Site"
+    ) +
+  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 30), breaks = seq(0, 30, by = 5)) + # Set y-axis limits and breaks
+  theme_bw()
+plot_spprich
 
-length(sort(unique(belt.spprich_total$species)))
-# 87 species  
+############################################ OLD CODE
+# belt.spprich_total <- belt %>% 
+#   filter(species != "Erodium_spp.") %>% 
+#   filter(species != "Galium_spp.") %>% 
+#   filter(species != "Lupinus_spp.") %>% 
+#     filter(species != "Phacelia_spp.") %>% 
+#     filter(species != "Trifolium_spp.")
+# sort(unique(belt.spprich_total$species))
+# 
+# length(sort(unique(belt.spprich_total$species)))
+#### 87 species
 
    
 # erodium <- belt.spp_2019 %>%  filter(grepl("Erodium", species))
