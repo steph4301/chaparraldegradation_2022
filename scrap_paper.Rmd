@@ -8,12 +8,12 @@
   ) +
   
   
+    theme(axis.text = element_text(size = 16)) + # axes numbers
+  theme(axis.title = element_text(size = 20)) + # axes titles
+  theme(legend.title=element_text(size = 60)) + 
+  theme(legend.text=element_text(size = 16))
   
-  UNKNOWN forb 1 and 2 at Site 2_4:
-  belt.spp_2019_load <- read.csv(here("data/Piru_Transect_Belt.xlsx", sheet == "belt_transects_raw")) %>% 
-  dplyr::select(ch1_site, ch1_transect, ch1_species) %>% 
-                             
-                             
+  
 
 # CANOPY HEIGHT
 ```{r}
