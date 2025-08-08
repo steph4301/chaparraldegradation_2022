@@ -24,13 +24,17 @@ _1.1_transect_continuous.Rmd_ (ends @ line 2916)
 _1_july2025.Rmd_
   - Figure: NMDS of cluster analysis indicator species x cluster (object: grid.arrange(nmds_nat, ...) 
 
-1_spprich.Rmd (ends @ line 403)
-
+_1_spprich.Rmd_ (ends @ line 403)
+  - species richness (df: spprich) - number of species, genera, families, native, non-native 
+  - Figure: species richness by transect x nngrass cover (obect: plot_spprich, around like 517)
+  - Figure: species richness by status x nngrass cover (obect: plot_spprich_native, around like 535)
+  - Figure: species richness by lifeform x nngrass cover (obect: plot_spprich_shrub, around like 578)
+  
 
 1.3_NMDS_percentcover.Rmd (ends @ line 614)
 
 
-
+density_cover
 _2_envrion_NMDS.Rmd_ (ends @ line 1323)
   - Table: Summary of Environmental Variables by Plant Cluser (obejct: table_plant)
 
