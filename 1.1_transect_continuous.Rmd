@@ -150,7 +150,7 @@ colors_status <- c(native, nonnative, unknown)
 #   dplyr::select(c(site, transect, year, distance, vertical, species)) %>%
 #   filter(species != "N/A") %>%
 #    mutate(species = case_when(species == "Bromus spp." ~ "Bromus rubens", # oldname ~ newname
-                              TRUE ~ species))
+                              # TRUE ~ species))
   
 # View the data (optional)
 #view(transect2024)
@@ -179,6 +179,8 @@ groups <- groups_load %>%
    mutate(
       site_rep = as.character(site_rep)
       ) %>% 
+   add_row(site_rep = "INT5.5",
+          cluster = 5) %>% 
   as_tibble() 
 
 
@@ -3274,11 +3276,11 @@ fig_den_dead
 ```
 
 ### linear models
-```{r}
+```{r, eval = FALSE}
 
 ######################## shrub density - linear models
 
-hist(density_cover$sum_density_m2)
+hist(density_cover$sum_density_m2) # denspp_cover
 shapiro.test(density_cover$sum_density_m2) # not normal
 
 # # RUN this to test the residuals of the model you decide to use #########
@@ -3379,7 +3381,7 @@ grid.arrange(m,
 
 ### stats by lifestage
 
-```{r}
+```{r, eval = FALSE}
 
 ################################ calculate shrub density means by cluster (n = 40 transects)
 density_cover_cluster %>%
@@ -3690,7 +3692,7 @@ densitymeans_bycluster_figure
 
 
 
-```{r}
+```{r, eval = FALSE}
 ################# density figures
 
 ggplot(data = density_cover %>% filter(sum_density_m2 > 0)) + 
