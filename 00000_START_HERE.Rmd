@@ -17,9 +17,15 @@ _1.1_transect_continuous.Rmd_ (ends @ line 2916)
     
   - Figure: Shrub density Median +/- SD x Cluster and Lifestage  (object: densitymeans_bycluster_figure)
   - Figure: stand height x transect (object: fig_height, around line: 2441)
+      - median (Q1-Q3): height x cluster
+      
   - Figure: COV x transect (object: fig_cov, around: line 2551)
+      - mean + SE: COV x cluster
+      
   - Figure: shrub density (mature, immature, seedling, dead) x nn grass cover (object: fig_den_mature, around line 2854)
   - Table: Shrub density Median +/- SD x Cluster and Lifestage (object: densitymeans_bycluster_TABLE)
+  
+  - percent cover by species per transect (around line: 676) (object: abcover_omitground %>% group_by(site_rep, species)...)
 
 
 _1_july2025.Rmd_
