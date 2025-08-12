@@ -405,6 +405,31 @@ length(
     distinct())$family) # 38 known families
 ```
 
+```{r, eval = FALSE}
+
+############################################ OLD CODE
+# belt.spprich_total <- belt %>% 
+#   filter(species != "Erodium_spp.") %>% 
+#   filter(species != "Galium_spp.") %>% 
+#   filter(species != "Lupinus_spp.") %>% 
+#     filter(species != "Phacelia_spp.") %>% 
+#     filter(species != "Trifolium_spp.")
+# sort(unique(belt.spprich_total$species))
+# 
+# length(sort(unique(belt.spprich_total$species)))
+#### 87 species
+
+   
+# erodium <- belt.spp_2019 %>%  filter(grepl("Erodium", species))
+# lupin <- belt.spp_2019 %>%  filter(grepl("Lupinus", species))
+# 
+# belt.spp_2019 %>% 
+#   filter(!(species == "Lupinus spp." & site_rep == "1.1")) %>% 
+#   filter(!(species == "Lupinus spp." & site_rep == "1.2"))
+
+
+```
+
 ### - by status and lifeform
 ```{r}
 ############# native
@@ -575,8 +600,11 @@ spprich_trans_status_lf <- spprich %>%
      ), by = c("site_rep"))
 
 
-plot_spprich_shrub <- ggplot(data = spprich_trans_status_lf 
-                              %>%  filter(status == "native" & lifeform == "shrub"), 
+### shrubs
+plot_spprich_shrub <- ggplot(data = spprich_trans_status_lf %>% 
+                               # filter(grass_nonnative < .6) %>% 
+                               filter(status == "native" & lifeform == "shrub"),
+                               
        aes(x = grass_nonnative*100, 
          y = N_spprich)) + 
       geom_point(aes(color = status, shape = status), size = 3) +
@@ -604,7 +632,7 @@ plot_spprich_nng <- ggplot(data = spprich_trans_status_lf
          y = N_spprich)) + 
       geom_point(aes(color = status, shape = status), size = 3) +
   geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
- # stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
+ stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
     labs(
     #  title = "Linear regression of  total shrub cover by non-native grass cover",
     x = "Non-native grass cover (%)",
@@ -622,30 +650,152 @@ plot_spprich_nng <- ggplot(data = spprich_trans_status_lf
 
 plot_spprich_nng
 
+```
+
+### - by lifecycle
+```{r}
+
+######## richness by status and lifeform
+spprich_trans_status_lf_lc <- spprich %>%  
+  distinct() %>% 
+  group_by(site_rep, status, lifeform, lifecycle) %>% 
+  summarize(N_spprich = length(species)) %>% 
+  left_join(
+    (cover_bylfstatus_wide %>% 
+       mutate(site_rep = case_when(
+         site_rep == "INT5_5" ~ "INT5_1", TRUE ~ site_rep))
+     ), by = c("site_rep"))
 
 
-############################################ OLD CODE
-# belt.spprich_total <- belt %>% 
-#   filter(species != "Erodium_spp.") %>% 
-#   filter(species != "Galium_spp.") %>% 
-#   filter(species != "Lupinus_spp.") %>% 
-#     filter(species != "Phacelia_spp.") %>% 
-#     filter(species != "Trifolium_spp.")
-# sort(unique(belt.spprich_total$species))
-# 
-# length(sort(unique(belt.spprich_total$species)))
-#### 87 species
+### perennial
+plot_spprich_perennial <- ggplot(data = spprich_trans_status_lf_lc %>% 
+          group_by(site_rep, lifecycle, grass_nonnative) %>% 
+          summarize(tot_N_spprich = sum(N_spprich)) %>% 
+          filter(lifecycle == "perennial"),
+                               
+       aes(x = grass_nonnative*100, 
+         y = tot_N_spprich)) + 
+      geom_point(aes(color = lifecycle, shape = lifecycle), size = 3) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+   stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
+  labs(
+    #  title = "Linear regression of  total shrub cover by non-native grass cover",
+    x = "Non-native grass cover (%)",
+    y = "Perennial species richness (n)", 
+   color = "Lifecylce", 
+   shape = "Lifecylce"
+    ) +
+  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 20), breaks = seq(0, 25, by = 5), expand = expansion(mult = c(0, 0.05))) + # Set y-axis limits and breaks
+  theme_bw() +
+  theme(axis.text = element_text(size = 16)) + # axes numbers
+  theme(axis.title = element_text(size = 20)) + # axes titles
+  theme(legend.title=element_text(size = 16)) + 
+  theme(legend.text=element_text(size = 16))
 
-   
-# erodium <- belt.spp_2019 %>%  filter(grepl("Erodium", species))
-# lupin <- belt.spp_2019 %>%  filter(grepl("Lupinus", species))
-# 
-# belt.spp_2019 %>% 
-#   filter(!(species == "Lupinus spp." & site_rep == "1.1")) %>% 
-#   filter(!(species == "Lupinus spp." & site_rep == "1.2"))
+
+### perennial
+plot_spprich_annual <- ggplot(data = spprich_trans_status_lf_lc %>% 
+          group_by(site_rep, lifecycle, grass_nonnative) %>% 
+          summarize(tot_N_spprich = sum(N_spprich)) %>% 
+          filter(lifecycle == "annual"),
+                               
+       aes(x = grass_nonnative*100, 
+         y = tot_N_spprich)) + 
+      geom_point(aes(color = lifecycle, shape = lifecycle), size = 3) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+   stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
+  labs(
+    #  title = "Linear regression of  total shrub cover by non-native grass cover",
+    x = "Non-native grass cover (%)",
+    y = "Annual species richness (n)", 
+   color = "Lifecylce", 
+   shape = "Lifecylce"
+    ) +
+  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 20), breaks = seq(0, 25, by = 5), expand = expansion(mult = c(0, 0.05))) + # Set y-axis limits and breaks
+  theme_bw() +
+  theme(axis.text = element_text(size = 16)) + # axes numbers
+  theme(axis.title = element_text(size = 20)) + # axes titles
+  theme(legend.title=element_text(size = 16)) + 
+  theme(legend.text=element_text(size = 16))
+
 
 
 ```
+
+
+# CLUSTER spprich
+```{r}
+
+spprich_cov <- spprich_trans %>%
+  mutate(cluster = as.character(cluster)) %>% 
+  mutate(cluster = case_when(
+                            cluster == "1" ~ "NNG",
+                             cluster == "3" ~ "ssG",
+                             cluster == "2" ~ "ssF",
+                             cluster == "4" ~ "ssFG",
+                             cluster == "5" ~ "EVG",
+                             TRUE ~ cluster)) %>% 
+  group_by(cluster) %>%
+  summarise(
+    mean_cluster_spprich = mean(N_spprich),
+    n = length(N_spprich),
+    sd = sd(N_spprich),
+    se = ((sd(N_spprich))/sqrt(length((N_spprich)))), 
+    .groups = "drop") 
+#   cluster mean_cluster_spprich     n    sd    se
+#   <chr>                  <dbl> <int> <dbl> <dbl>
+# 1 EVG                     17.4     5  6.43 2.87 
+# 2 NNG                     12.5    10  2.32 0.734
+# 3 ssF                     17.1     7  2.73 1.03 
+# 4 ssFG                    17.5     8  4.14 1.46 
+# 5 ssG                     12.4    10  3.47 1.10 
+
+hist(spprich_trans$N_spprich)
+shapiro.test(spprich_trans$N_spprich)
+# W = 0.9774, p-value = 0.5939 <- normal!
+
+aov_cluster_spprich <- aov(N_spprich ~ cluster, 
+                           spprich_trans %>% mutate(cluster = as.character(cluster)) %>% 
+                             mutate(cluster = case_when(
+                                     cluster == "1" ~ "NNG",
+                                     cluster == "3" ~ "ssG",
+                                     cluster == "2" ~ "ssF",
+                                     cluster == "4" ~ "ssFG",
+                                     cluster == "5" ~ "EVG",
+                                     TRUE ~ cluster))
+                           )
+summary(aov_cluster_spprich) # <- sig
+TukeyHSD(aov_cluster_spprich, conf.level=.95)
+# cluster
+#                diff          lwr         upr     p adj
+# NNG-EVG  -4.9000000 -10.77379714  0.97379714 0.1396574
+# ssF-EVG  -0.2571429  -6.53649613  6.02221041 0.9999543
+# ssFG-EVG  0.1000000  -6.01364189  6.21364189 0.9999988
+# ssG-EVG  -5.0000000 -10.87379714  0.87379714 0.1266398
+# 
+# ssF-NNG   4.6428571  -0.64200614  9.92772042 0.1078427
+# ssG-NNG  -0.1000000  -4.89593528  4.69593528 0.9999969
+#
+# ssFG-ssF  0.3571429  -5.19307374  5.90735946 0.9997244
+# 
+# ssFG-NNG  5.0000000  -0.08685754 10.08685754 0.0559772  <-- kinda
+# ssG-ssF  -4.7428571 -10.02772042  0.54200614 0.0962086  <-- kinda
+# ssG-ssFG -5.1000000 -10.18685754 -0.01314246 0.0491466 <-- sig
+```
+
+
+```{r}
+print("you've reached the end of the code!")
+
+```
+
+
+# END
+
+
+
 
 ##### - genera
 ```{r, eval = FALSE}
@@ -829,14 +979,6 @@ shrubdensityspp_full <- read_csv("~/Dropbox/GRADSCHOOL/Dissertation/R_dissertati
 
 
 
-
-```{r}
-print("you've reached the end of the code!")
-
-```
-
-
-# END
 
 
 overall native richness
