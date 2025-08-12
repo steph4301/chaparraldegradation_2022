@@ -1316,6 +1316,217 @@ fig_SALExTSR_zeros
 fig_SALExTSR_omitzeros
 ```
 
+# x TRANSECTS
+```{r}
+# data prep
+environ_trans <- extracted %>%  
+  dplyr::select(site_rep, plant_cluster, slope, southwestness, fire_event_count, twi, total_solrad) %>% 
+  separate(site_rep, into = c("site", "rep"), sep = "_") %>% 
+   mutate(rep = case_when(rep == "01" ~ "1", # oldname ~ newname
+                         rep == "02" ~ "2",
+                         rep == "03" ~ "3",
+                         rep == "04" ~ "4",
+                         rep == "05" ~ "5",
+                         rep == "06" ~ "6",
+                         rep == "07" ~ "7",
+                         rep == "08" ~ "8",
+                         rep == "09" ~ "9",
+                              TRUE ~ rep)) %>% 
+     mutate(site_rep = paste(site, rep, sep = "_")) %>% 
+  left_join(cover_prep %>% dplyr::select(-site), by = "site_rep") %>% 
+  rename(cluster = plant_cluster) #rename(NewNameA = OldName1)
+
+
+```
+
+### - total_solrad
+```{r}
+fig_sol_grass <- ggplot(data = environ_trans,
+       aes(x = total_solrad, 
+           y = grass_nonnative*100)) + 
+      geom_point(aes(color = site), size = 3) +
+   scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+  labs(
+    y = "Non-native grass cover (%)",
+    x = "Total Solar Radiation", 
+    color = "Site"
+    ) +
+  scale_x_continuous(limits = c(0, 31000), 
+                     breaks = seq(0, 31000, by = 5000), 
+                     expand = expansion(mult = c(0, 0.05))
+                     ) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), 
+                     breaks = seq(0, 100, by = 10), 
+                     expand = expansion(mult = c(0, 0.05))
+                     ) + # Set y-axis limits and breaks
+  theme_bw() + 
+   theme(axis.text = element_text(size = 16)) + # axes numbers
+  theme(axis.title = element_text(size = 20)) + # axes titles
+  theme(legend.title=element_text(size = 16)) + 
+  theme(legend.text=element_text(size = 16))
+  # annotate("text", x = 5, y = 5, label = eq_label, color = "black", size = 4, hjust = 0)
+fig_sol_grass
+
+
+fig_sol_shrub <- ggplot(data = environ_trans,
+       aes(x = total_solrad, 
+           y = shrub_native*100)) + 
+      geom_point(aes(color = site), size = 3) +
+   scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+  labs(
+    y = "Non-native grass cover (%)",
+    x = "Total Solar Radiation", 
+    color = "Site"
+    ) +
+  scale_x_continuous(limits = c(0, 31000), 
+                     breaks = seq(0, 31000, by = 5000), 
+                     expand = expansion(mult = c(0, 0.05))
+                     ) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), 
+                     breaks = seq(0, 100, by = 10), 
+                     expand = expansion(mult = c(0, 0.05))
+                     ) + # Set y-axis limits and breaks
+  theme_bw() + 
+   theme(axis.text = element_text(size = 16)) + # axes numbers
+  theme(axis.title = element_text(size = 20)) + # axes titles
+  theme(legend.title=element_text(size = 16)) + 
+  theme(legend.text=element_text(size = 16))
+  # annotate("text", x = 5, y = 5, label = eq_label, color = "black", size = 4, hjust = 0)
+
+fig_sol_grass
+fig_sol_shrub
+```
+
+
+### - slope
+```{r}
+fig_slope <- ggplot(data = environ_trans,
+       aes(x = slope, 
+           y = grass_nonnative*100)) + 
+      geom_point(aes(color = cluster), size = 3) +
+   # scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+  labs(
+    y = "Non-native grass cover (%)",
+    x = "Slope (degrees)", 
+    color = "Cluster"
+    ) +
+  scale_x_continuous(limits = c(0, 35), 
+                     breaks = seq(0, 35, by = 5), 
+                     expand = expansion(mult = c(0, 0.05))
+                     ) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), 
+                     breaks = seq(0, 100, by = 10), 
+                     expand = expansion(mult = c(0, 0.05))
+                     ) + # Set y-axis limits and breaks
+  theme_bw() + 
+   theme(axis.text = element_text(size = 16)) + # axes numbers
+  theme(axis.title = element_text(size = 20)) + # axes titles
+  theme(legend.title=element_text(size = 16)) + 
+  theme(legend.text=element_text(size = 16))
+  # annotate("text", x = 5, y = 5, label = eq_label, color = "black", size = 4, hjust = 0)
+
+fig_slope
+```
+
+
+### - southwestness
+```{r}
+fig_sw <- ggplot(data = environ_trans,
+       aes(x = southwestness, 
+           y = grass_nonnative*100)) + 
+      geom_point(aes(color = cluster), size = 3) +
+   # scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+  labs(
+    y = "Non-native grass cover (%)",
+    x = "Southwestness", 
+    color = "Cluster"
+    ) +
+  scale_x_continuous(limits = c(-1, 1), 
+                     breaks = seq(-1, 1, by = 0.25), 
+                     expand = expansion(mult = c(0, 0.05))
+                     ) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), 
+                     breaks = seq(0, 100, by = 10), 
+                     expand = expansion(mult = c(0, 0.05))
+                     ) + # Set y-axis limits and breaks
+  theme_bw() + 
+   theme(axis.text = element_text(size = 16)) + # axes numbers
+  theme(axis.title = element_text(size = 20)) + # axes titles
+  theme(legend.title=element_text(size = 16)) + 
+  theme(legend.text=element_text(size = 16))
+  # annotate("text", x = 5, y = 5, label = eq_label, color = "black", size = 4, hjust = 0)
+fig_sw
+
+```
+
+
+### - twi
+```{r}
+fig_twi <- ggplot(data = environ_trans,
+       aes(x = twi, 
+           y = grass_nonnative*100)) + 
+      geom_point(aes(color = cluster), size = 3) +
+   # scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+  labs(
+    y = "Non-native grass cover (%)",
+    x = "Topographic wetness index", 
+    color = "Cluster"
+    ) +
+  scale_x_continuous(limits = c(0, 6), 
+                     breaks = seq(0, 6, by = 2), 
+                     expand = expansion(mult = c(0, 0.05))
+                     ) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), 
+                     breaks = seq(0, 100, by = 10), 
+                     expand = expansion(mult = c(0, 0.05))
+                     ) + # Set y-axis limits and breaks
+  theme_bw() + 
+   theme(axis.text = element_text(size = 16)) + # axes numbers
+  theme(axis.title = element_text(size = 20)) + # axes titles
+  theme(legend.title=element_text(size = 16)) + 
+  theme(legend.text=element_text(size = 16))
+  # annotate("text", x = 5, y = 5, label = eq_label, color = "black", size = 4, hjust = 0)
+
+fig_twi
+```
+
+
+### - fire_event_count
+```{r}
+fig_fire <- ggplot(data = environ_trans,
+       aes(x = fire_event_count, 
+           y = grass_nonnative*100)) + 
+      geom_point(aes(color = cluster), size = 3) +
+   # scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+  labs(
+    y = "Non-native grass cover (%)",
+    x = "Number of Fires (#)", 
+    color = "Cluster"
+    ) +
+  scale_x_continuous(limits = c(0, 2), 
+                     breaks = seq(0, 2, by = 1), 
+                     expand = expansion(mult = c(0, 0.05))
+                     ) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), 
+                     breaks = seq(0, 100, by = 10), 
+                     expand = expansion(mult = c(0, 0.05))
+                     ) + # Set y-axis limits and breaks
+  theme_bw() + 
+   theme(axis.text = element_text(size = 16)) + # axes numbers
+  theme(axis.title = element_text(size = 20)) + # axes titles
+  theme(legend.title=element_text(size = 16)) + 
+  theme(legend.text=element_text(size = 16))
+  # annotate("text", x = 5, y = 5, label = eq_label, color = "black", size = 4, hjust = 0)
+
+fig_fire
+
+```
 
 ```{r}
 
@@ -1327,7 +1538,7 @@ print("hurray! This is the end of the code :)")
 
 - n = 34 transects (omitting INT transects)
 NOTE: On Sept 19, 2024 I ran a PCA analysis omitting INT transects and the values were similar enough that I am deciding to include INT transects in the PCA. This is a more complete analysis (becuase I'm using all data points) and because I think it's a "pro" to include and not having to justify why I am omitting them. 
-```{r}
+```{r, eval = FALSE}
 
 ########### Environ PCA without INT transects
 
@@ -1469,7 +1680,6 @@ PCA_environcluster_2
 PCA_plantcluster_2
 
 ```
-
 
 
 
