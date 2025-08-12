@@ -31,6 +31,13 @@ SE = precision of data points
     expand = expansion(mult = c(0, 0.05))
   ) +
   
+  
+  
+If data are not normally distributed I can:
+1. Provide summary of range - Report median with an interquartile range (IQR): Median (Q1–Q3)
+2. Statistical comparison - Kruskal–Wallis test to compare among groups, followed by pairwise Wilcoxon rank-sum tests with p-value adjustment for multiple comparisons.
+
+
 
 ```{r libraries, message=FALSE}
 library(here) # similar to set working directory
@@ -56,7 +63,7 @@ names(cal_palettes)
 
 #chaparral1
 #chaparral2
-cal_palette(name = "chaparral3", n = 20, type = "continuous") 
+cal_palette(name = "superbloom3", n = 5, type = "continuous") 
 
 #species colors
 HEAR <- "#D3E3CA"
@@ -669,6 +676,46 @@ abcover_omitground <- abcover_charateristics_leaftype %>%
 
 # sort(unique(abcover_omitground$status))
 # names(abcover_omitground)
+```
+
+### transect percent cover by species
+```{r}
+
+# species % cover per transect
+abcover_omitground %>%  
+  group_by(site_rep, species) %>%  
+  summarize (n = length(species)) %>% 
+  mutate(percent_cover = round((n/41*100),2)) %>% 
+  ungroup() %>% 
+  dplyr::select(-n) %>% 
+  pivot_wider(names_from = site_rep, values_from = percent_cover) %>% 
+  dplyr::select(species, INT4_1)
+  
+# species with > 50% cover in at least one transect
+abcover_omitground %>%  
+  group_by(site_rep, species) %>%  
+  summarize (n = length(species)) %>% 
+  mutate(percent_cover = round((n/41*100),2)) %>% 
+  ungroup() %>% 
+  dplyr::select(-n) %>% 
+  filter(percent_cover > 50) %>% 
+  dplyr::select(species) %>% 
+  distinct()
+  # pivot_wider(names_from = site_rep, values_from = percent_cover)
+
+# Avena barbata				<- species with > 50% cover in at least one transect
+# Bromus rubens				
+# Hirschfeldia incana				
+# Centaurea melitensis				
+# Bromus diandrus				
+# Rapistrum rugosum
+# 
+# Malacothamnus fasciculatus				
+# Salvia leucophylla				
+# Artemisia californica				
+# Heteromeles arbutifolia
+# Stipa lepida
+
 ```
 
 ### transect percent cover by native or non-native stauts
@@ -2113,7 +2160,127 @@ fig_nativelitter
 
 ```
 
+### - by cluster
+```{r}
 
+groundcover_percent_cluster <- groundcover_percent %>% 
+  left_join(groupsdash, by = "site_rep") %>% 
+  mutate(cluster = as.character(cluster)) %>% 
+  mutate(cluster = case_when(
+                            cluster == "1" ~ "NNG",
+                             cluster == "3" ~ "ssG",
+                             cluster == "2" ~ "ssF",
+                             cluster == "4" ~ "ssFG",
+                             cluster == "5" ~ "EVG",
+                             TRUE ~ cluster)) 
+  
+######### bare ground and rock
+hist(groundcover_percent_cluster$bare_rock)
+shapiro.test(groundcover_percent_cluster$bare_rock) # <- not normal
+kruskal.test(bare_rock ~ cluster, data = groundcover_percent_cluster) # <- not sig
+
+# pairwise_wilcox_test(bare_rock ~ cluster,  # rstatix
+#                      data = groundcover_percent_cluster,
+#                      p.adjust.method = "bonferroni")
+
+pairwise.wilcox.test(groundcover_percent_cluster$bare_rock, # base R
+                     groundcover_percent_cluster$cluster,
+                     p.adjust.method = "bonferroni")
+
+# medians
+groundcover_percent_cluster %>%
+  group_by(cluster) %>%
+  summarise(
+    median_nativelitter = round((median(bare_rock))*100, 2),
+    Q1 = round((quantile(bare_rock, 0.25))*100,2),
+    Q3 = round((quantile(bare_rock, 0.75))*100, 2),
+    .groups = "drop")
+# cluster median_nativelitter    Q1    Q3
+#   <chr>                 <dbl> <dbl> <dbl>
+# 1 EVG                   29.3  14.6   41.5
+# 2 NNG                    9.76  7.93  11.6
+# 3 ssF                   17.1  13.4   25.6
+# 4 ssFG                  19.5  14.6   22.6
+# 5 ssG                   15.8   6.1   28.0
+
+######## native litter and wood
+hist(groundcover_percent_cluster$native_litter_wood)
+shapiro.test(groundcover_percent_cluster$native_litter_wood) # <- not normal, medians (Q1_Q3) 
+kruskal.test(native_litter_wood ~ cluster, data = groundcover_percent_cluster)
+pairwise.wilcox.test(groundcover_percent_cluster$native_litter_wood, groundcover_percent_cluster$cluster, 
+                     p.adjust.method = "bonferroni")
+pairwise_wilcox_test(native_litter_wood ~ cluster,
+                     data = groundcover_percent_cluster,
+                     p.adjust.method = "bonferroni")
+#       group1 group2    n1    n2 statistic        p p.adj p.adj.signif
+#  * <chr>              <chr>  <chr>  <int> <int>     <dbl>    <dbl> <dbl> <chr>       
+#  1 native_litter_wood EVG    NNG        5    10      50   0.001    0.011 *     
+#  4 native_litter_wood EVG    ssG        5    10      49.5 0.003    0.027 *      
+
+       
+#  2 native_litter_wood EVG    ssF        5     7      31   0.034    0.341 ns          
+#  3 native_litter_wood EVG    ssFG       5     8      23   0.713    1     ns          
+     
+#  5 native_litter_wood NNG    ssF       10     7       2   0.000799 0.008 **          
+#  6 native_litter_wood NNG    ssFG      10     8       0   0.000238 0.002 **          
+
+#  7 native_litter_wood NNG    ssG       10    10      30   0.084    0.835 ns          
+#  8 native_litter_wood ssF    ssFG       7     8       5.5 0.011    0.106 ns          
+#  9 native_litter_wood ssF    ssG        7    10      46   0.299    1     ns          
+# 10 native_litter_wood ssFG   ssG        8    10      79   0.000529 0.005 ** 
+
+# medians
+groundcover_percent_cluster %>%
+  group_by(cluster) %>%
+  summarise(
+    median_nativelitter = round((median(native_litter_wood))*100, 2),
+    Q1 = round((quantile(native_litter_wood, 0.25))*100,2),
+    Q3 = round((quantile(native_litter_wood, 0.75))*100, 2),
+    .groups = "drop")
+#  cluster median_nativelitter    Q1    Q3
+#   <chr>                 <dbl> <dbl> <dbl>
+# 1 EVG                   46.3  34.2   78.0
+# 2 NNG                    0     0      0  
+# 3 ssF                    9.76  7.32  26.8
+# 4 ssFG                  46.3  39.0   57.9
+# 5 ssG                    6.1   0     19.5
+
+
+###### non-native thratch
+hist(groundcover_percent_cluster$nonnative_thatch)
+shapiro.test(groundcover_percent_cluster$nonnative_thatch) # not normal
+kruskal.test(native_litter_wood ~ cluster, data = groundcover_percent_cluster)
+pairwise.wilcox.test(groundcover_percent_cluster$nonnative_thatch, 
+                     groundcover_percent_cluster$cluster, 
+                     p.adjust.method = "bonferroni")
+# EVG    NNG    ssF    ssFG  
+# NNG  0.0246 -      -      -     
+# ssF  0.0568 0.0922 -      -     
+# ssFG 0.4721 0.0058 0.1268 -     
+# ssG  0.0267 0.2211 1.0000 0.0115
+# 
+# P value adjustment method: bonferroni
+pairwise_wilcox_test(nonnative_thatch ~ cluster, 
+                     data = groundcover_percent_cluster, 
+                     p.adjust.method = "bonferroni")
+
+# medians
+groundcover_percent_cluster %>%
+  group_by(cluster) %>%
+  summarise(
+    median_nnthatch = round((median(nonnative_thatch))*100, 2),
+    Q1 = round((quantile(nonnative_thatch, 0.25))*100,2),
+    Q3 = round((quantile(nonnative_thatch, 0.75))*100, 2),
+    .groups = "drop")
+# cluster median_nnthatch     Q1    Q3
+#   <chr>             <dbl> <dbl> <dbl>
+# 1 EVG                4.88  2.44  22.0
+# 2 NNG               90.2  84.2   90.2
+# 3 ssF               73.2  42.7   75.6
+# 4 ssFG              29.3  25.6   37.2
+# 5 ssG               67.1  63.4   81.7
+
+```
 
 # CLUSTER
 ### by percent cover
@@ -2932,7 +3099,7 @@ standheight <- standheight_load %>%
 # calculate means, sd, se, and mean percent cover values
 standheight_mean <- standheight %>% 
   group_by(site_rep) %>%
-  summarize(avgheight_cm = mean(height_cm),
+  summarize(avgheight_cm = mean(height_cm), # reframe
             n = length((height_cm)),
             sd = sd(height_cm),
             se = ((sd(height_cm))/sqrt(length((height_cm)))), 
@@ -2984,10 +3151,14 @@ slopeh <- round(coef(model.h)[2], 2)
 eq_label_h <- paste0("y = ", slopeh, "x + ", intercepth, "\n", "R² = ", r_squared)
 
 # figure 
-fig_height <- ggplot(data = height_cover %>%  
-       mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
+fig_height <- ggplot(data = height_cover %>% 
+       mutate(site = ifelse(str_detect(site, "INT"), "3", site)) %>% 
+         dplyr::select(site, site_rep, grass_nonnative, avgheight_cm) %>% 
+         distinct(), 
        aes(x = grass_nonnative * 100, y = avgheight_cm)) +
-  geom_point(aes(color = site), size = 3, show.legend = TRUE) +
+  geom_point(aes(color = site), size = 3, show.legend = TRUE
+             # , position = position_jitter(width = 0.2, height = 0.1)
+             ) +
   scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
   xlim(0, 100) +
    scale_y_continuous(
@@ -3014,16 +3185,184 @@ fig_height <- ggplot(data = height_cover %>%
 fig_height
 ```
 
+
+### - by cluster
+```{r}
+# 1 = NNG: n = 10 transects
+# 3 = ssG: n = 10 transects
+# 2 = ssF: n = 7 transects
+# 4 = ssFG: n = 8 transects
+# 5 = EVG: n = 5 transects
+
+
+hist((height_cover %>% 
+        dplyr::select(site_rep, avgheight_cm) %>% 
+        distinct()
+      )$avgheight_cm)
+shapiro.test((
+  height_cover %>% 
+        dplyr::select(site_rep, avgheight_cm) %>% 
+        distinct())
+  $avgheight_cm)
+# W  = 0.82631, p-value = 2.515e-05.  <-- not normally distributed
+
+
+# Here I am reporting the MEDIAN (Q1-Q3)
+cluster_heights <- height_cover %>%
+   mutate(cluster = case_when(
+                            cluster == "1" ~ "NNG",
+                             cluster == "3" ~ "ssG",
+                             cluster == "2" ~ "ssF",
+                             cluster == "4" ~ "ssFG",
+                             cluster == "5" ~ "EVG",
+                             TRUE ~ cluster)) %>% 
+          mutate(cluster = factor(cluster, levels = c("EVG", "ssFG", "ssF", "ssG", "NNG"))) %>% 
+  group_by(cluster) %>%
+  summarise(
+    median_height_cm = round(median(avgheight_cm)),
+    Q1_cm = round(quantile(avgheight_cm, 0.25)),
+    Q3_cm = round(quantile(avgheight_cm, 0.75)),
+    .groups = "drop") # drops grouping within summarize command; ungroup() removes all groupings within the code being run
+#  cluster  median_height    Q1    Q3
+#  <fct>           <dbl> <dbl> <dbl>
+# 1 EVG               196   146   215
+# 3 ssF               121    59   153
+# 5 NNG                93    85   105  <-- similar height as ssFG
+# 2 ssFG               92    72    99 <-- similar height as NNG
+# 4 ssG                65    57    75
+
+# here I am comparing canopy height among clusters
+kruskal.test(avgheight_cm ~ cluster, data = height_cover)
+# data:  avgheight_cm by cluster
+# Kruskal-Wallis chi-squared = 613.59, df = 4, p-value < 2.2e-16 <-- sig
+
+pairwise.wilcox.test(height_cover$avgheight_cm, height_cover$cluster, # PAIRWISE p-values only
+                                      p.adjust.method = "bonferroni") # for small number of comparisons
+#   1       2       3       4      
+# 2 1.4e-11 -       -       -      
+# 3 < 2e-16 < 2e-16 -       -      
+# 4 0.79    8.1e-07 < 2e-16 -      
+# 5 < 2e-16 < 2e-16 < 2e-16 < 2e-16
+
+# NNG and ssFG <- not sig
+
+# significant letters
+# fig_clusterheight_siglabels <-  ## ~ line 2268
+
+pairwise_wilcox_test(avgheight_cm ~ cluster, # identifies PAIRS that are significantly different
+                     data = height_cover,
+                     p.adjust.method = "bonferroni") 
+
+
+# figure - bar graph
+fig_clusterheight_bar <- ggplot(data = cluster_heights,
+           aes(x = cluster, 
+      y = median_height_cm)) +
+  geom_point(size = 3, 
+             shape = 15, 
+             color = "black", position = position_dodge(width = 0.3), show.legend = TRUE) +  # Mean points
+  geom_errorbar(aes(ymax = Q3_cm, 
+                    ymin = Q1_cm), 
+                width = 0.5, position = position_dodge(width = 0.3)) +  # inner quartile range
+  # geom_text(data = fig_clusterheight_siglabels,
+  #         aes(x = cluster, y = y, label = label),
+  #         inherit.aes = FALSE,
+  #         size = 5) +
+  labs(x = "Plant Cluster", 
+       y = "Median Cluster Height (cm)"
+       # color = "Lifecycle",  # Label for color legend
+       #  shape = "Lifecycle"
+       ) +  # Label for shape legend
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
+    # hjust = 0.5 = centered; 1 = right justified
+    axis.text.y = element_text(size = 14),       # Increase y-axis text size
+    axis.title = element_text(size = 16),        # Axis title size
+    strip.text = element_text(size = 16),        # Facet label text size
+    legend.text = element_text(size = 14),       # Legend text size
+    legend.title = element_text(size = 14),      # Legend title size
+    legend.position = "right"
+  ) +
+   
+  
+  scale_y_continuous(
+    limits = c(0, 300),
+    breaks = seq(0, 300, by = 50),
+    expand = expansion(mult = c(0, 0.05))
+  ) #+
+
+  # facet_grid(~lifeform * status) +  # Facet by lifeform: facet_wrap
+  # scale_shape_manual(shape = 15)) +  
+  # scale_color_manual(color = "black")) #+  
+  # scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) 
+
+fig_clusterheight_bar
+
+
+# figure - scatter plot
+fig_clusterheight_scatter <- ggplot(data = height_cover %>% 
+       mutate(site = ifelse(str_detect(site, "INT"), "3", site)) %>% 
+         dplyr::select(site, cluster, grass_nonnative, avgheight_cm) %>% 
+         distinct() %>% 
+          mutate(cluster = case_when(
+                            cluster == "1" ~ "NNG",
+                             cluster == "3" ~ "ssG",
+                             cluster == "2" ~ "ssF",
+                             cluster == "4" ~ "ssFG",
+                             cluster == "5" ~ "EVG",
+                             TRUE ~ cluster)) %>% 
+          mutate(cluster = factor(cluster, levels = c("EVG", "ssFG", "ssF", "ssG", "NNG"))),
+       aes(x = grass_nonnative * 100, y = avgheight_cm)) +
+  geom_point(aes(color = cluster), size = 3, show.legend = TRUE) +
+  scale_color_manual(values = c("#6C91BD",  "cyan",  "green" , "#AD1F68", 
+"#E69512" )) +
+   
+   scale_x_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, by = 20),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  
+  scale_y_continuous(
+    limits = c(0, 300),
+    breaks = seq(0, 300, by = 50),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+ 
+  theme(axis.text = element_text(size = 16)) + # axes numbers
+  theme(axis.title = element_text(size = 20)) + # axes titles
+  theme(legend.title=element_text(size = 60)) + 
+  theme(legend.text=element_text(size = 16)) +
+  labs(
+    x = "Non-native grass (%)",
+    y = "Transect height (cm)",
+     color = "Cluster") +
+  theme_bw() 
+
+fig_clusterheight
+
+
+
+```
+
+
 ### COV
 ```{r}
 transect_cov <- standheight_mean %>% 
   dplyr::select(!dist_from_mean) %>% 
   distinct(site_rep, .keep_all = TRUE) %>% 
-  left_join(cover_prep, by = "site_rep")
-  
-names(transect_cov)
-# [1] "site_rep"        "avgheight_cm"    "n"               "sd"              "se"              "cov_bytransect"  "site"            "forb_nonnative" 
-#  [9] "grass_nonnative" "shrub_native"    "forb_native"     "grass_native
+  left_join(cover_prep, by = "site_rep") %>% 
+  left_join(groupsdash) %>% 
+mutate(cluster = as.character(cluster)) %>% 
+  mutate(cluster = case_when(
+                            cluster == "1" ~ "NNG",
+                             cluster == "3" ~ "ssG",
+                             cluster == "2" ~ "ssF",
+                             cluster == "4" ~ "ssFG",
+                             cluster == "5" ~ "EVG",
+                             TRUE ~ cluster)) 
+
 
 
 ############################ regression line
@@ -3075,6 +3414,59 @@ fig_cov <- ggplot(transect_cov %>%
    # annotate("text", x = 10, y = 0.1, label = eq_label_cov, color = "black", size = 4, hjust = 0) 
 
 fig_cov
+
+
+```
+
+### - by cluster
+```{r}
+
+
+
+# Here I am reporting the MEAN and SE of average transect height grouped by plant cluster
+cluster_cov <- transect_cov %>%
+  group_by(cluster) %>%
+  summarise(
+    mean_cov = mean(cov_bytransect),
+    n = length(cov_bytransect),
+    sd = sd(cov_bytransect),
+    se = ((sd(cov_bytransect))/sqrt(length((cov_bytransect)))), 
+    .groups = "drop") 
+#   cluster mean_cov     n     sd     se
+#   <chr>      <dbl> <int>  <dbl>  <dbl>
+# 1 EVG        0.507     5 0.181  0.0811
+# 2 NNG        0.374    10 0.138  0.0435
+# 3 ssF        0.587     7 0.0916 0.0346
+# 4 ssFG       0.567     8 0.134  0.0473
+# 5 ssG        0.532    10 0.180  0.0569
+    
+
+str(transect_cov)
+hist(transect_cov$cov_bytransect)
+shapiro.test(transect_cov$cov_bytransect)
+# data:  transect_cov$cov_bytransect
+# W = 0.97738, p-value = 0.5932 <-- normal!
+
+aov_cluster <- aov(cov_bytransect ~ cluster, transect_cov)
+summary(aov_cluster) # <-- not sig
+TukeyHSD(aov_cluster, conf.level=.95)
+# $cluster
+#            diff          lwr       upr     p adj
+# 2-1  0.21307697  0.003088917 0.4230650 0.0453113
+# ssF-NNG   0.21307697  0.003088917 0.4230650 0.0453113 <-- the only difference
+
+# 3-1  0.15726672 -0.033294334 0.3478278 0.1469005
+# 4-1  0.19307188 -0.009048635 0.3951924 0.0670100
+# 5-1  0.13227735 -0.101111325 0.3656660 0.4893033
+# 3-2 -0.05581025 -0.265798302 0.1541778 0.9391379
+# 4-2 -0.02000509 -0.240536651 0.2005265 0.9989302
+# 5-2 -0.08079962 -0.330302607 0.1687034 0.8828690
+# 4-3  0.03580516 -0.166315353 0.2379257 0.9858905
+# 5-3 -0.02498937 -0.258378043 0.2083993 0.9979520
+# 5-4 -0.06079454 -0.303713167 0.1821241 0.9505766
+
+  
+
 
 
 
@@ -3153,10 +3545,10 @@ denspp_transect <- denspp %>%
                  ~ if_else(site_rep %in% c("1_11", "1_12", "2_11", "2_9"), 0, .))) %>% 
   dplyr::select(-no_shrubs)
 
-denspp_cover <- denspp_transect %>% 
+denspp_cover <- denspp_transect %>%  
   left_join(height_cover %>%  # left join nn grass cover
   dplyr::select(site, site_rep, grass_nonnative) %>% 
-  unique())
+  unique()) # 39 transects, missing INT4_1
  
 
 ################ figures
@@ -3341,12 +3733,38 @@ fig_den_dead
 
 ```
 
+### - density x species
+```{r}
+den_cluster <- denspp %>% 
+  left_join(groupsdash, by = "site_rep") %>% 
+  # filter(lifestage %in% c("seedling", "immature", "mature"), 
+  #        species %in% c("Salvia leucophylla", "Malacothamnus fasciculatus")) %>% 
+  group_by(cluster, lifestage,  species) %>% 
+  summarize(
+    sum_density_m2 = sum(density_m2), 
+    .groups = "drop") %>% 
+  filter(sum_density_m2 >0) %>% 
+  pivot_wider(names_from = cluster, values_from = sum_density_m2)
+  
+
+den_cluster_recruitment <- denspp %>% 
+  left_join(groupsdash, by = "site_rep") %>% 
+  filter(lifestage %in% c("seedling", "immature")) %>% 
+  group_by(cluster, species) %>% 
+  summarize(
+    sum_density_m2 = sum(density_m2), 
+    .groups = "drop") %>% 
+  pivot_wider(names_from = cluster, values_from = sum_density_m2)
+```
+
 ### linear models
 ```{r, eval = FALSE}
 
 ######################## shrub density - linear models
-
-hist(density_cover$sum_density_m2) # denspp_cover
+denspp_cover %>% 
+  left_join(groupsdash, by = "site_rep")  MONKEY HERE aug. 8, 2025
+  
+hist(denspp_cluster$sum_density_m2) # denspp_cover
 shapiro.test(density_cover$sum_density_m2) # not normal
 
 # # RUN this to test the residuals of the model you decide to use #########
