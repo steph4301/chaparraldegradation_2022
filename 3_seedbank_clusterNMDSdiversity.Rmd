@@ -1214,7 +1214,7 @@ UPDATED STACKED FIGURE: Stacked germination by family (January 2024, and Decembe
 ### TABLE by CLUSTER
 
 - germination (n/g soil) by family
-```{r germination (n/g soil) by family}
+```{r germination (n/g soil) by family, eval = FALSE}
 
 seedbankgerm_cluster_prep <- germination_depthtreat %>% # left join seedbank cluster name to germ data
   left_join(seed.subgrp.df, by = c("stand_core", "site")) %>% 
@@ -1304,12 +1304,131 @@ table_germ <- median_seedgermcluster %>%
   ) 
 table_germ
 
-# Export the table as a word doc.
-gtsave(table_germ, 
-       "Ch1_Degradation_figures/table_germ_clustergroups_dec11.docx", # can also export as .png
-       expand = 10)
+
+
+########################### Export the table as a word doc.
+# gtsave(table_germ, 
+#        "Ch1_Degradation_figures/table_germ_clustergroups_dec11.docx", # can also export as .png
+#        expand = 10)
 
 ```
+
+
+# 2025 by plant cluser
+
+- germination (n/g soil) by plant cluster
+```{r}
+### How many unique trays are there?
+# DEG = 7 cores x 2 depths x 4 treatments = 56 unique samples aka. trays
+# ENH = 10 cores x 2 depths x 4 treatments = 80 unique samples aka. trays
+# INT = 9 cores x 2 depths x 4 treatments = 72 unique samples aka. trays
+56+80+72 # <-- 208 trays
+
+
+# here I'm adding a new column named "plant_cluster" to the seedbank df
+seedbankgerm_plantcluster <- seedbankgerm_cluster_prep %>% 
+  mutate(stand_core_depth = paste(stand_core, depth_name, sep = "_")) %>%  # here I'm creating a new column of stand_core_depth
+  mutate(plant_cluster = case_when(
+    stand_core %in% c("DEG1_1", "DEG1_2", "DEG1_3",  "DEG1_4",  "DEG2_5",  "DEG2_6",  "DEG2_7") ~ "NNG",
+    stand_core %in% c("ENH2_6" , "ENH2_7" , "ENH2_8" , "ENH2_9", "ENH2_10") ~ "ssG",
+    stand_core %in% c( "ENH1_1",  "ENH1_2" , "ENH1_3" , "ENH1_4" , "ENH1_5" ) ~ "ssF",
+    stand_core %in% c("INT1_1" , "INT1_2" , "INT1_3" , "INT2_4",  "INT2_5" , "INT2_6" , "INT3_7" , "INT3_8",  "INT3_9") ~ "EVG",
+    TRUE ~ stand_core  # keeps original value or NA if plant_cluster doesn't exist yet
+  )) %>%  # dim without distinct() = 2093   13
+  distinct() # dim with distinct() = 1976   13
+
+
+
+############### START finding and fixing errors in df: seedbankgerm_plantcluster
+### How many unique treatments (aka. stand_core_depth_treat) do I have?
+dim(
+  seedbankgerm_cluster_prep %>% 
+  dplyr::select(stand_core, treatment, depth_name, stand_core_depth_treat) %>% 
+    distinct()
+) # distinct = I have 205 unique treatments. There should be 208. Therefore, there are three treatments missing
+
+### Let's find the 3 trays that are missing... 
+# view(
+#   seedbankgerm_cluster_prep %>% 
+#    dplyr::select(stand_core, treatment, depth_name, stand_core_depth_treat) %>% 
+#      distinct() %>% 
+#     pivot_wider(names_from = treatment, values_from = (stand_core_depth_treat))
+# )
+### The TRAYS that are missing are:
+# 1) ENH2_8 surface: control, charate <-- accidentally put 2 reps in oven and 2 reps in oven+
+# 2) ENH1_5 deep: oven <-- no germination recorded in this tray
+
+############### DONE
+
+hist(seedbankgerm_plantcluster$n_per_g)
+shapiro.test(seedbankgerm_plantcluster$n_per_g)  # <-- not normally distributed
+
+### Here I'm calculating the median germination 
+seedbankgerm_plantcluster_summary <- seedbankgerm_plantcluster %>%  
+    filter(!str_detect(species_diversity, "Unknown")) %>%  # omit 4 unknown species 
+ 
+   group_by(
+           plant_cluster, # 4 plant clusters 
+           
+           # stand_core, # 7 at DEG + 10 at ENH + 9 at INT = 26 stand_core
+           # stand_core_depth, # 26 stand_core x 2 depths = 52 stand_core_depth
+          
+           lifeform, # 3 lifeforms (shrub, forb, grass) = 156, nope 155
+           status, # 2 status (native, nonnative) = 244, nope, 243
+           species_diversity, 
+           lifescycle,
+           
+            depth_name
+            ) %>% 
+  summarize(
+    max_n_per_g = round(max(n_per_g),3) ,
+            .groups = "drop") #
+  
+dim(seedbankgerm_plantcluster_summary)
+
+
+# Print as a gt table
+seedbankgerm_plantcluster_summary_TABLE <- seedbankgerm_plantcluster_summary %>% 
+  rename(Lifeform = lifeform, 
+         Lifecycle = lifescycle,
+         Status = status,  
+         Depth = depth_name,
+         Species = species_diversity
+         ) %>% 
+    pivot_wider(names_from = plant_cluster, 
+                values_from = max_n_per_g) %>% 
+  relocate(ssG, ssF, EVG, .after = NNG) %>% # Move 'lifeform' after 'Species'
+  relocate(Lifecycle, .after = Status)  %>% 
+  # mutate(total_seeds = case_when(total_seeds > 0 ~ as.character("X"))) %>%
+  
+  gt() %>%
+  tab_header(
+    title = "Maximum germination by Plant Cluster"
+    # subtitle = "Maximum germination of seeds by Lifeform, Lifecycle, and Status"
+  ) %>%
+  cols_align(
+    align = "left", # Center alignment
+    columns = "Lifeform" # Specify the "cluster" column
+  ) %>%
+  tab_options(
+    table.width = pct(80) # Make the table width 100%
+  )
+seedbankgerm_plantcluster_summary_TABLE
+
+
+
+
+
+##################################### Export the table as a word doc:
+# gtsave(seedbankgerm_plantcluster_summary_TABLE, 
+#        "Ch1_Degradation_figures/seedbankgerm_plantcluster_summary_TABLE_2025AUG13.docx", # can also export as .png
+#        expand = 10)
+
+
+
+
+```
+
 
 ```{r FIGURE germination (n/g soil) by family}
 
