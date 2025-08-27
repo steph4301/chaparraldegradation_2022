@@ -834,18 +834,25 @@ pairwise.wilcox.test(boxdf$total_solrad, boxdf$plant_cluster, p.adjust.method = 
 # 2 0.2172 -      -      -     
 # 3 0.3687 0.0066 -      -     
 # 4 0.0846 0.3687 0.0053 -     
-# 5 0.0053 0.0053 0.0053 0.0053
+# 5 0.0053 0.0053 0.0053 0.0053 5 = c
 # 
 # P value adjustment method: BH 
 
 # 1 and 5 are sig diff
 # 1 and 2, 3, 4 are same
 
-# 1 ac
-# 2 ac
-# 3 c
-# 4 a
-# 5 b
+# 1 ab = NNG
+# 3 b = ssG 
+# 2 a = ssF
+# 4 a = ssFG
+# 5 c = EVG --> a
+# 
+#  mutate(plant_cluster = recode(plant_cluster, 
+                                # `1` = "NNG", 
+                                # `2` = "ssF", 
+                                # `3` = "ssG", 
+                                # `4` = "ssFG", 
+                                # `5` = "EVG")) %>%
 
 
 ########################################## fire_event_count
@@ -1532,7 +1539,10 @@ fig_fire
 
 print("hurray! This is the end of the code :)")
 
+break this code
 ```
+
+
 
 # END
 
