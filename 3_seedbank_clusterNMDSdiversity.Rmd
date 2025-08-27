@@ -1340,6 +1340,7 @@ seedbankgerm_plantcluster <- seedbankgerm_cluster_prep %>%
 
 
 ############### START finding and fixing errors in df: seedbankgerm_plantcluster
+
 ### How many unique treatments (aka. stand_core_depth_treat) do I have?
 dim(
   seedbankgerm_cluster_prep %>% 
@@ -1418,17 +1419,115 @@ seedbankgerm_plantcluster_summary_TABLE
 
 
 
-
 ##################################### Export the table as a word doc:
 # gtsave(seedbankgerm_plantcluster_summary_TABLE, 
 #        "Ch1_Degradation_figures/seedbankgerm_plantcluster_summary_TABLE_2025AUG13.docx", # can also export as .png
 #        expand = 10)
 
+# write.csv(seedbankgerm_plantcluster_summary_TABLE,
+#           "Ch1_Degradation_figures/seedbankgerm_plantcluster_summary_TABLE_2025AUG13.csv")
+
+# write.csv(seedbankgerm_plantcluster_summary, 
+#           "Ch1_Degradation_figures/seedbankgerm_plantcluster_summary_2025AUG13.csv")
+
+
+
+
+
+# species richness (n/g soil) by plant_cluster
+
+seedbankgerm_plantcluster_summary %>% 
+  dplyr::select(plant_cluster, species_diversity) %>% 
+  distinct() %>% 
+  group_by(plant_cluster) %>% 
+  summarize(spprich = length(species_diversity),
+            .groups = "drop") 
 
 
 
 ```
 
+- germination (n/g soil) by ...
+```{r}
+# plant_cluster
+seedbankgerm_plantcluster_summary %>% 
+  group_by( plant_cluster) %>% 
+  summarize(sum_max_n_per_g = round(sum(max_n_per_g),2),
+            .groups = "drop") 
+
+# status (nat/nn) and plant_cluster
+seedbankgerm_plantcluster_summary %>% 
+  group_by( plant_cluster, status) %>% 
+  summarize(sum_max_n_per_g = round(sum(max_n_per_g),2),
+            .groups = "drop") %>% 
+  pivot_wider(names_from = plant_cluster, values_from = sum_max_n_per_g) 
+
+# lifeform x status x soil depth
+seedbankgerm_plantcluster_summary %>% 
+  group_by(lifeform, status, depth_name) %>% 
+  summarize(sum_max_n_per_g = round(sum(max_n_per_g),2),
+            .groups = "drop") %>% 
+  pivot_wider(names_from = depth_name, values_from = sum_max_n_per_g) %>% 
+  relocate(surface, .before = "deep")
+
+
+
+```
+
+
+
+
+### - 2015 spp rich
+```{r}
+
+# species richness
+length(
+  (seedbankgerm_cluster_prep %>% 
+       filter(!str_detect(species_diversity, "Unknown")) %>%  # omit 4 unknown species 
+  dplyr::select(species_diversity) %>% 
+  distinct())$species_diversity
+) #57
+
+# genera richness
+length(
+  (
+    seedbankgerm_cluster_prep %>% 
+       filter(!str_detect(species_diversity, "Unknown")) %>%  # omit 4 unknown species 
+       dplyr::select(species_diversity) %>% 
+       separate(col = species_diversity, into = c("genera", "species"), sep = " ") %>% 
+    dplyr::select(genera) %>% 
+  distinct())$genera
+)  # 50
+
+# family richness
+length(
+  (seedbankgerm_cluster_prep %>% 
+       filter(!str_detect(species_diversity, "Unknown")) %>%  # omit 4 unknown species 
+  dplyr::select(family) %>% 
+  distinct())$family
+) # 24
+
+seedbankgerm_cluster_prep %>% 
+       filter(str_detect(species_diversity, "Unknown"))
+
+
+
+```
+### - 2015 native spp rich
+```{r}
+
+
+# native shrub
+length(
+  (seedbankgerm_cluster_prep %>% 
+       filter(!str_detect(species_diversity, "Unknown")) %>%  # omit 4 unknown species 
+  dplyr::select(species_diversity, status, lifeform) %>% 
+    filter(status == "native" & 
+             lifeform  == "shrub") %>% 
+  distinct())$species_diversity
+)
+
+```
 
 ```{r FIGURE germination (n/g soil) by family}
 
@@ -1549,7 +1648,8 @@ break this code
 ```
 
 
-# OLD CODE BELOW
+# OLD 
+OLD CODE BELOW
 ### - scores
 ```{r updated scores nmds}
 scores(seedbank_nperg_bysamplocation_nmds)
