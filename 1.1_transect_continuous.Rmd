@@ -1402,6 +1402,9 @@ ggplot(data = cover_bylfstatus_wide,
       geom_point(aes(color = site), size = 3) +
    scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
   geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
+  
+  stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
+  
   labs(
     #  title = "Linear regression of  total shrub cover by non-native grass cover",
     x = "Non-native grass cover (%)",
@@ -1420,6 +1423,7 @@ nngxnatshr <- ggplot(data = cover_bylfstatus_wide,
       geom_point(aes(color = site), size = 3) +
    # scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
   geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+   stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
   labs(
     #  title = "Linear regression of  total shrub cover by non-native grass cover",
     x = "Non-native grass cover (%)",
