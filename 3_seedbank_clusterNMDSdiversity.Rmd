@@ -1443,7 +1443,7 @@ seedbankgerm_plantcluster_summary %>%
   summarize(spprich = length(species_diversity),
             .groups = "drop") 
 
-
+length(unique(seedbankgerm_plantcluster_summary$species_diversity))
 
 ```
 
