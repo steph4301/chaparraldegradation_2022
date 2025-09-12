@@ -47,8 +47,9 @@ _2_envrion_NMDS.Rmd_ (ends @ line 1323)
 
 2.2_visualize_environdata.Rmd (ends @ line 368)
 
-_3_seedbank_clusterNMDSdiversity.Rmd_ (ends @ line 1428)
+_3_seedbank_clusterNMDSdiversity.Rmd_ (start: # 2025 by plant cluser; ends @ line 1428)
   - Table: Median Average Germination x species x Seedbank Cluster (object: table_germ)
+  - species richness (~line 1439); df = seedbankgerm_plantcluster_summary
   - Figure: seedbank NMDS x seedbank cluster (object: grid.arrange(seed.nmds_nat, ... )
 
 COV - there's code to calculate COV in ab_heightdensity.Rmd, but I would need to edit the code to include all 40 transects. 
