@@ -92,7 +92,7 @@ file_transect_2019_load <- read_csv("data/deg_percentcover_byspecies_bylifeform_
        lifecycle = as.character(lifecycle),
        family = as.character(family)
   ) %>% 
-  drop_na()
+  drop_na() 
 
   # ground cover other = moss, wood
 sort(unique(file_transect_2019_load$site))  
