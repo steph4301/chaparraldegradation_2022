@@ -525,7 +525,10 @@ plot_spprich <- ggplot(data = spprich_trans,
        aes(x = grass_nonnative*100, 
          y = N_spprich)) + 
       geom_point(size = 3) +
-  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+
+    geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+   # stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
+  
   labs(
     #  title = "Linear regression of  total shrub cover by non-native grass cover",
     x = "Non-native grass cover (%)",
