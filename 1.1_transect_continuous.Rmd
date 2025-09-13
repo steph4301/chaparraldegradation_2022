@@ -271,8 +271,7 @@ abcover_full <- abcover_fulljoin_tib %>%
                               species == "Sambucus nigra" ~ "Sambucus mexicana",
                               species == "Blitum californicum" ~ "Chenopodium californicum",
                               species == "Cryptantha sp." ~ "Cryptantha spp.",
-                              # species == "Festuca myros" ~ "Festuca myuros",
-                               species == "Mirabilis laevis var. crassifolia" ~ "Mirabilis laevis",
+                              species == "Mirabilis laevis var. crassifolia" ~ "Mirabilis laevis",
                               species == "unknown1 forb" ~ "Centaurea melitensis", # in ENH2, transect 1 (aka: Site 2.4)
                               TRUE ~ species)) %>% 
    mutate(
@@ -357,7 +356,7 @@ specieslist <- file_transect_2019_load %>%
     add_row(species = "Acmispon glaber dead",
           lifeform = "forb",
           status = "native",
-          lifecycle = "annual",
+          lifecycle = "perennial",
           family = "Fabaceae") %>% 
     add_row(species = "Uropappus lindleyi",
           lifeform = "forb",
@@ -469,7 +468,13 @@ specieslist <- file_transect_2019_load %>%
            lifeform = "shrub", # <-- vine or shrub, labeled as "shrub" becuase that's the shape TOPU has at PIRU
            status = "native",  
            family = "Anacardiaceae") %>% 
- 
+  
+    add_row(species = "Mirabilis laevis var. crassifolia", 
+           lifecycle = "perennial", 
+           lifeform = "forb", 
+           status = "native",  
+           family = "Nyctaginaceae") %>% 
+
 ################ characteristics of unknown species
 
   add_row(species = "Unknown 3 Grindelia?", # <- this plant could be Grindelia camporum or Grindelia hirsutula based on records in Calflora 8/7/20205
@@ -516,6 +521,10 @@ specieslist <- file_transect_2019_load %>%
                              family == "Papaveraceae  " ~ "Papaveraceae",
                              family == "Solanacaeae" ~ "Solanaceae",
                              TRUE ~ family)) %>% 
+       mutate(lifecycle = case_when(species == "Acmispon glaber" ~ "perennial", # oldname ~ newname
+                                  species == "Acmispon glaber dead" ~ "perennial", 
+                              TRUE ~ lifecycle)) %>% 
+  
      distinct()
    
 
@@ -591,7 +600,7 @@ abcover_charateristics <- abcover_full %>%
 
 #sort(unique(abcover_charateristics$species))
 
-# write.csv(abcover_charateristics, file = "processed/ab_specieslistwithcharateristics_08102024.csv") # species and their characteristics :)
+# write.csv(abcover_charateristics, file = "processed/ab_specieslistwithcharateristics_09122025.csv") # species and their characteristics :)
 ```
 
 ## leaf type
@@ -847,7 +856,7 @@ cover_wide <- cover_byleaftype_wide %>%
 ```
  
  
-# REGRESSIONS
+# REGRESSIONS 
 
 ```{r}
 native_aes <- list(
@@ -1378,6 +1387,8 @@ scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-
 
 - y = total shrub cover
 ```{r}
+# quadratic regression equation:  y = ax² + bx + c
+
 # Fit the linear model
 model.s <- lm(grass_nonnative ~ shrub_native, data = cover_bylfstatus_wide) # response variable ~ independent variable
 
@@ -1407,7 +1418,7 @@ ggplot(data = cover_bylfstatus_wide,
          y = shrub_native*100)) + 
       geom_point(aes(color = site), size = 3) +
    scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
-  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
+  # geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
   
   stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
   
@@ -1429,7 +1440,7 @@ nngxnatshr <- ggplot(data = cover_bylfstatus_wide,
       geom_point(aes(color = site), size = 3) +
    # scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
   geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
-   stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
+   stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) + 
   labs(
     #  title = "Linear regression of  total shrub cover by non-native grass cover",
     x = "Non-native grass cover (%)",
@@ -1441,6 +1452,8 @@ nngxnatshr <- ggplot(data = cover_bylfstatus_wide,
   theme_bw() + 
   annotate("text", x = 5, y = 5, label = eq_label, color = "black", size = 4, hjust = 0)
 nngxnatshr
+
+
 ```
 
 - y = total shrub cover x leaf type
@@ -1448,7 +1461,8 @@ nngxnatshr
 
 ############ scl slope
 # Fit the linear model
-model.scl <- lm(shrub_native_sclerophyllous ~ grass_nonnative_NA, data = (cover_byleaftype_wide %>%  filter(shrub_native_sclerophyllous > 0))) # response variable ~ independent variable
+model.scl <- lm(shrub_native_sclerophyllous ~ grass_nonnative_NA, data = (cover_byleaftype_wide %>%  
+                                                                            filter(shrub_native_sclerophyllous > 0))) # response variable ~ independent variable
 
 # Print the summary of the model
 model.scl_summary <- summary(model.scl)
@@ -1517,19 +1531,23 @@ fig.1a <- ggplot(data = cover_byleaftype_wide) +
 
 fig.1a
 
+# quadratic regression equation:  y = ax² + bx + c
 ```
 
 
 
 - scl shrub cover by nn grass
 ```{r regression nngrass x scl shrub}
- ggplot(data = cover_byleaftype_wide %>%  filter(shrub_native_sclerophyllous > 0.01), 
+ ggplot(data = cover_byleaftype_wide #%>%  
+          # filter(shrub_native_sclerophyllous > 0.01) #include/omit 0% cover
+        , 
        aes(x = grass_nonnative_NA*100, 
          y = shrub_native_sclerophyllous*100)) + 
   # geom_point()+
      geom_point(aes(color = site), size = 3) +
-     scale_color_manual(values = c("blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
-  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
+     scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  # geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval  # linear fit
+  stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +  # polynomial fit
   labs(
     x = "Non-native grass cover (%)",
     y = "Native scl shrub cover (%)",
@@ -1570,12 +1588,14 @@ cat("Multiple R^2:", round(summary(model.s)$r.squared, 3), "\n")
 # original plot
 ggplot(data = cover_byleaftype_wide %>%  
          filter(shrub_native_nonsclero > 0.01) %>% 
-         filter(site == "1" | site == "2"), 
+         filter(site == "1" | site == "2")
+         , 
        aes(x = grass_nonnative_NA*100, 
          y = shrub_native_nonsclero*100)) + 
       geom_point(aes(color = site), size = 3) +
    scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
-  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
+  # geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+   stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +  # polynomial fit
   labs(
     x = "Non-native grass cover (%)",
     y = "Non-scl shrub cover (%)",
@@ -1743,6 +1763,28 @@ fig.1c <- ggplot(data = cover_bylfstatus_wide) + #%>%  filter(forb_native > 0.01
   annotate("text", x = 0, y = 75, label = eq_label_nf, color = "black", size = 4, hjust = 0)
 
 fig.1c
+
+
+#############################
+# native forb cover x nn grass cover
+ggplot(data = cover_bylfstatus_wide,
+       aes(x = grass_nonnative*100, 
+         y = forb_native*100)) + 
+  
+      geom_point(aes(color = site), size = 3) +
+   scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  # geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+   stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +  # polynomial fit
+  labs(
+    x = "Non-native grass cover (%)",
+    y = "Native forb cover (%)",
+    title = "Native forb cover by non-native grass cover"
+    ) +
+  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+  theme_bw()
+
+
 ```
 
 - y = native grass
@@ -1759,6 +1801,7 @@ print(paste("Multiple R^2:", r_squaredg))
 # [1] "Multiple R^2: 0.497"
 # Create the label for the equation and R^2
 eq_label_g <- paste0("Native grass: y = ", slopeg, "x + ", interceptg, "\n", "R² = ", r_squaredg)
+
 
 fig.1e <- ggplot(data = cover_bylfstatus_wide 
                  # %>%   filter(grass_native >0)
@@ -1784,6 +1827,27 @@ fig.1e <- ggplot(data = cover_bylfstatus_wide
 #cover_bylfstatus_wide %>% filter(grass_native > 0) %>% group_by(site_rep, year) %>%  summarize(native_grass = grass_native)
 
 fig.1e
+
+
+#############################
+# native grass cover x nn grass cover
+ggplot(data = cover_bylfstatus_wide,
+       aes(x = grass_nonnative*100, 
+         y = grass_native*100)) + 
+  
+      geom_point(aes(color = site), size = 3) +
+   scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+   # stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +  # polynomial fit - error bars go below 0%
+  labs(
+    x = "Non-native grass cover (%)",
+    y = "Native grass cover (%)",
+    title = "Native grass cover by non-native grass cover"
+    ) +
+  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks 
+  theme_bw()
+
 ```
 
 
@@ -2014,7 +2078,7 @@ fig_bareground <-
                               mutate(site = ifelse(str_detect(site, "INT"), "3", site)),
                            aes(x = grass_nonnative * 100, y = bare_rock*100)) +
   geom_point(aes(color = site),
-              shape = 15,
+              shape = 16,
               size = 3,
               position = position_jitter(width = 0.2, height = 0.1),
             show.legend = TRUE) +
@@ -2062,7 +2126,8 @@ fig_bareground <-
   ) +
   geom_smooth(aes(x = grass_nonnative * 100,
                   y = bare_rock*100),
-              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) 
+              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE)
+ # stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1)  # polynomial fit - error bars go below 0%
   
 
 # figure: thatch
@@ -2117,7 +2182,8 @@ fig_thatch <-
   ) + 
     geom_smooth(aes(x = grass_nonnative * 100,
                   y = nonnative_thatch*100),
-              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) 
+              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE)
+  # stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1)  # polynomial fit - error bars go below 0%
 
 
 # figure: native_litter_wood
@@ -2161,7 +2227,8 @@ fig_nativelitter <- ggplot(data = groundcover_percent %>%
   ) +
     geom_smooth(aes(x = grass_nonnative * 100,
                   y = native_litter_wood*100),
-              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) 
+              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE)
+ # stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1)  # polynomial fit - error bars go below 0%
  
 fig_bareground_all
 fig_bareground
@@ -2326,11 +2393,11 @@ cover_bylifecycle <- abcover_omitground %>%
   group_by(year, site, transect, site_rep, lifeform, lifecycle, status, lifeform_lifecycle, lifeform_lifecycle_status, cluster) %>%
   dplyr::summarize(
     lifeform_lifecycle_count_per_transect = n_distinct(site_rep_dist),
-    lifeform_lifecycle_percentcover = (n_distinct(site_rep_dist)/41)*100 # <-- calculate percent cover by transect, lifeform, and lifecycle
+    lifeform_lifecycle_percentcover = (n_distinct(site_rep_dist)/41)*100 # <-- calculate percent cover by transect, life form, and life cycle
     ) %>% 
   ungroup() %>% 
   mutate(cluster = factor(cluster, levels = c(5, 4, 2, 3, 1))) %>% 
-  mutate(lifeform = factor(lifeform, levels = c("shrub", "forb", "grass")))
+  mutate(lifeform = factor(lifeform, levels = c("shrub", "forb", "grass", "fern", "forb or vine")))
   # mutate(cluster = case_when(cluster == "1" ~ "NNG",
   #                             cluster == "2" ~ "ssF",
   #                             cluster == "3" ~ "ssG",
@@ -2341,7 +2408,8 @@ cover_bylifecycle <- abcover_omitground %>%
   
 cover_bylifecycle_bygroup <- cover_bylifecycle %>% 
   group_by(cluster, lifeform, lifecycle, status, lifeform_lifecycle, lifeform_lifecycle_status) %>% 
-  filter(lifeform_lifecycle != "fern_perennial") %>% 
+  filter(lifeform != "fern") %>% # omit fern
+  filter(lifeform != "forb or vine") %>% # omit forb or vine
   dplyr::summarise(
     mean_cover = mean(lifeform_lifecycle_percentcover, na.rm = TRUE), 
     n = n_distinct(site_rep), 
@@ -3077,8 +3145,6 @@ cluster_grass_annNN_boxorjitter
 
 
 
-
-
 # CANOPY HEIGHT
 ```{r}
 # stand height 
@@ -3184,16 +3250,20 @@ fig_height <- ggplot(data = height_cover %>%
   #  title = "Mean stand height by Nonnative Grass percent cover",
      color = "Legend") +
  
-  
-  # geom_smooth(aes(x = grass_nonnative * 100, 
-  #                 y = avgheight_cm), 
+    # geom_smooth(aes(x = grass_nonnative * 100,
+  #                 y = avgheight_cm),
   #             method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
+  stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) + # polynomial fit - error bars go below 0%
   theme_bw() #+ 
    # annotate("text", x = 0, y = 15, label = eq_label_h, color = "black", size = 4, hjust = 0) 
 
 # (linear regression: y = -93.23x + 164.52; R² = 0.365) 
 
 fig_height
+
+
+ 
+ 
 ```
 
 
@@ -3421,6 +3491,14 @@ fig_cov <- ggplot(transect_cov %>%
        # title = "Distance from mean canopy height (cm) by average non-native cover (%)"
        ) +
   theme_bw() +
+  theme(axis.text = element_text(size = 16)) + # axes numbers - font size
+  theme(axis.title = element_text(size = 20)) + # axes titles
+  theme(legend.title=element_text(size = 16)) + 
+  theme(legend.text=element_text(size = 16)) +
+  
+  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = .2)) + # Set y-axis limits and breaks
+  
   stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) #+
    # annotate("text", x = 10, y = 0.1, label = eq_label_cov, color = "black", size = 4, hjust = 0) 
 
@@ -4238,6 +4316,182 @@ grid.arrange(plot_denspp,
 
 ```
 
+# REGRESSIONS (cont.)
+- x = non-native grass cover
+
+```{r}
+
+# data prep
+cover_bylifecycle_wide <- cover_bylifecycle %>% 
+  dplyr::select(site_rep, lifeform_lifecycle_status, lifeform_lifecycle_percentcover) %>% 
+   pivot_wider(names_from = lifeform_lifecycle_status, values_from = lifeform_lifecycle_percentcover) %>% 
+  rename("forb_or_vine_perennial_native" = "forb or vine_perennial_native") %>% 
+  replace_na(replace = list(forb_perennial_native = 0, # Replace NA with 0 for each value column
+                            forb_unknown2_unknown2 = 0,
+                            grass_annual_nonnative = 0,
+                            shrub_perennial_native = 0,
+                            forb_annual_native = 0,
+                            forb_annual_nonnative = 0,
+                            grass_perennial_native = 0,
+                            fern_perennial_native = 0,
+                            forb_or_vine_perennial_native = 0
+                            ))  %>% 
+   separate(site_rep, into = c("site", "rep"), sep = "\\.") %>% 
+   mutate(site_rep = paste(site, rep, sep = "_")) %>% 
+  relocate(site_rep, .after = rep)
+```
+
+
+- y = annual native forb
+```{r}
+  
+# native forb annuals x nn grass
+                           
+
+# original plot
+ggplot(data = cover_bylifecycle_wide,
+       aes(x = grass_annual_nonnative, 
+         y = forb_annual_native)) + 
+      geom_point(aes(color = site), size = 3) +
+   scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  # geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+  
+  stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
+  
+  labs(
+    #  title = "Linear regression of  total shrub cover by non-native grass cover",
+    x = "Non-native grass cover (%)",
+    y = "Native annual forb cover (%)", 
+     color = "Site"
+    ) +
+  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+  theme_bw() +
+   theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
+    # hjust = 0.5 = centered; 1 = right justified
+    axis.text.y = element_text(size = 14),       # Increase y-axis text size
+    axis.title = element_text(size = 16),        # Axis title size
+    strip.text = element_text(size = 16),        # Facet label text size
+    legend.text = element_text(size = 14),       # Legend text size
+    legend.title = element_text(size = 14),      # Legend title size
+    legend.position = "right"
+  )
+
+```
+
+- y = perennial native forb
+```{r}
+  
+# perennial forb annuals x nn grass
+                           
+
+# original plot
+ggplot(data = cover_bylifecycle_wide,
+       aes(x = grass_annual_nonnative, 
+         y = forb_perennial_native)) + 
+      geom_point(aes(color = site), size = 3) +
+   scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+  # geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+  
+  stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
+  
+  labs(
+    #  title = "Linear regression of  total shrub cover by non-native grass cover",
+    x = "Non-native grass cover (%)",
+    y = "Native perennial forb cover (%)", 
+     color = "Site"
+    ) +
+  # scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  # scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+  theme_bw() +
+   theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
+    # hjust = 0.5 = centered; 1 = right justified
+    axis.text.y = element_text(size = 14),       # Increase y-axis text size
+    axis.title = element_text(size = 16),        # Axis title size
+    strip.text = element_text(size = 16),        # Facet label text size
+    legend.text = element_text(size = 14),       # Legend text size
+    legend.title = element_text(size = 14),      # Legend title size
+    legend.position = "right"
+  )
+
+```
+
+# NATIVE SPP PERSIST
+```{r}
+
+# transects with >= 80% nn grass cover
+nng80_list <- cover_bylifecycle_wide %>% 
+  dplyr::select(site, rep, grass_annual_nonnative) %>% 
+   mutate(rep = case_when(rep == "01" ~ "1", # oldname ~ newname
+                         rep == "02" ~ "2",
+                         rep == "03" ~ "3",
+                         rep == "04" ~ "4",
+                         rep == "05" ~ "5",
+                         rep == "06" ~ "6",
+                         rep == "07" ~ "7",
+                         rep == "08" ~ "8",
+                         rep == "09" ~ "9",
+                              TRUE ~ rep)) %>% 
+  filter(grass_annual_nonnative > 80) %>% 
+   mutate(site_rep = paste(site, rep, sep = "_")) %>% 
+  dplyr::select(site_rep)
+ 
+
+# native species that persist with >= 80% nn grass cover
+nng80_spp <- abcover_omitground %>%
+  group_by(site_rep, species, lifeform, status, lifecycle, family, leaftype) %>% 
+  summarize (n = length(species)) %>%
+  mutate(percent_cover = round((n/41*100),2)) %>%
+  ungroup() %>%
+  dplyr::select(-n) %>%
+  semi_join(nng80_list, by = "site_rep")  # <-- % cover of species
+# length(unique(nng80_spp$site_rep))
+# n = 18 transects
+
+nng80_spp_distinct <- nng80_spp %>% 
+  filter(status == "native") %>% 
+  dplyr::select(species, lifeform, status, lifecycle, family) %>%
+  distinct()
+
+####################
+
+# transects with >= 90% nn grass cover
+nng90_list <- cover_bylifecycle_wide %>% 
+  dplyr::select(site, rep, grass_annual_nonnative) %>% 
+   mutate(rep = case_when(rep == "01" ~ "1", # oldname ~ newname
+                         rep == "02" ~ "2",
+                         rep == "03" ~ "3",
+                         rep == "04" ~ "4",
+                         rep == "05" ~ "5",
+                         rep == "06" ~ "6",
+                         rep == "07" ~ "7",
+                         rep == "08" ~ "8",
+                         rep == "09" ~ "9",
+                              TRUE ~ rep)) %>% 
+  filter(grass_annual_nonnative > 90) %>% 
+   mutate(site_rep = paste(site, rep, sep = "_")) %>% 
+  dplyr::select(site_rep)
+ 
+
+# native species that persist with >= 80% nn grass cover
+nng90_spp <- abcover_omitground %>%
+  group_by(site_rep, species, lifeform, status, lifecycle, family, leaftype) %>% 
+  summarize (n = length(species)) %>%
+  mutate(percent_cover = round((n/41*100),2)) %>%
+  ungroup() %>%
+  dplyr::select(-n) %>%
+  semi_join(nng90_list, by = "site_rep")  # <-- % cover of species
+# length(unique(nng90_spp$site_rep))
+# n = 12 transects
+
+nng90_spp_distinct <- nng90_spp %>% 
+  filter(status == "native") %>% 
+  dplyr::select(species, lifeform, status, lifecycle, family) %>%
+  distinct()
+
+```
 
 ```{r}
 print("yay! you've reached the end!")
