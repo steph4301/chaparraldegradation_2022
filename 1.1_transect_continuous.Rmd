@@ -57,6 +57,9 @@ library(gt) # for tables - use gt or knitr
 library(knitr) # for tables
 library(rstatix) # for pairwise Wilcoxon test with significance letters 
 library(flextable)
+library(mgcv) # for Generalized Additive Models (GAMs)
+library(segmented) # for Threshold or Breakpoint Models (Piecewise Regression)
+library(quantreg) # for Quantile Regression
 ```
 
 # colors
@@ -106,6 +109,14 @@ native <- "black"
 nonnative <- "maroon"
 unknown <- "lightblue"
 colors_status <- c(native, nonnative, unknown)
+
+# Plant clusters
+NNG <- "orange"
+ssG <- "blue"
+ssF <- "hotpink"
+ssFG <- "gray"
+EVG <- "green"
+colors_plantclusters <- c(NNG, ssG, ssF, ssFG, EVG)
 
 # "orange", "lightblue", "limegreen", "deeppink","mediumpurple2", "darkgreen"
 ```
@@ -1413,8 +1424,9 @@ print(paste("Multiple R^2:", r_squared))
 eq_label <- paste0("y = ", slope, "x + ", intercept, "\n", "R² = ", r_squared)
 
 # original plot
-ggplot(data = cover_bylfstatus_wide,
-       aes(x = grass_nonnative*100, 
+ggplot(data = cover_bylfstatus_wide 
+        ,
+       aes(x = grass_nonnative*100,
          y = shrub_native*100)) + 
       geom_point(aes(color = site), size = 3) +
    scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
@@ -1434,18 +1446,27 @@ ggplot(data = cover_bylfstatus_wide,
   annotate("text", x = 5, y = 5, label = eq_label, color = "black", size = 4, hjust = 0)
 
 # plot updated august 1,
-nngxnatshr <- ggplot(data = cover_bylfstatus_wide,
+nngxnatshr <- ggplot(data = cover_bylfstatus_wide %>% 
+                        mutate(cluster = as.character(cluster)) %>% 
+  mutate(cluster = case_when(
+                            cluster == "1" ~ "NNG",
+                             cluster == "3" ~ "ssG",
+                             cluster == "2" ~ "ssF",
+                             cluster == "4" ~ "ssFG",
+                             cluster == "5" ~ "EVG",
+                             TRUE ~ cluster)) %>% 
+    mutate(cluster = factor(cluster, levels = c("NNG", "ssG", "ssF", "ssFG", "EVG"))) ,
        aes(x = grass_nonnative*100, 
          y = shrub_native*100)) + 
-      geom_point(aes(color = site), size = 3) +
-   # scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
-  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+      geom_point(aes(color = cluster), size = 3) +
+   scale_color_manual(values = c("orange", "grey", "hotpink", "blue", "green")) +
+  # geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
    stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) + 
   labs(
     #  title = "Linear regression of  total shrub cover by non-native grass cover",
     x = "Non-native grass cover (%)",
-    y = "Total shrub cover (%)"#, 
-   #  color = "Site"
+    y = "Total shrub cover (%)", 
+    color = "Plant community"
     ) +
   scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
   scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
@@ -1453,6 +1474,149 @@ nngxnatshr <- ggplot(data = cover_bylfstatus_wide,
   annotate("text", x = 5, y = 5, label = eq_label, color = "black", size = 4, hjust = 0)
 nngxnatshr
 
+
+################################################################ 
+##### other regression and correlation tests between nn grass cover and shrub cover
+
+
+# Takeaway:
+# Correlations
+# Polynomial regression = test for simple curvature.
+# GAMs = flexible non-linear trend.
+# Piecewise regression = detect thresholds or breakpoints.
+# Quantile regression = test upper/lower bounds of the relationship.
+
+# Correlation - Compute a correlation coefficient to see if the two are associated
+cor.test(cover_bylfstatus_wide$grass_nonnative, 
+         cover_bylfstatus_wide$shrub_native)
+# Pearson's product-moment correlation 
+### t = test statistic = -10.243 <-- |-10.243| = number is large, correlation unlikely by chance
+### df = 38
+### p-value = 1.747e-12 <-- sig!
+### cor = -0.856795 <-- Correlation coefficient; strong negative correlation 
+### 95% CI: -0.9221759 -0.7438076 <-- you are 95% confident the true correlation lies in this range, which is still very strong and negative.
+
+# linear regression
+lm(shrub_native ~ grass_nonnative, data = cover_bylfstatus_wide) 
+# Intercept =  1.0278 <-- when non-native grass cover = 0, shrub cover is predicted to be about 1.03
+# grass_nonnative = -0.8411 <-- slope, for every 1% increase in grass cover, shrub cover decreases by about 0.84%.
+
+
+# Polynomial Regression (Curvilinear Trends) - Fit a model where shrub cover changes in a curve (concave or convex) with grass cover.
+model_poly <- lm(shrub_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide)
+summary(model_poly)
+
+# Generalized Additive Models (GAMs) - If you don’t want to assume the shape (e.g., parabola), GAMs let the data “decide” the curve:
+model_gam <- gam(shrub_native ~ s(grass_nonnative), data = cover_bylfstatus_wide)
+summary(model_gam)
+# Parametric coefficients:
+            # Estimate    Std. Error  t value     Pr(>|t|)    
+# (Intercept)  0.48110    0.02365     20.34       <2e-16 *** <-- sig!
+# -- Parametric intercept = 0.4811 <-- When grass cover = 0, the baseline shrub cover is ~48%
+# 
+# Approximate significance of smooth terms:
+                     # edf      Ref.df          F p-value    
+# s(grass_nonnative) 2.054      2.548 48.09     <2e-16 ***
+
+# R-sq.(adj) =  0.757 <-- model explains ~76% of variance
+#  Deviance explained =   77% <- similar to R²
+# GCV = 0.02422  Scale est. = 0.022371  n = 40 <-- you want small GCV and Scale fit
+plot(model_gam)
+# - GAMs are flexible and can capture non-linear but smooth patterns.
+# - You can test significance of the smooth term (edf > 1 indicates non-linearity).
+## plot_gam code in next chunk
+
+
+# Threshold or Breakpoint Models (Piecewise Regression)
+# Here you test whether there’s a breakpoint in grass cover where the relationship with shrubs changes slope:
+model <- lm(shrub_native ~ grass_nonnative, data = cover_bylfstatus_wide) #linear regression (same as above)
+model_seg <- segmented(model, seg.Z = ~grass_nonnative,
+                       npsi = 1) # one breakpoint
+# plot(segmented(model, seg.Z = ~grass_nonnative, 
+#                npsi = 2)) # <- you can set the number of breakpoints here
+summary(model_seg)
+plot(model_seg)
+# - This estimates a breakpoint (e.g., shrubs decline only after grass > 40%).
+# - You’ll get separate slopes before and after the threshold.
+
+# Quantile Regression - Sometimes the average trend isn’t the full story — for example, shrubs may persist under moderate grass cover only in the “best-case” sites. Quantile regression shows how the relationship differs across the distribution of shrub cover.
+model_qr <- rq(shrub_native ~ grass_nonnative, tau = 0.9, data = cover_bylfstatus_wide)
+summary(model_qr)
+# - This tests whether the upper limit of shrub cover declines with grass cover.
+
+# tau: [1] 0.9 <-- quantile regression at the 90th percentile
+# Coefficients:
+#                 coefficients lower bound   upper bound
+# (Intercept)      1.17561      1.07409       2.31828 <-- (1.176, CI: 1.07 – 2.32)
+# grass_nonnative -0.80000     -1.76827       -0.44443
+
+# Intercept: (1.176, CI: 1.07 – 2.32) <-- When non-native grass cover = 0, the upper end (90th percentile) of shrub cover is ~1.18%
+
+# Slope for grass_nonnative: (–0.80, CI: –1.77 to –0.44) <-- At the 90th percentile, for every 1% increase in non-native grass cover, shrub cover is predicted to decrease by ~0.8%.
+# Since the confidence interval is entirely below zero (–1.77 to –0.44), the effect is statistically significant: more non-native grass strongly limits the upper potential of shrub cover.
+
+###### Ecological interpretation
+# - You’re looking at the upper bound of possible shrub cover, not the average.
+# - The result suggests that EVEN UNDER the best-case conditions (stands with unusually high shrub cover for their level of grass invasion), shrub cover still declines steeply as non-native grass cover increases.
+# 
+# - In practice: stands with low grass cover can sustain high shrub cover, but as grass cover increases, the “ceiling” on shrub cover gets pushed down sharply.
+
+### Model Comparison
+# To decide if non-linear/threshold models are “better” than linear:
+# Compare models using AIC:
+(AIC(model, model_poly, model_gam, model_seg))
+# Lower/more negative AIC = better fit.
+# - GAM is best fit, but polynomial and segmented regressions are just as good of a fit too.
+
+# Or use likelihood ratio tests: (anova(model, model_poly) if models are nested).
+
+```
+
+```{r}
+# plot gam model
+model_gam <- gam(shrub_native ~ s(grass_nonnative), data = cover_bylfstatus_wide)
+
+# Create a prediction dataset
+newdat <- data.frame(grass_nonnative = seq(min(cover_bylfstatus_wide$grass_nonnative),
+                                           max(cover_bylfstatus_wide$grass_nonnative),
+                                           length.out = 200))
+
+# Predict fitted values and confidence intervals
+pred <- predict(model_gam, newdata = newdat, se.fit = TRUE)
+newdat$fit <- pred$fit
+newdat$upper <- pred$fit + 2 * pred$se.fit
+newdat$lower <- pred$fit - 2 * pred$se.fit
+
+# Plot with ggplot
+plot_gam <- ggplot() +
+  # observed points
+  geom_point(data = cover_bylfstatus_wide,
+             aes(x = grass_nonnative, y = shrub_native),
+             shape = 21, fill = "skyblue", color = "black", size = 3, alpha = 0.7) +
+
+  # polynomial regression line
+  geom_smooth(data = cover_bylfstatus_wide, 
+              aes(x = grass_nonnative, y = shrub_native, color = "Polynomial"), 
+              method = "lm", formula = y ~ poly(x, 2), se = TRUE, size = 1.2) +
+
+  # GAM fit line
+  geom_line(data = newdat, 
+            aes(x = grass_nonnative, y = fit, color = "GAM"), 
+            size = 1.2) +
+
+  # confidence ribbon
+  geom_ribbon(data = newdat,
+              aes(x = grass_nonnative, ymin = lower, ymax = upper),
+              fill = "lightblue", alpha = 0.3) +
+
+  scale_color_manual(name = "Model", values = c("Polynomial" = "red", "GAM" = "blue")) +
+  
+  labs(x = "Non-native grass cover (%)",
+       y = "Native shrub cover (%)",
+       title = "Shrub cover vs. Grass cover") +
+  theme_minimal(base_size = 14)
+
+plot_gam
 
 ```
 
@@ -3824,6 +3988,129 @@ fig_den_dead
 
 ```
 
+```{r, eval = FALSE}
+
+################################################################ 
+##### other regression and correlation tests between nn grass cover and shrub cover
+
+
+# Takeaway:
+# Correlations
+# Polynomial regression = test for simple curvature.
+# GAMs = flexible non-linear trend.
+# Piecewise regression = detect thresholds or breakpoints.
+# Quantile regression = test upper/lower bounds of the relationship.
+
+# Correlation - Compute a correlation coefficient to see if the two are associated
+cor.test(denspp_cover$grass_nonnative, 
+         denspp_cover$seedling)
+
+# linear regression
+seddling <- lm(seedling ~ grass_nonnative, data = denspp_cover) 
+
+# Polynomial Regression (Curvilinear Trends) - Fit a model where shrub cover changes in a curve (concave or convex) with grass cover.
+seedling_poly <- lm(seedling ~ poly(grass_nonnative, 2), data = denspp_cover)
+summary(seedling_poly)
+  
+
+# Generalized Additive Models (GAMs) - If you don’t want to assume the shape (e.g., parabola), GAMs let the data “decide” the curve:
+seedling_gam <- gam(seedling ~ s(grass_nonnative), data = denspp_cover)
+summary(seedling_gam)
+plot(gam(seedling ~ s(grass_nonnative), data = denspp_cover))
+# - GAMs are flexible and can capture non-linear but smooth patterns.
+# - You can test significance of the smooth term (edf > 1 indicates non-linearity). <-- 8.247
+## plot_gam code in next chunk
+
+
+# Threshold or Breakpoint Models (Piecewise Regression)
+# Here you test whether there’s a breakpoint in grass cover where the relationship with shrubs changes slope:
+seedling_lm <- lm(seedling ~ grass_nonnative, data = denspp_cover) #linear regression (same as above)
+seedling_seg <- segmented(seedling_lm, seg.Z = ~grass_nonnative,
+                       npsi = 1) # one breakpoint
+# plot(segmented(model, seg.Z = ~grass_nonnative, 
+#                npsi = 2)) # <- you can set the number of breakpoints here
+summary(seedling_seg)
+plot(seedling_seg)
+# - This estimates a breakpoint 
+# - You’ll get separate slopes before and after the threshold.
+
+# Quantile Regression - Sometimes the average trend isn’t the full story — for example, shrubs may persist under moderate grass cover only in the “best-case” sites. Quantile regression shows how the relationship differs across the distribution of shrub cover.
+seedling_qr <- rq(seedling ~ grass_nonnative, tau = 0.9, data = denspp_cover)
+summary(seedling_qr)
+# - This tests whether the upper limit of shrub cover declines with grass cover.
+
+
+### Model Comparison
+# To decide if non-linear/threshold models are “better” than linear:
+# Compare models using AIC:
+(AIC(seedling_lm, seedling_poly, seedling_gam, seedling_seg))
+# Lower/more negative AIC = better fit.
+# - GAM is best fit
+
+```
+
+
+```{r, eval = FALSE}
+
+################################################################ 
+##### other regression and correlation tests between nn grass cover and shrub cover
+
+
+# Takeaway:
+# Correlations
+# Polynomial regression = test for simple curvature.
+# GAMs = flexible non-linear trend.
+# Piecewise regression = detect thresholds or breakpoints.
+# Quantile regression = test upper/lower bounds of the relationship.
+
+# Correlation - Compute a correlation coefficient to see if the two are associated
+cor.test(denspp_cover$grass_nonnative, 
+         denspp_cover$mature)
+
+# linear regression
+mature_lm <- lm(mature ~ grass_nonnative, data = denspp_cover)
+
+# Polynomial Regression (Curvilinear Trends) - Fit a model where shrub cover changes in a curve (concave or convex) with grass cover.
+mature_poly <- lm(mature ~ poly(grass_nonnative, 2), data = denspp_cover)
+summary(mature_poly)
+  
+
+# Generalized Additive Models (GAMs) - If you don’t want to assume the shape (e.g., parabola), GAMs let the data “decide” the curve:
+mature_gam <- gam(mature ~ s(grass_nonnative), data = denspp_cover)
+summary(mature_gam)
+plot(gam(mature ~ s(grass_nonnative), data = denspp_cover))
+# - GAMs are flexible and can capture non-linear but smooth patterns.
+# - You can test significance of the smooth term (edf > 1 indicates non-linearity). <-- 8.247
+## plot_gam code in next chunk
+
+
+# Threshold or Breakpoint Models (Piecewise Regression)
+# Here you test whether there’s a breakpoint in grass cover where the relationship with shrubs changes slope:
+ #linear regression (same as above)
+mature_seg <- segmented(mature_lm, seg.Z = ~grass_nonnative,
+                       npsi = 1) # one breakpoint
+# plot(segmented(model, seg.Z = ~grass_nonnative, 
+#                npsi = 2)) # <- you can set the number of breakpoints here
+summary(mature_seg)
+plot(mature_seg)
+# - This estimates a breakpoint 
+# - You’ll get separate slopes before and after the threshold.
+
+# Quantile Regression - Sometimes the average trend isn’t the full story — for example, shrubs may persist under moderate grass cover only in the “best-case” sites. Quantile regression shows how the relationship differs across the distribution of shrub cover.
+mature_qr <- rq(mature ~ grass_nonnative, tau = 0.9, data = denspp_cover)
+summary(mature_qr)
+# - This tests whether the upper limit of shrub cover declines with grass cover.
+
+
+### Model Comparison
+# To decide if non-linear/threshold models are “better” than linear:
+# Compare models using AIC:
+(AIC(mature_lm, mature_poly, mature_gam, mature_seg))
+# Lower/more negative AIC = better fit.
+# - GAM is best fit
+
+```
+
 ### - density x species
 ```{r}
 den_cluster <- denspp %>% 
@@ -4341,7 +4628,31 @@ cover_bylifecycle_wide <- cover_bylifecycle %>%
   relocate(site_rep, .after = rep)
 ```
 
+```{r}
+# Quantile Regression - Sometimes the average trend isn’t the full story — for example, shrubs may persist under moderate grass cover only in the “best-case” sites. Quantile regression shows how the relationship differs across the distribution of shrub cover.
+model_qr <- rq(forb_native ~ grass_nonnative, tau = 0.9, data = cover_bylfstatus_wide)
+summary(model_qr)
 
+# Intercept (0.144, CI: 0.003 – 1.032)
+# When non-native grass cover = 0, the upper end (90th percentile) of native forb cover is very low (~0.14). The wide CI shows uncertainty, but the lower bound is still positive.
+
+# Slope for grass_nonnative (0.026, CI: –0.84 to 0.25)
+# The coefficient is positive but very small. Importantly, the confidence interval overlaps zero (–0.84 to 0.25), meaning there’s no statistically significant relationship between non-native grass cover and the upper bound of forb cover.
+
+# Ecological interpretation
+# 
+# Unlike shrubs (where grasses clearly limit their maximum cover), native forbs don’t show a strong 90th percentile response.
+# 
+# This suggests that even at high grass cover, some stands can still maintain high forb cover, and the upper limit of forb abundance is not consistently constrained by grass dominance.
+# 
+# Forbs may be less sensitive to grass competition at the upper end of their distribution, perhaps because disturbance-tolerant forb species (e.g., Lupinus, Acmispon, Eschscholzia) can coexist with or even thrive under grass cover.
+# 
+# However, the wide CI indicates a lot of variability — forb responses might be patchy, species-specific, or context-dependent.
+
+# In short:
+# At the 90th percentile, native forb cover is not significantly related to non-native grass cover. Forbs appear more variable and less predictably constrained by grasses compared to shrubs.
+
+```  
 - y = annual native forb
 ```{r}
   
