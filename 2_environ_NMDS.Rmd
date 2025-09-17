@@ -474,11 +474,11 @@ results
 ### - when you have a small number of samples or small number of variables
 ### - when you want to preserve the original scale of the data (e.g., interested in the absolute differences betwen two sets of measurements)
 
-# mds <- metaMDS(df, 
-                      #  autotransform = TRUE, # FALSE or TRUE
-                      #  distance = "bray",   # bray or "raup" - Bray is the best for community data
-                      # k = 3, #dimentions
-                      # trymax = 400) # this is more appropriate for my data
+# mds <- metaMDS(df,
+#  autotransform = TRUE, # FALSE or TRUE
+#  distance = "bray",   # bray or "raup" - Bray is the best for community data
+# k = 3, #dimentions
+# trymax = 400) # this is more appropriate for my data
 
 # mds$stress
 ### k = 2D: stress test = 0.06422607
@@ -679,7 +679,7 @@ PCA_plantcluster <- ggplot() +
                      labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
   scale_color_manual(values = c("1" = "black", "2" = "black", "3" = "black", "4" = "black", "5" = "black"),
                      labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
-  scale_fill_manual(values = c("1" = "black", "2" = "grey85", "3" = "grey60", "4" = "white", "5" = "black"),
+  scale_fill_manual(values = c("4" = "black", "3" = "grey85", "2" = "grey60", "1" = "white", "5" = "black"),
                      labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
   
   geom_vline(xintercept = c(0), color = "grey70", linetype = 2) + 
@@ -739,12 +739,46 @@ PCA_plot <- ggplot() +
          fill = guide_legend(title = "Plant Association"))
 
 
+PCA_nngrass <- ggplot() +
+  geom_point (data = pca_df %>% 
+                left_join(cover_bylifecycle_wide, by = "site_rep"), # cover_bylifecycle_wide from 1.1_transect_continuous.Rmd
+              aes(x = PC1, 
+                  y = PC2, 
+                  color = grass_annual_nonnative), 
+              size = 4) +  
+  
+  geom_vline(xintercept = c(0), color = "grey70", linetype = 2) + 
+  geom_hline(yintercept = c(0), color = "grey70", linetype = 2) +
+  
+  geom_segment(data = loadings_df, # <- vectors
+               aes(x = 0,
+                   y = 0, 
+                   xend = PC1, 
+                   yend = PC2),  
+               arrow = arrow(length = unit(0.2, "cm")), 
+               color = "black", alpha = 0.8) +  # alpha = transparency (0 = transparent, 1 = solid)
+  
+  geom_text_repel(data = loadings_df,  # vector text                 
+                  aes(x = PC1, 
+                      y = PC2, 
+                      label = rownames(loadings_df)),
+                  size = 4, color = "blue") +             # Text labels in blue
+ labs(title = "PCA of Environmental Variables", 
+       x = "Principal Component 1 (40.54%)",
+       y = "Principal Component 2 (20.47%)", 
+      color = "Non-native annual grass cover (%)") +                  
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))         # Center title
+  # xlim(-4, 4) +
+  # ylim(-5, 4) 
 
 PCA_environcluster
 
 PCA_plantcluster
 
 PCA_plot
+
+PCA_nngrass
 
 ```
 
@@ -842,11 +876,12 @@ pairwise.wilcox.test(boxdf$total_solrad, boxdf$plant_cluster, p.adjust.method = 
 # 1 and 2, 3, 4 are same
 
 # 1 ab = NNG
-# 3 b = ssG 
-# 2 a = ssF
-# 4 a = ssFG
-# 5 c = EVG --> a
-# 
+# 3 a = ssG 
+# 2 b = ssF
+# 4 b = ssFG
+# 5 c = EVG 
+
+
 #  mutate(plant_cluster = recode(plant_cluster, 
                                 # `1` = "NNG", 
                                 # `2` = "ssF", 
@@ -950,11 +985,11 @@ table_plant_statsmeans <- means %>%
   ) %>% 
     mutate(
     solarsig = case_when(
-      plant_cluster == "1" ~ " (ac)",
-      plant_cluster == "2" ~ " (ac)",
-      plant_cluster == "3" ~ " (c)",
-      plant_cluster == "4" ~ " (a)",
-      plant_cluster == "5" ~ " (b)",
+      plant_cluster == "1" ~ " (ab)",
+      plant_cluster == "2" ~ " (b)",
+      plant_cluster == "3" ~ " (a)",
+      plant_cluster == "4" ~ " (b)",
+      plant_cluster == "5" ~ " (c)",
       TRUE ~ NA_character_  # Optional: fill with NA if no match
     )
   ) %>% 
@@ -1006,6 +1041,54 @@ table_plant_statsmeans <- means %>%
 table_plant_statsmeans
 
 ```
+
+### - stats
+```{r}
+# Here I'm prepping the data: df = env_vars
+env_vars <- boxdf[, c("slope", "southwestness", "total_solrad", "twi")]
+
+# Here I'm running a PERMANOVA
+adonis2(env_vars ~ plant_cluster, data = boxdf, method = "euclidean", permutations = 999)
+#          Df   SumOfSqs      R2     F Pr(>F)    
+# Model     4 1369471011 0.61746 13.72  0.001 *** <-- sig - these plant clusters did not occur by chance. 
+# Residual 34  848421755 0.38254                 
+# Total    38 2217892766 1.00000  
+# Output: plant_cluster explains 61.7% of environmental variation, p = 0.001
+
+# Here is an ordinations to visualize the data - PCA
+pca_env <- rda(env_vars) # PCA on environmental variables
+
+# Fit vectors to see which environmental variables and clusters correlate with PCA axes
+ef_vars <- envfit(pca_env, env_vars, permutations = 999) # Environmental variable vectors
+# Here I'm figuing out which clusters correlate with environmental gradients
+ef_clusters <- envfit(pca_env, boxdf$plant_cluster, permutations = 999)
+
+# plot PCA with vectors - run together
+plot(pca_env, type = "n")  # empty canvas
+points(pca_env, display = "sites", col = boxdf$plant_cluster, pch = 16) # points colored by plant cluster
+plot(ef_vars, col = "blue") # overlay envfit vectors; environmental variable arrows
+plot(ef_clusters, col = "red")   # cluster centroid arrows
+
+# - Optional: add ellipses around clusters
+# ordiellipse(pca_env, boxdf$plant_cluster, kind = "sd", conf = 0.95, label = TRUE)
+par(cex.axis = 1.5, cex.lab = 1.5, cex.main = 1.8)  # increase overall text
+
+# Empty PCA canvas
+plot(pca_env, type = "n", main = "PCA of Environmental Variables")
+
+# Points colored by cluster, bigger size
+points(pca_env, display = "sites", col = boxdf$plant_cluster, pch = 16, cex = 1.5)
+
+# Overlay environmental vectors (blue)
+plot(ef_vars, col = "blue", cex = 1.2, length = 0.1)
+
+# Overlay cluster centroid vectors (red)
+plot(ef_clusters, col = "black", cex = 1.2, length = 0.1)
+
+
+```
+
+
 
 ### MEANS by environ (n=3) 
 
@@ -1508,7 +1591,7 @@ fig_twi
 fig_fire <- ggplot(data = environ_trans,
        aes(x = fire_event_count, 
            y = grass_nonnative*100)) + 
-      geom_point(aes(color = cluster), size = 3) +
+      geom_point(aes(color = cluster), size = 3) 
    # scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
   geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
   labs(
