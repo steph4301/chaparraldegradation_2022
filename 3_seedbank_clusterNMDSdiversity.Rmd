@@ -95,10 +95,10 @@ str(seedbank_load)
 
 ## Trifolium spp. isn't in the germination density list, but it IS in the germination species list.
 
-germination_m2_raw <- read_xlsx("processed/old_processed/germination_m2.xlsx")
-average_cover <- read.csv("nat_nn_cover.csv", header = TRUE, na.strings=c("","NA"))
+germination_m2_raw <- read_xlsx("processed/old_processed/germination_m2.xlsx") # does not include pre-treatment
+average_cover <- read.csv("nat_nn_cover.csv", header = TRUE, na.strings=c("","NA")) # DEG 1, 2; ENH 1, 2; INT 1, 2, 3
 
-germination_depthtreat <- germination_m2_raw %>%
+germination_depthtreat <- germination_m2_raw %>% # does not include pre-treatment
   mutate(site = fct_relevel(site, 
             "INT1", "INT2", "INT3","ENH1", "ENH2", "DEG1", "DEG2")) %>% 
   mutate(treatment = fct_relevel(treatment, 
@@ -110,85 +110,23 @@ germination_depthtreat <- germination_m2_raw %>%
        TRUE ~ as.character(lifescycle))) %>% # Keep other observations unchanged
   mutate(species_diversity = case_when(
     species_diversity == "Ribes spp." ~ "Ribes malvaceum",
-    TRUE ~ as.character(species_diversity)
-  ))
+    species_diversity == "Bromus madritensis" ~ "Bromus rubens",
+    species_diversity %in% c("Erodium cicutarium", "Erodium moschatum") ~ "Erodium spp.",
+    species_diversity %in% c("Phacelia viscida", "Phacelia tanacetifolia") ~ "Phacelia spp.",
+    TRUE ~ as.character(species_diversity)))
+  
+
 
 glimpse(germination_depthtreat)
-
+sort(unique(germination_depthtreat$species_diversity))
 Trifolspp <- germination_depthtreat %>% 
   filter(str_detect(species_diversity, "Trifolium"))
-sort(unique(Trifolspp$sp))
-
-
-########### load species characteristics list
-
-abcover_charateristics_load <- read.csv("processed/ab_specieslistwithcharateristics_08102024.csv", header = TRUE, na.strings=c("","NA")) %>% 
-  dplyr::select(!c(X)) %>% 
-  dplyr::select(species, lifeform, status, lifecycle, family)
-spp_charateristics <- abcover_charateristics_load %>% 
-  distinct(species, .keep_all = TRUE) %>% 
-  mutate(species = case_when(species == "Acmispon glaber" ~ "Acmispon spp.", # oldname ~ newname
-                             species == "Bromus rubens" ~ "Bromus spp.",
-                             species == "Claytonia perfoliata" ~ "Claytonia spp.",
-                             species == "Festuca myros" ~ "Festuca myuros",
-                              TRUE ~ species)) %>% 
-    add_row(species = "Erigeron canadensis",
-          lifeform = "forb",
-          status = "native",
-          lifecycle = "annual",
-          family = "Asteraceae") %>% 
-      add_row(species = "Eucrypta chrysanthemifolia",
-          lifeform = "forb",
-          status = "native",
-          lifecycle = "annual",
-          family = "Hydrophyllaceae") %>% 
-         add_row(species = "Lactuca serriola",
-          lifeform = "forb",
-          status = "nonnative",
-          lifecycle = "annual",
-          family = "Asteraceae") %>% 
-        add_row(species = "Nicotiana glauca",
-          lifeform = "shrub",
-          status = "nonnative",
-          lifecycle = "perennial",
-          family = "Solanacaeae") %>%
-        add_row(species = "Pseudognaphalium californicum",
-          lifeform = "forb",
-          status = "native",
-          lifecycle = "annual",
-          family = "Asteraceae") %>% 
-       add_row(species = "Ribes malvaceum",
-          lifeform = "shrub",
-          status = "native",
-          lifecycle = "perennial",
-          family = "Grossulariaceae") %>% 
-  add_row(species = "Typha domingensis",
-          lifeform = "forb",
-          status = "native",
-          lifecycle = "perennial",
-          family = "Typhaceae")
-      
-sort(unique(abcover_charateristics_load$species))
+sort(unique(Trifolspp$species_diversity))
 
 
 
-Trifolspp1 <- abcover_charateristics_load %>% 
-  filter(str_detect(species, "Trifolium"))
-sort(unique(Trifolspp1$species))
+#################################### DATA PREP
 
-
-##########
-
-setdiff(germination_depthtreat$species_diversity, abcover_charateristics_load$species)
-```
-
-
-# data prep - seedbank raw
-
-```{r preparing df, include = TRUE}
-
-
-####################################    (1) Organize the seed bank data by converting the df into a tibble.
 
 dim(seedbank_load)
 # [1] 2126   13
@@ -199,13 +137,6 @@ dim(seedbank_load)
 seedbank_load <- as_tibble(seedbank_load) 
 # class(seedbank_load) # now a tibble
 
-
-
-
-
-
-
-####################################    (2) Organize the seedbank data by reordering the classes: Intact, Matrix, Degraded.
 
 seedbank_load_v <- seedbank_load %>%
   mutate(stand = fct_relevel(stand, 
@@ -248,11 +179,27 @@ seedbank_load_v <- seedbank_load %>%
     TRUE ~ as.character(genus_abundance)  # Keep other observations unchanged
   )) 
 
+
+#### Here is a list of all the species recorded in the seedbank, treatments: control, oven, char, oven_char 
 sppchar <- seedbank_load_v %>%  
-  dplyr::select(genus_abundance, lifeform, status, lifescycle, family) %>% 
-  rename(species = genus_abundance)
+  # dplyr::select(genus_abundance, lifeform, status, lifescycle, family) %>% 
+  # rename(species = genus_abundance)
+  dplyr::select(species_diversity, lifeform, status, lifescycle, family) %>%
+  rename(species = species_diversity) %>% 
+  distinct() %>% 
+  mutate(species = case_when(
+    species == "Bromus madritensis" ~ "Bromus rubens", 
+    species %in% c("Erodium cicutarium", "Erodium moschatum") ~ "Erodium spp.",
+    species %in% c("Phacelia tanacetifolia", "Phacelia viscida") ~ "Phacelia spp.",
+    species %in% c("Trifolium gracelentum", "Trifolium willdenovii") ~ "Trifolium spp.",
+    
+    # species == "Pseudognaphalium californicum" ~ "Pseudognaphalium luteoalbum" # non-native
+    
+    
+    TRUE ~ species
+  ))
 
-
+sort(unique(sppchar$species))
 
 
 
@@ -294,9 +241,106 @@ seedbank_load_v_omitpretreatment <- seedbank_load_v %>%
 ```
 
 
+### spp characteristics
+```{r}
+########### load species characteristics list
+
+abcover_charateristics_load <-  read.csv("processed/ab_specieslistwithcharateristics_09122025.csv", header = TRUE, na.strings=c("","NA")) %>% 
+  dplyr::select(!c(X)) %>% 
+  dplyr::select(species, lifeform, status, lifecycle, family) %>% 
+  distinct()
+
+spp_charateristics <- abcover_charateristics_load %>% 
+  distinct(species, .keep_all = TRUE) %>% 
+  mutate(species = case_when(species == "Acmispon glaber" ~ "Acmispon spp.", # oldname ~ newname
+                             species == "Bromus rubens" ~ "Bromus spp.",
+                             species == "Claytonia perfoliata" ~ "Claytonia spp.",
+                             species == "Festuca myros" ~ "Festuca myuros",
+                              TRUE ~ species)) %>% 
+    add_row(species = "Erigeron canadensis",
+          lifeform = "forb",
+          status = "native",
+          lifecycle = "annual",
+          family = "Asteraceae") %>% 
+      add_row(species = "Eucrypta chrysanthemifolia",
+          lifeform = "forb",
+          status = "native",
+          lifecycle = "annual",
+          family = "Hydrophyllaceae") %>% 
+         add_row(species = "Lactuca serriola",
+          lifeform = "forb",
+          status = "nonnative",
+          lifecycle = "annual",
+          family = "Asteraceae") %>% 
+        add_row(species = "Nicotiana glauca",
+          lifeform = "shrub",
+          status = "nonnative",
+          lifecycle = "perennial",
+          family = "Solanacaeae") %>%
+        add_row(species = "Pseudognaphalium californicum",
+          lifeform = "forb",
+          status = "native",
+          lifecycle = "annual",
+          family = "Asteraceae") %>% 
+       add_row(species = "Ribes malvaceum",
+          lifeform = "shrub",
+          status = "native",
+          lifecycle = "perennial",
+          family = "Grossulariaceae") %>% 
+  add_row(species = "Typha domingensis",
+          lifeform = "forb",
+          status = "native",
+          lifecycle = "perennial",
+          family = "Typhaceae") %>% 
+
+   add_row(species = "Malacothrix saxatilis",
+           lifecycle = "perennial", 
+          lifeform = "forb", 
+          status = "native", 
+          family = "Asteraceae") %>% 
+    add_row(species = "Penstemon heterophyllus",
+           lifecycle = "perennial", 
+          lifeform = "forb", 
+          status = "native", 
+          family = "Plantaginaceae") %>% 
+    add_row(species = "Ribes spp.",
+           lifecycle = "perennial", 
+          lifeform = "shrub", 
+          status = "native", 
+          family = "Grossulariaceae") %>% 
+  add_row(species = "Ribes malvaceum",
+           lifecycle = "perennial", 
+          lifeform = "shrub", 
+          status = "native", 
+          family = "Grossulariaceae") 
+      
+sort(unique(spp_charateristics$species))
 
 
-# data prep for ...
+
+Trifolspp1 <- spp_charateristics %>% 
+  filter(str_detect(species, "Trifolium"))
+sort(unique(Trifolspp1$species))
+
+
+##########
+#These are the species that are in germination_depthtreat that are NOT in abcover_charateristics
+# setdiff(germination_depthtreat$species_diversity, abcover_charateristics_load$species)
+
+#These are the species that are in germination_depthtreat that are NOT in the species list
+difgerm <- setdiff(germination_depthtreat$species_diversity, spp_charateristics$species)
+difgerm
+
+#These are the species that are in the species list that are NOT in germination_depthtreat
+difspplist <- setdiff(spp_charateristics$species, germination_depthtreat$species_diversity)
+difspplist # it doesn't matter how many spp are in the list that aren't found in the seedbank
+
+```
+
+
+
+
+# Cluster data prep
 Data preparation for running NMDS and Cluster analysis
 - data prep
 ```{r updated nmds data prep}
@@ -304,8 +348,9 @@ Data preparation for running NMDS and Cluster analysis
 # sites or observations in rows
 
 germination_depthtreat$site_core_depth_genus <- paste(germination_depthtreat$stand_core_depth, germination_depthtreat$genus_abundance, sep="_") 
+germination_depthtreat$site_core_depth_species <- paste(germination_depthtreat$stand_core_depth, germination_depthtreat$species_diversity, sep="_") 
 
-########### running CLUSTER with MAX n per g per genus_abundance
+########### running CLUSTER with MAX n per g per GENUS_abundance
 seedbank_nperg_bysamplocation <- germination_depthtreat %>% 
   group_by(site_core_depth_genus) %>% 
   dplyr::summarise(max_n_per_g = max(n_per_g)) %>% # take max germ
@@ -322,7 +367,7 @@ seedbank_nperg_bysamplocation <- germination_depthtreat %>%
 separate(col = site_core_genus, into = c("site", "core", "genus_abundance"), sep = "_") %>%
    mutate(stand_core = paste(site, core, sep = "_")) %>% 
   dplyr::select(site, stand_core, genus_abundance, totalgerm_nperg_genus)
-   
+
 
 ########### running CLUSTER with SUM n per g
 # seedbank_nperg_bysamplocation_old <- germination_depthtreat %>%
@@ -333,6 +378,27 @@ separate(col = site_core_genus, into = c("site", "core", "genus_abundance"), sep
 # 
 # head(seedbank_nperg_bysamplocation) # df before transpose - use for ellipses
 # dim(seedbank_nperg_bysamplocation) #330   5
+
+
+########### running CLUSTER with MAX n per g per SPECIES_abundance
+seedbank_nperg_bysamplocationspp <- germination_depthtreat %>% 
+  group_by(site_core_depth_species) %>% 
+  dplyr::summarise(max_n_per_g = max(n_per_g)) %>% # take max germ
+  separate(col = site_core_depth_species, into = c("site", "core", "depth", "species"), sep = "_") %>%
+   mutate(site_core = paste(site, core, sep = "_")) %>% 
+   mutate(site_core_species = paste(site_core, species, sep = "_")) %>% 
+  dplyr::select(depth, max_n_per_g, site_core_species) %>% 
+  pivot_wider(names_from = depth, values_from = max_n_per_g) %>% 
+ mutate(across(c(deep, surface), ~replace_na(.x, 0))) %>% 
+  rowwise() %>% 
+  mutate(totalgerm_nperg_species = mean(c(surface, deep), na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  mutate(check = (deep+surface)/2) %>% 
+separate(col = site_core_species, into = c("site", "core", "species_abundance"), sep = "_") %>%
+   mutate(stand_core = paste(site, core, sep = "_")) %>% 
+  dplyr::select(site, stand_core, species_abundance, totalgerm_nperg_species)
+   
+
 ```
 
  - transpose data 
@@ -361,7 +427,7 @@ seedbank_nperg_bysamplocation_nmdsprep_num <- seedbank_nperg_bysamplocation_nmds
 dim(seedbank_nperg_bysamplocation_nmdsprep_num) # 26 55
 ```
 
-### CLUSTER
+### CLUSTER - genus
 
 Hierarchical Agglomerative Clustering
 ```{r}
@@ -852,7 +918,251 @@ grid.arrange(seed.nmds_nat,
 
 ```
 
+### CLUSTER - species
+```{r}
+# Here you're transposing the data
+seedbank_nperg_bysamplocationspp_nmdsprep <- seedbank_nperg_bysamplocationspp %>% 
+ tidyr::spread(species_abundance, totalgerm_nperg_species) %>% # transpose data so columns are species names
+  replace(is.na(.), 0)
 
+### Here you're replacing NAs with 0s
+seedbank_nperg_bysamplocationspp_nmdsprep_num <- seedbank_nperg_bysamplocationspp_nmdsprep %>% 
+    ungroup() %>% 
+  dplyr::select(!c('site', 'stand_core')) %>% 
+  replace(is.na(.), 0)
+  
+dim(seedbank_nperg_bysamplocationspp_nmdsprep_num) # 26 61
+
+```
+- Hierarchical Agglomerative Clustering
+```{r}
+
+# NAME data set
+df <- seedbank_nperg_bysamplocationspp_nmdsprep_num
+
+
+# Calculate distance measure matrix, Bray is the best for community data
+d <- vegdist(df, method = "bray") 
+
+
+# Check which method produces best clustering
+m <- c( "average", "single", "complete", "ward", "gaverage")
+names(m) <- c( "average", "single", "complete", "ward", "gaverage")
+
+# function to compute coefficient
+ac <- function(x) {agnes(d, method = x, diss = TRUE, par.method = -0.25)$ac}
+
+# Best method?
+map_dbl(m, ac)
+# Best method is ward at 0.8069962 (number closest to 1)
+
+
+
+#########################
+#### Find optimal number of clusters
+
+# Scree plot  
+fviz_nbclust(df, FUN = hcut, diss = d, method = "wss", hc_method = "ward.D2")
+
+# Average Silhouette
+# Measures how similar an object is to its own cluster (cohesion) compared to other clusters (separation). The Average Silhouette Width is the mean of all silhouette scores within a cluster or across all clusters.
+# S ≈ 1: The point is well clustered
+fviz_nbclust(df, FUN = hcut, diss = d, method = "silhouette", hc_method = "ward.D2")
+# 5 groups has the highest Avg Silhouette
+
+# Gap Stat
+# Compares the total within-cluster variation for different numbers of clusters with their expected values under a null reference distribution of the data (i.e., uniformly distributed points).
+# The optimal number of clusters is the smallest k such that the Gap Statistic is maximized or the first local maximum occurs, indicating that adding more clusters does not significantly improve the clustering.
+fviz_nbclust(df, FUN = hcut, diss = d, method = "gap_stat", hc_method = "ward.D2")
+# 2 gruops is best
+
+# Above tests suggest at least two, but are also not conclusive...
+
+# Define function to compute Mantel correlation tests for different cluster assignments
+compute_mantel_correlation <- function(hclust_obj, distance_matrix) {
+
+  # Initialize variables to store results
+  mantel_correlation <- numeric(length = length(hclust_obj$order) - 1)
+  
+  # Iterate through different numbers of clusters
+  for (k in 2:length(hclust_obj$order)) {
+    cluster_assignments <- cutree(hclust_obj, k = k)
+    cluster_distance <- as.matrix(dist(cluster_assignments))
+    mantel_result <- mantel(cluster_distance, distance_matrix)
+    mantel_correlation[k - 1] <- mantel_result$statistic
+    # Print Mantel correlation for each number of clusters
+    print(paste("Mantel Correlation (r) for", k, "clusters:", mantel_result$statistic))
+  }
+  
+  return(mantel_correlation)
+}
+
+# Create Cluster and then run tests
+Hclust.result <- agnes(d, method = "gaverage", par.method = -0.25)
+mantel_results <- compute_mantel_correlation(Hclust.result, d)
+
+# Find the optimal number of clusters based on the largest Mantel correlation, r
+optimal_clusters <- which.max(mantel_results) + 1  # Add 1 to convert index to number of clusters
+print(paste("Optimal Number of Clusters:", optimal_clusters))
+# [1] "Optimal Number of Clusters: 3"
+
+####
+#### Use ISA to determine optimal clusters
+
+# Function to run multipatt() on k iterations of clusters and extract ISA values
+run_multipatt_and_extract_ISA <- function(data, max_clusters) {
+  # Initialize an empty dataframe to store ISA values
+  isa_df <- data.frame(Species = colnames(data))
+  
+  # Iterate through different numbers of clusters
+  for (k in 2:max_clusters) {
+    cluster_assignments <- cutree(agnes(vegdist(data, method = "bray"), method = "gaverage", par.method = -0.25), k = k)
+    
+    # Convert cluster assignments to a factor
+    cluster_factor <- as.factor(cluster_assignments)
+    
+    # Run multipatt() with the cluster factor
+    multipatt_result <- multipatt(data, cluster = cluster_factor, duleg = FALSE)
+    
+    # Extract ISA values and p-values
+    isa_values <- multipatt_result$sign$index
+    p_values <- multipatt_result$sign$p.value
+    
+    # Filter by p-value <= 0.05
+    significant_isa_values <- ifelse(p_values <= 0.05, isa_values, NA)
+    
+    # Extract ISA values for each species and add to the dataframe
+    isa_df[[as.character(k)]] <- significant_isa_values
+  }
+  
+  return(isa_df)
+}
+
+
+max_clusters <- 10  # Maximum number of clusters to iterate through
+
+# Run multipatt() and extract ISA values for each species
+isa_data <- run_multipatt_and_extract_ISA(df, max_clusters)
+
+# Frequency distribution of number of significant ISA in each cluster step
+frq.ISA <- isa_data %>%
+  pivot_longer(cols = 2:10, names_to = "Cluster", values_to = "ISA_SCORE") %>%
+  drop_na() %>% 
+  group_by(Cluster) %>% 
+  summarise(count = n()) %>% 
+  arrange(as.numeric(Cluster))
+
+
+#######
+# Now calculate the sum of the differences in ISA scores from one step to the next
+# When the indicator values of all species are decreasing, the clustering method does not explain anything more. 
+# Take difference of species index values
+
+isa.diff.data <- isa_data %>% 
+  mutate(k2 = `2`-`3`) %>% 
+  mutate(k3 = `3`-`4`) %>%
+  mutate(k4 = `4`-`5`) %>%
+  mutate(k5 = `5`-`6`) %>%
+  mutate(k6 = `6`-`7`) %>%
+  mutate(k7 = `7`-`8`) %>%
+  mutate(k8 = `8`-`9`) %>%
+  mutate(k9 = `9`-`10`) 
+
+isa.diff.sum <- isa.diff.data %>%
+  dplyr::select(Species, 11:18) %>% 
+  pivot_longer(cols = 2:9, names_to = "Cluster", values_to = "ISA_SCORE") %>% 
+  drop_na() %>%
+  filter(ISA_SCORE <= 0)%>% 
+  arrange(by = Cluster) %>% 
+  group_by(Cluster) %>% 
+  summarise(sum = sum(ISA_SCORE))
+# view(isa.diff.sum)
+
+ggplot(isa.diff.sum,
+       aes(x = Cluster,
+           y = sum)) +
+  geom_bar(stat = "identity") +
+  labs(title = "", x = "Cluster", y = "Value") +
+  theme_minimal()
+
+# 5 clusters kinda looks nice
+# 3 clusters would also work
+
+
+# 
+# # Beta average
+# hcluster.abs.cover <- agnes(d, method = "gaverage", par.method = -0.25)
+# 
+# plot(hcluster.abs.cover)
+# rect.hclust(hcluster.abs.cover, k = 3)
+# 
+# # Cut tree into groups
+# sub_grp <- cutree(hcluster.abs.cover, k = 3)
+# 
+# # Number of members in each cluster
+# table(sub_grp)
+# 
+# # Calculate the distance to centroid for each cluster
+# bd <- betadisper(d, sub_grp)
+# centroid_coords <- bd$centroids
+# centroid_distances <- round(vegdist(centroid_coords, method = "euclidean"), 2) # Calculate the distances between the centroids
+# 
+# 
+# # Combine group labels into species matrix
+# temp.df <- seedbank_nperg_bysamplocation_nmdsprep %>% 
+#   rownames_to_column() 
+# 
+# my_groups <- as.data.frame(sub_grp) %>% 
+#   rownames_to_column()
+# 
+# seed.subgrp.df <- left_join(temp.df, my_groups, by = "rowname") %>% 
+#   dplyr::select(rowname, sub_grp, site, stand_core)
+# 
+# # Create a combined label
+# combined_labels <- paste(seed.subgrp.df$sub_grp, seed.subgrp.df$stand_core, sep = " - ")
+# 
+# # Plot the hierarchical clustering dendrogram with the combined labels
+# plot(hcluster.abs.cover, labels = combined_labels, main = "Hierarchical Clustering Dendrogram")
+# rect.hclust(hcluster.abs.cover, k = 3)
+# 
+# ################
+# # Indicator Species Analysis
+# 
+# ISA.abs.cover <- multipatt(x = df, cluster = sub_grp, duleg = FALSE)
+# 
+# # A = The values are the **specificity** component of IV for that species in that combination of groups.
+# # B = The values are the **fidelity** component of IV for that species in that combination of groups
+# summary(ISA.abs.cover, indvalcomp=TRUE)
+# 
+# 
+# ##############
+# # Does community composition differ among groups?
+# 
+# # Check for homogeneity of dispersion among groups, required for MANOVA
+# trt <- as.character(my_groups$sub_grp)
+# 
+# # There is significant dispersion within groups, and groups are unbalanced --- cannot use MANOVA (adonis)
+# anova(betadisper(d, trt))
+# 
+# mod <- betadisper(d, trt)
+# 
+# TukeyHSD(mod)
+# 
+# boxplot(mod)
+# 
+# plot(mod)
+# 
+# # Best option is MRPP
+# # The key idea is simple: if groups differ, the mean within-group dissimilarity should be smaller
+# # than the mean dissimilarity among randomly selected groups of the same size.
+# # Sort of low effect size but groups are meaningful!
+# results <- mrpp(d, grouping = sub_grp, permutations = 999)
+# results
+# 
+
+
+
+```
 
 
 # SPP RICH
@@ -1637,6 +1947,80 @@ kable(shrub_list) # run in console :)
 
 ```
 
+# NATIVE persistant spp
+```{r}
+
+natseed_persist <- seedbank_load %>% # includes pre-treatment
+  dplyr::select(site, soilcore, species_diversity, status, lifeform, lifescycle, family) %>% 
+  mutate(site_core = paste(site, soilcore, sep = "_")) %>% 
+  distinct() %>% 
+  
+  # add percent cover values for plots above ground
+  mutate(nngrasscover = case_when(
+    # DEG soil collection November 2016 - % cover from Feb-March 2017
+    site_core %in% c("DEG1_1") ~ "90.75", # plots 1, 2 <-- see below for avg % nn grass cover
+    site_core %in% c("DEG1_2") ~ "90.5", # plot 3 
+    site_core %in% c("DEG1_3") ~ "88.5", # plot 4, 5
+    site_core %in% c("DEG1_4") ~ "74", # plot 6
+    
+     site_core %in% c("DEG2_5") ~ "48.5",  # plot 7
+     site_core %in% c("DEG1_6") ~ "89",  # plot 9
+     site_core %in% c("DEG1_7") ~ "76",  # plot 11
+    
+    # ENH soil collection June 2019 - % cover from June 2019
+    site_core %in% c("ENH1_1") ~ "10",  # plot 
+    site_core %in% c("ENH1_2") ~ "10",  # plot 
+    site_core %in% c("ENH1_3") ~ "10",  # plot 
+    site_core %in% c("ENH1_4") ~ "10",  # plot 
+    site_core %in% c("ENH1_5") ~ "10",  # plot 
+    
+    site_core %in% c("ENH2_6") ~ "10",  # plot 
+    site_core %in% c("ENH2_7") ~ "10",  # plot 
+    site_core %in% c("ENH2_8") ~ "10",  # plot 
+    site_core %in% c("ENH2_9") ~ "10",  # plot 
+    site_core %in% c("ENH2_10") ~ "10",  # plot 
+    
+    # cover_bylfstatus_wide <- from 1.1_transect_continuous.Rmd
+    site_core %in% c("INT1_1", "INT1_2", "INT1_3") ~ "24.4",  # plot INT 1
+    site_core %in% c("INT2_4", "INT2_5", "INT2_6") ~ "7.32",  # plot INT 2
+    site_core %in% c("INT3_7", "INT3_8", "INT3_9") ~ "12.2",  # plot INT 3
+    )) %>% 
+  mutate(nngrasscover = as.numeric(nngrasscover))
+    
+### nn grass cover in March 2017 - DEG - NO REMOVAL treatments
+# plot 1: (90 + 87)/2 = 88.5
+# plot 2: (96 + 90) / 2 = (93 + 88.5)/2 = 90.75
+# plot 3: (94 + 87) / 2 = 90.5
+# plot 4: (88 + 93)/2 = 90.5
+# plot 5: (91 + 82) /2 = (86.5 + 90.5) / 2 = 88.5
+# plot 6: (60 + 88)/2 = 74
+# plot 7: (15 +82)/2 =  48.5
+# plot 9: (92 + 86) /2 = 89
+# plot 11: (65 + 87) /2 = 76
+
+### nn grass cover in June 2019 - ENH - NO REMOVAL treatments
+# ENH1 1, 2, 3, 4, 5: 45+
+# ENH2 6, 7, 8
+# ENH3 9, 10, 11, 14
+# ENH4 15, 12, 13
+# ENH5 16, 17, 18
+# ENH6 19, 20, 21
+# ENH7 22, 23, 24
+# ENH8 25, 26, 27
+# ENH9 28, 29, 30
+# ENH10 31-36
+
+
+
+
+### nn grass cover  - INT transects
+cover_bylfstatus_wide %>%  #  <- from 1.1_transect_continuous.Rmd
+  filter(site == "INT1" | site == "INT2" | site == "INT3") %>% 
+  dplyr::select(site, grass_nonnative)
+
+natseed_persist
+
+```
 
 
 ```{r}
