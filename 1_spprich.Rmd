@@ -508,7 +508,7 @@ spprich %>%
 
 # TRANSECT spprich
 
-### - x nngrass
+### x = nngrass cover
 ```{r}
 ###### total richness
 spprich_trans <- spprich %>% # transect: total spp richness 
@@ -545,7 +545,8 @@ plot_spprich <- ggplot(data = spprich_trans,
 plot_spprich
 ```
 
-### - x status
+
+##### y = native spprich
 ```{r}
 
 ######## richness by status
@@ -559,19 +560,29 @@ spprich_trans_status <- spprich %>%  # transect: spp richness by status
          site_rep == "INT5_5" ~ "INT5_1", TRUE ~ site_rep))
      ), by = c("site_rep"))
 
+spprich_native <- spprich_trans_status %>%  
+  filter(status == "native")
 
-plot_spprich_native <- ggplot(data = spprich_trans_status 
-                              %>%  filter(status == "native"), # or status == "nonnative"
+spprich_nn <- spprich_trans_status %>%  
+ filter(status == "nonnative")
+
+
+##### native 
+
+plot_spprich_native <- ggplot(data = spprich_native, # or status == "nonnative"
        aes(x = grass_nonnative*100, 
          y = N_spprich)) + 
-      geom_point(aes(color = status, shape = status), size = 3) +
-  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+      geom_point( 
+        aes(color = cluster),
+        size = 3) +
+   scale_color_manual(values = colors_plantclusters) +
+ stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +  # polynomial fit
+
   labs(
     #  title = "Linear regression of  total shrub cover by non-native grass cover",
     x = "Non-native grass cover (%)",
-    y = "Species Richness (n)", 
-   color = "Status", 
-   shape = "Status"
+    y = "Native species richness (n)",
+    color = "Plant cluster"
     ) +
   scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
   scale_y_continuous(limits = c(0, 30), breaks = seq(0, 30, by = 5), expand = expansion(mult = c(0, 0.05))) + # Set y-axis limits and breaks
@@ -582,16 +593,63 @@ plot_spprich_native <- ggplot(data = spprich_trans_status
   theme(legend.text=element_text(size = 16))
 
 
-
-
 plot_spprich_native
+
+
+########################## stats
+
+# 1. Correlation - Compute a correlation coefficient to see if the two are associated
+cor.test(spprich_native$grass_nonnative, 
+         spprich_native$N_spprich)
+# NATIVE
+# p-value = 0.001723
+# cor = -0.4799879 
+
+# NN
+# p-value = 0.4267
+
+
+# 2. Linear regression
+lm(N_spprich ~ grass_nonnative, data = spprich_native) 
+
+# 3. Polynomial Regression (Curvilinear Trends) - Fit a model where shrub cover changes in a curve (concave or convex) with grass cover.
+model_poly <- lm(N_spprich ~ poly(grass_nonnative, 2), data = spprich_native)
+summary(model_poly)
+
+# 4. Generalized Additive Models (GAMs) - If you don’t want to assume the shape (e.g., parabola), GAMs let the data “decide” the curve:
+model_gam <- gam(N_spprich ~ s(grass_nonnative), data = spprich_native)
+summary(model_gam)
+plot(model_gam)
+
+# 5. Threshold or Breakpoint Models (Piecewise Regression)
+# Here you test whether there’s a breakpoint in grass cover where the relationship with shrubs changes slope:
+model_lin <- lm(N_spprich ~ grass_nonnative, data = spprich_native) #linear regression (same as above)
+model_seg <- segmented(model_lin, seg.Z = ~ grass_nonnative,
+                       npsi = 1) # one breakpoint
+summary(model_seg)
+plot(model_seg) 
+# NATIVE 14.7% 
+# NN 58.5%
+
+# 6. Quantile Regression - Sometimes the average trend isn’t the full story — for example, shrubs may persist under moderate grass cover only in the “best-case” sites. Quantile regression shows how the relationship differs across the distribution of shrub cover.
+model_qr <- rq(N_spprich ~ grass_nonnative, tau = 0.9, data = spprich_native)
+summary(model_qr)
+
+
+
+
+### MODEL COMPARISON
+# To decide if non-linear/threshold models are “better” than linear:
+# Compare models using AIC:
+(AIC(model_lin, model_poly, model_gam, model_seg)) # Best models: GAM, segmented
+# Lower/more negative AIC = better fit.
 
 ```
 
-### - x status and lifeform
+##### y = native herb spprich
 ```{r}
 
-######## richness by status and lifeform
+######## richness by status and lifeform - data prep
 spprich_trans_status_lf <- spprich %>%  
   distinct() %>% 
   group_by(site_rep, status, lifeform) %>% 
@@ -601,8 +659,73 @@ spprich_trans_status_lf <- spprich %>%
        mutate(site_rep = case_when(
          site_rep == "INT5_5" ~ "INT5_1", TRUE ~ site_rep))
      ), by = c("site_rep"))
+spprich_trans_status_lf
+```
+
+```{r}
+##### native herb spprich
+herb_spprich <- spprich %>% 
+ 
+   # here I am creating the "herb" category (native and nonnative)
+  filter(lifeform =="forb" | lifeform == "grass" | lifeform == "forb or vine") %>% 
+  group_by(site_rep, status) %>% 
+  dplyr::summarize(N_spprich = length(species)) %>% 
+  mutate(lifeform = "herb") %>% 
+  
+  # here I am joining the "herb" data with the other lifeform data 
+  bind_rows(spprich %>%  
+  distinct() %>% 
+  group_by(site_rep, status, lifeform) %>% 
+  summarize(N_spprich = length(species))
+  ) %>%
+  
+  # here I am joining the % cover data by site_rep
+  left_join(
+    (herb_cover_wide %>% 
+       mutate(site_rep = case_when(
+         site_rep == "INT5_5" ~ "INT5_1", TRUE ~ site_rep))
+     ), by = c("site_rep"))
 
 
+
+herb_spprich
+
+
+
+```
+
+
+```{r}
+%>% 
+  mutate( = "herb_native") %>% 
+  bind_rows(cover_bylfstatus) 
+
+herb_cover_wide <- herb_cover %>% 
+  pivot_wider(names_from = "lifeform_status", values_from = "lifeform_status_percentcover") %>% 
+  replace_na(replace = list(grass_native = 0,  # Replace NA with 0 for each value column
+                             grass_nonnative = 0,
+                             forb_native = 0,
+                             forb_nonnative = 0,
+                             forb_unknown = 0,
+                             shrub_native = 0,
+                             fern_native = 0,
+                             unknown_unknown = 0, 
+                            herb_native = 0)) %>% 
+   left_join(groupsdash, by = "site_rep") %>% 
+  mutate(cluster = as.character(cluster)) %>% 
+   mutate(cluster = case_when(
+                            cluster == "1" ~ "NNG",
+                             cluster == "3" ~ "ssG",
+                             cluster == "2" ~ "ssF",
+                             cluster == "4" ~ "ssFG",
+                             cluster == "5" ~ "EVG",
+                             TRUE ~ cluster)) %>% 
+  mutate(cluster = factor(cluster, levels = c("NNG", "ssG", "ssF", "ssFG", "EVG")))
+
+```
+
+##### y = native shrub spprich
+```{r}
 ### shrubs
 plot_spprich_shrub <- ggplot(data = spprich_trans_status_lf %>% 
                                # filter(grass_nonnative < .6) %>% 
@@ -610,14 +733,14 @@ plot_spprich_shrub <- ggplot(data = spprich_trans_status_lf %>%
                                
        aes(x = grass_nonnative*100, 
          y = N_spprich)) + 
-      geom_point(aes(color = status, shape = status), size = 3) +
-  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+      geom_point(aes(color = cluster), size = 3) +
+  scale_color_manual(values = colors_plantclusters) +
+  stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
   labs(
     #  title = "Linear regression of  total shrub cover by non-native grass cover",
     x = "Non-native grass cover (%)",
     y = "Native shrub speices richness (n)", 
-   color = "Status", 
-   shape = "Status"
+   color = "Plant cluster"
     ) +
   scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
   scale_y_continuous(limits = c(0, 30), breaks = seq(0, 30, by = 5), expand = expansion(mult = c(0, 0.05))) + # Set y-axis limits and breaks
@@ -628,20 +751,23 @@ plot_spprich_shrub <- ggplot(data = spprich_trans_status_lf %>%
   theme(legend.text=element_text(size = 16))
 
 plot_spprich_shrub
+```
 
+##### y = nn grass spprich
+```{r}
 plot_spprich_nng <- ggplot(data = spprich_trans_status_lf 
                               %>%  filter(status == "nonnative" & lifeform == "grass"), 
        aes(x = grass_nonnative*100, 
          y = N_spprich)) + 
-      geom_point(aes(color = status, shape = status), size = 3) +
-  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+      geom_point(aes(color = cluster), size = 3) +
+  scale_color_manual(values = colors_plantclusters) +
+  # geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
  stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
     labs(
     #  title = "Linear regression of  total shrub cover by non-native grass cover",
     x = "Non-native grass cover (%)",
     y = "Non-native grass species richness (n)", 
-   color = "Status", 
-   shape = "Status"
+   color = "Plant cluster"
     ) +
   scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
   scale_y_continuous(limits = c(0, 6), breaks = seq(0, 5, by = 1), expand = expansion(mult = c(0, 0.05))) + # Set y-axis limits and breaks
@@ -653,12 +779,13 @@ plot_spprich_nng <- ggplot(data = spprich_trans_status_lf
 
 plot_spprich_nng
 
+
 ```
 
 ### - by lifecycle
 ```{r}
 
-######## richness by status and lifeform
+######## richness by status and lifeform and lifecycle
 spprich_trans_status_lf_lc <- spprich %>%  
   distinct() %>% 
   group_by(site_rep, status, lifeform, lifecycle) %>% 
@@ -697,7 +824,7 @@ plot_spprich_perennial <- ggplot(data = spprich_trans_status_lf_lc %>%
   theme(legend.text=element_text(size = 16))
 
 
-### perennial
+### annual
 plot_spprich_annual <- ggplot(data = spprich_trans_status_lf_lc %>% 
           group_by(site_rep, lifecycle, grass_nonnative) %>% 
           summarize(tot_N_spprich = sum(N_spprich)) %>% 
@@ -722,7 +849,7 @@ plot_spprich_annual <- ggplot(data = spprich_trans_status_lf_lc %>%
   theme(axis.title = element_text(size = 20)) + # axes titles
   theme(legend.title=element_text(size = 16)) + 
   theme(legend.text=element_text(size = 16))
-
+plot_spprich_annual
 
 
 ```
