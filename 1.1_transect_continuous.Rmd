@@ -112,9 +112,9 @@ colors_status <- c(native, nonnative, unknown)
 
 # Plant clusters
 NNG <- "orange"
-ssG <- "blue"
+ssG <- "gray"
 ssF <- "hotpink"
-ssFG <- "gray"
+ssFG <- "blue"
 EVG <- "green"
 colors_plantclusters <- c(NNG, ssG, ssF, ssFG, EVG)
 
@@ -1435,14 +1435,19 @@ nngxnatshr <- ggplot(data = cover_bylfstatus_wide,
     ) +
   scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
   scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
-  theme_bw() #+ 
-  # annotate("text", x = 5, y = 5, label = eq_label, color = "black", size = 4, hjust = 0)
+  theme_bw() +
+  theme(axis.text = element_text(size = 16)) + # axes numbers - font size
+  theme(axis.title = element_text(size = 20)) + # axes titles
+  theme(legend.title=element_text(size = 16)) + 
+  theme(legend.text=element_text(size = 16))
+
 nngxnatshr
 ```
 
 -- stats
 Types of linear regressions:
 - Correlations
+- Linear regression = straight line
 - Polynomial regression = test for simple curvature.
 - GAMs = flexible non-linear trend.
 - Piecewise regression = detect thresholds or breakpoints.
@@ -1461,12 +1466,17 @@ summary(
 
 # sand box
 
+# how to report correlations in manuscipts: 
+# https://www.statology.org/how-to-report-pearson-correlation/
+# https://phdassistance.com/academy/reporting-regression-analysis/ 
+
 ################################################################ 
 ##### other regression and correlation tests between nn grass cover and shrub cover
 
 
 # Takeaway:
-# Correlations
+# Correlations - linear
+# Linear regression
 # Polynomial regression = test for simple curvature.
 # GAMs = flexible non-linear trend.
 # Piecewise regression = detect thresholds or breakpoints.
@@ -1945,6 +1955,50 @@ nngxnatforb <- ggplot(data = cover_bylfstatus_wide,
   theme(legend.text=element_text(size = 16))
 
 nngxnatforb
+
+####################
+
+df <- cover_bylfstatus_wide
+
+
+# 1. Correlation - Compute a correlation coefficient to see if the two are associated
+cor.test(df$grass_nonnative, 
+         df$forb_native)
+
+
+# 2. Linear regression
+lm(forb_native ~ grass_nonnative, data = df) 
+
+# 3. Polynomial Regression (Curvilinear Trends) - Fit a model where shrub cover changes in a curve (concave or convex) with grass cover.
+model_poly <- lm(forb_native ~ poly(grass_nonnative, 2), data = df)
+summary(model_poly)
+
+# 4. Generalized Additive Models (GAMs) - If you don’t want to assume the shape (e.g., parabola), GAMs let the data “decide” the curve:
+model_gam <- gam(forb_native ~ s(grass_nonnative), data = df)
+summary(model_gam)
+plot(model_gam)
+
+# 5. Threshold or Breakpoint Models (Piecewise Regression)
+# Here you test whether there’s a breakpoint in grass cover where the relationship with shrubs changes slope:
+model_lin <- lm(forb_native ~ grass_nonnative, data = df) #linear regression (same as above)
+model_seg <- segmented(model_lin, seg.Z = ~ grass_nonnative,
+                       npsi = 1) # one breakpoint
+summary(model_seg)
+plot(model_seg) 
+
+
+# 6. Quantile Regression - Sometimes the average trend isn’t the full story — for example, shrubs may persist under moderate grass cover only in the “best-case” sites. Quantile regression shows how the relationship differs across the distribution of shrub cover.
+model_qr <- rq(forb_native ~ grass_nonnative, tau = 0.9, data = df)
+summary(model_qr)
+
+
+
+### MODEL COMPARISON
+# To decide if non-linear/threshold models are “better” than linear:
+# Compare models using AIC:
+(AIC(model_lin, model_poly, model_gam, model_seg)) 
+# Lower/more negative AIC = better fit.
+
 ```
 
 ##### - y = native grass
@@ -2016,6 +2070,98 @@ ggplot(data = cover_bylfstatus_wide,
 
 ```
 
+##### - y = native herbaceous cover
+```{r}
+nngxnatherb <- ggplot(data = herb_cover_wide,
+       aes(x = grass_nonnative*100, 
+         y = herb_native*100)) + 
+  
+      geom_point(aes(color = cluster), size = 3) +
+   scale_color_manual(values = colors_plantclusters) +
+  # geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+   stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +  # polynomial fit
+  labs(
+    # title = "Native forb cover by non-native grass cover",
+    x = "Non-native grass cover (%)",
+    y = "Native herbaceous cover (%)" , 
+    color = "Plant cluster"
+    ) +
+  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)
+                     # , expand = expansion(mult = c(0, 0.05))
+                     ) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)
+                     # , expand = expansion(mult = c(0, 0.05))
+                     ) + # Set y-axis limits and breaks
+  theme_bw() + 
+    
+  theme(axis.text = element_text(size = 16)) + # axes numbers - font size
+  theme(axis.title = element_text(size = 20)) + # axes titles
+  theme(legend.title=element_text(size = 16)) + 
+  theme(legend.text=element_text(size = 16))
+
+nngxnatherb
+```
+
+The "best" regression for native herb cover is: poly
+(really they're all the same - all AICs are within 2 of each other)
+```{r}
+
+# sand box
+df = herb_cover_wide
+y = herb_native
+# x = grass_nonnative
+
+
+# Types of regression lines:
+# Correlations
+# Polynomial regression = test for simple curvature.
+# GAMs = flexible non-linear trend.
+# Piecewise regression = detect thresholds or breakpoints.
+# Quantile regression = test upper/lower bounds of the relationship.
+
+
+
+# 1. Correlation - Compute a correlation coefficient to see if the two are associated
+cor.test(herb_cover_wide$grass_nonnative, 
+         herb_cover_wide$herb_native)
+# p-value = 6.78e-05
+# cor = -0.5872979 
+
+# 2. Linear regression
+lm(herb_native ~ grass_nonnative, data = herb_cover_wide) 
+
+# 3. Polynomial Regression (Curvilinear Trends) - Fit a model where shrub cover changes in a curve (concave or convex) with grass cover.
+model_poly <- lm(herb_native ~ poly(grass_nonnative, 2), data = herb_cover_wide)
+summary(model_poly)
+
+# 4. Generalized Additive Models (GAMs) - If you don’t want to assume the shape (e.g., parabola), GAMs let the data “decide” the curve:
+model_gam <- gam(herb_native ~ s(grass_nonnative), data = herb_cover_wide)
+summary(model_gam)
+plot(model_gam)
+
+# 5. Threshold or Breakpoint Models (Piecewise Regression)
+# Here you test whether there’s a breakpoint in grass cover where the relationship with shrubs changes slope:
+model_lin <- lm(herb_native ~ grass_nonnative, data = herb_cover_wide) #linear regression (same as above)
+model_seg <- segmented(model_lin, seg.Z = ~grass_nonnative,
+                       npsi = 1) # one breakpoint
+summary(model_seg)
+plot(model_seg)
+
+# 6. Quantile Regression - Sometimes the average trend isn’t the full story — for example, shrubs may persist under moderate grass cover only in the “best-case” sites. Quantile regression shows how the relationship differs across the distribution of shrub cover.
+model_qr <- rq(herb_native ~ grass_nonnative, tau = 0.9, data = herb_cover_wide)
+summary(model_qr)
+
+
+
+
+### MODEL COMPARISON
+# To decide if non-linear/threshold models are “better” than linear:
+# Compare models using AIC:
+(AIC(model_lin, model_poly, model_gam, model_seg))
+# Lower/more negative AIC = better fit.
+
+
+```
 
 ### Figure 1 - cover regressions
 ```{r}
