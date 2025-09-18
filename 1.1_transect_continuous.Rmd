@@ -2262,173 +2262,6 @@ ggplot(data = groundcover_percent) +
   theme(legend.text=element_text(size = 16))
 ```
 
-```{r}
-
-# figure: bare_rock
-fig_bareground <- 
-  ggplot(data = groundcover_percent %>%
-                              mutate(site = ifelse(str_detect(site, "INT"), "3", site)),
-                           aes(x = grass_nonnative * 100, y = bare_rock*100)) +
-  geom_point(aes(color = site),
-              shape = 16,
-              size = 3,
-              position = position_jitter(width = 0.2, height = 0.1),
-            show.legend = TRUE) +
-   scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
-
-
-
-  # ggplot(data = groundcover_percent) +
-  # 
-  # geom_point(data = groundcover_percent,
-  #           aes(x = grass_nonnative * 100,
-  #               y = bare_rock*100),
-  #             color = bare_rock,
-  #             shape = shape_bare_rock,
-  #             size = 3,
-  #           show.legend = TRUE) +
-
-  
-  labs(
-    color = "Site",
-    shape = "Site",
-    x = "Non-native grass cover (%)",
-    y = "Bare ground cover (%)"
-  ) +
-   scale_x_continuous(
-      limits = c(0, 100),
-      breaks = seq(0, 100, by = 10),
-      expand = expansion(mult = c(0, 0.05))
-     ) +
- scale_y_continuous(
-    limits = c(0, 100),
-    breaks = seq(0, 100, by = 10),
-    expand = expansion(mult = c(0, 0.05))
-  ) +
-   theme_bw() + # theme
-  theme(
-    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
-    # hjust = 0.5 = centered; 1 = right justified
-    axis.text.y = element_text(size = 14),       # Increase y-axis text size
-    axis.title = element_text(size = 16),        # Axis title size
-    # strip.text = element_text(size = 16),        # Facet label text size
-    legend.text = element_text(size = 14),       # Legend text size
-    legend.title = element_text(size = 14),      # Legend title size
-    legend.position = "right"
-  ) +
-  geom_smooth(aes(x = grass_nonnative * 100,
-                  y = bare_rock*100),
-              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE)
- # stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1)  # polynomial fit - error bars go below 0%
-  
-
-# figure: thatch
-fig_thatch <- 
-  # ggplot(data = groundcover_percent) +
-  # 
-  # geom_point(data = groundcover_percent, 
-  #           aes(x = grass_nonnative * 100, 
-  #               y = nonnative_thatch*100), 
-  #             color = nonnative_thatch, 
-  #             shape = shape_nonnative_thatch,
-  #             size = 3, 
-  #           show.legend = TRUE) +
-  
-    ggplot(data = groundcover_percent %>%
-                              mutate(site = ifelse(str_detect(site, "INT"), "3", site)),
-                           aes(x = grass_nonnative * 100, y = nonnative_thatch*100)) +
-  geom_point(aes(color = site),
-              shape = 15,
-              size = 3,
-              position = position_jitter(width = 0.2, height = 0.1),
-            show.legend = TRUE) +
-   scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) + # transects with no non-native thatch: INT5, 1_7
-
-  labs(
-    color = "Site",
-    shape = "Site",
-    x = "Non-native grass cover (%)",
-    y = "Non-native thatch (%)"
-  ) +
-   scale_x_continuous(
-      limits = c(0, 100),
-      breaks = seq(0, 100, by = 10),
-      expand = expansion(mult = c(0, 0.05))
-     ) +
- scale_y_continuous(
-    limits = c(0, 100),
-    breaks = seq(0, 100, by = 10),
-    expand = expansion(mult = c(0, 0.05))
-  ) +
-  # Theme
-  theme_bw() +
-  theme(
-    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
-    # hjust = 0.5 = centered; 1 = right justified
-    axis.text.y = element_text(size = 14),       # Increase y-axis text size
-    axis.title = element_text(size = 16),        # Axis title size
-    # strip.text = element_text(size = 16),        # Facet label text size
-    legend.text = element_text(size = 14),       # Legend text size
-    legend.title = element_text(size = 14),      # Legend title size
-    legend.position = "right"
-  ) + 
-    geom_smooth(aes(x = grass_nonnative * 100,
-                  y = nonnative_thatch*100),
-              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE)
-  # stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1)  # polynomial fit - error bars go below 0%
-
-
-# figure: native_litter_wood
-fig_nativelitter <- ggplot(data = groundcover_percent %>% 
-                              mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
-                           aes(x = grass_nonnative * 100, y = native_litter_wood*100)) +
-  geom_point(aes(color = site),
-              shape = 15,
-              size = 3, 
-              position = position_jitter(width = 0.2, height = 0.1),
-            show.legend = TRUE) +
-   scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
- # Labels
-  labs(
-    color = "Site",
-    shape = "Site",
-    x = "Non-native grass cover (%)",
-    y = "Native litter cover (%)"
-  ) +
-   scale_x_continuous(
-      limits = c(0, 100),
-      breaks = seq(0, 100, by = 10),
-      expand = expansion(mult = c(0, 0.05))
-     ) +
- scale_y_continuous(
-    limits = c(0, 100),
-    breaks = seq(0, 100, by = 10),
-    expand = expansion(mult = c(0, 0.05))
-  ) +
-  # Theme
-  theme_bw() +
-  theme(
-    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
-    # hjust = 0.5 = centered; 1 = right justified
-    axis.text.y = element_text(size = 14),       # Increase y-axis text size
-    axis.title = element_text(size = 16),        # Axis title size
-    # strip.text = element_text(size = 16),        # Facet label text size
-    legend.text = element_text(size = 14),       # Legend text size
-    legend.title = element_text(size = 14),      # Legend title size
-    legend.position = "right"
-  ) +
-    geom_smooth(aes(x = grass_nonnative * 100,
-                  y = native_litter_wood*100),
-              method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE)
- # stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1)  # polynomial fit - error bars go below 0%
- 
-fig_bareground_all
-fig_bareground
-fig_thatch
-fig_nativelitter
-
-```
-
 ### - by cluster
 ```{r}
 
@@ -2441,7 +2274,8 @@ groundcover_percent_cluster <- groundcover_percent %>%
                              cluster == "2" ~ "ssF",
                              cluster == "4" ~ "ssFG",
                              cluster == "5" ~ "EVG",
-                             TRUE ~ cluster)) 
+                             TRUE ~ cluster)) %>% 
+  mutate(cluster = factor(cluster, levels = c("NNG", "ssG", "ssF", "ssFG", "EVG")))
   
 ######### bare ground and rock
 hist(groundcover_percent_cluster$bare_rock)
@@ -2467,10 +2301,10 @@ groundcover_percent_cluster %>%
 # cluster median_nativelitter    Q1    Q3
 #   <chr>                 <dbl> <dbl> <dbl>
 # 1 EVG                   29.3  14.6   41.5
-# 2 NNG                    9.76  7.93  11.6
-# 3 ssF                   17.1  13.4   25.6
 # 4 ssFG                  19.5  14.6   22.6
+# 3 ssF                   17.1  13.4   25.6
 # 5 ssG                   15.8   6.1   28.0
+# 2 NNG                    9.76  7.93  11.6
 
 ######## native litter and wood
 hist(groundcover_percent_cluster$native_litter_wood)
@@ -2550,6 +2384,151 @@ groundcover_percent_cluster %>%
 # 5 ssG               67.1  63.4   81.7
 
 ```
+
+```{r}
+
+# figure: bare_rock
+fig_bareground <- 
+  ggplot(data = groundcover_percent_cluster %>%
+                              mutate(site = ifelse(str_detect(site, "INT"), "3", site)),
+                           aes(x = grass_nonnative * 100, y = bare_rock*100)) +
+  geom_point(aes(color = cluster),
+              shape = 16,
+              size = 3,
+              position = position_jitter(width = 0.2, height = 0.1),
+            show.legend = TRUE) +
+   scale_color_manual(values = colors_plantclusters) +
+  
+  labs(
+    color = "Site",
+    shape = "Site",
+    x = "Non-native grass cover (%)",
+    y = "Bare ground cover (%)"
+  ) +
+   scale_x_continuous(
+      limits = c(0, 100),
+      breaks = seq(0, 100, by = 10),
+      expand = expansion(mult = c(0, 0.05))
+     ) +
+ scale_y_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, by = 10),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+   theme_bw() + # theme
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
+    # hjust = 0.5 = centered; 1 = right justified
+    axis.text.y = element_text(size = 14),       # Increase y-axis text size
+    axis.title = element_text(size = 16),        # Axis title size
+    # strip.text = element_text(size = 16),        # Facet label text size
+    legend.text = element_text(size = 14),       # Legend text size
+    legend.title = element_text(size = 14),      # Legend title size
+    legend.position = "right"
+  ) +
+  # geom_smooth(aes(x = grass_nonnative * 100,
+  #                 y = bare_rock*100),
+  #             method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE)
+ stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1)  # polynomial fit - error bars go below 0%
+  
+
+# figure: thatch
+fig_thatch <- 
+     ggplot(data = groundcover_percent_cluster %>%
+                              mutate(site = ifelse(str_detect(site, "INT"), "3", site)),
+                           aes(x = grass_nonnative * 100, y = nonnative_thatch*100)) +
+  geom_point(aes(color = cluster),
+              shape = 15,
+              size = 3,
+              position = position_jitter(width = 0.2, height = 0.1),
+            show.legend = TRUE) +
+   scale_color_manual(values = colors_plantclusters) + # transects with no non-native thatch: INT5, 1_7
+
+  labs(
+    color = "Site",
+    shape = "Site",
+    x = "Non-native grass cover (%)",
+    y = "Non-native thatch (%)"
+  ) +
+   scale_x_continuous(
+      limits = c(0, 100),
+      breaks = seq(0, 100, by = 10),
+      expand = expansion(mult = c(0, 0.05))
+     ) +
+ scale_y_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, by = 10),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  # Theme
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
+    # hjust = 0.5 = centered; 1 = right justified
+    axis.text.y = element_text(size = 14),       # Increase y-axis text size
+    axis.title = element_text(size = 16),        # Axis title size
+    # strip.text = element_text(size = 16),        # Facet label text size
+    legend.text = element_text(size = 14),       # Legend text size
+    legend.title = element_text(size = 14),      # Legend title size
+    legend.position = "right"
+  ) + 
+    # geom_smooth(aes(x = grass_nonnative * 100,
+    #               y = nonnative_thatch*100),
+              # method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE)
+  stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1)  # polynomial fit - error bars go below 0%
+
+
+# figure: native_litter_wood
+fig_nativelitter <- ggplot(data = groundcover_percent_cluster  %>% 
+                              mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
+                           aes(x = grass_nonnative * 100, y = native_litter_wood*100)) +
+  geom_point(aes(color = cluster),
+              shape = 15,
+              size = 3, 
+              position = position_jitter(width = 0.2, height = 0.1),
+            show.legend = TRUE) +
+   scale_color_manual(values = colors_plantclusters) +
+ # Labels
+  labs(
+    color = "Site",
+    shape = "Site",
+    x = "Non-native grass cover (%)",
+    y = "Native litter cover (%)"
+  ) +
+   scale_x_continuous(
+      limits = c(0, 100),
+      breaks = seq(0, 100, by = 10),
+      expand = expansion(mult = c(0, 0.05))
+     ) +
+ scale_y_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, by = 10),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  # Theme
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
+    # hjust = 0.5 = centered; 1 = right justified
+    axis.text.y = element_text(size = 14),       # Increase y-axis text size
+    axis.title = element_text(size = 16),        # Axis title size
+    # strip.text = element_text(size = 16),        # Facet label text size
+    legend.text = element_text(size = 14),       # Legend text size
+    legend.title = element_text(size = 14),      # Legend title size
+    legend.position = "right"
+  ) +
+    # geom_smooth(aes(x = grass_nonnative * 100,
+    #               y = native_litter_wood*100),
+    #           method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE)
+ stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1)  # polynomial fit - error bars go below 0%
+ 
+fig_bareground_all
+fig_bareground
+fig_thatch
+fig_nativelitter
+
+```
+
 
 # CLUSTER
 ### by percent cover
