@@ -5,9 +5,9 @@ date: "2024-04-23"
 output: html_document
 ---
 
-<-- 1.1_transect_continuous.Rmd
+<-- 1_cluster.Rmd
 
----> 1_spprich.Rmd
+---> 1_july2025.Rmd
 
 
 ```{r setup, include=FALSE}
@@ -798,31 +798,23 @@ cover_bylfstatusleaftype <- abcover_omitground %>%
    dplyr::select(!c(join))
 
 # view(cover_bylfstatusleaftype)
-```
 
-```{r view data - lifeform_status_leaftype_percentcover }
 
-# hist(percentcover$lifeform_status_leaftype_percentcover) 
-# 
-# # jitter - all sites
-# ggplot(data = percentcover,
-#        aes(y = lifeform_status_leaftype_percentcover*100, x = site, color = lifeform_status)) +
-#   geom_point() +
-#   facet_wrap(~lifeform_status)
-# # 
-# # exclude INT transects
-# ggplot(data = cover_bylfstatus %>% filter(site == "1" | site == "2"), 
-#        aes(y = percentcover*100, x = site, color = lifeform_status)) +
-#   geom_point() +
-#   facet_wrap(~lifeform_status)
-# 
-# # only INT sites
-# ggplot(data = cover_bylfstatus %>% filter(site == "INT1" | site == "INT2" | site == "INT3" | site == "INT4" | site == "INT5"),
-#        aes(y = percentcover*100, x = site, color = lifeform_status)) +
-#   geom_point() +
-#   facet_wrap(~lifeform_status)
+##### native herb cover
+herb_cover <- abcover_omitground %>% # total percent cover of shrubs_native
+  filter(lifeform_status == "grass_native" | lifeform_status == "forb_native") %>% 
+   group_by(year, site, transect, site_rep) %>%
+  dplyr::summarize(
+    lfstatus_count_per_transect = n_distinct(site_rep_dist),
+    lifeform_status_percentcover = n_distinct(site_rep_dist)/41 # <-- calculate percent cover by transect, lifeform, and status
+    ) %>%  
+    dplyr::select(!c(lfstatus_count_per_transect)) %>% 
+  ungroup() %>% 
+ mutate(lifeform_status = "herb_native") %>% 
+  bind_rows(cover_bylfstatus) 
 
 ```
+
 
 - Here I'm transposing the dataframes from long to wide  because I want to visualize native shrub by leaftype cover by non-native grass cover.
 ```{r transpose cover_bylfstatus}
@@ -873,6 +865,29 @@ cover_byleaftype_wide <- cover_bylfstatusleaftype %>%
 cover_wide <- cover_byleaftype_wide %>% 
   left_join(cover_bylfstatus_wide, by = c("site_rep", "site", "cluster"))
 
+
+herb_cover_wide <- herb_cover %>% 
+  pivot_wider(names_from = "lifeform_status", values_from = "lifeform_status_percentcover") %>% 
+  replace_na(replace = list(grass_native = 0,  # Replace NA with 0 for each value column
+                             grass_nonnative = 0,
+                             forb_native = 0,
+                             forb_nonnative = 0,
+                             forb_unknown = 0,
+                             shrub_native = 0,
+                             fern_native = 0,
+                             unknown_unknown = 0, 
+                            herb_native = 0)) %>% 
+   left_join(groupsdash, by = "site_rep") %>% 
+  mutate(cluster = as.character(cluster)) %>% 
+   mutate(cluster = case_when(
+                            cluster == "1" ~ "NNG",
+                             cluster == "3" ~ "ssG",
+                             cluster == "2" ~ "ssF",
+                             cluster == "4" ~ "ssFG",
+                             cluster == "5" ~ "EVG",
+                             TRUE ~ cluster)) %>% 
+  mutate(cluster = factor(cluster, levels = c("NNG", "ssG", "ssF", "ssFG", "EVG")))
+
 ```
  
  
@@ -890,7 +905,7 @@ native_aes <- list(
 ### x = shrub cover by leaf type
 
 - y = non-native grass cover 
-```{r shrub_split}
+```{r shrub_split, eval = FALSE}
 
 ########################### SHRUB_SPLIT
 
@@ -1040,9 +1055,8 @@ print(shrub_split)
 
 
 ### x = total shrub
-
 - y = native and non-native grass cover 
-```{r}
+```{r, eval = FALSE}
 
 ############ non-native slope
 # Fit the linear model
@@ -1127,7 +1141,7 @@ ggplot(data = cover_bylfstatus_wide,
 ```
 
 - y = non-native grass cover at SHRUB COVER >50% and <50%
-```{r}
+```{r, eval = FALSE}
 # 
 # shrub_50 <- ggplot(data = (cover_bylfstatus_wide %>%  filter(shrub_native >= .50)), 
 #        aes(x = shrub_native*100,
@@ -1171,9 +1185,8 @@ ggplot(data = cover_bylfstatus_wide,
 
 ```
 
-
 - y = non-native FORB cover
-```{r}
+```{r, eval = FALSE}
 ############ non-native slope
 # Fit the linear model
 model.nnf <- lm(forb_nonnative ~ shrub_native, data = cover_bylfstatus_wide) # response variable ~ independent variable
@@ -1235,10 +1248,8 @@ fig.1d
 
 ```
 
-
-
 - y = shrub cover by leaftype by HILLSLOPE
-```{r}
+```{r, eval = FALSE}
 # ggplot(data = (cover_bylfstatusleaftype %>%
 #                  filter(lifeform_status == "shrub_native") %>%
 #               mutate(site = case_when(
@@ -1309,7 +1320,7 @@ print(paste("Multiple R^2:", r_squared))
 
 ### x = css
 y = non-native grass cover 
-```{r}
+```{r, eval = FALSE}
 ggplot(data = (cover_byleaftype_wide %>%  
                  filter(shrub_native_nonsclero > 0.01)
                ), 
@@ -1406,83 +1417,49 @@ scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-
 ### x = nn grass
 
 ##### - y = total shrub cover
+--  plot
 ```{r}
-# quadratic regression equation:  y = ax² + bx + c
-
-# Fit the linear model
-model.s <- lm(grass_nonnative ~ shrub_native, data = cover_bylfstatus_wide) # response variable ~ independent variable
-
-# Print the summary of the model
-model.s_summary <- summary(model.s)
-intercept <- round(coef(model.s)[1], 2)
-slope <- round(coef(model.s)[2], 2)
-# Extract the R^2 value
-r_squared <- round(model.s_summary$r.squared, 3)
-print(paste("Multiple R^2:", r_squared))
-# [1] "Multiple R^2: 0.734"
-
-
-# adjusted_r_squared <- round(model.s_summary$adj.r.squared, 3)
-# print(paste("Adjusted R^2:", adjusted_r_squared))
-
-# Multiple R-squared = variance in the dependent variable that is predictable from the independent variables.  It indicates how well the independent variables explain the variation in the dependent variable. 
-
-# Adjusted R-squared = adjusts for the number of predictors in the model.  It provides a more accurate measure when comparing models with a different number of predictors.
-
-# Create the label for the equation and R^2
-eq_label <- paste0("y = ", slope, "x + ", intercept, "\n", "R² = ", r_squared)
-
-# original plot
-ggplot(data = cover_bylfstatus_wide 
-        ,
+nngxnatshr <- ggplot(data = cover_bylfstatus_wide, 
        aes(x = grass_nonnative*100,
          y = shrub_native*100)) + 
-      geom_point(aes(color = site), size = 3) +
-   scale_color_manual(values = c("blue", "blue", "maroon", "maroon", "maroon", "maroon", "maroon")) +
-  # geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval 
-  
-  stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
-  
-  labs(
-    #  title = "Linear regression of  total shrub cover by non-native grass cover",
-    x = "Non-native grass cover (%)",
-    y = "Total shrub cover (%)", 
-     color = "Site"
-    ) +
-  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
-  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
-  theme_bw() + 
-  annotate("text", x = 5, y = 5, label = eq_label, color = "black", size = 4, hjust = 0)
-
-# plot updated august 1,
-nngxnatshr <- ggplot(data = cover_bylfstatus_wide %>% 
-                        mutate(cluster = as.character(cluster)) %>% 
-  mutate(cluster = case_when(
-                            cluster == "1" ~ "NNG",
-                             cluster == "3" ~ "ssG",
-                             cluster == "2" ~ "ssF",
-                             cluster == "4" ~ "ssFG",
-                             cluster == "5" ~ "EVG",
-                             TRUE ~ cluster)) %>% 
-    mutate(cluster = factor(cluster, levels = c("NNG", "ssG", "ssF", "ssFG", "EVG"))) ,
-       aes(x = grass_nonnative*100, 
-         y = shrub_native*100)) + 
       geom_point(aes(color = cluster), size = 3) +
-   scale_color_manual(values = c("orange", "grey", "hotpink", "blue", "green")) +
-  # geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
-   stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) + 
+   scale_color_manual(values = colors_plantclusters) +
+
+    stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
+  
   labs(
     #  title = "Linear regression of  total shrub cover by non-native grass cover",
     x = "Non-native grass cover (%)",
     y = "Total shrub cover (%)", 
-    color = "Plant community"
+     color = "Plant Cluster"
     ) +
   scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
   scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
-  theme_bw() + 
-  annotate("text", x = 5, y = 5, label = eq_label, color = "black", size = 4, hjust = 0)
+  theme_bw() #+ 
+  # annotate("text", x = 5, y = 5, label = eq_label, color = "black", size = 4, hjust = 0)
 nngxnatshr
+```
 
+-- stats
+Types of linear regressions:
+- Correlations
+- Polynomial regression = test for simple curvature.
+- GAMs = flexible non-linear trend.
+- Piecewise regression = detect thresholds or breakpoints.
+- Quantile regression = test upper/lower bounds of the relationship.
+
+The "best" regression is a: Polynomial Regression
+```{r}
+# Polynomial Regression (Curvilinear Trends) - Fit a model where shrub cover changes in a curve (concave or convex) with grass cover.
+
+summary(
+  lm(shrub_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide)
+  )
+```
+- sand box
+```{r, eval = FALSE}
+
+# sand box
 
 ################################################################ 
 ##### other regression and correlation tests between nn grass cover and shrub cover
@@ -1514,6 +1491,22 @@ lm(shrub_native ~ grass_nonnative, data = cover_bylfstatus_wide)
 # Polynomial Regression (Curvilinear Trends) - Fit a model where shrub cover changes in a curve (concave or convex) with grass cover.
 model_poly <- lm(shrub_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide)
 summary(model_poly)
+# Residuals:
+#      Min       1Q   Median       3Q      Max 
+# -0.26850 -0.11923  0.04357  0.10246  0.31940 
+# 
+# Coefficients:
+#                           Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)                 0.4811     0.0237  20.302  < 2e-16 ***
+# poly(grass_nonnative, 2)1  -1.6246     0.1499 -10.840 4.87e-13 ***
+# poly(grass_nonnative, 2)2  -0.3534     0.1499  -2.358   0.0238 *  
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.1499 on 37 degrees of freedom
+# Multiple R-squared:  0.7688,	Adjusted R-squared:  0.7563 
+# F-statistic: 61.53 on 2 and 37 DF,  p-value: 1.707e-12
+
 
 # Generalized Additive Models (GAMs) - If you don’t want to assume the shape (e.g., parabola), GAMs let the data “decide” the curve:
 model_gam <- gam(shrub_native ~ s(grass_nonnative), data = cover_bylfstatus_wide)
@@ -1579,11 +1572,10 @@ summary(model_qr)
 
 # Or use likelihood ratio tests: (anova(model, model_poly) if models are nested).
 
-```
 
-```{r}
-# plot gam model
-model_gam <- gam(shrub_native ~ s(grass_nonnative), data = cover_bylfstatus_wide)
+
+
+##################################### to compare a GAM regression against a polynomial regression
 
 # Create a prediction dataset
 newdat <- data.frame(grass_nonnative = seq(min(cover_bylfstatus_wide$grass_nonnative),
@@ -1599,9 +1591,11 @@ newdat$lower <- pred$fit - 2 * pred$se.fit
 # Plot with ggplot
 plot_gam <- ggplot() +
   # observed points
+  
   geom_point(data = cover_bylfstatus_wide,
              aes(x = grass_nonnative, y = shrub_native),
-             shape = 21, fill = "skyblue", color = "black", size = 3, alpha = 0.7) +
+             shape = 21, 
+             fill = "skyblue", color = "black", size = 3, alpha = 0.7) +
 
   # polynomial regression line
   geom_smooth(data = cover_bylfstatus_wide, 
@@ -1628,9 +1622,36 @@ plot_gam <- ggplot() +
 plot_gam
 
 ```
+-- linear equation
+```{r, eval = FALSE}
+# quadratic regression equation:  y = ax² + bx + c
 
-- y = total shrub cover x leaf type
-```{r}
+# Fit the linear model
+model.s <- lm(grass_nonnative ~ shrub_native, data = cover_bylfstatus_wide) # response variable ~ independent variable
+
+# Print the summary of the model
+model.s_summary <- summary(model.s)
+intercept <- round(coef(model.s)[1], 2)
+slope <- round(coef(model.s)[2], 2)
+# Extract the R^2 value
+r_squared <- round(model.s_summary$r.squared, 3)
+print(paste("Multiple R^2:", r_squared))
+# [1] "Multiple R^2: 0.734"
+
+
+# adjusted_r_squared <- round(model.s_summary$adj.r.squared, 3)
+# print(paste("Adjusted R^2:", adjusted_r_squared))
+
+# Multiple R-squared = variance in the dependent variable that is predictable from the independent variables.  It indicates how well the independent variables explain the variation in the dependent variable. 
+
+# Adjusted R-squared = adjusts for the number of predictors in the model.  It provides a more accurate measure when comparing models with a different number of predictors.
+
+# Create the label for the equation and R^2
+eq_label <- paste0("y = ", slope, "x + ", intercept, "\n", "R² = ", r_squared)
+```
+
+##### - y = total shrub cover x leaf type
+```{r, eval = FALSE}
 
 ############ scl slope
 # Fit the linear model
@@ -1707,10 +1728,8 @@ fig.1a
 # quadratic regression equation:  y = ax² + bx + c
 ```
 
-
-
-- scl shrub cover by nn grass
-```{r regression nngrass x scl shrub}
+##### - y = scl shrub cover 
+```{r regression nngrass x scl shrub, eval = FALSE}
  ggplot(data = cover_byleaftype_wide #%>%  
           # filter(shrub_native_sclerophyllous > 0.01) #include/omit 0% cover
         , 
@@ -1755,9 +1774,8 @@ cat("Multiple R^2:", round(summary(model.s)$r.squared, 3), "\n")
 # [1] "Multiple R^2: 0.442"
 ```
 
-- y = sage scrub cover
-
-```{r}
+##### - y = sage scrub cover
+```{r, eval = FALSE}
 # original plot
 ggplot(data = cover_byleaftype_wide %>%  
          filter(shrub_native_nonsclero > 0.01) %>% 
@@ -1837,52 +1855,8 @@ nngxss <-
 nngxss
 ```
 
-
-
-
-- y = native shrub cover by leaf type
-```{r regression shrub leaftype x nn grass}
-
-# broken code
-
-
-# ggplot(data = cover_byleaftype_wide) +
-#   
-#   geom_point(aes(x = nonnative_grass_NA * 100, y = native_shrub_nonsclero * 100, color = "Native Shrub Nonsclero"), size = 4, show.legend = TRUE) +
-#   geom_smooth(aes(x = nonnative_grass_NA * 100, y = native_shrub_nonsclero * 100, color = "Native Shrub Nonsclero"), 
-#               method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE) +
-#   
-#   geom_point(aes(x = nonnative_grass_NA * 100, y = native_shrub_sclerophyllous * 100, color = "Native Shrub Sclero"), size = 4,  show.legend = TRUE) +
-#   geom_smooth(aes(x = nonnative_grass_NA * 100, y = native_shrub_sclerophyllous * 100, color = "Native Shrub Sclero"), 
-#               method = "lm", se = TRUE, linetype = "dashed", show.legend = TRUE) +
-#   labs(
-#     x = "Percent cover non-native grass (%)",
-#     y = "Percent cover native Shrub (%)",
-#     title = "Comparison of Native Shrub percent cover by Nonnative Grass percent cover",
-#     color = "Legend"
-#     ) +
-#   scale_color_manual(values = c("Native Shrub Nonsclero" = "blue", "Native Shrub Sclero" = "red"),
-#                      labels = c("Non-sclerophyllous", "Sclerophyllous")) +
-#   xlim(0, 100) +
-#   ylim(0, 100) +
-#   theme_bw()
-
-#only six transects had schlero shrubs present: INT 1-5, Site1 transect 4
-#cover_byleaftype_wide %>% filter(native_shrub_sclerophyllous > 0) %>% group_by(site_rep, year) %>%  summarize(native_shrub_sclerophyllous = native_shrub_sclerophyllous)
-
-# model.nonscl <- lm(native_shrub_nonsclero ~ nonnative_grass_NA, data = cover_byleaftype_wide)
-# model.nonscl_summary <- summary(model.nonscl)
-# r_squared <- round(model.nonscl_summary$r.squared, 3)
-# print(paste("Multiple R^2:", r_squared))
-# 
-# model.scl <- lm(native_shrub_sclerophyllous ~ nonnative_grass_NA, data = cover_byleaftype_wide)
-# model.scl_summary <- summary(model.scl)
-# r_squared <- round(model.scl_summary$r.squared, 3)
-# print(paste("Multiple R^2:", r_squared))
-```
-
-- y = native and non-native forb cover
-```{r regression forb x grass}
+##### - y = total forb cover
+```{r regression forb x grass, eval = FALSE}
 ############ non-native slope
 # Fit the linear model
 model.nnf <- lm(forb_nonnative ~ grass_nonnative, data = cover_bylfstatus_wide) # response variable ~ independent variable
@@ -1939,12 +1913,11 @@ fig.1c
 
 ```
 
-##### - y = native forb
-```{r}
-##########################################################
+##### - y = native forb cover
+```{r native forb cover x nn grass cover}
 
 # native forb cover x nn grass cover
-ggplot(data = cover_bylfstatus_wide,
+nngxnatforb <- ggplot(data = cover_bylfstatus_wide,
        aes(x = grass_nonnative*100, 
          y = forb_native*100)) + 
   
@@ -1953,9 +1926,10 @@ ggplot(data = cover_bylfstatus_wide,
   # geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
    stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +  # polynomial fit
   labs(
+    # title = "Native forb cover by non-native grass cover",
     x = "Non-native grass cover (%)",
-    y = "Native forb cover (%)",
-    title = "Native forb cover by non-native grass cover"
+    y = "Native forb cover (%)" , 
+    color = "Plant cluster"
     ) +
   scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)
                      # , expand = expansion(mult = c(0, 0.05))
@@ -1970,7 +1944,7 @@ ggplot(data = cover_bylfstatus_wide,
   theme(legend.title=element_text(size = 16)) + 
   theme(legend.text=element_text(size = 16))
 
-
+nngxnatforb
 ```
 
 ##### - y = native grass
