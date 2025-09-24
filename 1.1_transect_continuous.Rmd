@@ -857,7 +857,17 @@ cover_byleaftype_wide <- cover_bylfstatusleaftype %>%
                             shrub_native_sclerophyllous = 0,
                             grass_native_NA = 0,
                             grass_nonnative_NA = 0)) %>% 
-  left_join(groupsdash, by = "site_rep")
+  left_join(groupsdash, by = "site_rep") %>% 
+   mutate(cluster = as.character(cluster)) %>% 
+   mutate(cluster = case_when(
+                            cluster == "1" ~ "NNG",
+                             cluster == "3" ~ "ssG",
+                             cluster == "2" ~ "ssF",
+                             cluster == "4" ~ "ssFG",
+                             cluster == "5" ~ "EVG",
+                             TRUE ~ cluster)) %>% 
+  mutate(cluster = factor(cluster, levels = c("NNG", "ssG", "ssF", "ssFG", "EVG")))
+  
 
 # view(cover_byleaftype_wide)
 
@@ -890,7 +900,8 @@ herb_cover_wide <- herb_cover %>%
 
 ```
  
- 
+
+
 # REGRESSIONS 
 
 ```{r}
@@ -1056,7 +1067,7 @@ print(shrub_split)
 
 ### x = total shrub
 - y = native and non-native grass cover 
-```{r, eval = FALSE}
+```{r}
 
 ############ non-native slope
 # Fit the linear model
@@ -1186,7 +1197,7 @@ ggplot(data = cover_bylfstatus_wide,
 ```
 
 - y = non-native FORB cover
-```{r, eval = FALSE}
+```{r}
 ############ non-native slope
 # Fit the linear model
 model.nnf <- lm(forb_nonnative ~ shrub_native, data = cover_bylfstatus_wide) # response variable ~ independent variable
@@ -1416,13 +1427,67 @@ scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-
 
 ### x = nn grass
 
+### CORRELATION
+```{r, eval = FALSE}
+
+# NOTES
+
+?cor # Correlation, Variance and Covariance (Matrices)
+# var, cov and cor compute the variance of x and the covariance or correlation of x and y if these are vectors. 
+# If x and y are matrices then the covariances (or correlations) between the columns of x and the columns of y are computed.
+
+?cor.test # Test for Association/Correlation Between Paired Samples
+# Test for association between paired samples, using one of Pearson's product moment correlation coefficient, Kendall's τ or Spearman's ρ.
+
+# I think cor and cor.test run the same correlation, but cor.test gives you the correlation value, df, and p-values, while cor only gives you the correlation value.
+
+# e.g., 
+cor(df$grass_nonnative,  
+    df$forb_native)
+cor.test(df$grass_nonnative,  
+    df$forb_native)
+```
+
+```{r}
+
+# Select only numeric variables and total_nncover
+cor(herb_cover_wide[, 
+                                      c("grass_nonnative", 
+                                        "shrub_native", 
+                                         "herb_native", 
+                                        "forb_native", 
+                                        "grass_native", 
+                                        "forb_nonnative")], 
+                  use = "pairwise.complete.obs", 
+                 method = "pearson") # Pearson correlation coefficient
+```
 ##### - y = total shrub cover
+
 --  plot
 ```{r}
+
+# Fit the linear model
+model.s <- lm(shrub_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide)
+model.s_summary <- summary(model.s)
+
+Fstatistics <- model.s_summary$fstatistic
+Fstat = round(Fstatistics[1], 2)
+on = round(Fstatistics[2], 0)
+DF = round(Fstatistics[3], 0)
+r_squareds <- round(model.s_summary$r.squared, 3)
+print(paste("R^2:", r_squareds))
+
+# Create the label for the equation and R^2
+label_s <- paste0("Second-order polynomial regression", "\n",
+                  "F(", on, ",", DF,") = ", Fstat, "\n", 
+                  "p < 0.001", "\n", 
+                  "R² = ", r_squareds)
+
+
 nngxnatshr <- ggplot(data = cover_bylfstatus_wide, 
        aes(x = grass_nonnative*100,
          y = shrub_native*100)) + 
-      geom_point(aes(color = cluster), size = 3) +
+      geom_point(aes(color = cluster), size = 3,  show.legend = FALSE) +
    scale_color_manual(values = colors_plantclusters) +
 
     stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
@@ -1430,16 +1495,19 @@ nngxnatshr <- ggplot(data = cover_bylfstatus_wide,
   labs(
     #  title = "Linear regression of  total shrub cover by non-native grass cover",
     x = "Non-native grass cover (%)",
-    y = "Total shrub cover (%)", 
+    y = "Native shrub cover (%)", 
      color = "Plant Cluster"
     ) +
   scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
-  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 20)) + # Set y-axis limits and breaks
   theme_bw() +
   theme(axis.text = element_text(size = 16)) + # axes numbers - font size
   theme(axis.title = element_text(size = 20)) + # axes titles
   theme(legend.title=element_text(size = 16)) + 
-  theme(legend.text=element_text(size = 16))
+  theme(legend.text=element_text(size = 16)) +
+  annotate("text", x = 0, y = 10, label = label_s, color = "black", size = 4, hjust = 0)
+  
+  
 
 nngxnatshr
 ```
@@ -1460,6 +1528,14 @@ The "best" regression is a: Polynomial Regression
 summary(
   lm(shrub_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide)
   )
+
+#  second-order polynomial regression
+# F-statistic: 61.53 on 2 and 37 DF <-- F(2, 37) = 61.53
+# p-value: 1.707e-12 <-- p < 0.001
+# R2 = 0.77
+# not Adjusted R2 since only one predictive variable
+
+
 ```
 - sand box
 ```{r, eval = FALSE}
@@ -1493,7 +1569,7 @@ cor.test(cover_bylfstatus_wide$grass_nonnative,
 ### 95% CI: -0.9221759 -0.7438076 <-- you are 95% confident the true correlation lies in this range, which is still very strong and negative.
 
 # linear regression
-lm(shrub_native ~ grass_nonnative, data = cover_bylfstatus_wide) 
+model_lm <- lm(shrub_native ~ grass_nonnative, data = cover_bylfstatus_wide) 
 # Intercept =  1.0278 <-- when non-native grass cover = 0, shrub cover is predicted to be about 1.03
 # grass_nonnative = -0.8411 <-- slope, for every 1% increase in grass cover, shrub cover decreases by about 0.84%.
 
@@ -1541,8 +1617,7 @@ plot(model_gam)
 
 # Threshold or Breakpoint Models (Piecewise Regression)
 # Here you test whether there’s a breakpoint in grass cover where the relationship with shrubs changes slope:
-model <- lm(shrub_native ~ grass_nonnative, data = cover_bylfstatus_wide) #linear regression (same as above)
-model_seg <- segmented(model, seg.Z = ~grass_nonnative,
+model_seg <- segmented(model_lm, seg.Z = ~grass_nonnative,
                        npsi = 1) # one breakpoint
 # plot(segmented(model, seg.Z = ~grass_nonnative, 
 #                npsi = 2)) # <- you can set the number of breakpoints here
@@ -1576,7 +1651,7 @@ summary(model_qr)
 ### Model Comparison
 # To decide if non-linear/threshold models are “better” than linear:
 # Compare models using AIC:
-(AIC(model, model_poly, model_gam, model_seg))
+AICshrub <- (AIC(model_lm, model_poly, model_gam, model_seg))
 # Lower/more negative AIC = better fit.
 # - GAM is best fit, but polynomial and segmented regressions are just as good of a fit too.
 
@@ -1661,7 +1736,7 @@ eq_label <- paste0("y = ", slope, "x + ", intercept, "\n", "R² = ", r_squared)
 ```
 
 ##### - y = total shrub cover x leaf type
-```{r, eval = FALSE}
+```{r}
 
 ############ scl slope
 # Fit the linear model
@@ -1866,7 +1941,7 @@ nngxss
 ```
 
 ##### - y = total forb cover
-```{r regression forb x grass, eval = FALSE}
+```{r regression forb x grass}
 ############ non-native slope
 # Fit the linear model
 model.nnf <- lm(forb_nonnative ~ grass_nonnative, data = cover_bylfstatus_wide) # response variable ~ independent variable
@@ -1926,25 +2001,42 @@ fig.1c
 ##### - y = native forb cover
 ```{r native forb cover x nn grass cover}
 
+
+# Fit the model
+model.f <- lm(forb_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide)
+model.f.summary <- summary(model.f)
+
+Fstatistics <- model.f.summary$fstatistic
+Fstat = round(Fstatistics[1], 2)
+on = round(Fstatistics[2], 0)
+DF = round(Fstatistics[3], 0)
+r_squaredf <- round(model.f.summary$r.squared, 3)
+print(paste("R^2:", r_squaredf))
+
+# Create the label for the equation and R^2
+label_f <- paste0("Second-order polynomial regression", "\n",
+                  "F(", on, ",", DF,") = ", Fstat, "\n", 
+                  "p = 0.264", "\n", # <-- p-value
+                  "R² = ", r_squaredf)
+
+
 # native forb cover x nn grass cover
 nngxnatforb <- ggplot(data = cover_bylfstatus_wide,
        aes(x = grass_nonnative*100, 
          y = forb_native*100)) + 
   
-      geom_point(aes(color = cluster), size = 3) +
+      geom_point(aes(color = cluster), size = 3, show.legend = FALSE) +
    scale_color_manual(values = colors_plantclusters) +
   # geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
    stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +  # polynomial fit
   labs(
-    # title = "Native forb cover by non-native grass cover",
     x = "Non-native grass cover (%)",
-    y = "Native forb cover (%)" , 
-    color = "Plant cluster"
+    y = "Native forb cover (%)" 
     ) +
   scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)
                      # , expand = expansion(mult = c(0, 0.05))
                      ) + # Set x-axis limits and breaks
-  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 20)
                      # , expand = expansion(mult = c(0, 0.05))
                      ) + # Set y-axis limits and breaks
   theme_bw() + 
@@ -1952,7 +2044,8 @@ nngxnatforb <- ggplot(data = cover_bylfstatus_wide,
   theme(axis.text = element_text(size = 16)) + # axes numbers - font size
   theme(axis.title = element_text(size = 20)) + # axes titles
   theme(legend.title=element_text(size = 16)) + 
-  theme(legend.text=element_text(size = 16))
+  theme(legend.text=element_text(size = 16))+
+  annotate("text", x = 0, y = 90, label = label_f, color = "black", size = 4, hjust = 0)
 
 nngxnatforb
 
@@ -1963,6 +2056,8 @@ df <- cover_bylfstatus_wide
 
 # 1. Correlation - Compute a correlation coefficient to see if the two are associated
 cor.test(df$grass_nonnative, 
+         df$forb_native)
+cor(df$grass_nonnative, 
          df$forb_native)
 
 
@@ -1996,7 +2091,7 @@ summary(model_qr)
 ### MODEL COMPARISON
 # To decide if non-linear/threshold models are “better” than linear:
 # Compare models using AIC:
-(AIC(model_lin, model_poly, model_gam, model_seg)) 
+AICforb <- (AIC(model_lin, model_poly, model_gam, model_seg)) 
 # Lower/more negative AIC = better fit.
 
 ```
@@ -2044,28 +2139,89 @@ fig.1e
 
 
 #############################
+
+#stats
+
+# 1. Correlation - Compute a correlation coefficient to see if the two are associated
+cor.test(cover_bylfstatus_wide$grass_nonnative, 
+         cover_bylfstatus_wide$grass_native )
+
+# 2. Linear regression
+model_lm <- lm(grass_native ~ grass_nonnative, data = cover_bylfstatus_wide) 
+
+# 3. Polynomial Regression (Curvilinear Trends) - Fit a model where shrub cover changes in a curve (concave or convex) with grass cover.
+model_poly <- lm(grass_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide)
+summary(model_poly)
+
+# 4. Generalized Additive Models (GAMs) - If you don’t want to assume the shape (e.g., parabola), GAMs let the data “decide” the curve:
+model_gam <- gam(grass_native ~ s(grass_nonnative), data = cover_bylfstatus_wide)
+summary(model_gam)
+plot(model_gam)
+
+# 5. Threshold or Breakpoint Models (Piecewise Regression)
+# Here you test whether there’s a breakpoint in grass cover where the relationship with shrubs changes slope:
+model_seg <- segmented(model_lm, seg.Z = ~grass_nonnative,
+                       npsi = 1) # one breakpoint
+summary(model_seg)
+plot(model_seg)
+
+
+### MODEL COMPARISON
+# To decide if non-linear/threshold models are “better” than linear:
+# Compare models using AIC:
+AICgrass <- (AIC(model_lm, model_poly, model_gam, model_seg))
+# Lower/more negative AIC = better fit.
+
+# poly is best fit
+
+###################
+
+
+# Fit the model
+model.natg <- lm(grass_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide)
+model.natg_summary <- summary(model.natg)
+
+Fstatistics <- model.natg_summary$fstatistic
+Fstat = round(Fstatistics[1], 2)
+on = round(Fstatistics[2], 0)
+DF = round(Fstatistics[3], 0)
+r_squaredf <- round(model.natg_summary$r.squared, 3)
+print(paste("R^2:", r_squaredf))
+
+# Create the label for the equation and R^2
+label_natg <- paste0("Second-order polynomial regression", "\n",
+                  "F(", on, ",", DF,") = ", Fstat, "\n", 
+                  "p < 0.001", "\n", # <-- p-value
+                  "R² = ", r_squaredf)
+
+
+
+
 # native grass cover x nn grass cover
-ggplot(data = cover_bylfstatus_wide,
+nngxantgrass <- ggplot(data = cover_bylfstatus_wide,
        aes(x = grass_nonnative*100, 
          y = grass_native*100)) + 
   
-      geom_point(aes(color = cluster), size = 3) +
+      geom_point(aes(color = cluster), size = 3, show.legend = FALSE) +
    scale_color_manual(values = colors_plantclusters) +
   # geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
    stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +  # polynomial fit - error bars go below 0%
   labs(
     x = "Non-native grass cover (%)",
-    y = "Native grass cover (%)",
-    title = "Native grass cover by non-native grass cover"
+    y = "Native grass cover (%)"
     ) +
   scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
-  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set y-axis limits and breaks 
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 20)) + # Set y-axis limits and breaks 
   theme_bw() +
       
   theme(axis.text = element_text(size = 16)) + # axes numbers - font size
   theme(axis.title = element_text(size = 20)) + # axes titles
   theme(legend.title=element_text(size = 16)) + 
-  theme(legend.text=element_text(size = 16))
+  theme(legend.text=element_text(size = 16))+
+  annotate("text", x = 60, y = 90, label = label_natg, color = "black", size = 4, hjust = 0) 
+
+nngxantgrass
+
 
 
 ```
@@ -2107,10 +2263,8 @@ The "best" regression for native herb cover is: poly
 ```{r}
 
 # sand box
-df = herb_cover_wide
-y = herb_native
-# x = grass_nonnative
 
+df = herb_cover_wide
 
 # Types of regression lines:
 # Correlations
@@ -2169,18 +2323,24 @@ summary(model_qr)
 ########### Save the plot with specified size
 
 # Add labels to the plots using cowplot's draw_label() function
-fig.1a_labeled <- ggdraw(fig.1a) + draw_label("C", x = 0.95, y = 0.92, size = 15)  # Add letter "A" in the top-right corner
-#fig.1b_labeled <- ggdraw(fig.1b) + draw_label("D", x = 0.85, y = 0.92, size = 15)  
-fig.1c_labeled <- ggdraw(fig.1c) + draw_label("E", x = 0.95, y = 0.92, size = 15)  # Add letter "B"
-fig.1d_labeled <- ggdraw(fig.1d) + draw_label("B", x = 0.95, y = 0.92, size = 15)  # Add letter "C"
-fig.1e_labeled <- ggdraw(fig.1e) + draw_label("D", x = 0.95, y = 0.92, size = 15)  # Add letter "D"
-fig.1f_labeled <- ggdraw(fig.1f) + draw_label("A", x = 0.95, y = 0.92, size = 15)  # Add letter "E"
+
+# fig.1a_labeled <- ggdraw(fig.1a) + draw_label("A", x = 0.95, y = 0.92, size = 15)  # shrub 
+# fig.1c_labeled <- ggdraw(fig.1b) + draw_label("E", x = 0.95, y = 0.92, size = 15)  # nat forb
+# fig.1d_labeled <- ggdraw(fig.1d) + draw_label("B", x = 0.95, y = 0.92, size = 15)  # nat grass
+# fig.1e_labeled <- ggdraw(fig.1e) + draw_label("D", x = 0.95, y = 0.92, size = 15)  # Add letter "D"
+# fig.1f_labeled <- ggdraw(fig.1f) + draw_label("A", x = 0.95, y = 0.92, size = 15)  # Add letter "E"
+
+
+fig.1a_labeled <- ggdraw(nngxnatshr) + draw_label("A", x = 0.95, y = 0.92, size = 15)  # shrub 
+fig.1b_labeled <- ggdraw(nngxnatforb) + draw_label("B", x = 0.95, y = 0.92, size = 15)  # nat forb
+fig.1c_labeled <- ggdraw(nngxantgrass) + draw_label("C", x = 0.95, y = 0.92, size = 15)  # nat grass
 
 # Combine the plots in a 2x3 layout
-figure1 <- plot_grid(fig.1f_labeled, fig.1a_labeled, 
-             fig.1d_labeled, fig.1c_labeled,  NULL, fig.1e_labeled,
+figure1 <- plot_grid( fig.1a_labeled,
+             fig.1b_labeled,
+             fig.1c_labeled,
              nrow = 3, 
-             ncol = 2, 
+             ncol = 1, 
              widths = c(1, 1), # Custom widths for each column
              heights = c(1, 1, 1) # Custom heights for each row
              ) 
@@ -2866,6 +3026,65 @@ fig_forbgrass <- ggplot(cover_bylifecycle_bygroup %>%
   scale_x_discrete(labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) 
 
 fig_forbgrass
+```
+
+```{r, eval = FALSE}
+# copied from Ch 2 
+
+# mean non-native grass height by cluster
+hist(ch2grassheight$mean_grassheight_cm, 
+     main = "Histogram of Non-Native Grass height",
+     xlab = "Total Non-Native Grass height",
+     col = "lightblue",
+     border = "black") 
+
+ggqqplot(ch2grassheight$mean_grassheight_cm)
+testDispersion(simulateResiduals(
+  glm(mean_grassheight_cm ~ site, 
+         data = ch2grassheight, 
+      family=gaussian)
+)) # dispersion = 0.99897
+
+
+############# 2017 mean grass height x SITE
+aa <- glm(mean_grassheight_cm ~ site, 
+         data = ch2grassheight %>% filter(year == "Feb. 2017"), 
+                                          family=gaussian)
+simulationOutput <- simulateResiduals(a)
+testDispersion(simulationOutput)
+emmeans(aa, pairwise ~ site, adjust = "tukey")
+
+a <- glm(mean_grassheight_cm ~ site, 
+         data = ch2grassheight %>% filter(year == "Jul. 2017"), 
+                                          family=gaussian)
+simulationOutput <- simulateResiduals(a)
+testDispersion(simulationOutput)
+emmeans(a, pairwise ~ site, adjust = "tukey")
+
+b <- glm(mean_grassheight_cm ~ site, 
+         data = ch2grassheight %>% filter(year == "2018"), 
+                                          family=gaussian)
+simulationOutput <- simulateResiduals(b)
+testDispersion(simulationOutput)
+emmeans(b, pairwise ~ site, adjust = "tukey")
+
+c <- glm(mean_grassheight_cm ~ site, 
+         data = ch2grassheight %>% filter(year == "2019"), 
+                                          family=gaussian)
+simulationOutput <- simulateResiduals(c)
+testDispersion(simulationOutput)
+emmeans(c, pairwise ~ site, adjust = "tukey")
+# $emmeans
+#  site emmean   SE df lower.CL upper.CL
+#  1      50.0 3.01 34     43.9     56.1
+#  2      39.8 3.01 34     33.7     45.9
+# 
+# Confidence level used: 0.95 
+# 
+# $contrasts
+#  contrast      estimate   SE df t.ratio p.value
+#  site1 - site2     10.2 4.25 34   2.402  0.0219
+
 ```
 
 
@@ -3931,6 +4150,7 @@ denspp_cover <- denspp_transect %>%
   unique()) # 39 transects, missing INT4_1
  
 
+
 ################ figures
 fig_den_mature <- ggplot(denspp_cover %>% 
          mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
@@ -4088,27 +4308,6 @@ fig_den_dead
 #   filter(site_rep != "INT4_1") # omit INT4_1
 # 
 # 
-# ########## bind with cluster groups
-# density_cover_cluster <- density_cover %>% 
-#   separate(site_rep, into = c("site", "rep"), sep = "_") %>% 
-#    mutate(rep = case_when(rep == "1" ~ "01", # oldname ~ newname
-#                          rep == "2" ~ "02",
-#                          rep == "3" ~ "03",
-#                          rep == "4" ~ "04",
-#                          rep == "5" ~ "05",
-#                          rep == "6" ~ "06",
-#                          rep == "7" ~ "07",
-#                          rep == "8" ~ "08",
-#                          rep == "9" ~ "09",
-#                               TRUE ~ rep)) %>% 
-#    mutate(site_rep = paste(site, rep, sep = ".")) %>%
-#    mutate(site_rep = case_when(site_rep == "INT1.01" ~ "INT1.1",
-#                               site_rep == "INT2.01" ~ "INT2.1",
-#                               site_rep == "INT3.01" ~ "INT3.1",
-#                               site_rep == "INT4.01" ~ "INT4.1",
-#                               site_rep == "INT5.01" ~ "INT5.1",
-#                               TRUE ~ site_rep)) %>% 
-#    left_join(groups %>%  dplyr::select(site_rep, cluster), by = "site_rep") 
 
 
 
@@ -4261,6 +4460,103 @@ den_cluster_recruitment <- denspp %>%
     .groups = "drop") %>% 
   pivot_wider(names_from = cluster, values_from = sum_density_m2)
 ```
+
+### - species count x cluster
+```{r}
+den_spp_cluster <- denspp %>% 
+  left_join(groupsdash, by = "site_rep") %>% 
+  mutate(cluster = as.character(cluster)) %>% 
+  mutate(cluster = case_when(
+                            cluster == "1" ~ "NNG",
+                             cluster == "3" ~ "ssG",
+                             cluster == "2" ~ "ssF",
+                             cluster == "4" ~ "ssFG",
+                             cluster == "5" ~ "EVG",
+                             TRUE ~ cluster)) 
+
+
+den_spp_cluster %>% 
+  filter(cluster == "NNG") %>%  
+  filter(lifestage == "seedling") %>% 
+  filter(density_m2 > 0) # 1 transect
+  
+
+imm <- den_spp_cluster %>% 
+  filter(cluster == "NNG") %>%  
+  filter(lifestage == "immature") %>% 
+  filter(density_m2 > 0) 
+
+unique(imm$site_rep)
+
+temp1 <- read_csv("deg_beltdensity_bylifestage.csv", 
+                  col_types = cols(
+                      site = col_character(),
+                      transect = col_character(), 
+                      species = col_character(), 
+                      dead = col_integer(),
+                      immature = col_integer(),
+                      mature = col_integer(), 
+                      resprout = col_integer(), 
+                      seedling = col_integer()
+                  )
+ ) %>% 
+     mutate(transect = ifelse(
+         site == "INT2", "1", transect
+     )) %>% 
+     mutate(transect = ifelse(
+         site == "INT3", "1", transect
+     )) %>% 
+     dplyr::select(-StandType, -hillslope) %>% 
+     as_tibble() %>% 
+     rename("rep" = "transect") %>% 
+  
+   tidyr::pivot_longer(
+    cols = c(dead, immature, mature, resprout, seedling),
+    names_to = "lifestage",
+    values_to = "density_80m2")
+
+temp2 <- read_csv("shrubdensity_2024.csv", 
+      col_types = cols(
+      site = col_character(),
+      transect = col_character(), 
+      species = col_character(), 
+      lifestage = col_character(),
+      density_80m2 = col_integer()
+      )
+      ) %>% 
+  dplyr::select(site, transect, species, lifestage, density_80m2) %>% 
+  rename("rep" = "transect") 
+
+den_individual_shrubs <- temp1 %>% 
+  full_join(temp2) %>% 
+   mutate(site_rep = paste(site, rep, sep = "_")) %>% 
+  left_join(groupsdash, by = "site_rep") %>% 
+   mutate(cluster = as.character(cluster)) %>% 
+  mutate(cluster = case_when(
+                            cluster == "1" ~ "NNG",
+                             cluster == "3" ~ "ssG",
+                             cluster == "2" ~ "ssF",
+                             cluster == "4" ~ "ssFG",
+                             cluster == "5" ~ "EVG",
+                             TRUE ~ cluster)) 
+length(unique(den_individual_shrubs$site_rep)) # 39 transects
+
+den_individual_shrubs %>% 
+  dplyr::select(site_rep, species, seedling, cluster) %>% 
+  filter(cluster == "NNG" &  seedling > 0)
+den_individual_shrubs %>% 
+  dplyr::select(cluster, site, rep, site_rep, immature, species) %>% 
+  filter(cluster == "NNG" &  immature > 0)
+
+den_individual_shrubs %>% 
+  dplyr::select( site_rep, seedling, species, cluster) %>% # seedling
+  filter(cluster == "ssG" &  seedling > 0)
+den_individual_shrubs %>% 
+  dplyr::select(cluster, site, rep, site_rep, immature, species) %>% # immature
+  filter(cluster == "ssG" &  immature > 0)
+
+```
+
 
 ### linear models
 ```{r, eval = FALSE}
@@ -4930,6 +5226,9 @@ nng90_spp_distinct <- nng90_spp %>%
   distinct()
 
 ```
+
+
+
 
 ```{r}
 print("yay! you've reached the end!")
