@@ -1439,16 +1439,58 @@ scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-
 ?cor.test # Test for Association/Correlation Between Paired Samples
 # Test for association between paired samples, using one of Pearson's product moment correlation coefficient, Kendall's τ or Spearman's ρ.
 
-# I think cor and cor.test run the same correlation, but cor.test gives you the correlation value, df, and p-values, while cor only gives you the correlation value.
 
 # e.g., 
-cor(df$grass_nonnative,  
-    df$forb_native)
-cor.test(df$grass_nonnative,  
-    df$forb_native)
-```
+cor(herb_cover_wide$grass_nonnative,  
+    herb_cover_wide$forb_native, method = "spearman")
+cor.test(herb_cover_wide$grass_nonnative,  
+    herb_cover_wide$forb_native, method = "spearman") # rho = 0.1074625
+cor.test(herb_cover_wide$grass_nonnative,  
+    herb_cover_wide$forb_native, method = "pearson") # cor = 0.1005004 
 
+# Pearson's correlation measures the linear relationship between two continuous variables,
+# while Spearman's correlation measures the monotonic relationship (variables consistently move in the same or opposite direction) between two ranked or ordinal variables. 
+# --> Choose Pearson's for normally distributed, continuous data with a linear pattern
+# --> Choose Spearman's for non-normally distributed, ordinal, or ranked data, especially when outliers are present, as it is more robust
+
+
+# I think cor and cor.test run the same correlation, but cor.test gives you the correlation value, df, and p-values, while cor only gives you the correlation value.
+# I think running spearman is best if data are non-normally distributed or if there are outlines
+
+```
+##### - qqplots 
 ```{r}
+view(herb_cover_wide)
+
+
+hist(herb_cover_wide$grass_nonnative)
+qqnorm(herb_cover_wide$grass_nonnative)
+qqline(herb_cover_wide$grass_nonnative, col = "red", lwd = 2)
+
+hist(herb_cover_wide$shrub_native)
+qqnorm(herb_cover_wide$shrub_native)
+qqline(herb_cover_wide$shrub_native, col = "darkgreen", lwd = 2)
+
+hist(herb_cover_wide$herb_native)
+qqnorm(herb_cover_wide$herb_native)
+qqline(herb_cover_wide$herb_native, col = "purple", lwd = 2)
+
+hist(herb_cover_wide$forb_native)
+qqnorm(herb_cover_wide$forb_native)
+qqline(herb_cover_wide$forb_native, col = "orchid", lwd = 2)
+
+hist(herb_cover_wide$grass_native)
+qqnorm(herb_cover_wide$grass_native)
+qqline(herb_cover_wide$grass_native, col = "green", lwd = 2)
+
+# qq plots of herb, forb, and native grass are a bit skews
+
+shapiro.test(herb_cover_wide$grass_nonnative) # <-- not normally distributed
+shapiro.test(herb_cover_wide$shrub_native) # <-- normally distributed
+shapiro.test(herb_cover_wide$herb_native) # <-- not normally distributed
+shapiro.test(herb_cover_wide$forb_native) # <-- not normally distributed
+shapiro.test(herb_cover_wide$grass_native) # <-- not normally distributed
+
 
 # Select only numeric variables and total_nncover
 cor(herb_cover_wide[, 
@@ -1456,17 +1498,17 @@ cor(herb_cover_wide[,
                                         "shrub_native", 
                                          "herb_native", 
                                         "forb_native", 
-                                        "grass_native", 
-                                        "forb_nonnative")], 
+                                        "grass_native")], 
                   use = "pairwise.complete.obs", 
-                 method = "pearson") # Pearson correlation coefficient
+                 method = "spearman") # Pearson correlation coefficient for normally distributed data that has a linear relationship
 ```
+
 ##### - y = total shrub cover
 
 --  plot
 ```{r}
 
-# Fit the linear model
+# Fit the poly model
 model.s <- lm(shrub_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide)
 model.s_summary <- summary(model.s)
 
@@ -1507,10 +1549,30 @@ nngxnatshr <- ggplot(data = cover_bylfstatus_wide,
   theme(legend.text=element_text(size = 16)) +
   annotate("text", x = 0, y = 10, label = label_s, color = "black", size = 4, hjust = 0)
   
-  
-
 nngxnatshr
 ```
+```{r}
+
+######################################
+# Plot the segmented regression model and increase text sizes
+plot(model_seg, 
+     conf.level = 0.95, 
+     shade = TRUE,
+     # main = "Segmented Regression with Confidence Interval",
+     xlab = "Non-Native Grass Cover (%)", 
+     ylab = "Native Shrub Cover (%)",
+     cex.main = 1.5,   # Increase the main title size
+     cex.lab = 1.3,    # Increase the axis labels size
+     cex.axis = 1.2)   # Increase the axis numbers size
+
+# Add the original data points, increasing their size as well
+points(cover_bylfstatus_wide$grass_nonnative, 
+       cover_bylfstatus_wide$shrub_native,
+       col = colors_plantclusters,
+       pch = 16,
+       cex = 1.5)      # Increase the size of the data points
+```
+
 
 -- stats
 Types of linear regressions:
@@ -1535,6 +1597,35 @@ summary(
 # R2 = 0.77
 # not Adjusted R2 since only one predictive variable
 
+summary(
+  segmented(model_lm, seg.Z = ~grass_nonnative,
+                       npsi = 1) 
+)
+# Est. St.Err
+# psi1.grass_nonnative 0.527   0.13
+
+
+
+# Extract residuals from the poly model
+residuals_poly <- residuals(
+  lm(shrub_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide)
+  )
+
+# Extract residuals from the segmented model
+residuals_segmented <- residuals(
+  segmented( lm(shrub_native ~ grass_nonnative, data = cover_bylfstatus_wide)
+    , seg.Z = ~ grass_nonnative,
+                       npsi = 1)
+)
+# Plot the Q-Q plot for the poly model residuals
+qqnorm(residuals_poly, main = "Q-Q Plot for Poly Model Residuals")
+qqline(residuals_poly, col = "red")
+```
+
+```{r}
+# Plot the Q-Q plot for the segmented model residuals
+qqnorm(residuals_segmented, main = "Q-Q Plot for Segmented Model Residuals")
+qqline(residuals_segmented, col = "blue")
 
 ```
 - sand box
@@ -1572,6 +1663,9 @@ cor.test(cover_bylfstatus_wide$grass_nonnative,
 model_lm <- lm(shrub_native ~ grass_nonnative, data = cover_bylfstatus_wide) 
 # Intercept =  1.0278 <-- when non-native grass cover = 0, shrub cover is predicted to be about 1.03
 # grass_nonnative = -0.8411 <-- slope, for every 1% increase in grass cover, shrub cover decreases by about 0.84%.
+summary(glm(shrub_native ~ grass_nonnative, 
+    family =  binomial(link = "logit"),
+    data = cover_bylfstatus_wide))
 
 
 # Polynomial Regression (Curvilinear Trends) - Fit a model where shrub cover changes in a curve (concave or convex) with grass cover.
@@ -1648,6 +1742,7 @@ summary(model_qr)
 # 
 # - In practice: stands with low grass cover can sustain high shrub cover, but as grass cover increases, the “ceiling” on shrub cover gets pushed down sharply.
 
+
 ### Model Comparison
 # To decide if non-linear/threshold models are “better” than linear:
 # Compare models using AIC:
@@ -1707,6 +1802,58 @@ plot_gam <- ggplot() +
 plot_gam
 
 ```
+
+
+```{r}
+# Maxi code (9/276/2025)
+
+
+view(herb_cover_wide)
+
+herb_cover_wide_transformed <- herb_cover_wide %>% 
+  mutate(log10_herb_native = log10(herb_native + 1)) %>% 
+  mutate(log1p_herb_native = log1p(herb_native)) %>% 
+  mutate(across(c(log10_herb_native, log1p_herb_native), ~na_if(., 0))) %>% 
+  dplyr::select(site_rep, herb_native, log10_herb_native, log1p_herb_native)
+  
+
+#### checking residuals
+ggqqplot(herb_cover_wide$herb_native)
+
+# linear
+model2 <- lm(herb_native ~ grass_nonnative, data = herb_cover_wide)
+residuals(model2)
+plot(fitted(model2) ~ resid(model2))
+testDispersion(simulateResiduals(
+  lm(herb_native ~ grass_nonnative,
+         data = herb_cover_wide, 
+      family=gaussian)
+))
+trial <-  testDispersion(simulateResiduals(
+  lm(herb_native ~ grass_nonnative,
+         data = herb_cover_wide, 
+      family=gaussian)))
+dispersion <- trial$statistic
+dispersion # 0.9761529
+
+# polynomial
+model <- lm(herb_native ~ poly(grass_nonnative, 2), data = herb_cover_wide)
+residuals(lm(herb_native ~ poly(grass_nonnative, 2), data = herb_cover_wide))
+plot(fitted(model) ~ resid(model))
+poly <- testDispersion(simulateResiduals(
+  lm(herb_native ~ poly(grass_nonnative, 2),
+         data = herb_cover_wide, 
+      family=gaussian)
+))
+poly_disp <- poly$statistic # 0.9504647
+
+# segmented
+model3 <- segmented(model2, seg.Z = ~ grass_nonnative,
+                       npsi = 1) 
+residuals(model3)
+plot(fitted(model3) ~ resid(model3))
+
+```
 -- linear equation
 ```{r, eval = FALSE}
 # quadratic regression equation:  y = ax² + bx + c
@@ -1734,6 +1881,52 @@ print(paste("Multiple R^2:", r_squared))
 # Create the label for the equation and R^2
 eq_label <- paste0("y = ", slope, "x + ", intercept, "\n", "R² = ", r_squared)
 ```
+
+-- linear mixed-effects model
+--> I don't think I need to run lmers becuae I don't have repeated measurments and I don't have multiple predictor variables.
+```{r, include = FALSE}
+lme.shrub <- lmer(shrub_native ~ grass_nonnative + (1|site), 
+                   data = cover_bylfstatus_wide)
+
+MOD <- lme.shrub
+
+# Calculate model's residual and fitted values
+F1 <- fitted(MOD)
+E1 <- residuals(MOD, "pearson")
+
+# See residuals as a histogram, look for normal distribution
+hist(E1)
+
+# Graph residuals against a normal distribution, look for all points to be on 1:1 line
+# need to call next two lines together
+qqnorm(E1, xlab = "Theoretical Quantiles", ylab = "Pearson Residuals")
+qqline(E1)
+
+# Graph residuals vs fitted values to inspect homogeneity of variance, look for a random scattering of plots
+# run together 2 lines
+plot(x=F1, y=E1, xlab="Fitted Model Values", ylab="Pearson Residuals", main = "Variance")
+abline(h = 0) # looking for random scatter
+
+# Check for crazy outliers, look for lines MUCH taller than the rest of data
+plot(cooks.distance(MOD))
+
+# Plot a box plot for each factor, look for equal variance amount levels along the zero line
+# Box plots need to be assessed for every fixed effect (categorical factor) for your model. 
+# Random effects need the qqline just like normality. 
+# So, only site and treatment get box plots. 
+# MAFA cover is a covariate (continuous variable).
+boxplot(E1 ~ site, data = cover_bylfstatus_wide)
+abline(h = 0)
+
+# Plot each random effect in the model, look for dots along 1:1 line
+qqnorm(ranef(MOD)$site[,1], main = "Plot Residuals")
+qqline(ranef(MOD)$site[,1])
+
+MOD <- lme.tdrmod
+simulationOutput <- simulateResiduals(fittedModel = MOD, plot = T)
+
+```
+
 
 ##### - y = total shrub cover x leaf type
 ```{r}
@@ -2314,6 +2507,23 @@ summary(model_qr)
 (AIC(model_lin, model_poly, model_gam, model_seg))
 # Lower/more negative AIC = better fit.
 
+
+
+
+#### checking residuals
+
+model <- lm(herb_native ~ poly(grass_nonnative, 2), data = herb_cover_wide)
+
+residuals(lm(herb_native ~ poly(grass_nonnative, 2), data = herb_cover_wide))
+
+plot(fitted(model) ~ resid(model))
+
+ggqqplot(herb_cover_wide$herb_native)
+testDispersion(simulateResiduals(
+  glm(herb_native ~ grass_nonnative, 
+         data = herb_cover_wide, 
+      family=gaussian)
+))
 
 ```
 
@@ -3705,7 +3915,9 @@ height_cover <- groupsdash %>%
   left_join(standheight_mean, by = "site_rep") %>% 
   left_join(cover_prep, by = "site_rep") %>% 
   mutate(cluster = as.character(cluster)) %>% 
-  filter(site_rep != "INT5_5")
+  filter(site_rep != "INT5_5") %>% 
+  mutate(grass_nonnative = grass_nonnative *100)
+  
 
 
 
@@ -3742,7 +3954,7 @@ fig_height <- ggplot(data = height_cover %>%
        mutate(site = ifelse(str_detect(site, "INT"), "3", site)) %>% 
          dplyr::select(site, site_rep, grass_nonnative, avgheight_cm) %>% 
          distinct(), 
-       aes(x = grass_nonnative * 100, y = avgheight_cm)) +
+       aes(x = grass_nonnative, y = avgheight_cm)) +
   geom_point(aes(color = site), size = 3, show.legend = TRUE
              # , position = position_jitter(width = 0.2, height = 0.1)
              ) +
@@ -3771,9 +3983,35 @@ fig_height <- ggplot(data = height_cover %>%
 
 fig_height
 
+######### stats
 
- 
- 
+cor.test(height_cover$grass_nonnative, 
+         height_cover$avgheight_cm)
+
+# 2. Linear regression
+model_lin <- lm(avgheight_cm ~ grass_nonnative, data = height_cover) 
+
+# 3. Polynomial Regression (Curvilinear Trends) - Fit a model where shrub cover changes in a curve (concave or convex) with grass cover.
+model_poly <- lm(avgheight_cm ~ poly(grass_nonnative, 2), data = height_cover)
+summary(model_poly)
+
+# 5. Threshold or Breakpoint Models (Piecewise Regression)
+# Here you test whether there’s a breakpoint in grass cover where the relationship with shrubs changes slope:
+model_seg <- segmented(model_lin, seg.Z = ~ grass_nonnative,
+                       npsi = 1) # one breakpoint
+summary(model_seg)
+plot(model_seg) 
+
+
+
+### MODEL COMPARISON
+# To decide if non-linear/threshold models are “better” than linear:
+# Compare models using AIC:
+(AIC(model_lin, model_poly, model_seg)) # Best models: GAM, segmented
+# Lower/more negative AIC = better fit.
+
+#  seg is "best" models
+
 ```
 
 
@@ -3904,7 +4142,7 @@ fig_clusterheight_scatter <- ggplot(data = height_cover %>%
                              cluster == "5" ~ "EVG",
                              TRUE ~ cluster)) %>% 
           mutate(cluster = factor(cluster, levels = c("EVG", "ssFG", "ssF", "ssG", "NNG"))),
-       aes(x = grass_nonnative * 100, y = avgheight_cm)) +
+       aes(x = grass_nonnative, y = avgheight_cm)) +
   geom_point(aes(color = cluster), size = 3, show.legend = TRUE) +
   scale_color_manual(values = c("#6C91BD",  "cyan",  "green" , "#AD1F68", 
 "#E69512" )) +
@@ -3952,7 +4190,8 @@ mutate(cluster = as.character(cluster)) %>%
                              cluster == "2" ~ "ssF",
                              cluster == "4" ~ "ssFG",
                              cluster == "5" ~ "EVG",
-                             TRUE ~ cluster)) 
+                             TRUE ~ cluster))  %>% 
+   mutate(cluster = factor(cluster, levels = c("NNG", "ssG", "ssF", "ssFG", "EVG")))
 
 
 
@@ -3982,11 +4221,11 @@ eq_label_cov <- paste0("y = ", slope, "x + ", intercept, "\n", "R² = ", r_squar
 
 ############################# figure
 fig_cov <- ggplot(transect_cov %>% 
-         mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
+         mutate(site = ifelse(str_detect(site, "INT"), "3", site)),
        aes(x = grass_nonnative * 100, y = cov_bytransect)) +
 
-   geom_point(aes(color = site), size = 3, show.legend = TRUE) +
-  scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +  
+  geom_point(aes(color = cluster), size = 3,  show.legend = TRUE) +
+   scale_color_manual(values = colors_plantclusters) +
   # geom_point(aes(fill = site), colour = "black", size = 3, pch = 21) +
  # theme(axis.text.x.bottom = element_text(angle = 90)) +
 
@@ -4014,6 +4253,17 @@ fig_cov <- ggplot(transect_cov %>%
 
 fig_cov
 
+
+ggplot(transect_cov,
+       aes(x = cluster,
+           y = cov_bytransect, 
+           fill = cluster) ) +
+  barplot() +
+  scale_fill_manual(values = colors_plantclusters)
+
+boxplot(cov_bytransect ~ cluster,
+        data = transect_cov, 
+        main = "Basic Boxplot of Data", ylab = "COV")
 
 ```
 
