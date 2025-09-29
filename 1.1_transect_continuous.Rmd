@@ -24,6 +24,7 @@ knitr::opts_chunk$set(echo = TRUE)
 -- "dotted": A dotted line.
 -- "dotdash": Alternating dots and dashes.
 -- "longdash": Long dashes.
+-- "paste0() : to paste without spaces
 
 SD = spread of data points
 SE = precision of data points
@@ -913,7 +914,7 @@ native_aes <- list(
 )
 ```
 
-### x = shrub cover by leaf type
+1. x = shrub cover by leaf type
 
 - y = non-native grass cover 
 ```{r shrub_split, eval = FALSE}
@@ -1064,8 +1065,7 @@ print(shrub_split)
 
 ```
 
-
-### x = total shrub
+2. x = total shrub
 - y = native and non-native grass cover 
 ```{r}
 
@@ -1329,7 +1329,7 @@ print(paste("Multiple R^2:", r_squared))
 
 ```
 
-### x = css
+3. x = css
 y = non-native grass cover 
 ```{r, eval = FALSE}
 ggplot(data = (cover_byleaftype_wide %>%  
@@ -1424,10 +1424,9 @@ scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-
   theme_bw()
 ```
 
+4. x = nn grass
 
-### x = nn grass
-
-### CORRELATION
+### - correlations
 ```{r, eval = FALSE}
 
 # NOTES
@@ -1458,6 +1457,7 @@ cor.test(herb_cover_wide$grass_nonnative,
 # I think running spearman is best if data are non-normally distributed or if there are outlines
 
 ```
+
 ##### - qqplots 
 ```{r}
 view(herb_cover_wide)
@@ -1509,21 +1509,26 @@ cor(herb_cover_wide[,
 ```{r}
 
 # Fit the poly model
-model.s <- lm(shrub_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide)
-model.s_summary <- summary(model.s)
+# model.s <- lm(shrub_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide)
+model.s <- lm(shrub_native ~ grass_nonnative + I(grass_nonnative^2), data = cover_bylfstatus_wide) # poly equation 
+coef(model.s) # model coeficients
+# shrub_native = a + b⋅grass_nonnative + c⋅grass_nonnative2
+# shrub_native = 0.885 − 0.077⋅grass_nonnative − 0.687⋅grass_nonnative2
+# y = a + bx + c xx
+# a <- round(coef(model.s)[1], 3) # intercept
+# b <- round(coef(model.s)[2], 3)
+# c <- round(coef(model.s)[3], 3)
+# equ_s <- print(paste0("y = ", a, " + (", b, ")x + (",c , ")x²"))
+equ_s <- print(paste0("y = ", round(coef(model.s)[1], 2), " + (", round(coef(model.s)[2], 2), ")x + (", round(coef(model.s)[3], 2), ")x²"))
 
-Fstatistics <- model.s_summary$fstatistic
-Fstat = round(Fstatistics[1], 2)
-on = round(Fstatistics[2], 0)
-DF = round(Fstatistics[3], 0)
-r_squareds <- round(model.s_summary$r.squared, 3)
-print(paste("R^2:", r_squareds))
-
+summary(model.s) 
+# r_squareds <- round(summary(model.s)$r.squared, 2)
+r_shrub <- print(paste0("R² = ", round(summary(model.s)$r.squared, 2)))
 # Create the label for the equation and R^2
-label_s <- paste0("Second-order polynomial regression", "\n",
-                  "F(", on, ",", DF,") = ", Fstat, "\n", 
-                  "p < 0.001", "\n", 
-                  "R² = ", r_squareds)
+
+
+label_s <- paste0(equ_s,  "\n", 
+                  r_shrub)
 
 
 nngxnatshr <- ggplot(data = cover_bylfstatus_wide, 
@@ -1554,8 +1559,24 @@ nngxnatshr
 ```{r}
 
 ######################################
+
+summary(
+  segmented(
+  lm(shrub_native ~ grass_nonnative, data = cover_bylfstatus_wide)
+    , seg.Z = ~ grass_nonnative,
+                       npsi = 1)
+  )
+
+# breakpoint = 52.7%
+# slope < 52.7% = -0.35924; p < 0.001
+# slope > 52.7% = -1.22714; p = 0.223  
+
+
 # Plot the segmented regression model and increase text sizes
-plot(model_seg, 
+plot(segmented(
+  lm(shrub_native ~ grass_nonnative, data = cover_bylfstatus_wide)
+    , seg.Z = ~ grass_nonnative,
+                       npsi = 1), 
      conf.level = 0.95, 
      shade = TRUE,
      # main = "Segmented Regression with Confidence Interval",
@@ -1807,48 +1828,39 @@ plot_gam
 ```{r}
 # Maxi code (9/276/2025)
 
-
-view(herb_cover_wide)
-
-herb_cover_wide_transformed <- herb_cover_wide %>% 
-  mutate(log10_herb_native = log10(herb_native + 1)) %>% 
-  mutate(log1p_herb_native = log1p(herb_native)) %>% 
-  mutate(across(c(log10_herb_native, log1p_herb_native), ~na_if(., 0))) %>% 
-  dplyr::select(site_rep, herb_native, log10_herb_native, log1p_herb_native)
-  
-
 #### checking residuals
-ggqqplot(herb_cover_wide$herb_native)
+ggqqplot(herb_cover_wide$shrub_native)
 
 # linear
-model2 <- lm(herb_native ~ grass_nonnative, data = herb_cover_wide)
-residuals(model2)
-plot(fitted(model2) ~ resid(model2))
+model_lmsh <- lm(shrub_native ~ grass_nonnative, data = herb_cover_wide)
+residuals(model_lmsh) # → raw or standardized differences between observed & fitted values.
+
+plot(fitted(model_lmsh) ~ resid(model_lmsh)) # looks random
+
 testDispersion(simulateResiduals(
-  lm(herb_native ~ grass_nonnative,
+  lm(shrub_native ~ grass_nonnative,
          data = herb_cover_wide, 
-      family=gaussian)
-))
-trial <-  testDispersion(simulateResiduals(
-  lm(herb_native ~ grass_nonnative,
-         data = herb_cover_wide, 
-      family=gaussian)))
-dispersion <- trial$statistic
-dispersion # 0.9761529
+      family=gaussian))) # 0.97615
+# Q-Q plot
+# qqnorm(residuals(model_lmsh))
+# qqline(residuals(model_lmsh), col = "red")
+model_lmsh_res<- simulateResiduals(model_lmsh) # → generates simulated residuals to check whether the model as a whole is consistent with the data (better for model diagnostics, especially outside simple linear regression).
+plotQQunif(model_lmsh_res) # 1
+
 
 # polynomial
-model <- lm(herb_native ~ poly(grass_nonnative, 2), data = herb_cover_wide)
-residuals(lm(herb_native ~ poly(grass_nonnative, 2), data = herb_cover_wide))
-plot(fitted(model) ~ resid(model))
-poly <- testDispersion(simulateResiduals(
-  lm(herb_native ~ poly(grass_nonnative, 2),
+model_polysh <- lm(shrub_native ~ poly(grass_nonnative, 2), data = herb_cover_wide)
+residuals(model_polysh)
+plot(fitted(model_polysh) ~ resid(model_polysh))
+testDispersion(simulateResiduals(
+  lm(shrub_native ~ poly(grass_nonnative, 2),
          data = herb_cover_wide, 
-      family=gaussian)
-))
-poly_disp <- poly$statistic # 0.9504647
+      family=gaussian))) # 0.95046
+model_polysh_res<- simulateResiduals(model_polysh) # → generates simulated residuals to check whether the model as a whole is consistent with the data (better for model diagnostics, especially outside simple linear regression).
+plotQQunif(model_polysh_res) # 0.912
 
 # segmented
-model3 <- segmented(model2, seg.Z = ~ grass_nonnative,
+model3 <- segmented(, seg.Z = ~ grass_nonnative,
                        npsi = 1) 
 residuals(model3)
 plot(fitted(model3) ~ resid(model3))
@@ -1927,8 +1939,7 @@ simulationOutput <- simulateResiduals(fittedModel = MOD, plot = T)
 
 ```
 
-
-##### - y = total shrub cover x leaf type
+- y = total shrub cover x leaf type
 ```{r}
 
 ############ scl slope
@@ -2006,7 +2017,7 @@ fig.1a
 # quadratic regression equation:  y = ax² + bx + c
 ```
 
-##### - y = scl shrub cover 
+ - y = scl shrub cover 
 ```{r regression nngrass x scl shrub, eval = FALSE}
  ggplot(data = cover_byleaftype_wide #%>%  
           # filter(shrub_native_sclerophyllous > 0.01) #include/omit 0% cover
@@ -2052,7 +2063,7 @@ cat("Multiple R^2:", round(summary(model.s)$r.squared, 3), "\n")
 # [1] "Multiple R^2: 0.442"
 ```
 
-##### - y = sage scrub cover
+ - y = sage scrub cover
 ```{r, eval = FALSE}
 # original plot
 ggplot(data = cover_byleaftype_wide %>%  
@@ -2133,7 +2144,7 @@ nngxss <-
 nngxss
 ```
 
-##### - y = total forb cover
+ - y = total forb cover
 ```{r regression forb x grass}
 ############ non-native slope
 # Fit the linear model
@@ -2195,23 +2206,19 @@ fig.1c
 ```{r native forb cover x nn grass cover}
 
 
-# Fit the model
-model.f <- lm(forb_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide)
-model.f.summary <- summary(model.f)
+# Fit the linear model
+model.f <- lm(forb_native ~ grass_nonnative, data = cover_bylfstatus_wide) # linear equation 
+coef(model.f) # model coeficients
+# equation
+equ_f <- print(paste0("y = ", round(coef(model.f)[1], 2), " + ", round(coef(model.f)[2], 2), "x"))
 
-Fstatistics <- model.f.summary$fstatistic
-Fstat = round(Fstatistics[1], 2)
-on = round(Fstatistics[2], 0)
-DF = round(Fstatistics[3], 0)
-r_squaredf <- round(model.f.summary$r.squared, 3)
-print(paste("R^2:", r_squaredf))
+# r squared value
+summary(model.f) 
+r_forb <- print(paste0("R² = ", round(summary(model.f)$r.squared, 2)))
 
 # Create the label for the equation and R^2
-label_f <- paste0("Second-order polynomial regression", "\n",
-                  "F(", on, ",", DF,") = ", Fstat, "\n", 
-                  "p = 0.264", "\n", # <-- p-value
-                  "R² = ", r_squaredf)
-
+label_f <- paste0(equ_f,  "\n", 
+                  r_forb)
 
 # native forb cover x nn grass cover
 nngxnatforb <- ggplot(data = cover_bylfstatus_wide,
@@ -2220,8 +2227,8 @@ nngxnatforb <- ggplot(data = cover_bylfstatus_wide,
   
       geom_point(aes(color = cluster), size = 3, show.legend = FALSE) +
    scale_color_manual(values = colors_plantclusters) +
-  # geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
-   stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +  # polynomial fit
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+   # stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +  # polynomial fit
   labs(
     x = "Non-native grass cover (%)",
     y = "Native forb cover (%)" 
@@ -2241,7 +2248,8 @@ nngxnatforb <- ggplot(data = cover_bylfstatus_wide,
   annotate("text", x = 0, y = 90, label = label_f, color = "black", size = 4, hjust = 0)
 
 nngxnatforb
-
+```
+```{r}
 ####################
 
 df <- cover_bylfstatus_wide
@@ -2290,7 +2298,162 @@ AICforb <- (AIC(model_lin, model_poly, model_gam, model_seg))
 ```
 
 ##### - y = native grass
+
+```{r}
+
+# Fit the linear model
+model.g <- lm(grass_native ~ grass_nonnative, data = cover_bylfstatus_wide) # linear equation 
+coef(model.g) # model coeficients
+# equation
+equ_g <- print(paste0("y = ", round(coef(model.g)[1], 2), " + (", round(coef(model.g)[2], 2), ")x"))
+
+# r squared value
+summary(model.g) 
+r_grass <- print(paste0("R² = ", round(summary(model.g)$r.squared, 2)))
+
+# Create the label for the equation and R^2
+label_g <- paste0(equ_g,  "\n", 
+                  "R² = 0.50")
+
+
+
+
+# native grass cover x nn grass cover
+nngxantgrass <- ggplot(data = cover_bylfstatus_wide,
+       aes(x = grass_nonnative*100, 
+         y = grass_native*100)) + 
+  
+      geom_point(aes(color = cluster), size = 3, show.legend = TRUE) +
+   scale_color_manual(values = colors_plantclusters) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+   # stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +  # polynomial fit - error bars go below 0%
+  labs(
+    x = "Non-native grass cover (%)",
+    y = "Native grass cover (%)",
+    color = "Community-type") +
+  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
+  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 20)) + # Set y-axis limits and breaks 
+  theme_bw() +
+      
+  theme(axis.text = element_text(size = 16)) + # axes numbers - font size
+  theme(axis.title = element_text(size = 20)) + # axes titles
+  theme(legend.title=element_text(size = 16)) + 
+  theme(legend.text=element_text(size = 16))+
+  annotate("text", x = 60, y = 90, label = label_g, color = "black", size = 4, hjust = 0) 
+
+nngxantgrass
+
+
+```
+
+
+
+```{r}
+
+#############################
+
+#stats
+
+# 1. Correlation - Compute a correlation coefficient to see if the two are associated
+cor.test(cover_bylfstatus_wide$grass_nonnative, 
+         cover_bylfstatus_wide$grass_native )
+
+# 2. Linear regression
+model_lm <- lm(grass_native ~ grass_nonnative, data = cover_bylfstatus_wide) 
+
+# 3. Polynomial Regression (Curvilinear Trends) - Fit a model where shrub cover changes in a curve (concave or convex) with grass cover.
+model_poly <- lm(grass_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide)
+summary(model_poly)
+
+# 4. Generalized Additive Models (GAMs) - If you don’t want to assume the shape (e.g., parabola), GAMs let the data “decide” the curve:
+model_gam <- gam(grass_native ~ s(grass_nonnative), data = cover_bylfstatus_wide)
+summary(model_gam)
+plot(model_gam)
+
+# 5. Threshold or Breakpoint Models (Piecewise Regression)
+# Here you test whether there’s a breakpoint in grass cover where the relationship with shrubs changes slope:
+model_seg <- segmented(lm(grass_native ~ grass_nonnative, data = cover_bylfstatus_wide) , seg.Z = ~grass_nonnative,
+                       npsi = 1) # one breakpoint
+summary(model_seg)
+plot(model_seg)
+
+
+### MODEL COMPARISON
+# To decide if non-linear/threshold models are “better” than linear:
+# Compare models using AIC:
+AICgrass <- (AIC(model_lm, model_poly, model_gam, model_seg))
+# Lower/more negative AIC = better fit.
+
+# linear model is best fit
+
+###################
+
+# test residuals from linear model
+residuals_lm_grass <- residuals(lm(grass_native ~ grass_nonnative, data = cover_bylfstatus_wide))
+plot(fitted(model.g) ~ residuals_lm_grass) # does not look random
+testDispersion(simulateResiduals(
+  lm(grass_native ~ grass_nonnative,
+         data = cover_bylfstatus_wide, 
+      family=gaussian))) # dispersion = 0.97615, p-value = 1
+# Q-Q plot
+qqnorm(residuals_lm_grass, main = "Q-Q Plot for Linear Model Residuals - nativegrass")
+qqline(residuals_lm_grass, col = "red")
+model_lm_g_res<- simulateResiduals(model.g) # → generates simulated residuals to check whether the model as a whole is consistent with the data (better for model diagnostics, especially outside simple linear regression).
+plotQQunif(model_lm_g_res) # 1
+
+
+# Extract residuals from the poly model
+residuals_poly_g <- residuals(
+  lm(grass_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide)
+  )
+plot(fitted(model.g) ~ residuals_poly_g) # does not look random
+testDispersion(simulateResiduals(
+  lm(grass_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide),
+  
+      family=gaussian)) # dispersion = 0.95046, p-value = 0.912
+# Q-Q plot
+qqnorm(residuals_poly_g, main = "Q-Q Plot for Polynomial Model Residuals - nativegrass")
+qqline(residuals_poly_g, col = "red")
+model_poly_g_res<- simulateResiduals(
+  lm(grass_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide)
+) # → generates simulated residuals to check whether the model as a whole is consistent with the data (better for model diagnostics, especially outside simple linear regression).
+plotQQunif(model_poly_g_res) # significan diviation
+
+
+
+# Extract residuals from the segmented model
+residuals_segmented_g <- residuals(
+  segmented( lm(grass_native ~ grass_nonnative, data = cover_bylfstatus_wide)
+    , seg.Z = ~ grass_nonnative,
+                       npsi = 1)
+)
+
+
+
+# test residuals from poly model
+residuals_poly_grass <- residuals(lm(grass_native ~ grass_nonnative, data = cover_bylfstatus_wide))
+plot(fitted(model.g) ~ resid(model.g)) # does not look random
+# Extract residuals from the poly model
+residuals_poly_g <- residuals(
+  lm(grass_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide)
+  )
+# Extract residuals from the segmented model
+residuals_segmented_g <- residuals(
+  segmented( lm(grass_native ~ grass_nonnative, data = cover_bylfstatus_wide)
+    , seg.Z = ~ grass_nonnative,
+                       npsi = 1)
+)
+# Plot the Q-Q plot for the linear model residuals
+qqnorm(residuals_lm_grass, main = "Q-Q Plot for Linear Model Residuals - nativegrass")
+qqline(residuals_lm_grass, col = "red")
+
+
+```
+
+
 ```{r regression grass x grass}
+
+###  original (aka. old) figure
 
 # Fit the linear model
 model.g <- lm(grass_native ~ grass_nonnative, data = cover_bylfstatus_wide %>%  filter(grass_native >0)) # response variable ~ independent variable
@@ -2330,97 +2493,25 @@ fig.1e <- ggplot(data = cover_bylfstatus_wide
 
 fig.1e
 
-
-#############################
-
-#stats
-
-# 1. Correlation - Compute a correlation coefficient to see if the two are associated
-cor.test(cover_bylfstatus_wide$grass_nonnative, 
-         cover_bylfstatus_wide$grass_native )
-
-# 2. Linear regression
-model_lm <- lm(grass_native ~ grass_nonnative, data = cover_bylfstatus_wide) 
-
-# 3. Polynomial Regression (Curvilinear Trends) - Fit a model where shrub cover changes in a curve (concave or convex) with grass cover.
-model_poly <- lm(grass_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide)
-summary(model_poly)
-
-# 4. Generalized Additive Models (GAMs) - If you don’t want to assume the shape (e.g., parabola), GAMs let the data “decide” the curve:
-model_gam <- gam(grass_native ~ s(grass_nonnative), data = cover_bylfstatus_wide)
-summary(model_gam)
-plot(model_gam)
-
-# 5. Threshold or Breakpoint Models (Piecewise Regression)
-# Here you test whether there’s a breakpoint in grass cover where the relationship with shrubs changes slope:
-model_seg <- segmented(model_lm, seg.Z = ~grass_nonnative,
-                       npsi = 1) # one breakpoint
-summary(model_seg)
-plot(model_seg)
-
-
-### MODEL COMPARISON
-# To decide if non-linear/threshold models are “better” than linear:
-# Compare models using AIC:
-AICgrass <- (AIC(model_lm, model_poly, model_gam, model_seg))
-# Lower/more negative AIC = better fit.
-
-# poly is best fit
-
-###################
-
-
-# Fit the model
-model.natg <- lm(grass_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide)
-model.natg_summary <- summary(model.natg)
-
-Fstatistics <- model.natg_summary$fstatistic
-Fstat = round(Fstatistics[1], 2)
-on = round(Fstatistics[2], 0)
-DF = round(Fstatistics[3], 0)
-r_squaredf <- round(model.natg_summary$r.squared, 3)
-print(paste("R^2:", r_squaredf))
-
-# Create the label for the equation and R^2
-label_natg <- paste0("Second-order polynomial regression", "\n",
-                  "F(", on, ",", DF,") = ", Fstat, "\n", 
-                  "p < 0.001", "\n", # <-- p-value
-                  "R² = ", r_squaredf)
-
-
-
-
-# native grass cover x nn grass cover
-nngxantgrass <- ggplot(data = cover_bylfstatus_wide,
-       aes(x = grass_nonnative*100, 
-         y = grass_native*100)) + 
-  
-      geom_point(aes(color = cluster), size = 3, show.legend = FALSE) +
-   scale_color_manual(values = colors_plantclusters) +
-  # geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
-   stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +  # polynomial fit - error bars go below 0%
-  labs(
-    x = "Non-native grass cover (%)",
-    y = "Native grass cover (%)"
-    ) +
-  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
-  scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 20)) + # Set y-axis limits and breaks 
-  theme_bw() +
-      
-  theme(axis.text = element_text(size = 16)) + # axes numbers - font size
-  theme(axis.title = element_text(size = 20)) + # axes titles
-  theme(legend.title=element_text(size = 16)) + 
-  theme(legend.text=element_text(size = 16))+
-  annotate("text", x = 60, y = 90, label = label_natg, color = "black", size = 4, hjust = 0) 
-
-nngxantgrass
-
-
-
 ```
+
 
 ##### - y = native herbaceous cover
 ```{r}
+
+# the polynomial is the best fit regression
+# Fit the poly model
+model.h <- lm(herb_native ~ grass_nonnative + I(grass_nonnative^2), data = herb_cover_wide) # poly equation 
+coef(model.h) # model coeficients
+equ_h <- print(paste0("y = ", round(coef(model.h)[1], 2), " + (", round(coef(model.h)[2], 2), ")x + (", round(coef(model.h)[3], 2), ")x²"))
+
+summary(model.h) 
+r_herb <- print(paste0("R² = ", round(summary(model.h)$r.squared, 2)))
+# Create the label for the equation and R^2
+
+
+label_h <- paste0(equ_h,  "\n", 
+                  r_herb)
 nngxnatherb <- ggplot(data = herb_cover_wide,
        aes(x = grass_nonnative*100, 
          y = herb_native*100)) + 
@@ -2446,9 +2537,56 @@ nngxnatherb <- ggplot(data = herb_cover_wide,
   theme(axis.text = element_text(size = 16)) + # axes numbers - font size
   theme(axis.title = element_text(size = 20)) + # axes titles
   theme(legend.title=element_text(size = 16)) + 
-  theme(legend.text=element_text(size = 16))
+  theme(legend.text=element_text(size = 16)) +
+   annotate("text", x = 0, y = 90, label = label_h, color = "black", size = 4, hjust = 0) 
 
 nngxnatherb
+```
+
+```{r}
+# herb segmented model
+model_seg_herb <- segmented(
+  lm(herb_native ~ grass_nonnative, data = herb_cover_wide)
+  , seg.Z = ~grass_nonnative,
+                       npsi = 1) # one breakpoint
+summary(model_seg_herb)
+# Estimated Break-Point(s):
+#                        Est. St.Err
+# psi1.grass_nonnative 0.341  0.182
+# 
+# Coefficients of the linear terms:
+#                    Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)          0.5046     0.1001   5.042 1.32e-05 ***
+# grass_nonnative     -0.9073     0.5341  -1.699    0.098 .  
+# U1.grass_nonnative   0.7060     0.5511   1.281       NA    
+
+plot(model_seg_herb)
+# break point = 34.1%
+# slope <34.1% = -0.9073; p < 0.001
+# slope >34.1% = -0.2013; p = 0.098
+
+
+# Plot the segmented regression model and increase text sizes
+plot(segmented(
+  lm(herb_native ~ grass_nonnative, data = herb_cover_wide)
+    , seg.Z = ~ grass_nonnative,
+                       npsi = 1), 
+     conf.level = 0.95, 
+     shade = TRUE,
+     # main = "Segmented Regression with Confidence Interval",
+     xlab = "Non-Native Grass Cover (%)", 
+     ylab = "Native Herbaceous Cover (%)",
+     cex.main = 1.5,   # Increase the main title size
+     cex.lab = 1.3,    # Increase the axis labels size
+     cex.axis = 1.2)   # Increase the axis numbers size
+
+# Add the original data points, increasing their size as well
+points(herb_cover_wide$grass_nonnative, 
+       herb_cover_wide$herb_native,
+       col = colors_plantclusters,
+       pch = 16,
+       cex = 1.5)      # Increase the size of the data points
+
 ```
 
 The "best" regression for native herb cover is: poly
@@ -2504,7 +2642,7 @@ summary(model_qr)
 ### MODEL COMPARISON
 # To decide if non-linear/threshold models are “better” than linear:
 # Compare models using AIC:
-(AIC(model_lin, model_poly, model_gam, model_seg))
+AIC_herb <- (AIC(model_lin, model_poly, model_gam, model_seg))
 # Lower/more negative AIC = better fit.
 
 
@@ -2525,6 +2663,55 @@ testDispersion(simulateResiduals(
       family=gaussian)
 ))
 
+
+
+
+#### checking residuals
+ggqqplot(herb_cover_wide$herb_native)
+
+# linear
+model2 <- lm(herb_native ~ grass_nonnative, data = herb_cover_wide)
+residuals(model2) # → raw or standardized differences between observed & fitted values.
+
+plot(fitted(model2) ~ resid(model2))
+
+testDispersion(simulateResiduals(
+  lm(herb_native ~ grass_nonnative,
+         data = herb_cover_wide, 
+      family=gaussian)
+))
+# Q-Q plot
+qqnorm(residuals(model2))
+qqline(residuals(model2), col = "red")
+
+model_2res<- simulateResiduals(model2) # → generates simulated residuals to check whether the model as a whole is consistent with the data (better for model diagnostics, especially outside simple linear regression).
+plotQQunif(model_2res)
+
+
+trial <-  testDispersion(simulateResiduals(
+  lm(herb_native ~ grass_nonnative,
+         data = herb_cover_wide, 
+      family=gaussian)))
+dispersion <- trial$statistic
+dispersion # 0.9761529
+
+# polynomial
+model <- lm(herb_native ~ poly(grass_nonnative, 2), data = herb_cover_wide)
+residuals(lm(herb_native ~ poly(grass_nonnative, 2), data = herb_cover_wide))
+plot(fitted(model) ~ resid(model))
+poly <- testDispersion(simulateResiduals(
+  lm(herb_native ~ poly(grass_nonnative, 2),
+         data = herb_cover_wide, 
+      family=gaussian)
+))
+poly_disp <- poly$statistic # 0.9504647
+
+# segmented
+model3 <- segmented(model2, seg.Z = ~ grass_nonnative,
+                       npsi = 1) 
+residuals(model3)
+plot(fitted(model3) ~ resid(model3))
+
 ```
 
 ### Figure 1 - cover regressions
@@ -2542,8 +2729,8 @@ testDispersion(simulateResiduals(
 
 
 fig.1a_labeled <- ggdraw(nngxnatshr) + draw_label("A", x = 0.95, y = 0.92, size = 15)  # shrub 
-fig.1b_labeled <- ggdraw(nngxnatforb) + draw_label("B", x = 0.95, y = 0.92, size = 15)  # nat forb
-fig.1c_labeled <- ggdraw(nngxantgrass) + draw_label("C", x = 0.95, y = 0.92, size = 15)  # nat grass
+fig.1b_labeled <- ggdraw(nngxantgrass) + draw_label("B", x = 0.95, y = 0.92, size = 15)  # nat forb
+fig.1c_labeled <- ggdraw(nngxnatforb) + draw_label("C", x = 0.95, y = 0.92, size = 15)  # nat grass
 
 # Combine the plots in a 2x3 layout
 figure1 <- plot_grid( fig.1a_labeled,
