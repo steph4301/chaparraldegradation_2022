@@ -2516,7 +2516,7 @@ nngxnatherb <- ggplot(data = herb_cover_wide,
        aes(x = grass_nonnative*100, 
          y = herb_native*100)) + 
   
-      geom_point(aes(color = cluster), size = 3) +
+      geom_point(aes(color = cluster), size = 3, show.legend = FALSE) +
    scale_color_manual(values = colors_plantclusters) +
   # geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
    stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +  # polynomial fit
@@ -2729,15 +2729,17 @@ plot(fitted(model3) ~ resid(model3))
 
 
 fig.1a_labeled <- ggdraw(nngxnatshr) + draw_label("A", x = 0.95, y = 0.92, size = 15)  # shrub 
-fig.1b_labeled <- ggdraw(nngxantgrass) + draw_label("B", x = 0.95, y = 0.92, size = 15)  # nat forb
-fig.1c_labeled <- ggdraw(nngxnatforb) + draw_label("C", x = 0.95, y = 0.92, size = 15)  # nat grass
+fig.1b_labeled <- ggdraw(nngxantgrass) + draw_label("B", x = 0.95, y = 0.92, size = 15)  
+fig.1c_labeled <- ggdraw(nngxnatforb) + draw_label("C", x = 0.95, y = 0.92, size = 15)  
+fig.1d_labeled <- ggdraw(nngxnatherb) + draw_label("D", x = 0.95, y = 0.92, size = 15)  
 
 # Combine the plots in a 2x3 layout
 figure1 <- plot_grid( fig.1a_labeled,
              fig.1b_labeled,
              fig.1c_labeled,
-             nrow = 3, 
-             ncol = 1, 
+             fig.1d_labeled,
+             nrow = 2, 
+             ncol = 2, 
              widths = c(1, 1), # Custom widths for each column
              heights = c(1, 1, 1) # Custom heights for each row
              ) 
