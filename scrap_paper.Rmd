@@ -1,6 +1,6 @@
  mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
  
-   ## to make font bigger and axes bigger
+# To make the axes bigger:
    scale_x_continuous(
       limits = c(0, 100),
       breaks = seq(0, 100, by = 10),
@@ -11,8 +11,9 @@
     breaks = seq(0, 100, by = 10),
     expand = expansion(mult = c(0, 0.05))
   ) +
-  # Theme
-  theme_bw() +
+  
+  
+# To make the font bigger:
   theme(axis.text = element_text(size = 16)) + # axes numbers - font size
   theme(axis.title = element_text(size = 20)) + # axes titles
   theme(legend.title=element_text(size = 16)) + 
@@ -25,4 +26,677 @@
                              cluster == "4" ~ "ssFG",
                              cluster == "5" ~ "EVG",
                              TRUE ~ cluster)) %>% 
-          mutate(cluster = factor(cluster, levels = c("EVG", "ssFG", "ssF", "ssG", "NNG"))),
+          mutate(cluster = factor(cluster, levels = c("EVG", "ssFG", "ssF", "ssG", "NNG")))
+          
+          
+          
+
+#### checking residuals
+ggqqplot(herb_cover_wide$herb_native)
+
+# linear
+model2 <- lm(herb_native ~ grass_nonnative, data = herb_cover_wide)
+residuals(model2) # → raw or standardized differences between observed & fitted values.
+
+plot(fitted(model2) ~ resid(model2))
+
+testDispersion(simulateResiduals(
+  lm(herb_native ~ grass_nonnative,
+         data = herb_cover_wide, 
+      family=gaussian)
+))
+# Q-Q plot
+qqnorm(residuals(model2))
+qqline(residuals(model2), col = "red")
+
+model_2res<- simulateResiduals(model2) # → generates simulated residuals to check whether the model as a whole is consistent with the data (better for model diagnostics, especially outside simple linear regression).
+plotQQunif(model_2res)
+
+
+trial <-  testDispersion(simulateResiduals(
+  lm(herb_native ~ grass_nonnative,
+         data = herb_cover_wide, 
+      family=gaussian)))
+dispersion <- trial$statistic
+dispersion # 0.9761529
+
+# polynomial
+model <- lm(herb_native ~ poly(grass_nonnative, 2), data = herb_cover_wide)
+residuals(lm(herb_native ~ poly(grass_nonnative, 2), data = herb_cover_wide))
+plot(fitted(model) ~ resid(model))
+poly <- testDispersion(simulateResiduals(
+  lm(herb_native ~ poly(grass_nonnative, 2),
+         data = herb_cover_wide, 
+      family=gaussian)
+))
+poly_disp <- poly$statistic # 0.9504647
+
+# segmented
+model3 <- segmented(model2, seg.Z = ~ grass_nonnative,
+                       npsi = 1) 
+residuals(model3)
+plot(fitted(model3) ~ resid(model3))
+
+
+
+
+
+          
+          
+          
+          
+          
+          
+          
+          ##########
+          
+          
+          
+## TDR linear mixed-effects model
+
+1.  lmer
+2.  testing the residuals for normality
+
+```{r tdrmod test for normality, include = TRUE}
+
+lme.tdrmod <- lmer(soil_moisture ~ treatment + mafacover + site  + month + nncover  +(1|plot_number) , 
+                   data = tdrmod_nncover)
+
+MOD <- lme.tdrmod
+
+# Calculate model's residual and fitted values
+F1 <- fitted(MOD)
+E1 <- residuals(MOD, "pearson")
+
+# See residuals as a histogram, look for normal distribution
+hist(E1)
+
+# Graph residuals against a normal distribution, look for all points to be on 1:1 line
+#need to call next two lines together
+qqnorm(E1, xlab = "Theoretical Quantiles", ylab = "Pearson Residuals")
+qqline(E1)
+
+# Graph residuals vs fitted values to inspect homogeneity of variance, look for a random scattering of plots
+# run together 2 lines
+plot(x=F1, y=E1, xlab="Fitted Model Values", ylab="Pearson Residuals", main = "Variance")
+abline(h = 0) # looking for random scatter
+
+# Check for crazy outliers, look for lines MUCH taller than the rest of data
+plot(cooks.distance(MOD))
+
+# Plot a box plot for each factor, look for equal variance amount levels along the zero line
+# Box plots need to be assessed for every fixed effect (categorical factor) for your model. 
+# Random effects need the qqline just like normality. 
+# So, only site and treatment get box plots. 
+# MAFA cover is a covariate (continuous variable).
+boxplot(E1 ~ treatment, data = tdrmod)
+abline(h = 0)
+
+boxplot(E1 ~ site, data = tdrmod)
+abline(h = 0)
+
+boxplot(E1 ~ month, data = tdrmod)
+abline(h = 0)
+
+# Plot each random effect in the model, look for dots along 1:1 line
+qqnorm(ranef(MOD)$plot_number[,1], main = "Plot Residuals")
+qqline(ranef(MOD)$plot_number[,1])
+
+MOD <- lme.tdrmod
+simulationOutput <- simulateResiduals(fittedModel = MOD, plot = T)
+
+```
+
+```{r tdrmod by treatment, include=FALSE}
+#lme.tdrmod_treat <- lmer(soil_moisture ~ treatment + site  + month + nncover  +(1|plot_number) , 
+#                   data = tdrmod_nncover)
+
+#MOD <- lme.tdrmod_treat
+
+#simulationOutput <- simulateResiduals(fittedModel = MOD, plot = T)
+
+#simulationOutput <- simulateResiduals(fittedModel = MOD)
+
+```
+
+```{r tdrmod by mafacover, include=FALSE}
+#lme.tdrmod_mafacover <- lmer(soil_moisture ~ mafacover + site  + month + nncover  +(1|plot_number) , 
+#                   data = tdrmod_nncover)
+
+#MOD <- lme.tdrmod_mafacover
+
+#simulationOutput <- simulateResiduals(fittedModel = MOD, plot = T)
+
+#simulationOutput <- simulateResiduals(fittedModel = MOD)
+
+```
+
+
+3.  statistics
+
+```{r tdrmod stats, include = TRUE}
+
+# print 
+print(lme.tdrmod)
+
+anova(lme.tdrmod) # A significant p-value indicates that one or more significant differences 
+#Type III Analysis of Variance Table with Satterthwaite's method
+#          Sum Sq Mean Sq NumDF  DenDF  F value    Pr(>F)    
+#treatment   79.3   39.65     2 36.033   7.4954 0.0018977 ** 
+#mafacover    2.2    2.23     1 82.716   0.4221 0.5177001    
+#site        97.3   97.34     1 41.271  18.4008 0.0001053 ***
+#month     3704.8 1852.41     2 81.864 350.1884 < 2.2e-16 ***
+#nncover     15.7   15.71     1 89.619   2.9706 0.0882366 .  
+
+summary(lme.tdrmod)
+#Fixed effects:
+#               Estimate Std. Error        df t value Pr(>|t|)    
+#(Intercept)    26.98241    1.27198  79.10862  21.213  < 2e-16 ***
+#treatmenthalf  -1.32295    0.85992  36.15962  -1.538 0.132644    
+#treatmentnone  -3.51618    0.93338  40.52520  -3.767 0.000526 ***
+#mafacover       0.01694    0.02608  82.71644   0.650 0.517700    
+#site2          -3.24325    0.75607  41.27106  -4.290 0.000105 ***
+#month3         -3.84277    0.65403  89.71482  -5.875 7.06e-08 ***
+#month4        -14.05069    0.54210  68.91046 -25.919  < 2e-16 ***
+#nncover        -0.03718    0.02157  89.61930  -1.724 0.088237 .   
+
+
+```
+
+```{r tdrmod posthoc, include=TRUE}
+
+emmeans(lme.tdrmod, list(pairwise ~ treatment), adjust = "tukey") # by treatment
+#$`pairwise differences of treatment`
+# 1           estimate    SE   df t.ratio p.value
+# full - half     1.32 0.864 35.8   1.532  0.2884
+# full - none     3.52 0.940 40.1   3.740  0.0016 <--
+# half - none     2.19 0.808 33.0   2.716  0.0274 <--
+
+emmeans(lme.tdrmod, list(pairwise ~ site), adjust = "tukey") # by site
+#$`pairwise differences of site`
+# 1             estimate    SE   df t.ratio p.value
+# site1 - site2     3.24 0.761 40.8   4.260  0.0001 <-- site
+
+emmeans(lme.tdrmod, list(pairwise ~ month), adjust = "tukey") # by month
+#$`pairwise differences of month`
+# 1                estimate    SE   df t.ratio p.value
+# month12 - month3     3.84 0.659 89.5   5.833  <.0001
+# month12 - month4    14.05 0.542 68.5  25.919  <.0001
+# month3 - month4     10.21 0.659 89.5  15.495  <.0001
+
+# visualize significant factors from anova(lme.tdrmod)
+emmip(lme.tdrmod, treatment ~ year)
+# emmip(lme.tdrmod, month ~ treatment | site)
+
+tdrmod.mafacover <- lm(soil_moisture ~ mafacover, 
+                       data = tdrmod_nncover %>% filter(year == "2019"))
+anova(tdrmod.mafacover)
+summary(tdrmod.mafacover)
+
+tdrmod.nn <- lm(soil_moisture ~ nncover, data = tdrmod_nncover %>% filter(year == "2019"))
+anova(tdrmod.nn)
+summary(tdrmod.nn)
+
+tdrmod.site <- lm(soil_moisture ~ site, data = tdrmod_nncover)
+tdrmod.site <- lm(soil_moisture ~ site, data = tdrmod_nncover %>%  filter(year == "2019"))
+anova(tdrmod.site)
+summary(tdrmod.site)
+
+tdrmod.treat <- aov(soil_moisture ~ treatment, data = tdrmod_nncover) # all three collection points
+anova(tdrmod.treat)
+summary(tdrmod.treat)
+#  Df Sum Sq Mean Sq F value Pr(>F)  
+# treatment    2  146.1   73.05   4.068 0.0263 *
+# Residuals   33  592.5   17.96      
+TukeyHSD(tdrmod.treat)
+
+tdrmod.treat.19 <- aov(soil_moisture ~ treatment, data = tdrmod_nncover %>%  filter(year == "2019"))
+anova(tdrmod.treat.19)
+summary(tdrmod.treat.19)
+TukeyHSD(tdrmod.treat.19)
+
+# stats on site treatment interactions
+tdrmod.interaction <- lm(soil_moisture ~ site*treatment, data = tdrmod_nncover)
+anova(tdrmod.interaction) # p-values for the interaction
+#Response: soil_moisture
+#                Df Sum Sq Mean Sq F value  Pr(>F)   
+#site             1  344.6  344.57  7.7568 0.00638 **
+#treatment        2  154.9   77.45  1.7434 0.18009   
+#site:treatment   2    4.6    2.29  0.0516 0.94971   
+
+# For TDR and nn cover, the significant plots may explain results we see later, but the fact that there are 2-3 plots that are significantly different from each other doesn't tell us the sites or treatments are significantly different from each other. 
+
+# stats on individual plots: emmeans
+emmeans(lme.tdrmod, list(pairwise ~ site*treatment), adjust = "tukey")
+#lsmeans(lme.tdrmod, pairwise~site*treatment, adjust="tukey") # emmeans and lsmeans give the same results
+
+#$`pairwise differences of site, treatment`
+# 1                           estimate    SE   df t.ratio p.value
+# site1 full - site2 full        3.939 0.875 50.9   4.500  0.0005 <-- 
+# site1 full - site1 half        0.871 0.833 35.3   1.045  0.8991
+# site1 full - site2 half        4.810 1.076 36.6   4.472  0.0010 <-- 
+# site1 full - site1 nonene      3.172 0.930 41.2   3.411  0.0171 <-- 
+# site1 full - site2 nonene      7.111 1.063 36.2   6.690  <.0001 <-- 
+# site2 full - site1 half       -3.068 1.328 47.5  -2.311  0.2101
+# site2 full - site2 half        0.871 0.833 35.3   1.045  0.8991
+# site2 full - site1 nonene     -0.767 1.460 52.1  -0.525  0.9949
+# site2 full - site2 nonene      3.172 0.930 41.2   3.411  0.0171 <-- 
+# site1 half - site2 half        3.939 0.875 50.9   4.500  0.0005 <-- 
+# site1 half - site1 nonene      2.302 0.798 33.0   2.883  0.0688
+# site1 half - site2 nonene      6.241 1.098 37.6   5.684  <.0001 <-- 
+# site2 half - site1 nonene     -1.637 1.266 45.0  -1.294  0.7869
+# site2 half - site2 nonene      2.302 0.798 33.0   2.883  0.0688
+# site1 nonene - site2 nonene    3.939 0.875 50.9   4.500  0.0005 <-- 
+
+emmeans(lme.tdrmod, list(pairwise ~ month*treatment), adjust = "tukey") # by month and treatment
+# $`emmeans of month, treatment`
+#  month treatment emmean    SE   df lower.CL upper.CL
+#  12    full       24.33 0.746 57.4    22.84    25.83
+#  3     full       20.49 0.665 54.3    19.16    21.83
+#  4     full       10.28 0.746 57.4     8.79    11.78
+#  12    half       23.01 0.654 53.9    21.70    24.32
+#  3     half       19.17 0.685 54.8    17.79    20.54
+#  4     half        8.96 0.654 53.9     7.65    10.27
+#  12    none       20.82 0.646 52.2    19.52    22.11
+#  3     none       16.97 0.793 61.4    15.39    18.56
+#  4     none        6.77 0.646 52.2     5.47     8.06
+# 
+# Results are averaged over the levels of: site 
+# Degrees-of-freedom method: kenward-roger 
+# Confidence level used: 0.95 
+# 
+# $`pairwise differences of month, treatment`
+#  1                           estimate    SE   df t.ratio p.value
+#  
+#  
+#  month12 full - month12 half    1.323 0.864 35.8   1.532  0.8331  no diff 
+#  month12 half - month12 none    2.193 0.808 33.0   2.716  0.1812 no diff in Dec2018
+#  month12 full - month12 none    3.516 0.940 40.1   3.740  0.0151 <-- Dec2018 full and no rem
+#  
+#  month3 full - month3 half      1.323 0.864 35.8   1.532  0.8331  no diff 
+#  month3 half - month3 none      2.193 0.808 33.0   2.716  0.1812  no diff
+#  month3 full - month3 none      3.516 0.940 40.1   3.740  0.0151 <--
+#  
+#  month4 full - month4 half      1.323 0.864 35.8   1.532  0.8331  no diff
+#  month4 half - month4 none      2.193 0.808 33.0   2.716  0.1812  no diff
+#  month4 full - month4 none      3.516 0.940 40.1   3.740  0.0151 <--
+#  
+#  month3 full - month12 half    -2.520 1.012 65.0  -2.491  0.2558  no diff 
+#  month3 full - month12 none    -0.327 0.996 62.9  -0.328  1.0000  no diff 
+#  month3 half - month12 none    -1.650 0.957 62.0  -1.723  0.7301  no diff
+#  
+#  month12 full - month3 full     3.843 0.659 89.5   5.833  <.0001 <--
+#  month12 full - month4 full    14.051 0.542 68.5  25.919  <.0001 <--
+#  month12 full - month3 half     5.166 1.156 66.0   4.469  0.0010 <--
+#  month12 full - month4 half    15.374 1.020 63.0  15.077  <.0001 <--
+
+#  month12 full - month3 none     7.359 1.282 69.0   5.739  <.0001 <--
+#  month12 full - month4 none    17.567 1.085 64.4  16.188  <.0001 <--
+#  
+#  month3 full - month4 full     10.208 0.659 89.5  15.495  <.0001 <--
+# 
+#  month3 full - month4 half     11.531 1.012 65.0  11.397  <.0001 <--
+#  
+#  month3 full - month4 none     13.724 0.996 62.9  13.783  <.0001 <--
+#  
+#  month4 full - month12 half   -12.728 1.020 63.0 -12.482  <.0001 <--
+#  month4 full - month3 half     -8.885 1.156 66.0  -7.686  <.0001 <--
+#  
+#  month4 full - month12 none   -10.535 1.085 64.4  -9.708  <.0001 <--
+#  month4 full - month3 none     -6.692 1.282 69.0  -5.219  0.0001 <--
+
+#  
+#  month12 half - month3 half     3.843 0.659 89.5   5.833  <.0001 <--
+#  month12 half - month4 half    14.051 0.542 68.5  25.919  <.0001 <--
+#  
+#  month12 half - month3 none     6.036 1.121 68.5   5.386  <.0001 <--
+#  month12 half - month4 none    16.244 0.973 62.8  16.700  <.0001 <--
+#  
+#  month3 half - month4 half     10.208 0.659 89.5  15.495  <.0001 <--
+#  
+#  month3 half - month4 none     12.401 0.957 62.0  12.955  <.0001 <--
+#  
+#  month4 half - month12 none   -11.857 0.973 62.8 -12.191  <.0001 <--
+#  month4 half - month3 none     -8.015 1.121 68.5  -7.151  <.0001 <--
+# 
+#  month12 none - month3 none     3.843 0.659 89.5   5.833  <.0001 <--
+#  month12 none - month4 none    14.051 0.542 68.5  25.919  <.0001 <--
+# 
+#  month3 none - month4 none     10.208 0.659 89.5  15.495  <.0001 <--
+# 
+# Results are averaged over the levels of: site 
+# Degrees-of-freedom method: kenward-roger 
+# P value adjustment: tukey method for comparing a family of 9 estimates 
+# 
+
+
+# tdr by month
+tdrmod_nncover_bymonth <- aov(soil_moisture ~ month, data = tdrmod_nncover)
+anova(tdrmod_nncover_bymonth)
+TukeyHSD(aov(soil_moisture ~ month, data = tdrmod_nncover))
+```
+
+```{r tdrmod means SD SE, include = TRUE}
+
+# mean, SE: tdr x treatment
+tdrmod_nncover %>%  # all TDR data in April 2018, December 2018, and March 2019
+  group_by(treatment) %>% 
+  summarise(MEAN_tdr = mean(soil_moisture, na.rm = TRUE),
+            SD = sd(soil_moisture, na.rm = TRUE),
+            N = length(soil_moisture), 
+            SE = ((sd(soil_moisture, na.rm = TRUE))/sqrt(length((soil_moisture)))), 
+            min = min(soil_moisture), 
+            max = max(soil_moisture)
+  )
+#  TDR overall
+#  MEAN_tdr    SD     N    SE   min   max
+#     16.8  6.86   108 0.660  6.38  29.8
+   
+#  treatment MEAN_tdr    SD     N    SE   min   max
+#   <chr>        <dbl> <dbl> <int> <dbl> <dbl> <dbl>
+# 1 full          17.9  7.31    36 1.22   6.47  27.7
+# 2 half          17.3  7.11    36 1.19   6.93  29.8
+# 3 none          15.1  5.95    36 0.992  6.38  26.5
+  
+# TDR by month
+#year  month MEAN_tdr    SD     N    SE   min   max
+# 2018  12       22.7   3.40    36 0.567 14.8   29.8
+# 2018  4         8.63  1.50    36 0.250  6.38  11.3
+# 2019  3        18.9   4.59    36 0.766 12.2   27.7
+
+# TDR by treatment 
+#  treatment MEAN_tdr    SD     N    SE   min   max
+#  <chr>        <dbl> <dbl> <int> <dbl> <dbl> <dbl>
+#1 full          17.9  7.31    36 1.22   6.47  27.7
+#2 half          17.3  7.11    36 1.19   6.93  29.8
+#3 none          15.1  5.95    36 0.992  6.38  26.5
+
+summary(aov(data = tdrmod_nncover, soil_moisture ~ month))
+TukeyHSD(aov(data = tdrmod_nncover, soil_moisture ~ month))
+#Fit: aov(formula = soil_moisture ~ month, data = tdrmod_nncover)
+
+#$month
+#           diff       lwr        upr    p adj
+#mar-dec  -3.736343  -5.64788  -1.824805 2.91e-05
+#april-dec -14.050694 -15.96223 -12.139157 0.00e+00
+#april-march  -10.314352 -12.22589  -8.402815 0.00e+00
+
+# TDR by treatment
+# treatment     MEAN_tdr    SD     N    SE
+# full          17.9  7.31    36 1.22 
+# half          17.3  7.11    36 1.19 
+# nonene        15.1  5.95    36 0.992
+            
+# by month
+#  month MEAN_tdr    SD     N    SE   min   max
+#  <chr>    <dbl> <dbl> <int> <dbl> <dbl> <dbl>
+#1 12       22.7   3.40    36 0.567 14.8   29.8
+#2 3        18.9   4.59    36 0.766 12.2   27.7
+#3 4         8.63  1.50    36 0.250  6.38  11.3
+
+tdr %>% 
+  group_by(year, month, site) %>% 
+  summarise(MEAN_tdr = mean(soil_moisture, na.rm = TRUE),
+            SD = sd(soil_moisture, na.rm = TRUE),
+            N = length(soil_moisture), 
+            SE = ((sd(soil_moisture, na.rm = TRUE))/sqrt(length((soil_moisture)))), 
+            min = min(soil_moisture), 
+            max = max(soil_moisture))
+#year  month site  MEAN_tdr    SD     N    SE   min   max
+#    <chr> <chr> <chr>    <dbl> <dbl> <int> <dbl> <dbl> <dbl>
+#  1 2018  12    1        23.9   3.23    18 0.761 16.8   29.8
+#  2 2018  12    2        21.5   3.19    18 0.751 14.8   26.7
+#  3 2018  4     1         9.60  1.16    18 0.273  7.47  11.3
+#  4 2018  4     2         7.67  1.14    18 0.269  6.38  10.0
+#  5 2019  3     1        22.1   3.94    18 0.929 15.1   27.7
+#  6 2019  3     2        15.8   2.61    18 0.616 12.2   21.5
+#  7 2020  3     1        28.8   1.98    18 0.466 25.2   32.6
+#  8 2020  3     2        25.4   3.27    18 0.771 17.9   29.8
+#  9 2020  4     1        28.2   1.52    18 0.358 25.2   30.8
+# 10 2020  4     2        22.6   2.47    18 0.583 17.6   26.0
+
+
+mafa_cover <- mafa_cover_all %>% 
+ mutate(year = as.character(year)) %>% 
+  left_join(exotic_cover_all, by = c("plot_number", "site", "year"))
+
+# Groups:   year [3]
+#  year  month MEAN_tdr    SD     N    SE   min   max
+#  <chr> <chr>    <dbl> <dbl> <int> <dbl> <dbl> <dbl>
+#1 2018  12       22.7   3.40    36 0.567 14.8   29.8
+#2 2018  4         8.63  1.50    36 0.250  6.38  11.3
+#3 2019  3        18.9   4.59    36 0.766 12.2   27.7
+#4 2020  3        27.1   3.18    36 0.531 17.9   32.6
+#5 2020  4        25.4   3.51    36 0.585 17.6   30.8
+#6 2020  5         9.97  2.77    36 0.461  6.27  14.2
+
+
+summary(aov(soil_moisture ~ site, tdr %>% filter(year =="2018" & month =="4"))) # april 2018
+TukeyHSD(aov(soil_moisture ~ site, tdr %>% filter(year =="2018" & month =="4")))
+#            Df Sum Sq Mean Sq F value   Pr(>F)    
+#site         1   33.8   33.80    25.6 1.44e-05 ***
+#Residuals   34   44.9    1.32  
+
+summary(aov(soil_moisture ~ site, tdr %>% filter(year =="2018" & month =="12"))) # dec 2018
+TukeyHSD(aov(soil_moisture ~ site, tdr %>% filter(year =="2018" & month =="12"))) 
+#            Df Sum Sq Mean Sq F value Pr(>F)  
+#site         1   54.7   54.74   5.321 0.0273 *
+#Residuals   34  349.8   10.29 
+
+summary(aov(soil_moisture ~ site, tdr %>% filter(year =="2019" & month =="3"))) # march 2019
+TukeyHSD(aov(soil_moisture ~ site, tdr %>% filter(year =="2019" & month =="3")))
+#            Df Sum Sq Mean Sq F value   Pr(>F)    
+#site         1  358.7   358.7    32.1 2.34e-06 ***
+#Residuals   34  380.0    11.2  
+
+
+# TDR x site
+summary(aov(soil_moisture ~ site, tdr %>% filter(year =="2020" & month =="3"))) # march 2020
+TukeyHSD(aov(soil_moisture ~ site, tdr %>% filter(year =="2020" & month =="3")))
+#            Df Sum Sq Mean Sq F value   Pr(>F)    
+#site         1  106.7   106.7   14.62 0.000536 ***
+#Residuals   34  248.3     7.3                     
+summary(aov(soil_moisture ~ site, tdr %>% filter(year =="2020" & month =="4"))) # april 2020
+TukeyHSD(aov(soil_moisture ~ site, tdr %>% filter(year =="2020" & month =="4")))
+#            Df Sum Sq Mean Sq F value   Pr(>F)    
+#site         1  287.8  287.77   68.28 1.21e-09 ***
+summary(aov(soil_moisture ~ site, tdr %>% filter(year =="2020" & month =="5"))) # may 2020
+TukeyHSD(aov(soil_moisture ~ site, tdr %>% filter(year =="2020" & month =="5")))
+#           Df Sum Sq Mean Sq F value   Pr(>F)    
+#site         1 220.52  220.52   156.8 2.74e-14 ***
+#Residuals   34  47.81    1.41 
+
+
+# TDR x treatment 
+summary(aov(soil_moisture ~ treatment, tdr %>% filter(year =="2020" & month =="3"))) # march 2020
+#             Df Sum Sq Mean Sq F value Pr(>F)
+# treatment    2   27.8  13.880     1.4  0.261
+# Residuals   33  327.2   9.916                             
+summary(aov(soil_moisture ~ treatment, tdr %>% filter(year =="2020" & month =="4"))) # april 2020
+#             Df Sum Sq Mean Sq F value Pr(>F)
+# treatment    2    8.2   4.121   0.322  0.727
+# Residuals   33  422.8  12.813 
+summary(aov(soil_moisture ~ treatment, tdr %>% filter(year =="2020" & month =="5"))) # may 2020
+#             Df Sum Sq Mean Sq F value Pr(>F)
+# treatment    2   0.57   0.285   0.035  0.966
+# Residuals   33 267.76   8.114  
+
+tdr %>% 
+  filter(year =="2020") %>% 
+  group_by(month) %>% 
+  summarise(MEAN_tdr = mean(soil_moisture, na.rm = TRUE),
+            SD = sd(soil_moisture, na.rm = TRUE),
+            N = length(soil_moisture), 
+            SE = ((sd(soil_moisture, na.rm = TRUE))/sqrt(length((soil_moisture)))), 
+            min = min(soil_moisture), 
+            max = max(soil_moisture))
+#   month MEAN_tdr    SD     N    SE   min   max
+#   <int>    <dbl> <dbl> <int> <dbl> <dbl> <dbl>
+# 1     3    27.1   3.18    36 0.531 17.9   32.6
+# 2     4    25.4   3.51    36 0.585 17.6   30.8
+# 3     5     9.97  2.77    36 0.461  6.27  14.2
+
+tdr %>% 
+  filter(year =="2020") %>% 
+  group_by(month, treatment) %>% 
+  summarise(MEAN_tdr = mean(soil_moisture, na.rm = TRUE),
+            SD = sd(soil_moisture, na.rm = TRUE),
+            N = length(soil_moisture), 
+            SE = ((sd(soil_moisture, na.rm = TRUE))/sqrt(length((soil_moisture)))), 
+            min = min(soil_moisture), 
+            max = max(soil_moisture))
+#   month treatment MEAN_tdr    SD     N    SE   min   max
+#   <int> <chr>        <dbl> <dbl> <int> <dbl> <dbl> <dbl>
+# 1     3 "full "      28.0   3.78    12 1.09  17.9   32.6
+# 2     3 "half "      27.3   2.83    12 0.818 21.5   31.4
+# 3     3 "nonene"     25.9   2.72    12 0.785 19.4   29.5
+# 4     4 "full "      25.7   3.95    12 1.14  17.6   30.8
+# 5     4 "half "      25.7   3.44    12 0.993 19.7   30.7
+# 6     4 "nonene"     24.7   3.32    12 0.958 19.6   28.9
+# 7     5 "full "      10.1   2.95    12 0.853  6.27  14.2
+# 8     5 "half "       9.93  2.46    12 0.710  6.63  13.8
+# 9     5 "nonene"      9.84  3.09    12 0.893  6.33  14.2
+  
+
+
+
+summary(aov(soil_moisture ~ site, tdr)) # overall
+TukeyHSD(aov(soil_moisture ~ site, tdr))
+# Df Sum Sq Mean Sq F value   Pr(>F)    
+#site          1    920   920.0    15.8 9.64e-05 ***
+#Residuals   214  12462    58.2 
+
+# mean, SE: tdr x treatment in 2019
+tdrmod_nncover %>% 
+  filter(year == "2019") %>% 
+  group_by(month, treatment) %>% 
+  summarise(MEAN_tdr_2019 = mean(soil_moisture, na.rm = TRUE),
+            SD = sd(soil_moisture, na.rm = TRUE),
+            N = length(soil_moisture), 
+            SE = ((sd(soil_moisture, na.rm = TRUE))/sqrt(length((soil_moisture))))
+  )
+# month treatment MEAN_tdr_2019    SD     N    SE
+#   <chr> <chr>             <dbl> <dbl> <int> <dbl>
+# 1 3     full               21.0  5.15    12 1.49 
+# 2 3     half               19.7  4.23    12 1.22 
+# 3 3     none               16.2  3.08    12 0.889
+
+# mean, SE: tdr x site
+tdrsite_mean <- tdrmod_nncover %>% 
+  group_by(site) %>% 
+  summarise(MEAN_tdr=mean(soil_moisture, na.rm = TRUE),
+            SD = sd(soil_moisture, na.rm = TRUE),
+            N = length(soil_moisture), 
+            SE = ((sd(soil_moisture, na.rm = TRUE))/sqrt(length((soil_moisture))))
+            )
+# A tibble: 2 × 5
+#  site  MEAN_par    SD     N    SE
+#  <chr>    <dbl> <dbl> <int> <dbl>
+#1 1         18.5  7.07    54 0.962
+#2 2         15.0  6.20    54 0.844
+
+# mean, SD, SE for tdrmod x site x treatment interaction
+tdrmod_nncover %>% 
+  group_by(site, treatment) %>% 
+  summarise(MEAN_tdr=mean(soil_moisture, na.rm = TRUE),
+            SD = sd(soil_moisture, na.rm = TRUE),
+            N = length(soil_moisture), 
+            SE = ((sd(soil_moisture, na.rm = TRUE))/sqrt(length((soil_moisture))))
+            )
+# A tibble: 6 × 6
+# Groups:   site [2]
+#  site  treatment MEAN_tdr    SD     N    SE
+#  <chr> <chr>        <dbl> <dbl> <int> <dbl>
+#1 1     full          20.0  7.45    18  1.76
+#2 1     half          18.9  7.46    18  1.76
+#3 1     nonene        16.7  6.24    18  1.47
+#4 2     full          15.8  6.74    18  1.59
+#5 2     half          15.6  6.53    18  1.54
+#6 2     nonene        13.5  5.33    18  1.26
+
+tdrmod_nncover %>% 
+  group_by(year, month, site) %>% 
+  summarise(MEAN_tdr=mean(soil_moisture, na.rm = TRUE),
+            SD = sd(soil_moisture, na.rm = TRUE),
+            N = length(soil_moisture), 
+            SE = ((sd(soil_moisture, na.rm = TRUE))/sqrt(length((soil_moisture))))
+            )
+#  year  month site  MEAN_tdr    SD     N    SE
+#1 2018  12    1        23.9   3.23    18 0.761
+#2 2018  12    2        21.5   3.19    18 0.751
+#3 2018  4     1         9.60  1.16    18 0.273 
+#4 2018  4     2         7.67  1.14    18 0.269
+#5 2019  3     1        22.1   3.94    18 0.929
+#6 2019  3     2        15.8   2.61    18 0.616
+
+summary(aov(soil_moisture ~ site, data = tdrmod %>%  filter(month == "4")))
+
+```
+
+```{r tdrmod additional stats, include=TRUE}
+
+# TDR by Site and Treatment
+# tdrmod$site  <- as.factor(tdrmod$site) # to make site a factor
+tdrmod_site_treat <- aov(soil_moisture ~ site*treatment, data = tdrmod_nncover) 
+anova(tdrmod_site_treat)
+TukeyHSD(tdrmod_site_treat)
+plot(TukeyHSD(tdrmod_site_treat))
+# 2:none-1:full -6.4912037 -12.944263 -0.03814456 0.0477765
+
+# TDR by Site <-- why does this say site is sig when it wasn't before?
+tdrmod_site <- aov(soil_moisture ~ site, data = tdrmod_nncover) 
+anova(tdrmod_site)
+# site        1  344.6  344.57  7.7869 0.006242 **
+
+tdrmod_treat <- aov(soil_moisture ~ treatment, data = tdrmod_nncover) 
+anova(tdrmod_treat)
+# treatment   2  154.9  77.446  1.6663 0.1939
+ 
+# TDR by Site in December 2018
+tdrmod %>% 
+  filter(month =="12") %>% 
+  group_by(site) %>% 
+  summarise(mean = mean(soil_moisture, na.rm = TRUE), 
+            sd = sd(soil_moisture, na.rm = TRUE),
+            n = length(soil_moisture), 
+            se = ((sd(soil_moisture, na.rm = TRUE))/sqrt(length((soil_moisture)))), 
+            min = min(soil_moisture),
+            max = max(soil_moisture)
+            )
+#  site   mean    sd     n    se   min   max
+# 1      23.9  3.23    18 0.761  16.8  29.8
+# 2      21.5  3.19    18 0.751  14.8  26.7
+ggplot(data = tdrmod %>%  filter(month == "12"), aes(x = site, y = soil_moisture)) + 
+  geom_point() +
+  geom_boxplot() +
+  theme_bw()
+
+summary(aov(soil_moisture ~ site, tdrmod %>%  filter(month =="12")))
+#            Df Sum Sq Mean Sq F value Pr(>F)  
+#site         1   54.7   54.74   5.321 0.0273 *
+#Residuals   34  349.8   10.29   
+
+# TDR by Site in March 2019
+tdrmod %>% 
+  filter(month =="3") %>% 
+  group_by(site) %>% 
+  summarise(mean = mean(soil_moisture, na.rm = TRUE), 
+            sd = sd(soil_moisture, na.rm = TRUE),
+            n = length(soil_moisture), 
+            se = ((sd(soil_moisture, na.rm = TRUE))/sqrt(length((soil_moisture)))), 
+            min = min(soil_moisture),
+            max = max(soil_moisture)
+            )
+# site   mean    sd     n    se   min   max
+# 1      22.1  3.94    18 0.929  15.1  27.7
+# 2      15.8  2.61    18 0.616  12.2  21.5
+summary(aov(soil_moisture ~ site, tdrmod %>%  filter(month =="3")))
+#    Df Sum Sq Mean Sq F value   Pr(>F)    
+#site         1  358.7   358.7    32.1 2.34e-06 ***
+#Residuals   34  380.0    11.2 
+
+# For TDR and nn cover, the significant plots may explain results we see later, but the fact that there are 2-3 plots that are significantly different from each other doesn't tell us the sites or treatments are significantly different from each other. 
+
+
+```
+          
