@@ -1648,6 +1648,7 @@ qqline(residuals_poly, col = "red")
 qqnorm(residuals_segmented, main = "Q-Q Plot for Segmented Model Residuals")
 qqline(residuals_segmented, col = "blue")
 
+
 ```
 - sand box
 ```{r, eval = FALSE}
@@ -1837,7 +1838,7 @@ residuals(model_lmsh) # → raw or standardized differences between observed & f
 
 plot(fitted(model_lmsh) ~ resid(model_lmsh)) # looks random
 
-testDispersion(simulateResiduals(
+testDispersion(simulateResiduals( # linear
   lm(shrub_native ~ grass_nonnative,
          data = herb_cover_wide, 
       family=gaussian))) # 0.97615
@@ -2823,12 +2824,12 @@ groundcover_percent <- groundcover %>%
   
   # here I'm combining columns: e.g., bare ground and rock cover
   mutate(bare_rock = bare_ground + rock, 
+        # and native_litter and native_wood
          native_litter_wood = native_litter + native_wood
-         )
-
+         ) 
 # ground cover types to visualize:
-# - bare ground + rock = bare_rock
-# - native_litter
+# - bare_rock = bare ground + rock
+# - native_litter_wood
 # - nonnative_thatch
 
 names(groundcover_percent)
@@ -2836,6 +2837,19 @@ names(groundcover_percent)
 ### 2 transects with no non-native grass thatch
 
 
+groundcover_percent_cluster <- groundcover_percent %>% 
+  left_join(groupsdash, by = "site_rep") %>% 
+  mutate(cluster = as.character(cluster)) %>% 
+  mutate(cluster = case_when(
+                            cluster == "1" ~ "NNG",
+                             cluster == "3" ~ "ssG",
+                             cluster == "2" ~ "ssF",
+                             cluster == "4" ~ "ssFG",
+                             cluster == "5" ~ "EVG",
+                             TRUE ~ cluster)) %>% 
+  mutate(cluster = factor(cluster, levels = c("NNG", "ssG", "ssF", "ssFG", "EVG"))) %>% 
+  dplyr::select(site, site_rep, grass_nonnative, nonnative_thatch, bare_rock, native_litter_wood, cluster)
+  
 
 ######################################## FIGURES
 
@@ -2893,8 +2907,6 @@ fig_bareground_all <- ggplot(   # <- # code edited from CHATGPT 8.8.2025
 
 fig_bareground_all
 
-
-
 ################################## don't run, instead - run the figure above
 ggplot(data = groundcover_percent) +
   # bare_rock
@@ -2941,21 +2953,239 @@ ggplot(data = groundcover_percent) +
   theme(legend.text=element_text(size = 16))
 ```
 
+
+### - x = nn grass cover
+- y = bare ground 
+```{r}
+
+# best fit regression is: linear regression
+# although seg and poly are statistically similar: (AIC_bareground)
+#               df       AIC
+# model_lm_bg    3 -42.71115 <-- lowest number = "best"
+# model_poly_bg  4 -41.08067
+# model_seg_bg   5 -42.42147
+
+lm(bare_rock ~ grass_nonnative, groundcover_percent_cluster)
+
+# figure: bare_rock
+fig_bareground <- 
+  ggplot(data = groundcover_percent_cluster %>%
+                              mutate(site = ifelse(str_detect(site, "INT"), "3", site)),
+                           aes(x = grass_nonnative * 100, y = bare_rock*100)) +
+  geom_point(aes(color = cluster),
+              shape = 16,
+              size = 3,
+              position = position_jitter(width = 0.2, height = 0.1),
+            show.legend = TRUE) +
+   scale_color_manual(values = colors_plantclusters) +
+  
+  labs(
+    color = "Site",
+    shape = "Site",
+    x = "Non-native grass cover (%)",
+    y = "Bare ground cover (%)"
+  ) +
+   scale_x_continuous(
+      limits = c(0, 100),
+      breaks = seq(0, 100, by = 10),
+      expand = expansion(mult = c(0, 0.05))
+     ) +
+ scale_y_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, by = 10),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+   theme_bw() + # theme
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
+    # hjust = 0.5 = centered; 1 = right justified
+    axis.text.y = element_text(size = 14),       # Increase y-axis text size
+    axis.title = element_text(size = 16),        # Axis title size
+    # strip.text = element_text(size = 16),        # Facet label text size
+    legend.text = element_text(size = 14),       # Legend text size
+    legend.title = element_text(size = 14),      # Legend title size
+    legend.position = "right"
+  ) +
+  # geom_smooth(aes(x = grass_nonnative * 100,
+  #                 y = bare_rock*100),
+  #             method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE)
+ stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1)  # polynomial fit - error bars go below 0%
+  
+fig_bareground
+
+
+
+############################ stats
+
+hist(groundcover_percent$bare_ground)
+shapiro.test(groundcover_percent$bare_ground) # p-value = 0.00199 <- not normal
+
+cor.test(groundcover_percent$grass_nonnative, 
+         groundcover_percent$bare_ground, method = "spearman") 
+# Pearson = normally distributed data
+# Spearman = non-normal data
+# 
+# # p-value = 0.06275
+# rho = -0.2969843
+# rho = This is Spearman’s correlation coefficient. It suggests a weak negative association: as non-native grass cover increases, bare ground tends to decrease slightly.
+# meaning --> There is a weak negative correlation (ρ = –0.297) between non-native grass cover and bare ground, but the relationship was not statistically significant (p = 0.063).
+
+
+# linear regression
+model_lm_bg <- lm(bare_ground ~ grass_nonnative, data = groundcover_percent) 
+    # (Intercept)  grass_nonnative  
+    #      0.2544          -0.1109 
+
+# Polynomial Regression (Curvilinear Trends) - Fit a model where shrub cover changes in a curve (concave or convex) with grass cover.
+model_poly_bg <- lm(bare_ground ~ poly(grass_nonnative, 2), data = groundcover_percent)
+summary(model_poly_bg)
+# Coefficients:
+#                           Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)                0.18232    0.02154   8.465 3.51e-10 ***
+# poly(grass_nonnative, 2)1 -0.21416    0.13622  -1.572    0.124    
+# poly(grass_nonnative, 2)2 -0.07983    0.13622  -0.586    0.561    
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.1362 on 37 degrees of freedom
+# Multiple R-squared:  0.0707,	Adjusted R-squared:  0.02047 
+# F-statistic: 1.408 on 2 and 37 DF,  p-value: 0.2575
+
+
+# Threshold or Breakpoint Models (Piecewise Regression)
+model_seg_bg <- segmented(model_lm_bg, seg.Z = ~grass_nonnative,
+                       npsi = 1) # one breakpoint
+summary(model_seg_bg)
+plot(model_seg_bg)
+# Coefficients of the linear terms:
+#                    Estimate Std. Error t value Pr(>|t|)
+# (Intercept)         0.02439    0.13245   0.184    0.855
+# grass_nonnative     3.49024    2.21702   1.574    0.124
+# U1.grass_nonnative -3.64763    2.21857  -1.644       NA
+# 
+# Residual standard error: 0.1325 on 36 degrees of freedom
+# Multiple R-Squared: 0.1452,  Adjusted R-squared: 0.07393 
+# 
+# Boot restarting based on 6 samples. Last fit:
+# Convergence attained in 1 iterations (rel. change 0)
+
+### Model Comparison
+# To decide if non-linear/threshold models are “better” than linear:
+# Compare models using AIC:
+AIC_bareground <- (AIC(model_lm_bg, model_poly_bg, model_seg_bg))
+# Lower/more negative AIC = better fit.
+AIC_bareground
+
+
+```
+
+- y = thatch cover
+```{r}
+# figure: thatch
+fig_thatch <- 
+     ggplot(data = groundcover_percent_cluster %>%
+                              mutate(site = ifelse(str_detect(site, "INT"), "3", site)),
+                           aes(x = grass_nonnative * 100, y = nonnative_thatch*100)) +
+  geom_point(aes(color = cluster),
+              shape = 15,
+              size = 3,
+              position = position_jitter(width = 0.2, height = 0.1),
+            show.legend = TRUE) +
+   scale_color_manual(values = colors_plantclusters) + # transects with no non-native thatch: INT5, 1_7
+
+  labs(
+    color = "Site",
+    shape = "Site",
+    x = "Non-native grass cover (%)",
+    y = "Non-native thatch (%)"
+  ) +
+   scale_x_continuous(
+      limits = c(0, 100),
+      breaks = seq(0, 100, by = 10),
+      expand = expansion(mult = c(0, 0.05))
+     ) +
+ scale_y_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, by = 10),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  # Theme
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
+    # hjust = 0.5 = centered; 1 = right justified
+    axis.text.y = element_text(size = 14),       # Increase y-axis text size
+    axis.title = element_text(size = 16),        # Axis title size
+    # strip.text = element_text(size = 16),        # Facet label text size
+    legend.text = element_text(size = 14),       # Legend text size
+    legend.title = element_text(size = 14),      # Legend title size
+    legend.position = "right"
+  ) + 
+    # geom_smooth(aes(x = grass_nonnative * 100,
+    #               y = nonnative_thatch*100),
+              # method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE)
+  stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1)  # polynomial fit - error bars go below 0%
+
+
+fig_thatch
+```
+
+- y = native litter
+```{r}
+
+# figure: native_litter_wood
+fig_nativelitter <- ggplot(data = groundcover_percent_cluster  %>% 
+                              mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
+                           aes(x = grass_nonnative * 100, y = native_litter_wood*100)) +
+  geom_point(aes(color = cluster),
+              shape = 15,
+              size = 3, 
+              position = position_jitter(width = 0.2, height = 0.1),
+            show.legend = TRUE) +
+   scale_color_manual(values = colors_plantclusters) +
+ # Labels
+  labs(
+    color = "Site",
+    shape = "Site",
+    x = "Non-native grass cover (%)",
+    y = "Native litter cover (%)"
+  ) +
+   scale_x_continuous(
+      limits = c(0, 100),
+      breaks = seq(0, 100, by = 10),
+      expand = expansion(mult = c(0, 0.05))
+     ) +
+ scale_y_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, by = 10),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  # Theme
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
+    # hjust = 0.5 = centered; 1 = right justified
+    axis.text.y = element_text(size = 14),       # Increase y-axis text size
+    axis.title = element_text(size = 16),        # Axis title size
+    # strip.text = element_text(size = 16),        # Facet label text size
+    legend.text = element_text(size = 14),       # Legend text size
+    legend.title = element_text(size = 14),      # Legend title size
+    legend.position = "right"
+  ) +
+    # geom_smooth(aes(x = grass_nonnative * 100,
+    #               y = native_litter_wood*100),
+    #           method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE)
+ stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1)  # polynomial fit - error bars go below 0%
+ 
+
+fig_nativelitter
+
+```
+
+
 ### - by cluster
 ```{r}
 
-groundcover_percent_cluster <- groundcover_percent %>% 
-  left_join(groupsdash, by = "site_rep") %>% 
-  mutate(cluster = as.character(cluster)) %>% 
-  mutate(cluster = case_when(
-                            cluster == "1" ~ "NNG",
-                             cluster == "3" ~ "ssG",
-                             cluster == "2" ~ "ssF",
-                             cluster == "4" ~ "ssFG",
-                             cluster == "5" ~ "EVG",
-                             TRUE ~ cluster)) %>% 
-  mutate(cluster = factor(cluster, levels = c("NNG", "ssG", "ssF", "ssFG", "EVG")))
-  
 ######### bare ground and rock
 hist(groundcover_percent_cluster$bare_rock)
 shapiro.test(groundcover_percent_cluster$bare_rock) # <- not normal
@@ -3061,150 +3291,6 @@ groundcover_percent_cluster %>%
 # 3 ssF               73.2  42.7   75.6
 # 4 ssFG              29.3  25.6   37.2
 # 5 ssG               67.1  63.4   81.7
-
-```
-
-```{r}
-
-# figure: bare_rock
-fig_bareground <- 
-  ggplot(data = groundcover_percent_cluster %>%
-                              mutate(site = ifelse(str_detect(site, "INT"), "3", site)),
-                           aes(x = grass_nonnative * 100, y = bare_rock*100)) +
-  geom_point(aes(color = cluster),
-              shape = 16,
-              size = 3,
-              position = position_jitter(width = 0.2, height = 0.1),
-            show.legend = TRUE) +
-   scale_color_manual(values = colors_plantclusters) +
-  
-  labs(
-    color = "Site",
-    shape = "Site",
-    x = "Non-native grass cover (%)",
-    y = "Bare ground cover (%)"
-  ) +
-   scale_x_continuous(
-      limits = c(0, 100),
-      breaks = seq(0, 100, by = 10),
-      expand = expansion(mult = c(0, 0.05))
-     ) +
- scale_y_continuous(
-    limits = c(0, 100),
-    breaks = seq(0, 100, by = 10),
-    expand = expansion(mult = c(0, 0.05))
-  ) +
-   theme_bw() + # theme
-  theme(
-    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
-    # hjust = 0.5 = centered; 1 = right justified
-    axis.text.y = element_text(size = 14),       # Increase y-axis text size
-    axis.title = element_text(size = 16),        # Axis title size
-    # strip.text = element_text(size = 16),        # Facet label text size
-    legend.text = element_text(size = 14),       # Legend text size
-    legend.title = element_text(size = 14),      # Legend title size
-    legend.position = "right"
-  ) +
-  # geom_smooth(aes(x = grass_nonnative * 100,
-  #                 y = bare_rock*100),
-  #             method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE)
- stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1)  # polynomial fit - error bars go below 0%
-  
-
-# figure: thatch
-fig_thatch <- 
-     ggplot(data = groundcover_percent_cluster %>%
-                              mutate(site = ifelse(str_detect(site, "INT"), "3", site)),
-                           aes(x = grass_nonnative * 100, y = nonnative_thatch*100)) +
-  geom_point(aes(color = cluster),
-              shape = 15,
-              size = 3,
-              position = position_jitter(width = 0.2, height = 0.1),
-            show.legend = TRUE) +
-   scale_color_manual(values = colors_plantclusters) + # transects with no non-native thatch: INT5, 1_7
-
-  labs(
-    color = "Site",
-    shape = "Site",
-    x = "Non-native grass cover (%)",
-    y = "Non-native thatch (%)"
-  ) +
-   scale_x_continuous(
-      limits = c(0, 100),
-      breaks = seq(0, 100, by = 10),
-      expand = expansion(mult = c(0, 0.05))
-     ) +
- scale_y_continuous(
-    limits = c(0, 100),
-    breaks = seq(0, 100, by = 10),
-    expand = expansion(mult = c(0, 0.05))
-  ) +
-  # Theme
-  theme_bw() +
-  theme(
-    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
-    # hjust = 0.5 = centered; 1 = right justified
-    axis.text.y = element_text(size = 14),       # Increase y-axis text size
-    axis.title = element_text(size = 16),        # Axis title size
-    # strip.text = element_text(size = 16),        # Facet label text size
-    legend.text = element_text(size = 14),       # Legend text size
-    legend.title = element_text(size = 14),      # Legend title size
-    legend.position = "right"
-  ) + 
-    # geom_smooth(aes(x = grass_nonnative * 100,
-    #               y = nonnative_thatch*100),
-              # method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE)
-  stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1)  # polynomial fit - error bars go below 0%
-
-
-# figure: native_litter_wood
-fig_nativelitter <- ggplot(data = groundcover_percent_cluster  %>% 
-                              mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
-                           aes(x = grass_nonnative * 100, y = native_litter_wood*100)) +
-  geom_point(aes(color = cluster),
-              shape = 15,
-              size = 3, 
-              position = position_jitter(width = 0.2, height = 0.1),
-            show.legend = TRUE) +
-   scale_color_manual(values = colors_plantclusters) +
- # Labels
-  labs(
-    color = "Site",
-    shape = "Site",
-    x = "Non-native grass cover (%)",
-    y = "Native litter cover (%)"
-  ) +
-   scale_x_continuous(
-      limits = c(0, 100),
-      breaks = seq(0, 100, by = 10),
-      expand = expansion(mult = c(0, 0.05))
-     ) +
- scale_y_continuous(
-    limits = c(0, 100),
-    breaks = seq(0, 100, by = 10),
-    expand = expansion(mult = c(0, 0.05))
-  ) +
-  # Theme
-  theme_bw() +
-  theme(
-    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
-    # hjust = 0.5 = centered; 1 = right justified
-    axis.text.y = element_text(size = 14),       # Increase y-axis text size
-    axis.title = element_text(size = 16),        # Axis title size
-    # strip.text = element_text(size = 16),        # Facet label text size
-    legend.text = element_text(size = 14),       # Legend text size
-    legend.title = element_text(size = 14),      # Legend title size
-    legend.position = "right"
-  ) +
-    # geom_smooth(aes(x = grass_nonnative * 100,
-    #               y = native_litter_wood*100),
-    #           method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE)
- stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1)  # polynomial fit - error bars go below 0%
- 
-fig_bareground_all
-fig_bareground
-fig_thatch
-fig_nativelitter
 
 ```
 
@@ -4586,17 +4672,47 @@ denspp_transect <- denspp %>%
 denspp_cover <- denspp_transect %>%  
   left_join(height_cover %>%  # left join nn grass cover
   dplyr::select(site, site_rep, grass_nonnative, shrub_native) %>% 
-  unique()) # 39 transects, missing INT4_1
- 
+  unique()) %>%  # 39 transects, missing INT4_1
+  left_join(groupsdash, by = "site_rep") %>% 
+  na.omit() %>% 
+  mutate(cluster = as.character(cluster)) %>% 
+   mutate(cluster = case_when(
+                            cluster == "1" ~ "NNG",
+                             cluster == "3" ~ "ssG",
+                             cluster == "2" ~ "ssF",
+                             cluster == "4" ~ "ssFG",
+                             cluster == "5" ~ "EVG",
+                             TRUE ~ cluster)) %>% 
+          mutate(cluster = factor(cluster, levels = c("NNG", "ssG", "ssF", "ssFG", "EVG")))
+                                   
+  
+str(denspp_cover)
+```
+
+- mature shrub density
+```{r}
+# linear model is best fit
+
+model.mature <- lm(mature ~ grass_nonnative, data = denspp_cover) # linear equation
+coef(model.mature) # model coeficients
+equ_mature <- print(paste0(
+  "y = ", round(coef(model.mature)[1], 2), " + (", round(coef(model.mature)[2], 2), ")x"))
+
+r_mature <- print(paste0("R² = ", round(summary(model.mature)$r.squared, 2)))
+# Create the label for the equation and R^2
 
 
-################ figures
-fig_den_mature <- ggplot(denspp_cover %>% 
-         mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
-       aes(x = grass_nonnative*100, y = mature)) +
+label_mature <- paste0(equ_mature,  "\n", 
+                  r_mature)
 
- geom_point(aes(color = site), size = 3, show.legend = TRUE) +
-  scale_color_manual(values = c("blue", "green", "maroon", "maroon", "maroon", "maroon", "maroon")) +
+
+################ mature
+fig_den_mature <- ggplot(denspp_cover,
+       aes(x = grass_nonnative, y = mature)) +
+
+ geom_point(aes(color = cluster), size = 3, show.legend = TRUE) +
+  scale_color_manual(values = c(colors_plantclusters) ) +
+  
    scale_x_continuous(
     limits = c(0, 100),
     breaks = seq(0, 100, by = 10),
@@ -4610,13 +4726,142 @@ fig_den_mature <- ggplot(denspp_cover %>%
   theme_bw()  +
   labs(
     x = "Non-native grass (%)",
-    y = "Mature shrub density (m^2)",
+    y = "Mature shrub density (m²)",
   #  title = "Mean stand height by Nonnative Grass percent cover",
-     color = "Site") +
+     color = "Plant Community-type") +
  
-   stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "red", linewidth = 1) +
-    geom_smooth(aes(x = grass_nonnative * 100, y = mature), method = "lm", se = TRUE, linetype = "dashed", color = "gray40", show.legend = TRUE)
-   
+   # stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
+    geom_smooth(aes(x = grass_nonnative, y = mature), method = "lm", se = TRUE, linetype = "solid", color = "gray40", show.legend = FALSE) +
+  
+# To make the font bigger:
+  theme(axis.text = element_text(size = 16)) + # axes numbers - font size
+  theme(axis.title = element_text(size = 20)) + # axes titles
+  theme(legend.title=element_text(size = 16)) + 
+  theme(legend.text=element_text(size = 16)) +
+  annotate("text", x = 60, y = 1.75, label = label_mature, color = "black", size = 4, hjust = 0) 
+
+fig_den_mature
+
+######## stats
+
+
+#stats
+
+# 1. Correlation - Compute a correlation coefficient to see if the two are associated
+cor.test(denspp_cover$grass_nonnative, 
+         denspp_cover$mature ) #t = -4.7937, df = 37, p-value = 2.663e-05
+#       cor 
+# -0.6189732 
+
+# 2. Linear regression
+model_lm <- lm(mature ~ grass_nonnative, data = denspp_cover) 
+
+# 3. Polynomial Regression (Curvilinear Trends) - Fit a model where shrub cover changes in a curve (concave or convex) with grass cover.
+model_poly <- lm(mature ~ poly(grass_nonnative, 2), data = denspp_cover)
+summary(model_poly)
+
+# 4. Generalized Additive Models (GAMs) - If you don’t want to assume the shape (e.g., parabola), GAMs let the data “decide” the curve:
+model_gam <- gam(mature ~ s(grass_nonnative), data = denspp_cover)
+summary(model_gam)
+plot(model_gam)
+
+# 5. Threshold or Breakpoint Models (Piecewise Regression)
+# Here you test whether there’s a breakpoint in grass cover where the relationship with shrubs changes slope:
+model_seg <- segmented(lm(mature ~ grass_nonnative, data = denspp_cover) , seg.Z = ~grass_nonnative,
+                       npsi = 1) # one breakpoint
+summary(model_seg)
+plot(model_seg)
+
+
+### MODEL COMPARISON
+# To decide if non-linear/threshold models are “better” than linear:
+# Compare models using AIC:
+AICmature <- (AIC(model_lm, model_poly, model_gam, model_seg))
+# Lower/more negative AIC = better fit.
+
+# linear model is best fit
+
+
+###################
+
+# test residuals from linear model
+residuals_lm_mature <- residuals(lm(mature ~ grass_nonnative, data = denspp_cover))
+plot(fitted(model_lm) ~ residuals_lm_mature) # does not look random
+testDispersion(simulateResiduals(
+  lm(mature ~ grass_nonnative,
+         data = denspp_cover, 
+      family=gaussian))) # dispersion = 0.97308, p-value = 0.944
+
+# Q-Q plot
+qqnorm(residuals_lm_mature, main = "Q-Q Plot for Linear Model Residuals - Mature shrub density")
+qqline(residuals_lm_mature, col = "red")
+model_lm_res<- simulateResiduals(model_lm) # → generates simulated residuals to check whether the model as a whole is consistent with the data (better for model diagnostics, especially outside simple linear regression).
+plotQQunif(model_lm_res) # 0.944
+
+
+# Extract residuals from the poly model
+residuals_poly_mature <- residuals(
+  lm(mature ~ poly(grass_nonnative, 2), data = denspp_cover)
+  )
+plot(fitted(model_poly) ~ residuals_poly_mature) # looks kinda random
+testDispersion(simulateResiduals(
+  lm(mature ~ poly(grass_nonnative, 2), data = denspp_cover),
+  
+      family=gaussian)) # dispersion = 0.94678, p-value = 0.856
+
+# Q-Q plot
+qqnorm(residuals_poly_mature, main = "Q-Q Plot for Polynomial Model Residuals - nativegrass")
+qqline(residuals_poly_mature, col = "red")
+model_poly_mature_res<- simulateResiduals(
+  lm(mature ~ poly(grass_nonnative, 2), data = denspp_cover)
+) # → generates simulated residuals to check whether the model as a whole is consistent with the data (better for model diagnostics, especially outside simple linear regression).
+plotQQunif(model_poly_mature_res) 
+
+
+```
+
+- immature shrub density
+```{r}
+# segmented is the best fit regression
+
+
+
+######################################
+
+summary(
+  segmented(
+  lm(immature ~ grass_nonnative, data = denspp_cover)
+    , seg.Z = ~ grass_nonnative,
+                       npsi = 1)
+  )
+
+# breakpoint = 37.466%
+# slope < 0.07% = 0.005377; p =  0.144
+# slope > 0.07% = -0.00466; p = NA
+
+# Plot the segmented regression model and increase text sizes
+plot(segmented(
+  lm(immature ~ grass_nonnative, data = denspp_cover)
+    , seg.Z = ~ grass_nonnative,
+                       npsi = 1), 
+     conf.level = 0.95, 
+     shade = TRUE,
+     # main = "Segmented Regression with Confidence Interval",
+     xlab = "Non-Native Grass Cover (%)", 
+     ylab = "Immature shrub density (#/m2)",
+     cex.main = 1.5,   # Increase the main title size
+     cex.lab = 1.3,    # Increase the axis labels size
+     cex.axis = 1.2)   # Increase the axis numbers size
+
+# Add the original data points, increasing their size as well
+points(denspp_cover$grass_nonnative, 
+       denspp_cover$immature,
+       col = colors_plantclusters,
+       pch = 16,
+       cex = 1.5)      # Increase the size of the data points
+
+
+
 # immature
 fig_den_immature <- ggplot(denspp_cover %>% 
          mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
@@ -4644,11 +4889,92 @@ fig_den_immature <- ggplot(denspp_cover %>%
  
      stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "red", linewidth = 1) +
     geom_smooth(aes(x = grass_nonnative * 100, y = immature), method = "lm", se = TRUE, linetype = "dashed", color = "gray40", show.legend = TRUE)
-  
+
+fig_den_immature
+
+#######################
+#stats
+
+# 1. Correlation - Compute a correlation coefficient to see if the two are associated
+cor.test(denspp_cover$grass_nonnative, 
+         denspp_cover$immature, method= "spearman") #t = -2.8326, df = 37, p-value = 0.007429
+# cor: -0.4221509 
+
+# 2. Linear regression
+model_lm <- lm(immature ~ grass_nonnative, data = denspp_cover) 
+
+# 3. Polynomial Regression (Curvilinear Trends) - Fit a model where shrub cover changes in a curve (concave or convex) with grass cover.
+model_poly <- lm(immature ~ poly(grass_nonnative, 2), data = denspp_cover)
+summary(model_poly)
+
+# 4. Generalized Additive Models (GAMs) - If you don’t want to assume the shape (e.g., parabola), GAMs let the data “decide” the curve:
+model_gam <- gam(immature ~ s(grass_nonnative), data = denspp_cover)
+summary(model_gam)
+plot(model_gam)
+
+# 5. Threshold or Breakpoint Models (Piecewise Regression)
+# Here you test whether there’s a breakpoint in grass cover where the relationship with shrubs changes slope:
+model_seg <- segmented(lm(immature ~ grass_nonnative, data = denspp_cover) , seg.Z = ~grass_nonnative,
+                       npsi = 1) # one breakpoint
+summary(model_seg)
+plot(model_seg)
+
+
+### MODEL COMPARISON
+# To decide if non-linear/threshold models are “better” than linear:
+# Compare models using AIC:
+AICimmmature <- (AIC(model_lm, model_poly, model_gam, model_seg))
+# Lower/more negative AIC = better fit.
+
+# linear model is best fit
+
+model_seg
+
+```
+
+- shrub seedling density 
+```{r}
+# segmented is the best fit regression
+
+
+summary(
+  segmented(
+  lm(seedling ~ grass_nonnative, data = denspp_cover)
+    , seg.Z = ~ grass_nonnative,
+                       npsi = 1)
+  )
+
+# breakpoint = 7.317 %
+# intercept = 2.8500
+# slope < 7.317% = -0.29400; p =  0.000563
+# slope > 7.317% = -0.00751; p = NA
+
+# Plot the segmented regression model and increase text sizes
+plot(segmented(
+  lm(seedling ~ grass_nonnative, data = denspp_cover)
+    , seg.Z = ~ grass_nonnative,
+                       npsi = 1), 
+     conf.level = 0.95, 
+     shade = TRUE,
+     # main = "Segmented Regression with Confidence Interval",
+     xlab = "Non-Native Grass Cover (%)", 
+     ylab = "Shrub seedling density (#/m2)",
+     cex.main = 1.5,   # Increase the main title size
+     cex.lab = 1.3,    # Increase the axis labels size
+     cex.axis = 1.2)   # Increase the axis numbers size
+
+# Add the original data points, increasing their size as well
+points(denspp_cover$grass_nonnative, 
+       denspp_cover$seedling,
+       col = colors_plantclusters,
+       pch = 16,
+       cex = 1.5)      # Increase the size of the data points
+
+
+
 # seedlings
-fig_den_seedling <- ggplot(denspp_cover %>% 
-         mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
-       aes(x = shrub_native*100, 
+fig_den_seedling <- ggplot(denspp_cover, 
+       aes(x = grass_nonnative, 
            y = seedling)) +
 
  geom_point(aes(color = site), size = 3, show.legend = TRUE) +
@@ -4672,6 +4998,89 @@ fig_den_seedling <- ggplot(denspp_cover %>%
       stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "red", linewidth = 1) +
     geom_smooth(aes(x = grass_nonnative * 100, y = seedling), method = "lm", se = TRUE, linetype = "dashed", color = "gray40", show.legend = TRUE)
   
+fig_den_seedling
+
+######## stats
+
+
+
+#stats
+
+# 1. Correlation - Compute a correlation coefficient to see if the two are associated
+cor.test(denspp_cover$grass_nonnative, 
+         denspp_cover$seedling ) #t = -3.9103, df = 37, p-value = 0.0003794
+# cor: -0.5407483 
+
+# 2. Linear regression
+model_lm <- lm(seedling ~ grass_nonnative, data = denspp_cover) 
+
+# 3. Polynomial Regression (Curvilinear Trends) - Fit a model where shrub cover changes in a curve (concave or convex) with grass cover.
+model_poly <- lm(seedling ~ poly(grass_nonnative, 2), data = denspp_cover)
+summary(model_poly)
+
+# 4. Generalized Additive Models (GAMs) - If you don’t want to assume the shape (e.g., parabola), GAMs let the data “decide” the curve:
+model_gam <- gam(seedling ~ s(grass_nonnative), data = denspp_cover)
+summary(model_gam)
+plot(model_gam)
+
+# 5. Threshold or Breakpoint Models (Piecewise Regression)
+# Here you test whether there’s a breakpoint in grass cover where the relationship with shrubs changes slope:
+model_seg <- segmented(lm(seedling ~ grass_nonnative, data = denspp_cover) , seg.Z = ~grass_nonnative,
+                       npsi = 1) # one breakpoint
+summary(model_seg)
+plot(model_seg)
+
+
+### MODEL COMPARISON
+# To decide if non-linear/threshold models are “better” than linear:
+# Compare models using AIC:
+AICseedling <- (AIC(model_lm, model_poly, model_gam, model_seg))
+# Lower/more negative AIC = better fit.
+
+# linear model is best fit
+
+
+###################
+
+# test residuals from linear model
+residuals_lm_mature <- residuals(lm(mature ~ grass_nonnative, data = denspp_cover))
+plot(fitted(model_lm) ~ residuals_lm_mature) # does not look random
+testDispersion(simulateResiduals(
+  lm(mature ~ grass_nonnative,
+         data = denspp_cover, 
+      family=gaussian))) # dispersion = 0.97308, p-value = 0.944
+
+# Q-Q plot
+qqnorm(residuals_lm_mature, main = "Q-Q Plot for Linear Model Residuals - Mature shrub density")
+qqline(residuals_lm_mature, col = "red")
+model_lm_res<- simulateResiduals(model_lm) # → generates simulated residuals to check whether the model as a whole is consistent with the data (better for model diagnostics, especially outside simple linear regression).
+plotQQunif(model_lm_res) # 0.944
+
+
+# Extract residuals from the poly model
+residuals_poly_mature <- residuals(
+  lm(mature ~ poly(grass_nonnative, 2), data = denspp_cover)
+  )
+plot(fitted(model_poly) ~ residuals_poly_mature) # looks kinda random
+testDispersion(simulateResiduals(
+  lm(mature ~ poly(grass_nonnative, 2), data = denspp_cover),
+  
+      family=gaussian)) # dispersion = 0.94678, p-value = 0.856
+
+# Q-Q plot
+qqnorm(residuals_poly_mature, main = "Q-Q Plot for Polynomial Model Residuals - nativegrass")
+qqline(residuals_poly_mature, col = "red")
+model_poly_mature_res<- simulateResiduals(
+  lm(mature ~ poly(grass_nonnative, 2), data = denspp_cover)
+) # → generates simulated residuals to check whether the model as a whole is consistent with the data (better for model diagnostics, especially outside simple linear regression).
+plotQQunif(model_poly_mature_res) 
+
+
+```
+
+
+```{r}
+# dead shrub density
 fig_den_dead <- ggplot(denspp_cover %>% 
          mutate(site = ifelse(str_detect(site, "INT"), "3", site)), 
        aes(x = grass_nonnative*100, 
@@ -4698,10 +5107,6 @@ fig_den_dead <- ggplot(denspp_cover %>%
        stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "red", linewidth = 1) +
     geom_smooth(aes(x = grass_nonnative * 100, y = dead), method = "lm", se = TRUE, linetype = "dashed", color = "gray40", show.legend = TRUE)
   
-fig_den_mature
-fig_den_immature
-fig_den_seedling
-fig_den_dead
 
 ########### old code
 #   left_join(shrub_leaftype, by = "species") %>%  # left join shrub_leaftype
