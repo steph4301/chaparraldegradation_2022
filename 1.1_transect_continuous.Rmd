@@ -2965,7 +2965,26 @@ ggplot(data = groundcover_percent) +
 # model_poly_bg  4 -41.08067
 # model_seg_bg   5 -42.42147
 
-lm(bare_rock ~ grass_nonnative, groundcover_percent_cluster)
+lm(bare_rock ~ grass_nonnative, groundcover_percent_cluster) 
+
+coef(lm(bare_rock ~ grass_nonnative, groundcover_percent_cluster))
+# y = mx + b
+b = round(coef(lm(bare_rock ~ grass_nonnative, groundcover_percent_cluster) )[1], 3) # intercept
+m = round(coef(lm(bare_rock ~ grass_nonnative, groundcover_percent_cluster) )[2], 3) # slope
+
+equ_bareground <- print(paste0("y = ", 
+                               b,
+                               " + (", 
+                               m, 
+                               ")x"))
+
+summary(lm(bare_rock ~ grass_nonnative, groundcover_percent_cluster))
+r2_bareground <- print(paste0("R² = ", round(summary(lm(bare_rock ~ grass_nonnative, groundcover_percent_cluster))$r.squared, 2)))
+
+label_bareground <- paste0(equ_bareground,  "\n", 
+                  r2_bareground)
+
+
 
 # figure: bare_rock
 fig_bareground <- 
@@ -2975,13 +2994,13 @@ fig_bareground <-
   geom_point(aes(color = cluster),
               shape = 16,
               size = 3,
-              position = position_jitter(width = 0.2, height = 0.1),
+              # position = position_jitter(width = 0.2, height = 0.1),
             show.legend = TRUE) +
    scale_color_manual(values = colors_plantclusters) +
   
   labs(
-    color = "Site",
-    shape = "Site",
+    color = "Plant Community-type",
+    shape = "Plant Community-type",
     x = "Non-native grass cover (%)",
     y = "Bare ground cover (%)"
   ) +
@@ -2997,20 +3016,23 @@ fig_bareground <-
   ) +
    theme_bw() + # theme
   theme(
-    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
-    # hjust = 0.5 = centered; 1 = right justified
-    axis.text.y = element_text(size = 14),       # Increase y-axis text size
-    axis.title = element_text(size = 16),        # Axis title size
-    # strip.text = element_text(size = 16),        # Facet label text size
-    legend.text = element_text(size = 14),       # Legend text size
-    legend.title = element_text(size = 14),      # Legend title size
-    legend.position = "right"
+    # axis 
+    axis.text.x = element_text(angle = 0,  # Rotate x-axis labels if needed  
+                               hjust = 0.5, # hjust = 0.5 = centered; 1 = right justified
+                               size = 16), 
+    axis.text.y = element_text(size = 16),       # Increase y-axis text size
+    
+    axis.title = element_text(size = 20),        # Axis title size
+    
+    legend.position = "right",
+    legend.title = element_text(size = 16),      # Legend title size
+    legend.text = element_text(size = 16)      # Legend text size
+     
   ) +
-  # geom_smooth(aes(x = grass_nonnative * 100,
-  #                 y = bare_rock*100),
-  #             method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE)
- stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1)  # polynomial fit - error bars go below 0%
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+  annotate("text", x = 10, y = 90, label = label_bareground, color = "black", size = 4, hjust = 0)
   
+label_bareground
 fig_bareground
 
 
@@ -3081,21 +3103,48 @@ AIC_bareground
 
 - y = thatch cover
 ```{r}
+
+# the best fit regression is a : linear model
+
+
+lm(nonnative_thatch ~ grass_nonnative, groundcover_percent_cluster) 
+
+coef(lm(nonnative_thatch ~ grass_nonnative, groundcover_percent_cluster))
+# y = mx + b
+b = round(coef(lm(nonnative_thatch ~ grass_nonnative, groundcover_percent_cluster) )[1], 3) # intercept
+m = round(coef(lm(nonnative_thatch ~ grass_nonnative, groundcover_percent_cluster) )[2], 3) # slope
+
+equ_thatch <- print(paste0("y = ", 
+                               b,
+                               " + ", 
+                               m, 
+                               "x"))
+
+summary(lm(nonnative_thatch ~ grass_nonnative, groundcover_percent_cluster))
+r2_thatch <- print(paste0("R² = ", round(summary(lm(nonnative_thatch ~ grass_nonnative, groundcover_percent_cluster))$r.squared, 2)))
+
+label_thatch <- paste0(equ_thatch,  "\n", 
+                  "R² = 0.80")
+
+
+
+
+
 # figure: thatch
 fig_thatch <- 
      ggplot(data = groundcover_percent_cluster %>%
                               mutate(site = ifelse(str_detect(site, "INT"), "3", site)),
                            aes(x = grass_nonnative * 100, y = nonnative_thatch*100)) +
   geom_point(aes(color = cluster),
-              shape = 15,
+              shape = 16,
               size = 3,
-              position = position_jitter(width = 0.2, height = 0.1),
+              # position = position_jitter(width = 0.2, height = 0.1),
             show.legend = TRUE) +
    scale_color_manual(values = colors_plantclusters) + # transects with no non-native thatch: INT5, 1_7
 
   labs(
-    color = "Site",
-    shape = "Site",
+    color = "Plant Community-type",
+    shape = "Plant Community-type",
     x = "Non-native grass cover (%)",
     y = "Non-native thatch (%)"
   ) +
@@ -3111,23 +3160,80 @@ fig_thatch <-
   ) +
   # Theme
   theme_bw() +
-  theme(
-    axis.text.x = element_text(angle = 0, hjust = 0.5, size = 14),  # Rotate x-axis labels if needed
-    # hjust = 0.5 = centered; 1 = right justified
-    axis.text.y = element_text(size = 14),       # Increase y-axis text size
-    axis.title = element_text(size = 16),        # Axis title size
-    # strip.text = element_text(size = 16),        # Facet label text size
-    legend.text = element_text(size = 14),       # Legend text size
-    legend.title = element_text(size = 14),      # Legend title size
-    legend.position = "right"
-  ) + 
-    # geom_smooth(aes(x = grass_nonnative * 100,
-    #               y = nonnative_thatch*100),
-              # method = "lm", se = TRUE, linetype = "solid", show.legend = TRUE)
-  stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1)  # polynomial fit - error bars go below 0%
-
+ theme(
+    # axis 
+    axis.text.x = element_text(angle = 0,  # Rotate x-axis labels if needed  
+                               hjust = 0.5, # hjust = 0.5 = centered; 1 = right justified
+                               size = 16), 
+    axis.text.y = element_text(size = 16),       # Increase y-axis text size
+    
+    axis.title = element_text(size = 20),        # Axis title size
+    
+    legend.position = "right",
+    legend.title = element_text(size = 16),      # Legend title size
+    legend.text = element_text(size = 16)      # Legend text size
+     
+  ) +
+  geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+  annotate("text", x = 10, y = 90, label = label_thatch, color = "black", size = 4, hjust = 0)
 
 fig_thatch
+
+
+
+
+############################ stats
+
+hist(groundcover_percent_cluster$nonnative_thatch)
+shapiro.test(groundcover_percent$nonnative_thatch) # p-value = 0.008226 <- not normal
+
+cor.test(groundcover_percent$grass_nonnative, 
+         groundcover_percent$nonnative_thatch, method = "spearman") 
+# Pearson = normally distributed data
+# Spearman = non-normal data
+# 
+# # p-value < 0.001 <-- there is a significant correlation
+# rho = 0.8634075 <-- there is a positive correlation
+
+
+# linear regression
+model_lm_thatch <- lm(nonnative_thatch ~ grass_nonnative, data = groundcover_percent_cluster) 
+#         (Intercept)  grass_nonnative  
+#         0.01426          0.85235 
+
+# Polynomial Regression (Curvilinear Trends) - Fit a model where shrub cover changes in a curve (concave or convex) with grass cover.
+model_poly_thatch <- lm(nonnative_thatch ~ poly(grass_nonnative, 2), data = groundcover_percent_cluster)
+summary(model_poly_thatch)
+# Coefficients:
+#                           Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)                0.56829    0.02165  26.249  < 2e-16 ***
+# poly(grass_nonnative, 2)1  1.64630    0.13693  12.023 2.41e-14 ***
+# poly(grass_nonnative, 2)2  0.01298    0.13693   0.095    0.925    
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.1369 on 37 degrees of freedom
+# Multiple R-squared:  0.7962,	Adjusted R-squared:  0.7852 
+# F-statistic: 72.28 on 2 and 37 DF,  p-value: 1.658e-13
+
+
+# Threshold or Breakpoint Models (Piecewise Regression)
+model_seg_thatch <- segmented(model_lm_thatch, seg.Z = ~grass_nonnative,
+                       npsi = 1) # one breakpoint
+summary(model_seg_thatch)
+plot(model_seg_thatch)
+
+
+
+### Model Comparison
+# To decide if non-linear/threshold models are “better” than linear:
+# Compare models using AIC:
+AIC_thatch <- (AIC(model_lm_thatch, model_poly_thatch, model_seg_thatch))
+# Lower/more negative AIC = better fit.
+AIC_thatch
+
+# -42.65894	+ 40.66866	= -1.99028 difference
+
 ```
 
 - y = native litter
