@@ -721,7 +721,32 @@ spp <- genp %>%
   as.data.frame() %>% 
   rownames_to_column("species") %>% 
   full_join(., pv, by = "species") %>% # join pvalues and spp
-  filter(pvals <= 0.05)# <-- p-value 
+  # filter(pvals <= 0.05) # <-- p-value
+  filter(species == "Lupinus.spp."| 
+         species == "Festuca.myros"| 
+         species == "Heteromeles.arbutifolia"|
+         species == "Rhus.ovata"|
+         species == "Rhamnus.ilicifolia"|
+         species == "Hirschfeldia.incana"| 
+         species == "Centaurea.melitensis"| 
+         species == "Avena.barbata"|
+         species == "Stipa.lepida"|
+         species == "Bromus.rubens"| 
+         species == "Bromus.diandrus") %>%  # <- indicator species (n = 11) 
+  mutate(species = case_when(
+    species == "Lupinus.spp." ~ "Lupinus spp.", 
+    species == "Festuca.myros" ~	"Festuca myuros", 
+    species == "Heteromeles.arbutifolia" ~ "Heteromeles arbutifolia",
+    species == "Rhus.ovata" ~ "Rhus ovata",
+    species == "Rhamnus.ilicifolia" ~ "Rhamnus ilicifolia",
+    species == "Hirschfeldia.incana" ~ "Hirschfeldia incana",
+    species == "Centaurea.melitensis" ~ "Centaurea melitensis",
+    species == "Avena.barbata" ~"Avena barbata",
+    species == "Stipa.lepida" ~ "Stipa lepida",
+    species == "Bromus.rubens" ~ "Bromus rubens",
+    species == "Bromus.diandrus" ~ "Bromus diandrus",
+    TRUE ~ species))
+
 length(spp$species) #  <- limited number for visual clarity
 
 
@@ -729,7 +754,10 @@ length(spp$species) #  <- limited number for visual clarity
 mds.df$sub_grp <- factor(mds.df$sub_grp, 
                          levels = c("1", "3", "2", "4", "5"))  # Reorder as needed
 
+```
 
+# NMDS 
+```{r}
 #### native species
 nmds_nat <- ggplot(mds.df,
        aes(x = NMDS1,
@@ -737,15 +765,19 @@ nmds_nat <- ggplot(mds.df,
            )) +
   geom_point(size = 3, alpha = 0.8, aes(color = sub_grp, shape = sub_grp, fill = sub_grp)) +
    stat_ellipse(aes(color = sub_grp), size = 1, alpha = 0.5) +  # Apply color here. Alpha = transparency!
-  theme(axis.title = element_text(size = 20)) +
-  theme(axis.text = element_text(size = 16)) +
+  
+  # add vectors to figure
   geom_segment(data = spp %>%  filter(status == "native"), 
                aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
                arrow = arrow(length = unit(0.25, "cm")),
                col = "black") +
-  geom_text(data = spp %>%  filter(status == "native"), 
-            aes(label = species),  
-            position = position_jitter(width = 0.0, height = 0.1)) +
+  
+  geom_text(data = spp %>% filter(status == "native"), 
+          aes(label = species),  
+          size = 6,
+          fontface = "italic",
+          position = position_jitter(width = 0.0, height = 0.1)) +
+  
     # how the data points look
   scale_shape_manual(values = c("1" = 21, "2" = 21, "3" = 21, "4" = 21, "5" = 7),
                      labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
@@ -754,10 +786,17 @@ nmds_nat <- ggplot(mds.df,
                      labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
   scale_fill_manual(values = c("1" = "black", "2" = "grey85", "3" = "grey60", "4" = "white", "5" = "black"),
                      labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
-  theme_bw() +
-   guides(color = guide_legend(title = "Plant Group"),
+  
+  guides(color = guide_legend(title = "Plant Group"),
           shape = guide_legend(title = "Plant Group"),
-         fill = guide_legend(title = "Plant Group"))
+         fill = guide_legend(title = "Plant Group")) +
+  
+  theme_bw() +
+  theme(axis.title = element_text(size = 20)) +
+  theme(axis.text = element_text(size = 16)) +
+  theme(legend.title=element_text(size = 16)) +
+  theme(legend.text=element_text(size = 16)) 
+ 
 
 
 #### non-native species
@@ -767,14 +806,15 @@ nmds_nn <- ggplot(mds.df,
            )) +
   geom_point(size = 3, alpha = 0.8, aes(color = sub_grp, shape = sub_grp, fill = sub_grp)) +
    stat_ellipse(aes(color = sub_grp), size = 1, alpha = 0.5) +  # Apply color here
-  theme(axis.title = element_text(size = 20)) +
-  theme(axis.text = element_text(size = 16)) +
+ 
   geom_segment(data = spp %>%  filter(status == "nonnative"), 
                aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
                arrow = arrow(length = unit(0.25, "cm")),
                col = "black") +
   geom_text(data = spp %>%  filter(status == "nonnative"), 
             aes(label = species),  
+             size = 6,
+          fontface = "italic",
             position = position_jitter(width = 0.0, height = 0.1)) +
     # how the data points look
   scale_shape_manual(values = c("1" = 21, "2" = 21, "3" = 21, "4" = 21, "5" = 7),
@@ -783,14 +823,20 @@ nmds_nn <- ggplot(mds.df,
                      labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
   scale_fill_manual(values = c("1" = "black", "2" = "grey85", "3" = "grey60", "4" = "white", "5" = "black"),
                      labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
-  theme_bw() +
+  
    guides(color = guide_legend(title = "Plant Group"),
           shape = guide_legend(title = "Plant Group"),
-         fill = guide_legend(title = "Plant Group"))
+         fill = guide_legend(title = "Plant Group")) +
+  
+ theme_bw() +
+  theme(axis.title = element_text(size = 20)) +
+  theme(axis.text = element_text(size = 16)) +
+  theme(legend.title=element_text(size = 16)) +
+  theme(legend.text=element_text(size = 16)) 
 
 ```
 
-# NMDS 
+
 ```{r}
 # Combine plots
 grid.arrange(nmds_nat, 
@@ -801,6 +847,43 @@ grid.arrange(nmds_nat,
              heights = c(1, 1) # Custom heights for each row
              ) 
 
+
+
+# all species in one nmds
+nmds_all <- ggplot(mds.df,
+       aes(x = NMDS1,
+           y = NMDS2
+           )) +
+  geom_point(size = 3, alpha = 0.8, aes(color = sub_grp, shape = sub_grp, fill = sub_grp)) +
+   stat_ellipse(aes(color = sub_grp), size = 1, alpha = 0.5) +  # Apply color here
+ 
+  geom_segment(data = spp, 
+               aes(x = 0, xend = NMDS1, y = 0, yend = NMDS2),
+               arrow = arrow(length = unit(0.25, "cm")),
+               col = "black") +
+  geom_text(data = spp, 
+            aes(label = species),  
+             size = 6,
+          fontface = "italic",
+            position = position_jitter(width = 0.0, height = 0.1)
+          ) +
+    # how the data points look
+  scale_shape_manual(values = c("1" = 21, "2" = 21, "3" = 21, "4" = 21, "5" = 7),
+                     labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
+  scale_color_manual(values = c("1" = "black", "2" = "blue", "3" = "orange", "4" = "purple", "5" = "darkgreen"),
+                     labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
+  scale_fill_manual(values = c("1" = "black", "2" = "grey85", "3" = "grey60", "4" = "white", "5" = "black"),
+                     labels = c("1" = "NNG", "2" = "ssF", "3" = "ssG", "4" = "ssFG", "5" = "EVG")) +
+  
+   guides(color = guide_legend(title = "Plant Group"),
+          shape = guide_legend(title = "Plant Group"),
+         fill = guide_legend(title = "Plant Group")) +
+  
+ theme_bw() +
+  theme(axis.title = element_text(size = 20)) +
+  theme(axis.text = element_text(size = 16)) +
+  theme(legend.title=element_text(size = 16)) +
+  theme(legend.text=element_text(size = 16)) 
 
 ```
 
