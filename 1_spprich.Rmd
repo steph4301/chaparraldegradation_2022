@@ -740,7 +740,7 @@ summary(segmented(
 
 # Plot the segmented regression model and increase text sizes
 plot(segmented(
-  lm(N_spprich ~ grass_nonnative*100, data = herb_spprich %>% filter(lifeform == "herb"))
+  lm(N_spprich ~ grass_nonnative, data = herb_spprich %>% filter(lifeform == "herb"))
     , seg.Z = ~ grass_nonnative,
                        npsi = 1), 
      conf.level = 0.95, 
