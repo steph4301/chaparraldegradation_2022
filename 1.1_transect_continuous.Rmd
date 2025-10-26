@@ -3486,25 +3486,30 @@ shapiro.test(groundcover_percent_cluster$native_litter_wood) # <- not normal, me
 kruskal.test(native_litter_wood ~ cluster, data = groundcover_percent_cluster)
 pairwise.wilcox.test(groundcover_percent_cluster$native_litter_wood, groundcover_percent_cluster$cluster, 
                      p.adjust.method = "bonferroni")
-pairwise_wilcox_test(native_litter_wood ~ cluster,
-                     data = groundcover_percent_cluster,
-                     p.adjust.method = "bonferroni")
+#  NNG    ssG    ssF    ssFG  
+# ssG  0.8354 -      -      -     
+# ssF  0.0080 1.0000 -      -     
+# ssFG 0.0024 0.0053 0.1061 -     
+# EVG  0.0114 0.0271 0.3412 1.0000
+
+# pairwise_wilcox_test(native_litter_wood ~ cluster,
+#                      data = groundcover_percent_cluster,
+#                      p.adjust.method = "bonferroni")
 #       group1 group2    n1    n2 statistic        p p.adj p.adj.signif
 #  * <chr>              <chr>  <chr>  <int> <int>     <dbl>    <dbl> <dbl> <chr>       
 #  1 native_litter_wood EVG    NNG        5    10      50   0.001    0.011 *     
 #  4 native_litter_wood EVG    ssG        5    10      49.5 0.003    0.027 *      
-
-       
 #  2 native_litter_wood EVG    ssF        5     7      31   0.034    0.341 ns          
 #  3 native_litter_wood EVG    ssFG       5     8      23   0.713    1     ns          
      
 #  5 native_litter_wood NNG    ssF       10     7       2   0.000799 0.008 **          
 #  6 native_litter_wood NNG    ssFG      10     8       0   0.000238 0.002 **          
-
 #  7 native_litter_wood NNG    ssG       10    10      30   0.084    0.835 ns          
+#  
+# 10 native_litter_wood ssFG   ssG        8    10      79   0.000529 0.005 ** 
 #  8 native_litter_wood ssF    ssFG       7     8       5.5 0.011    0.106 ns          
 #  9 native_litter_wood ssF    ssG        7    10      46   0.299    1     ns          
-# 10 native_litter_wood ssFG   ssG        8    10      79   0.000529 0.005 ** 
+
 
 # medians
 groundcover_percent_cluster %>%
@@ -3516,12 +3521,12 @@ groundcover_percent_cluster %>%
     .groups = "drop")
 #  cluster median_nativelitter    Q1    Q3
 #   <chr>                 <dbl> <dbl> <dbl>
-# 1 EVG                   46.3  34.2   78.0
-# 2 NNG                    0     0      0  
-# 3 ssF                    9.76  7.32  26.8
-# 4 ssFG                  46.3  39.0   57.9
-# 5 ssG                    6.1   0     19.5
 
+# 2 NNG                    0     0      0   a
+# 5 ssG                    6.1   0     19.5 ab
+# 3 ssF                    9.76  7.32  26.8 bc
+# 4 ssFG                  46.3  39.0   57.9 c
+# 1 EVG                   46.3  34.2   78.0 c
 
 ###### non-native thratch
 hist(groundcover_percent_cluster$nonnative_thatch)
@@ -3540,6 +3545,22 @@ pairwise.wilcox.test(groundcover_percent_cluster$nonnative_thatch,
 pairwise_wilcox_test(nonnative_thatch ~ cluster, 
                      data = groundcover_percent_cluster, 
                      p.adjust.method = "bonferroni")
+#    .y.              group1 group2    n1    n2 statistic        p p.adj p.adj.signif
+#  * <chr>            <chr>  <chr>  <int> <int>     <dbl>    <dbl> <dbl> <chr>       
+#  1 nonnative_thatch NNG    ssG       10    10      80.5 0.022    0.221 ns          
+#  2 nonnative_thatch NNG    ssF       10     7      62   0.009    0.092 ns          
+#  3 nonnative_thatch NNG    ssFG      10     8      79   0.000581 0.006 **          
+#  4 nonnative_thatch NNG    EVG       10     5      50   0.002    0.025 *      
+#       
+#  5 nonnative_thatch ssG    ssF       10     7      45.5 0.328    1     ns          
+#  6 nonnative_thatch ssG    ssFG      10     8      77   0.001    0.012 *           
+#  7 nonnative_thatch ssG    EVG       10     5      50   0.003    0.027 *        
+#     
+#  8 nonnative_thatch ssF    ssFG       7     8      50   0.013    0.127 ns          
+#  9 nonnative_thatch ssF    EVG        7     5      35   0.006    0.057 ns     
+#       
+# 10 nonnative_thatch ssFG   EVG        8     5      34   0.047    0.472 ns  
+
 
 # medians
 groundcover_percent_cluster %>%
@@ -3551,11 +3572,12 @@ groundcover_percent_cluster %>%
     .groups = "drop")
 # cluster median_nnthatch     Q1    Q3
 #   <chr>             <dbl> <dbl> <dbl>
-# 1 EVG                4.88  2.44  22.0
-# 2 NNG               90.2  84.2   90.2
-# 3 ssF               73.2  42.7   75.6
-# 4 ssFG              29.3  25.6   37.2
-# 5 ssG               67.1  63.4   81.7
+
+# 2 NNG               90.2  84.2   90.2 a
+# 5 ssG               67.1  63.4   81.7 a
+# 3 ssF               73.2  42.7   75.6 ab
+# 4 ssFG              29.3  25.6   37.2 bc
+# 1 EVG                4.88  2.44  22.0 bc
 
 ```
 
