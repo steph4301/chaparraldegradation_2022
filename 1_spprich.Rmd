@@ -552,18 +552,39 @@ plot_spprich
 
 ##### y = native spprich
 ```{r}
+# segmented model is the best fit regression. 
+# linear model is just as good.
+summary(
+  segmented(
+  lm(N_spprich ~ grass_nonnative, data = spprich_native), seg.Z = ~ grass_nonnative,
+                       npsi = 1)
+  )
+# breakpoint = 14.7% nng
+# < 14.7% slope = -68.333; p = 0.0901
+# > 14.7% slope = -2.98;  no pvalue
 
-# test for normality
-hist(spprich_native$grass_nonnative)
-qqnorm(spprich_native$grass_nonnative)
-qqline(spprich_native$grass_nonnative, col = "red", lwd = 2)
+# Plot the segmented regression model and increase text sizes
+plot(segmented(
+  lm(N_spprich ~ grass_nonnative, data = spprich_native)
+    , seg.Z = ~ grass_nonnative,
+                       npsi = 1), 
+     conf.level = 0.95, 
+     shade = TRUE,
+     # main = "Segmented Regression with Confidence Interval",
+     xlab = "Non-Native Grass Cover (%)", 
+     ylab = "Native Species Richniess (#)",
+     cex.main = 1.5,   # Increase the main title size
+     cex.lab = 1.3,    # Increase the axis labels size
+     cex.axis = 1.2)   # Increase the axis numbers size
+# Add the original data points, increasing their size as well
+points(spprich_native$grass_nonnative, 
+       spprich_native$N_spprich,
+       # col = colors_plantclusters,
+       pch = 16,
+       cex = 1.5)      # Increase the size of the data points
+```
 
-# qq plots of herb, forb, and native grass are a bit skews
-
-shapiro.test(spprich_native$grass_nonnative) # <-- not normally distributed
-
-
-
+```{r}
 ######## richness by status
 spprich_trans_status <- spprich %>%  # transect: spp richness by status
   distinct() %>% 
@@ -591,8 +612,7 @@ plot_spprich_native <- ggplot(data = spprich_native, # or status == "nonnative"
         aes(color = cluster),
         size = 3) +
    scale_color_manual(values = colors_plantclusters) +
- stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +  # polynomial fit
-
+  
   labs(
     #  title = "Linear regression of  total shrub cover by non-native grass cover",
     x = "Non-native grass cover (%)",
@@ -601,6 +621,9 @@ plot_spprich_native <- ggplot(data = spprich_native, # or status == "nonnative"
     ) +
   scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
   scale_y_continuous(limits = c(0, 30), breaks = seq(0, 30, by = 5), expand = expansion(mult = c(0, 0.05))) + # Set y-axis limits and breaks
+  
+   stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +  # polynomial fit
+
   theme_bw() +
   theme(axis.text = element_text(size = 16)) + # axes numbers
   theme(axis.title = element_text(size = 20)) + # axes titles
@@ -632,11 +655,6 @@ lm(N_spprich ~ grass_nonnative, data = spprich_native)
 model_poly <- lm(N_spprich ~ poly(grass_nonnative, 2), data = spprich_native)
 summary(model_poly)
 
-# 4. Generalized Additive Models (GAMs) - If you don’t want to assume the shape (e.g., parabola), GAMs let the data “decide” the curve:
-model_gam <- gam(N_spprich ~ s(grass_nonnative), data = spprich_native)
-summary(model_gam)
-plot(model_gam)
-
 # 5. Threshold or Breakpoint Models (Piecewise Regression)
 # Here you test whether there’s a breakpoint in grass cover where the relationship with shrubs changes slope:
 model_lin <- lm(N_spprich ~ grass_nonnative, data = spprich_native) #linear regression (same as above)
@@ -647,27 +665,32 @@ plot(model_seg)
 # NATIVE 14.7% 
 # NN 58.5%
 
-# 6. Quantile Regression - Sometimes the average trend isn’t the full story — for example, shrubs may persist under moderate grass cover only in the “best-case” sites. Quantile regression shows how the relationship differs across the distribution of shrub cover.
-model_qr <- rq(N_spprich ~ grass_nonnative, tau = 0.9, data = spprich_native)
-summary(model_qr)
 
-
+model_lm2 <- lm(N_spprich ~ grass_nonnative, data = spprich_native %>%  filter(N_spprich < 16)) 
+model_seg2 <- segmented(model_lm2, seg.Z = ~ grass_nonnative,
+                       npsi = 1) # one breakpoint
 
 
 ### MODEL COMPARISON
 # To decide if non-linear/threshold models are “better” than linear:
 # Compare models using AIC:
-AIC_totnat <- (AIC(model_lin, model_poly, model_gam, model_seg)) # Best models: GAM, segmented
+AIC_totnat <- (AIC(model_lin,model_poly, model_seg
+                   # , model_lm2,  model_seg2
+                   )) # Best models: GAM, segmented
 # Lower/more negative AIC = better fit.
 AIC_totnat
 summary(model_seg) # 0.147
 plot(model_seg)
+
+
+
 ```
 
 ##### y = native herb spprich
 ```{r}
 
-######## richness by status and lifeform - data prep
+#########  data prep
+# richness by status and lifeform 
 spprich_trans_status_lf <- spprich %>%  
   distinct() %>% 
   group_by(site_rep, status, lifeform) %>% 
@@ -680,7 +703,7 @@ spprich_trans_status_lf <- spprich %>%
 spprich_trans_status_lf
 
 
-##### native herb spprich
+# native herb spprich
 herb_spprich <- spprich %>% 
    # here I am creating the "herb" category (native and nonnative)
   filter(lifeform =="forb" | lifeform == "grass" | lifeform == "forb or vine") %>% 
@@ -700,8 +723,44 @@ herb_spprich <- spprich %>%
          site_rep == "INT5_5" ~ "INT5_1", TRUE ~ site_rep))
      ), by = c("site_rep")) 
 
+```
 
-################
+```{r}
+
+# the best regression is: segmented
+# A linear regression is equally as good
+summary(segmented(
+  lm(N_spprich ~ grass_nonnative, data = herb_spprich %>% filter(lifeform == "herb"))
+    , seg.Z = ~ grass_nonnative,
+                       npsi = 1))
+# intercept:5.1686
+# breakpoint: 61%
+# slope: 1.9603  ; p = 0.394
+# slope: -2.4319
+
+# Plot the segmented regression model and increase text sizes
+plot(segmented(
+  lm(N_spprich ~ grass_nonnative*100, data = herb_spprich %>% filter(lifeform == "herb"))
+    , seg.Z = ~ grass_nonnative,
+                       npsi = 1), 
+     conf.level = 0.95, 
+     shade = TRUE,
+     # main = "Segmented Regression with Confidence Interval",
+     xlab = "Non-Native Grass Cover (%)", 
+     ylab = "Native Herbaceous Richniess (#)",
+     cex.main = 1.5,   # Increase the main title size
+     cex.lab = 1.3,    # Increase the axis labels size
+     cex.axis = 1.2)   # Increase the axis numbers size
+# Add the original data points, increasing their size as well
+points(herb_spprich$grass_nonnative, 
+       herb_spprich$N_spprich,
+       col = colors_plantclusters,
+       pch = 16,
+       cex = 1.5)      # Increase the size of the data points
+
+
+
+
 
 plot_herb_spprich <- ggplot(data = herb_spprich %>% 
                                filter(status == "native" & 
@@ -711,7 +770,9 @@ plot_herb_spprich <- ggplot(data = herb_spprich %>%
          y = N_spprich)) + 
       geom_point(aes(color = cluster), size = 3) +
   scale_color_manual(values = colors_plantclusters) +
+  
   stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
+  
   labs(
     x = "Non-native grass cover (%)",
     y = "Native herbaceous species richness (n)", 
@@ -725,7 +786,7 @@ plot_herb_spprich <- ggplot(data = herb_spprich %>%
   theme(legend.title=element_text(size = 16)) + 
   theme(legend.text=element_text(size = 16))
 
-plot_herb_spprich
+
 
 ######################## correlations
 
@@ -748,29 +809,71 @@ plot_herb_spprich
 df <- herb_spprich %>% 
   filter(status == "native" &  lifeform == "herb")
 
+hist(df$N_spprich)
+shapiro.test(df$N_spprich) # <- normally distributed
 # Correlation - Compute a correlation coefficient to see if the two are associated
 cor.test(df$grass_nonnative, 
-         df$N_spprich, method = "spearman")
+         df$N_spprich, method = "pearson")
 # t = -0.75195 <-- likey by chance
 # df = 37
 # p-value = 0.4568 <-- not sig
-# rho 
-# -0.08897688 
+# cor 
+# -0.1226853
+
+
+cor.test(cover_bylfstatus_wide$grass_nonnative, 
+         cover_bylfstatus_wide$shrub_native)
+# Pearson's product-moment correlation 
+### t = test statistic = -10.243 <-- |-10.243| = number is large, correlation unlikely by chance
+### df = 38
+### p-value = 1.747e-12 <-- sig!
+### cor = -0.856795 <-- Correlation coefficient; strong negative correlation 
+### 95% CI: -0.9221759 -0.7438076 <-- you are 95% confident the true correlation lies in this range, which is still very strong and negative.
 
 # linear regression
-model_lin <- lm(N_spprich ~ grass_nonnative, data = df) 
-summary(model_lin)
-# Intercept <-- when non-native grass cover = 0, the native herb spprich is predicted to be about 7.023
-# grass_nonnative <-- slope, for every 1% increase in grass cover, native herb spprich decreases by about 1 species.
+model_lm <- lm(shrub_native ~ grass_nonnative, data = cover_bylfstatus_wide) 
+# Intercept =  1.0278 <-- when non-native grass cover = 0, shrub cover is predicted to be about 1.03
+# grass_nonnative = -0.8411 <-- slope, for every 1% increase in grass cover, shrub cover decreases by about 0.84%.
+summary(glm(shrub_native ~ grass_nonnative, 
+    family =  binomial(link = "logit"),
+    data = cover_bylfstatus_wide))
 
 
 # Polynomial Regression (Curvilinear Trends) - Fit a model where shrub cover changes in a curve (concave or convex) with grass cover.
-model_poly <- lm(N_spprich ~ poly(grass_nonnative, 2), data = df)
+model_poly <- lm(shrub_native ~ poly(grass_nonnative, 2), data = cover_bylfstatus_wide)
 summary(model_poly)
+# Residuals:
+#      Min       1Q   Median       3Q      Max 
+# -0.26850 -0.11923  0.04357  0.10246  0.31940 
+# 
+# Coefficients:
+#                           Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)                 0.4811     0.0237  20.302  < 2e-16 ***
+# poly(grass_nonnative, 2)1  -1.6246     0.1499 -10.840 4.87e-13 ***
+# poly(grass_nonnative, 2)2  -0.3534     0.1499  -2.358   0.0238 *  
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# 
+# Residual standard error: 0.1499 on 37 degrees of freedom
+# Multiple R-squared:  0.7688,	Adjusted R-squared:  0.7563 
+# F-statistic: 61.53 on 2 and 37 DF,  p-value: 1.707e-12
+
 
 # Generalized Additive Models (GAMs) - If you don’t want to assume the shape (e.g., parabola), GAMs let the data “decide” the curve:
-model_gam <- gam(N_spprich ~ s(grass_nonnative), data = df)
+model_gam <- gam(shrub_native ~ s(grass_nonnative), data = cover_bylfstatus_wide)
 summary(model_gam)
+# Parametric coefficients:
+            # Estimate    Std. Error  t value     Pr(>|t|)    
+# (Intercept)  0.48110    0.02365     20.34       <2e-16 *** <-- sig!
+# -- Parametric intercept = 0.4811 <-- When grass cover = 0, the baseline shrub cover is ~48%
+# 
+# Approximate significance of smooth terms:
+                     # edf      Ref.df          F p-value    
+# s(grass_nonnative) 2.054      2.548 48.09     <2e-16 ***
+
+# R-sq.(adj) =  0.757 <-- model explains ~76% of variance
+#  Deviance explained =   77% <- similar to R²
+# GCV = 0.02422  Scale est. = 0.022371  n = 40 <-- you want small GCV and Scale fit
 plot(model_gam)
 # - GAMs are flexible and can capture non-linear but smooth patterns.
 # - You can test significance of the smooth term (edf > 1 indicates non-linearity).
@@ -779,15 +882,17 @@ plot(model_gam)
 
 # Threshold or Breakpoint Models (Piecewise Regression)
 # Here you test whether there’s a breakpoint in grass cover where the relationship with shrubs changes slope:
-model_seg <- segmented(model_lin, seg.Z = ~grass_nonnative, # <-- uses linear model from above
+model_seg <- segmented(model_lm, seg.Z = ~grass_nonnative,
                        npsi = 1) # one breakpoint
 # plot(segmented(model, seg.Z = ~grass_nonnative, 
 #                npsi = 2)) # <- you can set the number of breakpoints here
 summary(model_seg)
 plot(model_seg)
+# - This estimates a breakpoint (e.g., shrubs decline only after grass > 40%).
+# - You’ll get separate slopes before and after the threshold.
 
 # Quantile Regression - Sometimes the average trend isn’t the full story — for example, shrubs may persist under moderate grass cover only in the “best-case” sites. Quantile regression shows how the relationship differs across the distribution of shrub cover.
-model_qr <- rq(N_spprich ~ grass_nonnative, tau = 0.9, data = df)
+model_qr <- rq(shrub_native ~ grass_nonnative, tau = 0.9, data = cover_bylfstatus_wide)
 summary(model_qr)
 # - This tests whether the upper limit of shrub cover declines with grass cover.
 
@@ -808,20 +913,25 @@ summary(model_qr)
 # 
 # - In practice: stands with low grass cover can sustain high shrub cover, but as grass cover increases, the “ceiling” on shrub cover gets pushed down sharply.
 
+
 ### Model Comparison
 # To decide if non-linear/threshold models are “better” than linear:
 # Compare models using AIC:
-(AIC(model_lin, model_poly, model_gam, model_seg))
+AIC_shrub <- (AIC(model_lm, model_poly, model_gam, model_seg))
 # Lower/more negative AIC = better fit.
-# - GAM is best fit, but polynomial and segmented regressions are just as good of a fit too.
 
-# Or use likelihood ratio tests: (anova(model, model_poly) if models are nested).
+AIC_herb <- (AIC(model_lin, model_poly, model_seg))
+# Lower/more negative AIC = better fit.
+# - segmented is best but a linear regression is just as good of a fit too.
 
 
 ```
 
 ##### y = native forb spprich
 ```{r}
+
+# the best regression is a : segmented regression. 
+# Linear regression was just as good.
 
 plot_forb_spprich <- ggplot(data = herb_spprich %>% 
                                filter(status == "native" & 
@@ -831,7 +941,6 @@ plot_forb_spprich <- ggplot(data = herb_spprich %>%
          y = N_spprich)) + 
       geom_point(aes(color = cluster), size = 3) +
   scale_color_manual(values = colors_plantclusters) +
-  stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
   labs(
     x = "Non-native grass cover (%)",
     y = "Native forb species richness (n)", 
@@ -839,6 +948,9 @@ plot_forb_spprich <- ggplot(data = herb_spprich %>%
     ) +
   scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, by = 10)) + # Set x-axis limits and breaks
   scale_y_continuous(limits = c(0, 30), breaks = seq(0, 30, by = 5), expand = expansion(mult = c(0, 0.05))) + # Set y-axis limits and breaks
+  
+   stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
+  
   theme_bw() +
   theme(axis.text = element_text(size = 16)) + # axes numbers
   theme(axis.title = element_text(size = 20)) + # axes titles
@@ -866,33 +978,26 @@ plot_forb_spprich
 # Quantile regression = test upper/lower bounds of the relationship.
 
 df <- herb_spprich %>% 
-  filter(status == "native" &  lifeform == "forb")
+  filter(status == "native" &  lifeform == "forb") 
+
+hist(df$N_spprich)
+shapiro.test(df$N_spprich) # <- not normal
 
 # Correlation - Compute a correlation coefficient to see if the two are associated
 cor.test(df$grass_nonnative, 
          df$N_spprich, method = "spearman")
-# t = -0.75195 <-- likey by chance
-# df = 37
-# p-value = 0.4568 <-- not sig
+# p-value = 0.731
+# rho = 0.05686068
 
 # linear regression
 model_lin <- lm(N_spprich ~ grass_nonnative, data = df) 
 summary(model_lin)
-# Intercept <-- when non-native grass cover = 0, the native herb spprich is predicted to be about 7.023
-# grass_nonnative <-- slope, for every 1% increase in grass cover, native herb spprich decreases by about 1 species.
+# Intercept <-- when non-native grass cover = 0, the native forb spprich is predicted to be about 5.2119
 
 
 # Polynomial Regression (Curvilinear Trends) - Fit a model where shrub cover changes in a curve (concave or convex) with grass cover.
 model_poly <- lm(N_spprich ~ poly(grass_nonnative, 2), data = df)
 summary(model_poly)
-
-# Generalized Additive Models (GAMs) - If you don’t want to assume the shape (e.g., parabola), GAMs let the data “decide” the curve:
-model_gam <- gam(N_spprich ~ s(grass_nonnative), data = df)
-summary(model_gam)
-plot(model_gam)
-# - GAMs are flexible and can capture non-linear but smooth patterns.
-# - You can test significance of the smooth term (edf > 1 indicates non-linearity).
-## plot_gam code in next chunk
 
 
 # Threshold or Breakpoint Models (Piecewise Regression)
@@ -904,32 +1009,10 @@ model_seg <- segmented(model_lin, seg.Z = ~grass_nonnative,
 summary(model_seg)
 plot(model_seg)
 
-# Quantile Regression - Sometimes the average trend isn’t the full story — for example, shrubs may persist under moderate grass cover only in the “best-case” sites. Quantile regression shows how the relationship differs across the distribution of shrub cover.
-model_qr <- rq(N_spprich ~ grass_nonnative, tau = 0.9, data = df)
-summary(model_qr)
-# - This tests whether the upper limit of shrub cover declines with grass cover.
-
-# tau: [1] 0.9 <-- quantile regression at the 90th percentile
-# Coefficients:
-#                 coefficients lower bound   upper bound
-# (Intercept)      1.17561      1.07409       2.31828 <-- (1.176, CI: 1.07 – 2.32)
-# grass_nonnative -0.80000     -1.76827       -0.44443
-
-# Intercept: (1.176, CI: 1.07 – 2.32) <-- When non-native grass cover = 0, the upper end (90th percentile) of shrub cover is ~1.18%
-
-# Slope for grass_nonnative: (–0.80, CI: –1.77 to –0.44) <-- At the 90th percentile, for every 1% increase in non-native grass cover, shrub cover is predicted to decrease by ~0.8%.
-# Since the confidence interval is entirely below zero (–1.77 to –0.44), the effect is statistically significant: more non-native grass strongly limits the upper potential of shrub cover.
-
-###### Ecological interpretation
-# - You’re looking at the upper bound of possible shrub cover, not the average.
-# - The result suggests that EVEN UNDER the best-case conditions (stands with unusually high shrub cover for their level of grass invasion), shrub cover still declines steeply as non-native grass cover increases.
-# 
-# - In practice: stands with low grass cover can sustain high shrub cover, but as grass cover increases, the “ceiling” on shrub cover gets pushed down sharply.
-
 ### Model Comparison
 # To decide if non-linear/threshold models are “better” than linear:
 # Compare models using AIC:
-(AIC(model_lin, model_poly, model_gam, model_seg))
+AIC_forbspprich <- (AIC(model_lin, model_poly, model_seg))
 # Lower/more negative AIC = better fit.
 # - GAM is best fit, but polynomial and segmented regressions are just as good of a fit too.
 
@@ -940,6 +1023,41 @@ summary(model_qr)
 
 ##### y = native shrub spprich
 ```{r}
+
+### segmentted model is the best fit regression
+summary(
+  segmented(
+  lm(N_spprich ~ grass_nonnative, 
+     data = spprich_trans_status_lf %>% 
+  filter(status == "native" & lifeform == "shrub")), seg.Z = ~ grass_nonnative,
+                       npsi = 1)
+  )
+# breakpoint = 19.5% nng
+# intercept =  8.0913
+# slope = -19.9693; p = 0.116 
+# slope = -2.4636;  no pvalue
+
+# Plot the segmented regression model and increase text sizes
+plot(segmented(
+  lm(shrub_native ~ grass_nonnative, data = cover_bylfstatus_wide)
+    , seg.Z = ~ grass_nonnative,
+                       npsi = 1), 
+     conf.level = 0.95, 
+     shade = TRUE,
+     # main = "Segmented Regression with Confidence Interval",
+     xlab = "Non-Native Grass Cover (%)", 
+     ylab = "Native Shrub Species Richness (#)",
+     cex.main = 1.5,   # Increase the main title size
+     cex.lab = 1.3,    # Increase the axis labels size
+     cex.axis = 1.2)   # Increase the axis numbers size
+
+# Add the original data points, increasing their size as well
+points(cover_bylfstatus_wide$grass_nonnative, 
+       cover_bylfstatus_wide$shrub_native,
+       # col = colors_plantclusters,
+       pch = 16,
+       cex = 1.5)      # Increase the size of the data points
+
 ### shrubs
 plot_spprich_shrub <- ggplot(data = spprich_trans_status_lf %>% 
                                # filter(grass_nonnative < .6) %>% 
@@ -1031,15 +1149,18 @@ summary(model_qr)
 # Compare models using AIC:
 AIC_shrubspprich <- (AIC(model_lin, model_poly, model_gam, model_seg))
 # Lower/more negative AIC = better fit.
-# - GAM is best fit, but polynomial and segmented regressions are just as good of a fit too.
-
-# Or use likelihood ratio tests: (anova(model, model_poly) if models are nested).
 
 AIC_shrubspprich
 ```
 
 ##### y = native grass spprich
 ```{r}
+
+# linear model is the best fit regression
+summary(lm(N_spprich ~ grass_nonnative, data = spprich_trans_status_lf %>% 
+                               # filter(grass_nonnative < .6) %>% 
+                               filter(status == "native" & lifeform == "grass")) )
+
 ### grass
 plot_spprich_grass <- ggplot(data = spprich_trans_status_lf %>% 
                                # filter(grass_nonnative < .6) %>% 
@@ -1049,7 +1170,8 @@ plot_spprich_grass <- ggplot(data = spprich_trans_status_lf %>%
          y = N_spprich)) + 
       geom_point(aes(color = cluster), size = 3) +
   scale_color_manual(values = colors_plantclusters) +
-  stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
+   geom_smooth(method = "lm", se = TRUE, color = "gray50", linetype = "solid") + # se = confidence interval
+  # stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE, color = "black", linewidth = 1) +
   labs(
     #  title = "Linear regression of  total shrub cover by non-native grass cover",
     x = "Non-native grass cover (%)",
@@ -1088,15 +1210,14 @@ plot_spprich_grass
 df <- spprich_trans_status_lf %>% 
   filter(status == "native" &  lifeform == "grass")
 
+hist(df$N_spprich)
+shapiro_test(df$N_spprich) # <-- not normal
+
 # Correlation - Compute a correlation coefficient to see if the two are associated
 cor.test(df$grass_nonnative, 
          df$N_spprich, method = "spearman")
-# t = 0.54032, df = 16, p-value = 0.5964
-# cor 
-# 0.1338631 
-# rho 
-# 0.1149919 
-# round(0.1149919, 2)
+# p-value = 0.6496
+# rho = 0.1149919
 
 
 # linear regression
