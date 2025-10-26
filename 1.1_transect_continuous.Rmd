@@ -3940,6 +3940,7 @@ cluster_shrub_boxorjitter <- ggplot(shrub_perennial_data,
   theme_bw() 
 cluster_shrub_boxorjitter
 
+
 shrub_cluster <- ggplot(cover_bylifecycle_bygroup %>%
          filter(lifeform_lifecycle %in% c("shrub_perennial")),
        aes(x = cluster,
